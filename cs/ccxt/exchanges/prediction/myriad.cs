@@ -651,7 +651,9 @@ public partial class myriad : PredictionExchange
         {
             throw new ExchangeError ((string)add(add(add(add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
         }
-        return this.safeString(response, "result");
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return this.safeValue(response, "result");
     }
 
     public virtual object padHexAddress(object address)
@@ -2663,16 +2665,11 @@ public partial class myriad : PredictionExchange
         object queriesLength = getArrayLength(queries);
         if (isTrue(isEqual(queriesLength, 0)))
         {
-            this.populateOutcomes();
-            // hoist Object.values to a local — inline as a call argument breaks the php regex transpiler
-            object existingEvents = (IList<object>)(new List<object>(((IDictionary<string,object>)this.events).Values));
+            // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
+            object existingEvents = this.eventsList();
             return this.applyEventFetchParams(existingEvents, parameters, queries);
         }
         object rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
-        if (!isTrue(this.events))
-        {
-            this.events = new Dictionary<string, object>() {};
-        }
         if (!isTrue(this.markets))
         {
             this.markets = this.createSafeDictionary();
@@ -2684,13 +2681,10 @@ public partial class myriad : PredictionExchange
             object m = this.parseMyriadMarket(raw);
             ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "symbol"))] = m;
             object ev = this.parseMarketToEvent(raw, m);
-            object evKey = this.safeString(ev, "event");
-            if (isTrue(!isEqual(evKey, null)))
-            {
-                ((IDictionary<string,object>)this.events)[(string)evKey] = ev;
-                ((IList<object>)result).Add(ev);
-            }
+            ((IList<object>)result).Add(ev);
         }
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents(result);
         this.populateOutcomes();
         return this.applyEventFetchParams(result, parameters, queries);
     }

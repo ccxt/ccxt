@@ -263,7 +263,9 @@ export interface PredictionOpenInterest extends OpenInterest {
 // extra params accepted by fetchEvents on prediction exchanges; the [key] index
 // signature keeps it open for exchange-specific passthrough params
 export interface fetchEventsParams {
-    query?: string;       // keyword search
+    query?: string;       // keyword search (single query)
+    queries?: string[];   // keyword search (multiple queries, unioned)
+    tags?: string[];      // filter events by tag/category
     limit?: number;       // max number of events to return
     sort?: 'volume' | 'liquidity' | 'newest';
     status?: 'active' | 'inactive' | 'closed' | 'all'; // default 'active'; 'inactive' and 'closed' are interchangeable

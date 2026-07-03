@@ -3140,7 +3140,9 @@ public partial class limitless : PredictionExchange
         object queriesLength = getArrayLength(queries);
         if (isTrue(!isTrue(queries) || isTrue(isEqual(queriesLength, 0))))
         {
-            result = (IList<object>)(new List<object>(((IDictionary<string,object>)this.events).Values));
+            // no query - serve the eventId/slug/tags-only scope from the cache (empty on a
+            // cold instance); applyEventFetchParams filters it below
+            result = this.eventsList();
         } else
         {
             object requestedLimit = this.safeInteger(parameters, "limit", 50);
@@ -3207,46 +3209,13 @@ public partial class limitless : PredictionExchange
                 object eventKey = getValue(eventKeys, i);
                 object g = getValue(eventGroups, eventKey);
                 object ev = this.parseEvent(g);
-                ((IDictionary<string,object>)this.events)[(string)eventKey] = ev;
                 ((IList<object>)result).Add(ev);
             }
         }
-        this.rebuildOutcomes();
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents(result);
+        this.populateOutcomes();
         return this.applyEventFetchParams(result, parameters, queries);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name limitless#rebuildOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
-     */
-    public virtual void rebuildOutcomes()
-    {
-        this.outcomes = new Dictionary<string, object>() {};
-        this.outcomes_by_id = new Dictionary<string, object>() {};
-        object marketsMap = ((bool) isTrue((!isEqual(this.markets, null)))) ? this.markets : new Dictionary<string, object>() {};
-        object marketKeys = new List<object>(((IDictionary<string,object>)marketsMap).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
-        {
-            object market = getValue(this.markets, getValue(marketKeys, i));
-            object outcomesList = (IList<object>)(this.safeList(market, "outcomes", new List<object>() {}));
-            for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
-            {
-                object oc = getValue(outcomesList, j);
-                object ocSymbol = this.safeString(oc, "outcome");
-                if (isTrue(!isEqual(ocSymbol, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
-                }
-                object ocId = this.safeString(oc, "outcomeId");
-                if (isTrue(!isEqual(ocId, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
-                }
-            }
-        }
     }
 
     /**

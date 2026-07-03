@@ -619,7 +619,9 @@ export default class myriad extends Exchange {
         if (rpcError !== undefined) {
             throw new ExchangeError (this.id + ' rpc ' + method + ' error: ' + this.json (rpcError));
         }
-        return this.safeString (response, 'result');
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return this.safeValue (response, 'result');
     }
 
     padHexAddress (address: string): string {
@@ -2415,15 +2417,11 @@ export default class myriad extends Exchange {
         const rest = this.omit (params, [ 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
         const queriesLength = queries.length;
         if (queriesLength === 0) {
-            this.populateOutcomes ();
-            // hoist Object.values to a local — inline as a call argument breaks the php regex transpiler
-            const existingEvents = Object.values (this.events as Dict) as any[];
+            // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
+            const existingEvents = this.eventsList ();
             return this.applyEventFetchParams (existingEvents, params, queries);
         }
         const rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
-        if (!this.events) {
-            this.events = {};
-        }
         if (!this.markets) {
             this.markets = this.createSafeDictionary ();
         }
@@ -2433,12 +2431,10 @@ export default class myriad extends Exchange {
             const m = this.parseMyriadMarket (raw);
             this.markets[m['symbol'] as string] = m;
             const ev = this.parseMarketToEvent (raw, m);
-            const evKey = this.safeString (ev, 'event');
-            if (evKey !== undefined) {
-                this.events[evKey] = ev;
-                result.push (ev);
-            }
+            result.push (ev);
         }
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents (result);
         this.populateOutcomes ();
         return this.applyEventFetchParams (result, params, queries);
     }

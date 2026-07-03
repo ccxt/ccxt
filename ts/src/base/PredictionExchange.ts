@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -70,6 +70,7 @@ export default class PredictionExchange extends Exchange {
             result = filtered;
         }
         result = this.filterEventsByStatus (result, this.safeString (params, 'status'));
+        result = this.filterEventsByTags (result, this.safeList (params, 'tags'));
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         let queriesLength = 0;
@@ -154,7 +155,54 @@ export default class PredictionExchange extends Exchange {
         return result;
     }
 
-    async fetchEvents (params: fetchEventsParams = {}): Promise<any[]> {
+    filterEventsByTags (events: any[], tags: string[] = undefined): any[] {
+        // keep events carrying one of the requested tags; tolerant to string tags and to
+        // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
+        let tagsLength = 0;
+        if (tags !== undefined) {
+            tagsLength = tags.length;
+        }
+        if (tagsLength === 0) {
+            return events;
+        }
+        const wanted = [];
+        for (let i = 0; i < tags.length; i++) {
+            wanted.push (tags[i].toLowerCase ());
+        }
+        const result = [];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const eventTags = this.safeList (event, 'tags', []);
+            let matched = false;
+            for (let ti = 0; ti < eventTags.length; ti++) {
+                const tag = eventTags[ti];
+                let tagLabel = undefined;
+                if (typeof tag === 'string') {
+                    tagLabel = tag;
+                } else {
+                    tagLabel = this.safeString2 (tag, 'slug', 'title');
+                }
+                if (tagLabel !== undefined) {
+                    const tagLower = tagLabel.toLowerCase ();
+                    for (let wi = 0; wi < wanted.length; wi++) {
+                        if (tagLower.indexOf (wanted[wi]) >= 0) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (matched) {
+                    break;
+                }
+            }
+            if (matched) {
+                result.push (event);
+            }
+        }
+        return result;
+    }
+
+    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         throw new NotSupported (this.id + ' fetchEvents() is not supported yet');
     }
 
@@ -163,7 +211,9 @@ export default class PredictionExchange extends Exchange {
     }
 
     setEvents (events: any[]): Dictionary<any> {
-        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
+        // index by the unified `event` handle too (that's the identifier every outcome's `event`
+        // field carries), so getEvent (handle) resolves without each exchange hand-writing it
         if (this.events === undefined) {
             this.events = {};
         }
@@ -174,8 +224,12 @@ export default class PredictionExchange extends Exchange {
             const event = events[i];
             const id = this.safeString (event, 'id');
             const slug = this.safeString (event, 'slug');
+            const handle = this.safeString (event, 'event');
             if (id !== undefined) {
                 this.events[id] = event;
+            }
+            if (handle !== undefined) {
+                this.events[handle] = event;
             }
             if (slug !== undefined) {
                 this.events_by_slug[slug] = event;
@@ -184,7 +238,30 @@ export default class PredictionExchange extends Exchange {
         return this.events;
     }
 
+    eventsList (): any[] {
+        // the cached events as a list; empty on a cold instance (this.events is keyed by both
+        // id and handle, so de-duplicate by identity before returning)
+        if (this.events === undefined) {
+            return [];
+        }
+        const result = [];
+        const seen: Dict = {};
+        const keys = Object.keys (this.events);
+        for (let i = 0; i < keys.length; i++) {
+            const event = this.events[keys[i]];
+            const identity = this.safeString2 (event, 'id', 'event', keys[i]);
+            if (!(identity in seen)) {
+                seen[identity] = true;
+                result.push (event);
+            }
+        }
+        return result;
+    }
+
     async loadEventsHelper (reload = false, params = {}) {
+        // note: the cache-hit shortcut ignores params, so events fetched under one scope are
+        // returned for a later differently-scoped call. events are scoped (unlike global
+        // markets), so prefer fetchEvents (params) directly when you need a specific scope
         if (!reload && this.events) {
             return this.events;
         }
@@ -201,27 +278,27 @@ export default class PredictionExchange extends Exchange {
 
     getEvent (eventIdOrSlug: string): any {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
-        // through fetchEvents/loadEvents; this never fetches
+        // through fetchEvents; this never fetches
         if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
             return this.events[eventIdOrSlug];
         }
         if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
             return this.events_by_slug[eventIdOrSlug];
         }
-        throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + ' - call loadEvents() or fetchEvents() first');
+        throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
 
     outcome (outcomeSymbol: string): any {
-        if (this.outcomes === undefined) {
-            throw new ExchangeError (this.id + ' outcomes not loaded');
+        if ((this.outcomes === undefined) || this.isEmpty (this.outcomes)) {
+            throw new ExchangeError (this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
         if (outcomeSymbol in this.outcomes) {
             return this.outcomes[outcomeSymbol];
         }
-        if (outcomeSymbol in this.outcomes_by_id) {
+        if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
             return this.outcomes_by_id[outcomeSymbol];
         }
-        throw new BadSymbol (this.id + ' does not have outcome symbol ' + outcomeSymbol);
+        throw new BadSymbol (this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
 
     safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): any {
@@ -236,7 +313,7 @@ export default class PredictionExchange extends Exchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'info': {}};
+        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {}};
     }
 
     safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
@@ -328,35 +405,70 @@ export default class PredictionExchange extends Exchange {
         return result;
     }
 
+    indexMarketOutcomes (market) {
+        // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
+        // normalizing each to the canonical identity keys (outcome / outcomeId / market) so
+        // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
+        // still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
+        // for a full rebuild and by on-demand single-market fetches (kalshi fetchOutcome), so a
+        // cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
+        if (this.outcomes === undefined) {
+            this.outcomes = {};
+        }
+        if (this.outcomes_by_id === undefined) {
+            this.outcomes_by_id = {};
+        }
+        const outcomesList = this.safeList (market, 'outcomes', []);
+        for (let j = 0; j < outcomesList.length; j++) {
+            const oc = outcomesList[j];
+            let ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
+            const ocId = this.safeString2 (oc, 'outcomeId', 'id');
+            // assign unconditionally — safeString2 keeps the canonical key when present
+            // and falls back to the legacy one, so this never clobbers and avoids a
+            // missing-key access that throws in Python/PHP, unlike TS undefined
+            oc['outcomeId'] = ocId;
+            oc['market'] = this.safeString2 (oc, 'market', 'marketSymbol');
+            if (ocSymbol !== undefined) {
+                // shortenSlug is lossy, so two different markets can produce the same handle.
+                // on a real collision of same handle but different outcomeId, disambiguate the
+                // second one deterministically instead of silently overwriting the first —
+                // trading the wrong market would otherwise be indistinguishable
+                const existing = this.safeValue (this.outcomes, ocSymbol);
+                if (existing !== undefined) {
+                    const existingId = this.safeString (existing, 'outcomeId');
+                    if ((existingId !== undefined) && (ocId !== undefined) && (existingId !== ocId)) {
+                        const idLen = ocId.length;
+                        let suffix = ocId;
+                        if (idLen > 6) {
+                            suffix = ocId.slice (idLen - 6);
+                        }
+                        ocSymbol = ocSymbol + '_' + suffix.toUpperCase ();
+                    }
+                }
+                oc['outcome'] = ocSymbol;
+                this.outcomes[ocSymbol] = oc;
+            } else {
+                oc['outcome'] = ocSymbol;
+            }
+            if (ocId !== undefined) {
+                this.outcomes_by_id[ocId] = oc;
+            }
+        }
+    }
+
     populateOutcomes () {
-        // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline.
-        // normalize each outcome object to the canonical identity keys (outcome /
-        // outcomeId / market) so consumers and the safe* helpers are uniform even when
-        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
+        // rebuild the whole outcome lookup cache from this.markets (each market carries its
+        // outcome tokens under the outcomes key) so cached market data works offline. no-op on
+        // a cold instance where markets are not loaded yet (avoids a null-access crash on the
+        // eventId/slug-only fetchEvents path)
         this.outcomes = {};
         this.outcomes_by_id = {};
+        if (this.markets === undefined) {
+            return;
+        }
         const marketKeys = Object.keys (this.markets);
         for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]];
-            const outcomesList = this.safeList (market, 'outcomes', []);
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                const ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
-                const ocId = this.safeString2 (oc, 'outcomeId', 'id');
-                // assign unconditionally — safeString2 keeps the canonical key when present
-                // and falls back to the legacy one, so this never clobbers and avoids a
-                // missing-key access (which throws in Python/PHP, unlike TS undefined)
-                oc['outcome'] = ocSymbol;
-                oc['outcomeId'] = ocId;
-                oc['market'] = this.safeString2 (oc, 'market', 'marketSymbol');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
-                }
-            }
+            this.indexMarketOutcomes (this.markets[marketKeys[i]]);
         }
     }
 
@@ -389,13 +501,12 @@ export default class PredictionExchange extends Exchange {
                 return this.outcomes_by_id[outcomeSymbol];
             }
         }
-        // remember whether the cache was already warm: a miss against a warm cache may just
-        // be staleness (prediction listings churn and some venues re-assign outcome ids), so
-        // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
         const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
-        const loadAll = this.safeBool (this.options, 'loadAllOutcomes', true);
-        if (loadAll) {
-            await this.loadOutcomes ();
+        // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+        // but the outcome cache is cold, index them for free before hitting the network — this
+        // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+        if (!wasWarm && (this.markets !== undefined) && !this.isEmpty (this.markets)) {
+            this.populateOutcomes ();
             if (this.outcomes !== undefined) {
                 if (outcomeSymbol in this.outcomes) {
                     return this.outcomes[outcomeSymbol];
@@ -404,15 +515,20 @@ export default class PredictionExchange extends Exchange {
                     return this.outcomes_by_id[outcomeSymbol];
                 }
             }
-            if (wasWarm) {
-                await this.loadOutcomes (true);
-                if (this.outcomes !== undefined) {
-                    if (outcomeSymbol in this.outcomes) {
-                        return this.outcomes[outcomeSymbol];
-                    }
-                    if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                        return this.outcomes_by_id[outcomeSymbol];
-                    }
+        }
+        const loadAll = this.safeBool (this.options, 'loadAllOutcomes', true);
+        if (loadAll && !wasWarm) {
+            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+            // the whole listing (which would mask typos and clobber offline-injected markets)
+            await this.loadOutcomes ();
+            if (this.outcomes !== undefined) {
+                if (outcomeSymbol in this.outcomes) {
+                    return this.outcomes[outcomeSymbol];
+                }
+                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                    return this.outcomes_by_id[outcomeSymbol];
                 }
             }
         }

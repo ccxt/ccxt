@@ -241,7 +241,9 @@ public class KalshiCore extends KalshiApi
             Object flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object eventsDict = new java.util.HashMap<String, Object>() {{}};
             Object cursor = null;
-            Object limit = this.safeInteger(this.options, "maxFetchMarketsLimit", 1000);
+            // don't request a full 1000-market page (3+ MB) when the caller wants fewer
+            Object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
+            Object limit = Helpers.mathMin(maxMarkets, pageLimit);
             // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
             // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
             // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -353,7 +355,9 @@ public class KalshiCore extends KalshiApi
                 this.markets = this.createSafeDictionary();
             }
             Helpers.addElementToObject(this.markets, Helpers.GetValue(parsed, "symbol"), parsed);
-            this.populateOutcomes();
+            // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+            // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+            this.indexMarketOutcomes(parsed);
             return this.outcome(outcomeSymbol);
         });
 
@@ -2034,7 +2038,8 @@ final Object finalOi = oi;
                 Object eventKey = ((Helpers.isTrue(eventTitle))) ? this.shortenSlug(eventTitle) : null;
                 if (Helpers.isTrue(eventKey))
                 {
-                    Helpers.addElementToObject(this.events, eventKey, parsedEvent);
+                    // the event handle keying happens in setEvents (via applyEventFetchParams);
+                    // register the parsed markets so populateOutcomes can index their outcomes
                     ((java.util.List<Object>)result).add(parsedEvent);
                     Object parsedMarketsRaw = Helpers.GetValue(parsedEvent, "markets");
                     Object parsedMarkets = ((Helpers.isTrue((!Helpers.isEqual(parsedMarketsRaw, null))))) ? parsedMarketsRaw : new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2045,28 +2050,7 @@ final Object finalOi = oi;
                     }
                 }
             }
-            this.outcomes = new java.util.HashMap<String, Object>() {{}};
-            this.outcomes_by_id = new java.util.HashMap<String, Object>() {{}};
-            Object marketKeys = Helpers.objectKeys(this.markets);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
-            {
-                Object market = Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i));
-                Object outcomesList = (java.util.List<Object>)(this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
-                {
-                    Object oc = Helpers.GetValue(outcomesList, j);
-                    Object ocSymbol = this.safeString(oc, "outcome");
-                    if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
-                    {
-                        Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
-                    }
-                    Object ocId = this.safeString(oc, "outcomeId");
-                    if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
-                    {
-                        Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
-                    }
-                }
-            }
+            this.populateOutcomes();
             return this.applyEventFetchParams(result, parameters, queries);
         });
 

@@ -704,7 +704,9 @@ public class MyriadCore extends MyriadApi
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
             }
-            return this.safeString(response, "result");
+            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+            // safeString would coerce a receipt object to "[object Object]"
+            return this.safeValue(response, "result");
         });
 
     }
@@ -2906,16 +2908,11 @@ final Object finalNetworkId = networkId;
             Object queriesLength = Helpers.getArrayLength(queries);
             if (Helpers.isTrue(Helpers.isEqual(queriesLength, 0)))
             {
-                this.populateOutcomes();
-                // hoist Object.values to a local — inline as a call argument breaks the php regex transpiler
-                Object existingEvents = (java.util.List<Object>)(Helpers.objectValues(this.events));
+                // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
+                Object existingEvents = this.eventsList();
                 return this.applyEventFetchParams(existingEvents, parameters, queries);
             }
             Object rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
-            if (!Helpers.isTrue(this.events))
-            {
-                this.events = new java.util.HashMap<String, Object>() {{}};
-            }
             if (!Helpers.isTrue(this.markets))
             {
                 this.markets = this.createSafeDictionary();
@@ -2927,13 +2924,10 @@ final Object finalNetworkId = networkId;
                 Object m = this.parseMyriadMarket(raw);
                 Helpers.addElementToObject(this.markets, ((String)Helpers.GetValue(m, "symbol")), m);
                 Object ev = this.parseMarketToEvent(raw, m);
-                Object evKey = this.safeString(ev, "event");
-                if (Helpers.isTrue(!Helpers.isEqual(evKey, null)))
-                {
-                    Helpers.addElementToObject(this.events, evKey, ev);
-                    ((java.util.List<Object>)result).add(ev);
-                }
+                ((java.util.List<Object>)result).add(ev);
             }
+            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+            this.setEvents(result);
             this.populateOutcomes();
             return this.applyEventFetchParams(result, parameters, queries);
         });

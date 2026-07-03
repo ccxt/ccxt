@@ -611,7 +611,9 @@ class myriad extends Exchange {
             if ($rpcError !== null) {
                 throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
             }
-            return $this->safe_string($response, 'result');
+            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+            // safeString would coerce a receipt object to "[object Object]"
+            return $this->safe_value($response, 'result');
         })();
     }
 
@@ -2429,15 +2431,11 @@ class myriad extends Exchange {
             $rest = $this->omit($params, array( 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
             $queriesLength = count($queries);
             if ($queriesLength === 0) {
-                $this->populate_outcomes();
-                // hoist Object.values to a local — inline call argument breaks the php regex transpiler
-                $existingEvents = is_array($this->events) ? array_values($this->events) : array();
+                // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
+                $existingEvents = $this->events_list();
                 return $this->apply_event_fetch_params($existingEvents, $params, $queries);
             }
             $rawMarkets = Async\await($this->fetch_raw_markets_by_search($queries, $rest));
-            if (!$this->events) {
-                $this->events = array();
-            }
             if (!$this->markets) {
                 $this->markets = $this->create_safe_dictionary();
             }
@@ -2447,12 +2445,10 @@ class myriad extends Exchange {
                 $m = $this->parse_myriad_market($raw);
                 $this->markets[$m['symbol']] = $m;
                 $ev = $this->parse_market_to_event($raw, $m);
-                $evKey = $this->safe_string($ev, 'event');
-                if ($evKey !== null) {
-                    $this->events[$evKey] = $ev;
-                    $result[] = $ev;
-                }
+                $result[] = $ev;
             }
+            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+            $this->set_events($result);
             $this->populate_outcomes();
             return $this->apply_event_fetch_params($result, $params, $queries);
         })();

@@ -234,7 +234,9 @@ export default class kalshi extends Exchange {
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
         let cursor: Str = undefined;
-        const limit = this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000);
+        // don't request a full 1000-market page (3+ MB) when the caller wants fewer
+        const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 1000);
+        const limit = Math.min (maxMarkets, pageLimit);
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -321,7 +323,9 @@ export default class kalshi extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         this.markets[parsed['symbol']] = parsed;
-        this.populateOutcomes ();
+        // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+        // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+        this.indexMarketOutcomes (parsed);
         return this.outcome (outcomeSymbol);
     }
 
@@ -1701,7 +1705,8 @@ export default class kalshi extends Exchange {
             const eventTitle = this.safeString (fullEvent, 'title');
             const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
             if (eventKey) {
-                this.events[eventKey] = parsedEvent;
+                // the event handle keying happens in setEvents (via applyEventFetchParams);
+                // register the parsed markets so populateOutcomes can index their outcomes
                 result.push (parsedEvent);
                 const parsedMarketsRaw = parsedEvent['markets'];
                 const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
@@ -1711,24 +1716,7 @@ export default class kalshi extends Exchange {
                 }
             }
         }
-        this.outcomes = {};
-        this.outcomes_by_id = {};
-        const marketKeys = Object.keys (this.markets);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]] as Dict;
-            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'outcome');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                const ocId = this.safeString (oc, 'outcomeId');
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
-                }
-            }
-        }
+        this.populateOutcomes ();
         return this.applyEventFetchParams (result, params, queries);
     }
 

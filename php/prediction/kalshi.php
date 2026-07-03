@@ -230,7 +230,9 @@ class kalshi extends Exchange {
             $flatMarkets = array();
             $eventsDict = array();
             $cursor = null;
-            $limit = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 1000);
+            // don't $request a full 1000-market page (3+ MB) when the caller wants fewer
+            $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 1000);
+            $limit = min($maxMarkets, $pageLimit);
             // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
             // an unfiltered $cursor pages through those, so loadMarkets would otherwise return mostly
             // closed markets. Pass $params->status(e.g. 'closed', 'settled', 'unopened') to override
@@ -317,7 +319,9 @@ class kalshi extends Exchange {
                 $this->markets = $this->create_safe_dictionary();
             }
             $this->markets[$parsed['symbol']] = $parsed;
-            $this->populate_outcomes();
+            // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+            // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+            $this->index_market_outcomes($parsed);
             return $this->outcome($outcomeSymbol);
         })();
     }
@@ -1706,7 +1710,8 @@ class kalshi extends Exchange {
                 $eventTitle = $this->safe_string($fullEvent, 'title');
                 $eventKey = $eventTitle ? $this->shorten_slug($eventTitle) : null;
                 if ($eventKey) {
-                    $this->events[$eventKey] = $parsedEvent;
+                    // the event handle keying happens in setEvents (via applyEventFetchParams);
+                    // register the parsed markets so populateOutcomes can index their outcomes
                     $result[] = $parsedEvent;
                     $parsedMarketsRaw = $parsedEvent['markets'];
                     $parsedMarkets = ($parsedMarketsRaw !== null) ? $parsedMarketsRaw : array();
@@ -1716,24 +1721,7 @@ class kalshi extends Exchange {
                     }
                 }
             }
-            $this->outcomes = array();
-            $this->outcomes_by_id = array();
-            $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
-            for ($i = 0; $i < count($marketKeys); $i++) {
-                $market = $this->markets[$marketKeys[$i]];
-                $outcomesList = $this->safe_list($market, 'outcomes', array());
-                for ($j = 0; $j < count($outcomesList); $j++) {
-                    $oc = $outcomesList[$j];
-                    $ocSymbol = $this->safe_string($oc, 'outcome');
-                    if ($ocSymbol !== null) {
-                        $this->outcomes[$ocSymbol] = $oc;
-                    }
-                    $ocId = $this->safe_string($oc, 'outcomeId');
-                    if ($ocId !== null) {
-                        $this->outcomes_by_id[$ocId] = $oc;
-                    }
-                }
-            }
+            $this->populate_outcomes();
             return $this->apply_event_fetch_params($result, $params, $queries);
         })();
     }

@@ -307,6 +307,12 @@ class polymarket extends Exchange {
             ),
             'options' => array(
                 'defaultFetchEventsLimit' => 100,
+                // gamma caps each /events response at 100, so paginate at that page size
+                'eventsPageSize' => 100,
+                // cap the cold-start listing => each gamma event is heavy (~90 KB with the HTML
+                // description), so 200 events (2 pages, volume-ordered) is ~18 MB; raise via
+                // params.limit or this option when you need a wider set
+                'fetchMarketsLimit' => 200,
                 'maxFetchEventsLimit' => 500,
                 'defaultEventStatus' => 'active',  // 'active' | 'closed' | 'all'
                 // CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
@@ -457,10 +463,12 @@ class polymarket extends Exchange {
              * @param {int} [$params->limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
              * @return {array[]} an array of raw gamma event objects
              */
-            $pageSize = $this->safe_integer($this->options, 'maxFetchEventsLimit', 500);
+            // gamma hard-caps each response at 100 events regardless of the requested $limit, so the
+            // $page size must be that cap or pagination never advances (the > check below stays false)
+            $pageSize = $this->safe_integer($this->options, 'eventsPageSize', 100);
             // scope the listing => without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `$limit` events (most-traded first).
-            $limit = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
+            $limit = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 200));
             $maxPages = (int) ceil($limit / $pageSize);
             $status = $this->safe_string($params, 'status', $this->safe_string($this->options, 'defaultEventStatus', 'active'));
             // $sort maps to the gamma `$order` field; 'volume' is the default ranking
@@ -2066,7 +2074,7 @@ class polymarket extends Exchange {
     public function fetch_events(array $params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches prediction-$market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
+             * fetches prediction-market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
              *
              * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
              * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -2137,33 +2145,12 @@ class polymarket extends Exchange {
                     $this->markets[$m['symbol']] = $m;
                 }
                 $parsedEvent = $this->parse_event($eventForParsing);
-                $eventSlug = $this->safe_string($eventForParsing, 'slug', $this->safe_string($rawEvent, 'slug'));
-                if ($eventSlug) {
-                    $eventKey = $this->shorten_slug($eventSlug);
-                    $this->events[$eventKey] = $parsedEvent;
-                }
                 $result[] = $parsedEvent;
             }
-            $this->outcomes = array();
-            $this->outcomes_by_id = array();
-            $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
-            for ($i = 0; $i < count($marketKeys); $i++) {
-                $market = $this->markets[$marketKeys[$i]];
-                $outcomesList = $this->safe_list($market, 'outcomes', array());
-                for ($j = 0; $j < count($outcomesList); $j++) {
-                    $oc = $outcomesList[$j];
-                    $ocSymbol = $this->safe_string($oc, 'outcome');
-                    if ($ocSymbol !== null) {
-                        $this->outcomes[$ocSymbol] = $oc;
-                    }
-                    $ocId = $this->safe_string($oc, 'outcomeId');
-                    if ($ocId !== null) {
-                        $this->outcomes_by_id[$ocId] = $oc;
-                    }
-                }
-            }
-            // uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+            // from the markets registered above
             $this->set_events($result);
+            $this->populate_outcomes();
             // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
             // client-side (searchIn defaults to 'title', matching the reference behaviour)
             $filtered = $result;

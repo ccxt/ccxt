@@ -2881,7 +2881,9 @@ class limitless extends Exchange {
             $result = array();
             $queriesLength = count($queries);
             if (!$queries || $queriesLength === 0) {
-                $result = is_array($this->events) ? array_values($this->events) : array();
+                // no query - serve the eventId/slug/tags-only scope from the cache (empty on a
+                // cold instance); applyEventFetchParams filters it below
+                $result = $this->events_list();
             } else {
                 $requestedLimit = $this->safe_integer($params, 'limit', 50);
                 // the search endpoint rejects $limit > 50 - cap the per-query request and             // maxMarkets bound the overall collection
@@ -2932,40 +2934,14 @@ class limitless extends Exchange {
                     $eventKey = $eventKeys[$i];
                     $g = $eventGroups[$eventKey];
                     $ev = $this->parse_event($g);
-                    $this->events[$eventKey] = $ev;
                     $result[] = $ev;
                 }
             }
-            $this->rebuild_outcomes();
+            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+            $this->set_events($result);
+            $this->populate_outcomes();
             return $this->apply_event_fetch_params($result, $params, $queries);
         })();
-    }
-
-    public function rebuild_outcomes() {
-        /**
-         * @ignore
-         * rebuilds $this->outcomes and $this->outcomes_by_id from the outcomes of every loaded $market
-         * @return {null}
-         */
-        $this->outcomes = array();
-        $this->outcomes_by_id = array();
-        $marketsMap = ($this->markets !== null) ? $this->markets : array();
-        $marketKeys = is_array($marketsMap) ? array_keys($marketsMap) : array();
-        for ($i = 0; $i < count($marketKeys); $i++) {
-            $market = $this->markets[$marketKeys[$i]];
-            $outcomesList = $this->safe_list($market, 'outcomes', array());
-            for ($j = 0; $j < count($outcomesList); $j++) {
-                $oc = $outcomesList[$j];
-                $ocSymbol = $this->safe_string($oc, 'outcome');
-                if ($ocSymbol !== null) {
-                    $this->outcomes[$ocSymbol] = $oc;
-                }
-                $ocId = $this->safe_string($oc, 'outcomeId');
-                if ($ocId !== null) {
-                    $this->outcomes_by_id[$ocId] = $oc;
-                }
-            }
-        }
     }
 
     public function sign(mixed $path, mixed $section = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {

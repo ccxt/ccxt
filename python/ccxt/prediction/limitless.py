@@ -2654,7 +2654,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = []
         queriesLength = len(queries)
         if not queries or queriesLength == 0:
-            result = list(self.events.values())
+            # no query - serve the eventId/slug/tags-only scope from the cache(empty on a
+            # cold instance); applyEventFetchParams filters it below
+            result = self.events_list()
         else:
             requestedLimit = self.safe_integer(params, 'limit', 50)
             # the search endpoint rejects limit > 50 - cap the per-query request and             # maxMarkets bound the overall collection
@@ -2697,32 +2699,11 @@ class limitless(PredictionExchange, ImplicitAPI):
                 eventKey = eventKeys[i]
                 g = eventGroups[eventKey]
                 ev = self.parse_event(g)
-                self.events[eventKey] = ev
                 result.append(ev)
-        self.rebuild_outcomes()
+        # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        self.set_events(result)
+        self.populate_outcomes()
         return self.apply_event_fetch_params(result, params, queries)
-
-    def rebuild_outcomes(self):
-        """
- @ignore
-        rebuilds self.outcomes and self.outcomes_by_id from the outcomes of every loaded market
-        :returns None:
-        """
-        self.outcomes = {}
-        self.outcomes_by_id = {}
-        marketsMap = self.markets if (self.markets is not None) else {}
-        marketKeys = list(marketsMap.keys())
-        for i in range(0, len(marketKeys)):
-            market = self.markets[marketKeys[i]]
-            outcomesList = self.safe_list(market, 'outcomes', [])
-            for j in range(0, len(outcomesList)):
-                oc = outcomesList[j]
-                ocSymbol = self.safe_string(oc, 'outcome')
-                if ocSymbol is not None:
-                    self.outcomes[ocSymbol] = oc
-                ocId = self.safe_string(oc, 'outcomeId')
-                if ocId is not None:
-                    self.outcomes_by_id[ocId] = oc
 
     def sign(self, path: Any, section: Any = 'limitless', method='GET', params={}, headers: Any = None, body: Any = None):
         """

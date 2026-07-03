@@ -967,7 +967,7 @@ import ccxt from 'ccxt';
 const exchange = new ccxt.prediction.polymarket ();
 await exchange.loadMarkets ();
 // discover events → markets → outcomes
-const events = await exchange.fetchEvents (['Trump']);
+const events = await exchange.fetchEvents ({ 'query': 'Trump' });
 const outcome = events[0]['markets'][0]['outcomes'][0];
 // each outcome has: outcome (the handle, e.g. 'TRUMP_OUT_PRESIDENT_2027:YES'),
 // outcomeId, market, label ('YES'/'NO')

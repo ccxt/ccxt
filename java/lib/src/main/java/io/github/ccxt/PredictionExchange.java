@@ -92,6 +92,7 @@ public Object isPrediction()
             result = filtered;
         }
         result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
+        result = this.filterEventsByTags(result, this.safeList(parameters, "tags"));
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         Object queriesLength = 0;
@@ -198,6 +199,67 @@ public Object isPrediction()
         return result;
     }
 
+    public Object filterEventsByTags(Object events, Object... optionalArgs)
+    {
+        // keep events carrying one of the requested tags; tolerant to string tags and to
+        // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
+        Object tags = Helpers.getArg(optionalArgs, 0, null);
+        Object tagsLength = 0;
+        if (Helpers.isTrue(!Helpers.isEqual(tags, null)))
+        {
+            tagsLength = Helpers.getArrayLength(tags);
+        }
+        if (Helpers.isTrue(Helpers.isEqual(tagsLength, 0)))
+        {
+            return events;
+        }
+        Object wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tags)); i++)
+        {
+            ((java.util.List<Object>)wanted).add(((String)Helpers.GetValue(tags, i)).toLowerCase());
+        }
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
+        {
+            Object eventVar = Helpers.GetValue(events, i);
+            Object eventTags = this.safeList(eventVar, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object matched = false;
+            for (var ti = 0; Helpers.isLessThan(ti, Helpers.getArrayLength(eventTags)); ti++)
+            {
+                Object tag = Helpers.GetValue(eventTags, ti);
+                Object tagLabel = null;
+                if (Helpers.isTrue((tag instanceof String)))
+                {
+                    tagLabel = tag;
+                } else
+                {
+                    tagLabel = this.safeString2(tag, "slug", "title");
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(tagLabel, null)))
+                {
+                    Object tagLower = ((String)tagLabel).toLowerCase();
+                    for (var wi = 0; Helpers.isLessThan(wi, Helpers.getArrayLength(wanted)); wi++)
+                    {
+                        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(tagLower, Helpers.GetValue(wanted, wi)), 0)))
+                        {
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (Helpers.isTrue(matched))
+                {
+                    break;
+                }
+            }
+            if (Helpers.isTrue(matched))
+            {
+                ((java.util.List<Object>)result).add(eventVar);
+            }
+        }
+        return result;
+    }
+
     public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
     {
 
@@ -222,7 +284,9 @@ public Object isPrediction()
 
     public Object setEvents(Object events)
     {
-        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
+        // index by the unified `event` handle too (that's the identifier every outcome's `event`
+        // field carries), so getEvent (handle) resolves without each exchange hand-writing it
         if (Helpers.isTrue(Helpers.isEqual(this.events, null)))
         {
             this.events = new java.util.HashMap<String, Object>() {{}};
@@ -236,9 +300,14 @@ public Object isPrediction()
             Object eventVar = Helpers.GetValue(events, i);
             Object id = this.safeString(eventVar, "id");
             Object slug = this.safeString(eventVar, "slug");
+            Object handle = this.safeString(eventVar, "event");
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(this.events, id, eventVar);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(handle, null)))
+            {
+                Helpers.addElementToObject(this.events, handle, eventVar);
             }
             if (Helpers.isTrue(!Helpers.isEqual(slug, null)))
             {
@@ -248,11 +317,38 @@ public Object isPrediction()
         return this.events;
     }
 
+    public Object eventsList()
+    {
+        // the cached events as a list; empty on a cold instance (this.events is keyed by both
+        // id and handle, so de-duplicate by identity before returning)
+        if (Helpers.isTrue(Helpers.isEqual(this.events, null)))
+        {
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        }
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object seen = new java.util.HashMap<String, Object>() {{}};
+        Object keys = Helpers.objectKeys(this.events);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        {
+            Object eventVar = Helpers.GetValue(this.events, Helpers.GetValue(keys, i));
+            Object identity = this.safeString2(eventVar, "id", "event", Helpers.GetValue(keys, i));
+            if (!Helpers.isTrue((Helpers.inOp(seen, identity))))
+            {
+                Helpers.addElementToObject(seen, identity, true);
+                ((java.util.List<Object>)result).add(eventVar);
+            }
+        }
+        return result;
+    }
+
     public java.util.concurrent.CompletableFuture<Object> loadEventsHelper(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // note: the cache-hit shortcut ignores params, so events fetched under one scope are
+            // returned for a later differently-scoped call. events are scoped (unlike global
+            // markets), so prefer fetchEvents (params) directly when you need a specific scope
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue(this.events)))
@@ -283,7 +379,7 @@ public Object isPrediction()
     public Object getEvent(Object eventIdOrSlug)
     {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
-        // through fetchEvents/loadEvents; this never fetches
+        // through fetchEvents; this never fetches
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.events, null))) && Helpers.isTrue((Helpers.inOp(this.events, eventIdOrSlug)))))
         {
             return Helpers.GetValue(this.events, eventIdOrSlug);
@@ -292,24 +388,24 @@ public Object isPrediction()
         {
             return Helpers.GetValue(this.events_by_slug, eventIdOrSlug);
         }
-        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " has no cached event "), eventIdOrSlug), " - call loadEvents() or fetchEvents() first")) ;
+        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")) ;
     }
 
     public Object outcome(Object outcomeSymbol)
     {
-        if (Helpers.isTrue(Helpers.isEqual(this.outcomes, null)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.outcomes, null))) || Helpers.isTrue(this.isEmpty(this.outcomes))))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " outcomes not loaded")) ;
+            throw new ExchangeError((String)Helpers.add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
         }
         if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
         {
             return Helpers.GetValue(this.outcomes, outcomeSymbol);
         }
-        if (Helpers.isTrue(Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
         {
             return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
         }
-        throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " does not have outcome symbol "), outcomeSymbol)) ;
+        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
     public Object safeOutcome(Object outcomeIdOrSymbol, Object... optionalArgs)
@@ -336,6 +432,7 @@ public Object isPrediction()
             put( "outcomeId", finalOutcomeIdOrSymbol );
             put( "market", null );
             put( "label", null );
+            put( "event", null );
             put( "info", new java.util.HashMap<String, Object>() {{}} );
         }};
     }
@@ -439,40 +536,83 @@ public Object isPrediction()
         return result;
     }
 
+    public void indexMarketOutcomes(Object market)
+    {
+        // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
+        // normalizing each to the canonical identity keys (outcome / outcomeId / market) so
+        // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
+        // still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
+        // for a full rebuild and by on-demand single-market fetches (kalshi fetchOutcome), so a
+        // cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
+        if (Helpers.isTrue(Helpers.isEqual(this.outcomes, null)))
+        {
+            this.outcomes = new java.util.HashMap<String, Object>() {{}};
+        }
+        if (Helpers.isTrue(Helpers.isEqual(this.outcomes_by_id, null)))
+        {
+            this.outcomes_by_id = new java.util.HashMap<String, Object>() {{}};
+        }
+        Object outcomesList = this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
+        {
+            Object oc = Helpers.GetValue(outcomesList, j);
+            Object ocSymbol = this.safeString2(oc, "outcome", "symbol");
+            Object ocId = this.safeString2(oc, "outcomeId", "id");
+            // assign unconditionally — safeString2 keeps the canonical key when present
+            // and falls back to the legacy one, so this never clobbers and avoids a
+            // missing-key access that throws in Python/PHP, unlike TS undefined
+            Helpers.addElementToObject(oc, "outcomeId", ocId);
+            Helpers.addElementToObject(oc, "market", this.safeString2(oc, "market", "marketSymbol"));
+            if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
+            {
+                // shortenSlug is lossy, so two different markets can produce the same handle.
+                // on a real collision of same handle but different outcomeId, disambiguate the
+                // second one deterministically instead of silently overwriting the first —
+                // trading the wrong market would otherwise be indistinguishable
+                Object existing = this.safeValue(this.outcomes, ocSymbol);
+                if (Helpers.isTrue(!Helpers.isEqual(existing, null)))
+                {
+                    Object existingId = this.safeString(existing, "outcomeId");
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingId, null))) && Helpers.isTrue((!Helpers.isEqual(ocId, null)))) && Helpers.isTrue((!Helpers.isEqual(existingId, ocId)))))
+                    {
+                        Object idLen = ((String)ocId).length();
+                        Object suffix = ocId;
+                        if (Helpers.isTrue(Helpers.isGreaterThan(idLen, 6)))
+                        {
+                            suffix = Helpers.slice(ocId, Helpers.subtract(idLen, 6), null);
+                        }
+                        ocSymbol = Helpers.add(Helpers.add(ocSymbol, "_"), ((String)suffix).toUpperCase());
+                    }
+                }
+                Helpers.addElementToObject(oc, "outcome", ocSymbol);
+                Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
+            } else
+            {
+                Helpers.addElementToObject(oc, "outcome", ocSymbol);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
+            {
+                Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
+            }
+        }
+    }
+
     public void populateOutcomes()
     {
-        // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline.
-        // normalize each outcome object to the canonical identity keys (outcome /
-        // outcomeId / market) so consumers and the safe* helpers are uniform even when
-        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
+        // rebuild the whole outcome lookup cache from this.markets (each market carries its
+        // outcome tokens under the outcomes key) so cached market data works offline. no-op on
+        // a cold instance where markets are not loaded yet (avoids a null-access crash on the
+        // eventId/slug-only fetchEvents path)
         this.outcomes = new java.util.HashMap<String, Object>() {{}};
         this.outcomes_by_id = new java.util.HashMap<String, Object>() {{}};
+        if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+        {
+            return;
+        }
         Object marketKeys = Helpers.objectKeys(this.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
-            Object market = Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i));
-            Object outcomesList = this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
-            {
-                Object oc = Helpers.GetValue(outcomesList, j);
-                Object ocSymbol = this.safeString2(oc, "outcome", "symbol");
-                Object ocId = this.safeString2(oc, "outcomeId", "id");
-                // assign unconditionally — safeString2 keeps the canonical key when present
-                // and falls back to the legacy one, so this never clobbers and avoids a
-                // missing-key access (which throws in Python/PHP, unlike TS undefined)
-                Helpers.addElementToObject(oc, "outcome", ocSymbol);
-                Helpers.addElementToObject(oc, "outcomeId", ocId);
-                Helpers.addElementToObject(oc, "market", this.safeString2(oc, "market", "marketSymbol"));
-                if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
-                {
-                    Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
-                }
-                if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
-                {
-                    Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
-                }
-            }
+            this.indexMarketOutcomes(Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i)));
         }
     }
 
@@ -521,14 +661,13 @@ public Object isPrediction()
                     return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
                 }
             }
-            // remember whether the cache was already warm: a miss against a warm cache may just
-            // be staleness (prediction listings churn and some venues re-assign outcome ids), so
-            // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
             Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
-            Object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
-            if (Helpers.isTrue(loadAll))
+            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+            // but the outcome cache is cold, index them for free before hitting the network — this
+            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(wasWarm) && Helpers.isTrue((!Helpers.isEqual(this.markets, null)))) && !Helpers.isTrue(this.isEmpty(this.markets))))
             {
-                (this.loadOutcomes()).join();
+                this.populateOutcomes();
                 if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
                 {
                     if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
@@ -540,19 +679,24 @@ public Object isPrediction()
                         return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
                     }
                 }
-                if (Helpers.isTrue(wasWarm))
+            }
+            Object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
+            if (Helpers.isTrue(Helpers.isTrue(loadAll) && !Helpers.isTrue(wasWarm)))
+            {
+                // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                // the whole listing (which would mask typos and clobber offline-injected markets)
+                (this.loadOutcomes()).join();
+                if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
                 {
-                    (this.loadOutcomes(true)).join();
-                    if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
+                    if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
                     {
-                        if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
-                        {
-                            return Helpers.GetValue(this.outcomes, outcomeSymbol);
-                        }
-                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
-                        {
-                            return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
-                        }
+                        return Helpers.GetValue(this.outcomes, outcomeSymbol);
+                    }
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
+                    {
+                        return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
                     }
                 }
             }

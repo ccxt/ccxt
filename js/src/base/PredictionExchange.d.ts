@@ -1,5 +1,5 @@
 import { Exchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments Exchange
@@ -18,9 +18,11 @@ export default class PredictionExchange extends Exchange {
     applyEventFetchParams(events: any[], params?: {}, queries?: string[]): any[];
     filterEventsByStatus(events: any[], status?: Str): any[];
     filterEventsBySearchIn(events: any[], queries: string[], searchIn?: Str): any[];
-    fetchEvents(params?: fetchEventsParams): Promise<any[]>;
+    filterEventsByTags(events: any[], tags?: string[]): any[];
+    fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
     fetchEvent(id: string, params?: {}): Promise<any>;
     setEvents(events: any[]): Dictionary<any>;
+    eventsList(): any[];
     loadEventsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadEvents(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     getEvent(eventIdOrSlug: string): any;
@@ -32,6 +34,7 @@ export default class PredictionExchange extends Exchange {
     slugToOutcomeSymbol(eventSlug: string, marketSlug: string, outcome: string): string;
     slugToMarketId(eventSlug: string, marketSlug: string, outcome: string): string;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
+    indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
     loadOutcomes(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadOutcome(outcomeSymbol: string): Promise<any>;

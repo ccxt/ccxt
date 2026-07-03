@@ -300,6 +300,8 @@ public class PolymarketCore extends PolymarketApi
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "defaultFetchEventsLimit", 100 );
+                put( "eventsPageSize", 100 );
+                put( "fetchMarketsLimit", 200 );
                 put( "maxFetchEventsLimit", 500 );
                 put( "defaultEventStatus", "active" );
                 put( "chainId", 137 );
@@ -490,11 +492,13 @@ public class PolymarketCore extends PolymarketApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // gamma hard-caps each response at 100 events regardless of the requested limit, so the
+            // page size must be that cap or pagination never advances (the > check below stays false)
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object pageSize = this.safeInteger(this.options, "maxFetchEventsLimit", 500);
+            Object pageSize = this.safeInteger(this.options, "eventsPageSize", 100);
             // scope the listing: without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
-            Object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
+            Object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
             Object maxPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(limit, pageSize))));
             Object status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
             // sort maps to the gamma `order` field; 'volume' is the default ranking
@@ -2579,38 +2583,12 @@ final Object finalMarketSymbol = marketSymbol;
                     Helpers.addElementToObject(this.markets, ((String)Helpers.GetValue(m, "symbol")), m);
                 }
                 Object parsedEvent = this.parseEvent(eventForParsing);
-                Object eventSlug = this.safeString(eventForParsing, "slug", this.safeString(rawEvent, "slug"));
-                if (Helpers.isTrue(eventSlug))
-                {
-                    Object eventKey = this.shortenSlug(eventSlug);
-                    Helpers.addElementToObject(this.events, eventKey, parsedEvent);
-                }
                 ((java.util.List<Object>)result).add(parsedEvent);
             }
-            this.outcomes = new java.util.HashMap<String, Object>() {{}};
-            this.outcomes_by_id = new java.util.HashMap<String, Object>() {{}};
-            Object marketKeys = Helpers.objectKeys(this.markets);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
-            {
-                Object market = Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i));
-                Object outcomesList = (java.util.List<Object>)(this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
-                {
-                    Object oc = Helpers.GetValue(outcomesList, j);
-                    Object ocSymbol = this.safeString(oc, "outcome");
-                    if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
-                    {
-                        Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
-                    }
-                    Object ocId = this.safeString(oc, "outcomeId");
-                    if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
-                    {
-                        Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
-                    }
-                }
-            }
-            // uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+            // from the markets registered above
             this.setEvents(result);
+            this.populateOutcomes();
             // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
             // client-side (searchIn defaults to 'title', matching the reference behaviour)
             Object filtered = result;

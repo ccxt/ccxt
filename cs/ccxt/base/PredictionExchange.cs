@@ -75,6 +75,7 @@ public partial class PredictionExchange : Exchange
             result = filtered;
         }
         result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
+        result = this.filterEventsByTags(result, this.safeList(parameters, "tags"));
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         object queriesLength = 0;
@@ -179,6 +180,66 @@ public partial class PredictionExchange : Exchange
         return result;
     }
 
+    public virtual object filterEventsByTags(object events, object tags = null)
+    {
+        // keep events carrying one of the requested tags; tolerant to string tags and to
+        // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
+        object tagsLength = 0;
+        if (isTrue(!isEqual(tags, null)))
+        {
+            tagsLength = getArrayLength(tags);
+        }
+        if (isTrue(isEqual(tagsLength, 0)))
+        {
+            return events;
+        }
+        object wanted = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(tags)); postFixIncrement(ref i))
+        {
+            ((IList<object>)wanted).Add(((string)getValue(tags, i)).ToLower());
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        {
+            object eventVar = getValue(events, i);
+            object eventTags = this.safeList(eventVar, "tags", new List<object>() {});
+            object matched = false;
+            for (object ti = 0; isLessThan(ti, getArrayLength(eventTags)); postFixIncrement(ref ti))
+            {
+                object tag = getValue(eventTags, ti);
+                object tagLabel = null;
+                if (isTrue((tag is string)))
+                {
+                    tagLabel = tag;
+                } else
+                {
+                    tagLabel = this.safeString2(tag, "slug", "title");
+                }
+                if (isTrue(!isEqual(tagLabel, null)))
+                {
+                    object tagLower = ((string)tagLabel).ToLower();
+                    for (object wi = 0; isLessThan(wi, getArrayLength(wanted)); postFixIncrement(ref wi))
+                    {
+                        if (isTrue(isGreaterThanOrEqual(getIndexOf(tagLower, getValue(wanted, wi)), 0)))
+                        {
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (isTrue(matched))
+                {
+                    break;
+                }
+            }
+            if (isTrue(matched))
+            {
+                ((IList<object>)result).Add(eventVar);
+            }
+        }
+        return result;
+    }
+
     public async virtual Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -193,7 +254,9 @@ public partial class PredictionExchange : Exchange
 
     public virtual object setEvents(object events)
     {
-        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
+        // index by the unified `event` handle too (that's the identifier every outcome's `event`
+        // field carries), so getEvent (handle) resolves without each exchange hand-writing it
         if (isTrue(isEqual(this.events, null)))
         {
             this.events = new Dictionary<string, object>() {};
@@ -207,9 +270,14 @@ public partial class PredictionExchange : Exchange
             object eventVar = getValue(events, i);
             object id = this.safeString(eventVar, "id");
             object slug = this.safeString(eventVar, "slug");
+            object handle = this.safeString(eventVar, "event");
             if (isTrue(!isEqual(id, null)))
             {
                 ((IDictionary<string,object>)this.events)[(string)id] = eventVar;
+            }
+            if (isTrue(!isEqual(handle, null)))
+            {
+                ((IDictionary<string,object>)this.events)[(string)handle] = eventVar;
             }
             if (isTrue(!isEqual(slug, null)))
             {
@@ -219,8 +287,35 @@ public partial class PredictionExchange : Exchange
         return this.events;
     }
 
+    public virtual object eventsList()
+    {
+        // the cached events as a list; empty on a cold instance (this.events is keyed by both
+        // id and handle, so de-duplicate by identity before returning)
+        if (isTrue(isEqual(this.events, null)))
+        {
+            return new List<object>() {};
+        }
+        object result = new List<object>() {};
+        object seen = new Dictionary<string, object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)this.events).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object eventVar = getValue(this.events, getValue(keys, i));
+            object identity = this.safeString2(eventVar, "id", "event", getValue(keys, i));
+            if (!isTrue((inOp(seen, identity))))
+            {
+                ((IDictionary<string,object>)seen)[(string)identity] = true;
+                ((IList<object>)result).Add(eventVar);
+            }
+        }
+        return result;
+    }
+
     public async virtual Task<object> loadEventsHelper(object reload = null, object parameters = null)
     {
+        // note: the cache-hit shortcut ignores params, so events fetched under one scope are
+        // returned for a later differently-scoped call. events are scoped (unlike global
+        // markets), so prefer fetchEvents (params) directly when you need a specific scope
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isTrue(reload) && isTrue(this.events)))
@@ -244,7 +339,7 @@ public partial class PredictionExchange : Exchange
     public virtual object getEvent(object eventIdOrSlug)
     {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
-        // through fetchEvents/loadEvents; this never fetches
+        // through fetchEvents; this never fetches
         if (isTrue(isTrue((!isEqual(this.events, null))) && isTrue((inOp(this.events, eventIdOrSlug)))))
         {
             return getValue(this.events, eventIdOrSlug);
@@ -253,24 +348,24 @@ public partial class PredictionExchange : Exchange
         {
             return getValue(this.events_by_slug, eventIdOrSlug);
         }
-        throw new BadSymbol ((string)add(add(add(this.id, " has no cached event "), eventIdOrSlug), " - call loadEvents() or fetchEvents() first")) ;
+        throw new BadSymbol ((string)add(add(add(this.id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")) ;
     }
 
     public virtual object outcome(object outcomeSymbol)
     {
-        if (isTrue(isEqual(this.outcomes, null)))
+        if (isTrue(isTrue((isEqual(this.outcomes, null))) || isTrue(this.isEmpty(this.outcomes))))
         {
-            throw new ExchangeError ((string)add(this.id, " outcomes not loaded")) ;
+            throw new ExchangeError ((string)add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
         }
         if (isTrue(inOp(this.outcomes, outcomeSymbol)))
         {
             return getValue(this.outcomes, outcomeSymbol);
         }
-        if (isTrue(inOp(this.outcomes_by_id, outcomeSymbol)))
+        if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
         {
             return getValue(this.outcomes_by_id, outcomeSymbol);
         }
-        throw new BadSymbol ((string)add(add(this.id, " does not have outcome symbol "), outcomeSymbol)) ;
+        throw new BadSymbol ((string)add(add(add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
     public virtual object safeOutcome(object outcomeIdOrSymbol, object outcomeObj = null)
@@ -295,6 +390,7 @@ public partial class PredictionExchange : Exchange
             { "outcomeId", outcomeIdOrSymbol },
             { "market", null },
             { "label", null },
+            { "event", null },
             { "info", new Dictionary<string, object>() {} },
         };
     }
@@ -396,40 +492,83 @@ public partial class PredictionExchange : Exchange
         return result;
     }
 
+    public virtual void indexMarketOutcomes(object market)
+    {
+        // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
+        // normalizing each to the canonical identity keys (outcome / outcomeId / market) so
+        // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
+        // still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
+        // for a full rebuild and by on-demand single-market fetches (kalshi fetchOutcome), so a
+        // cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
+        if (isTrue(isEqual(this.outcomes, null)))
+        {
+            this.outcomes = new Dictionary<string, object>() {};
+        }
+        if (isTrue(isEqual(this.outcomes_by_id, null)))
+        {
+            this.outcomes_by_id = new Dictionary<string, object>() {};
+        }
+        object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
+        {
+            object oc = getValue(outcomesList, j);
+            object ocSymbol = this.safeString2(oc, "outcome", "symbol");
+            object ocId = this.safeString2(oc, "outcomeId", "id");
+            // assign unconditionally — safeString2 keeps the canonical key when present
+            // and falls back to the legacy one, so this never clobbers and avoids a
+            // missing-key access that throws in Python/PHP, unlike TS undefined
+            ((IDictionary<string,object>)oc)["outcomeId"] = ocId;
+            ((IDictionary<string,object>)oc)["market"] = this.safeString2(oc, "market", "marketSymbol");
+            if (isTrue(!isEqual(ocSymbol, null)))
+            {
+                // shortenSlug is lossy, so two different markets can produce the same handle.
+                // on a real collision of same handle but different outcomeId, disambiguate the
+                // second one deterministically instead of silently overwriting the first —
+                // trading the wrong market would otherwise be indistinguishable
+                object existing = this.safeValue(this.outcomes, ocSymbol);
+                if (isTrue(!isEqual(existing, null)))
+                {
+                    object existingId = this.safeString(existing, "outcomeId");
+                    if (isTrue(isTrue(isTrue((!isEqual(existingId, null))) && isTrue((!isEqual(ocId, null)))) && isTrue((!isEqual(existingId, ocId)))))
+                    {
+                        object idLen = ((string)ocId).Length;
+                        object suffix = ocId;
+                        if (isTrue(isGreaterThan(idLen, 6)))
+                        {
+                            suffix = slice(ocId, subtract(idLen, 6), null);
+                        }
+                        ocSymbol = add(add(ocSymbol, "_"), ((string)suffix).ToUpper());
+                    }
+                }
+                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
+                ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
+            } else
+            {
+                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
+            }
+            if (isTrue(!isEqual(ocId, null)))
+            {
+                ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
+            }
+        }
+    }
+
     public virtual void populateOutcomes()
     {
-        // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline.
-        // normalize each outcome object to the canonical identity keys (outcome /
-        // outcomeId / market) so consumers and the safe* helpers are uniform even when
-        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
+        // rebuild the whole outcome lookup cache from this.markets (each market carries its
+        // outcome tokens under the outcomes key) so cached market data works offline. no-op on
+        // a cold instance where markets are not loaded yet (avoids a null-access crash on the
+        // eventId/slug-only fetchEvents path)
         this.outcomes = new Dictionary<string, object>() {};
         this.outcomes_by_id = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            return;
+        }
         object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
         {
-            object market = getValue(this.markets, getValue(marketKeys, i));
-            object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
-            {
-                object oc = getValue(outcomesList, j);
-                object ocSymbol = this.safeString2(oc, "outcome", "symbol");
-                object ocId = this.safeString2(oc, "outcomeId", "id");
-                // assign unconditionally — safeString2 keeps the canonical key when present
-                // and falls back to the legacy one, so this never clobbers and avoids a
-                // missing-key access (which throws in Python/PHP, unlike TS undefined)
-                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
-                ((IDictionary<string,object>)oc)["outcomeId"] = ocId;
-                ((IDictionary<string,object>)oc)["market"] = this.safeString2(oc, "market", "marketSymbol");
-                if (isTrue(!isEqual(ocSymbol, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
-                }
-                if (isTrue(!isEqual(ocId, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
-                }
-            }
+            this.indexMarketOutcomes(getValue(this.markets, getValue(marketKeys, i)));
         }
     }
 
@@ -470,14 +609,13 @@ public partial class PredictionExchange : Exchange
                 return getValue(this.outcomes_by_id, outcomeSymbol);
             }
         }
-        // remember whether the cache was already warm: a miss against a warm cache may just
-        // be staleness (prediction listings churn and some venues re-assign outcome ids), so
-        // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
         object wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
-        object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
-        if (isTrue(loadAll))
+        // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+        // but the outcome cache is cold, index them for free before hitting the network — this
+        // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+        if (isTrue(isTrue(!isTrue(wasWarm) && isTrue((!isEqual(this.markets, null)))) && !isTrue(this.isEmpty(this.markets))))
         {
-            await this.loadOutcomes();
+            this.populateOutcomes();
             if (isTrue(!isEqual(this.outcomes, null)))
             {
                 if (isTrue(inOp(this.outcomes, outcomeSymbol)))
@@ -489,19 +627,24 @@ public partial class PredictionExchange : Exchange
                     return getValue(this.outcomes_by_id, outcomeSymbol);
                 }
             }
-            if (isTrue(wasWarm))
+        }
+        object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
+        if (isTrue(isTrue(loadAll) && !isTrue(wasWarm)))
+        {
+            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+            // the whole listing (which would mask typos and clobber offline-injected markets)
+            await this.loadOutcomes();
+            if (isTrue(!isEqual(this.outcomes, null)))
             {
-                await this.loadOutcomes(true);
-                if (isTrue(!isEqual(this.outcomes, null)))
+                if (isTrue(inOp(this.outcomes, outcomeSymbol)))
                 {
-                    if (isTrue(inOp(this.outcomes, outcomeSymbol)))
-                    {
-                        return getValue(this.outcomes, outcomeSymbol);
-                    }
-                    if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
-                    {
-                        return getValue(this.outcomes_by_id, outcomeSymbol);
-                    }
+                    return getValue(this.outcomes, outcomeSymbol);
+                }
+                if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
+                {
+                    return getValue(this.outcomes_by_id, outcomeSymbol);
                 }
             }
         }

@@ -2870,7 +2870,9 @@ export default class limitless extends Exchange {
         let result = [];
         const queriesLength = queries.length;
         if (!queries || queriesLength === 0) {
-            result = Object.values (this.events as Dict) as any[];
+            // no query - serve the eventId/slug/tags-only scope from the cache (empty on a
+            // cold instance); applyEventFetchParams filters it below
+            result = this.eventsList ();
         } else {
             const requestedLimit = this.safeInteger (params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
@@ -2922,41 +2924,13 @@ export default class limitless extends Exchange {
                 const eventKey = eventKeys[i];
                 const g = eventGroups[eventKey] as Dict;
                 const ev = this.parseEvent (g);
-                this.events[eventKey] = ev;
                 result.push (ev);
             }
         }
-        this.rebuildOutcomes ();
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents (result);
+        this.populateOutcomes ();
         return this.applyEventFetchParams (result, params, queries);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name limitless#rebuildOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
-     */
-    rebuildOutcomes () {
-        this.outcomes = {};
-        this.outcomes_by_id = {};
-        const marketsMap = (this.markets !== undefined) ? this.markets : {};
-        const marketKeys = Object.keys (marketsMap);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]] as Dict;
-            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'outcome');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                const ocId = this.safeString (oc, 'outcomeId');
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
-                }
-            }
-        }
     }
 
     /**

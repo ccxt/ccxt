@@ -557,7 +557,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         rpcError = self.safe_value(response, 'error')
         if rpcError is not None:
             raise ExchangeError(self.id + ' rpc ' + method + ' error: ' + self.json(rpcError))
-        return self.safe_string(response, 'result')
+        # the result is either a hex string(nonce/gasPrice/txhash) or an object(receipt) —
+        # safeString would coerce a receipt object to "[object Object]"
+        return self.safe_value(response, 'result')
 
     def pad_hex_address(self, address: str) -> str:
         # left-pads a 20-byte address to a 32-byte ABI word(24 leading zero bytes)
@@ -2200,13 +2202,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         rest = self.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status'])
         queriesLength = len(queries)
         if queriesLength == 0:
-            self.populate_outcomes()
-            # hoist Object.values to a local — inline call argument breaks the php regex transpiler
-            existingEvents = list(self.events.values())
+            # no query - serve the eventId/slug/tags-only scope from the cache(empty cold)
+            existingEvents = self.events_list()
             return self.apply_event_fetch_params(existingEvents, params, queries)
         rawMarkets = await self.fetch_raw_markets_by_search(queries, rest)
-        if not self.events:
-            self.events = {}
         if not self.markets:
             self.markets = self.create_safe_dictionary()
         result = []
@@ -2215,10 +2214,9 @@ class myriad(PredictionExchange, ImplicitAPI):
             m = self.parse_myriad_market(raw)
             self.markets[m['symbol']] = m
             ev = self.parse_market_to_event(raw, m)
-            evKey = self.safe_string(ev, 'event')
-            if evKey is not None:
-                self.events[evKey] = ev
-                result.append(ev)
+            result.append(ev)
+        # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        self.set_events(result)
         self.populate_outcomes()
         return self.apply_event_fetch_params(result, params, queries)
 

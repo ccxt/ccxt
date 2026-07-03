@@ -338,14 +338,6 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#rebuildOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
-     */
-    rebuildOutcomes(): void;
-    /**
-     * @ignore
-     * @method
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path

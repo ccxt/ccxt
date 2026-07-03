@@ -66,6 +66,7 @@ class PredictionExchange(Exchange):
                     filtered.append(event)
             result = filtered
         result = self.filter_events_by_status(result, self.safe_string(params, 'status'))
+        result = self.filter_events_by_tags(result, self.safe_list(params, 'tags'))
         # own-line length read so the regex transpiler treats `queries` array(count())
         # and not a string(strlen()); guard None since the default is None
         queriesLength = 0
@@ -131,6 +132,41 @@ class PredictionExchange(Exchange):
                 result.append(event)
         return result
 
+    def filter_events_by_tags(self, events: List[Any], tags: List[str] = None):
+        # keep events carrying one of the requested tags; tolerant to string tags and to
+        # object tags({slug, title, ...}) since venues differ. no-op when no tags requested
+        tagsLength = 0
+        if tags is not None:
+            tagsLength = len(tags)
+        if tagsLength == 0:
+            return events
+        wanted = []
+        for i in range(0, len(tags)):
+            wanted.append(tags[i].lower())
+        result = []
+        for i in range(0, len(events)):
+            event = events[i]
+            eventTags = self.safe_list(event, 'tags', [])
+            matched = False
+            for ti in range(0, len(eventTags)):
+                tag = eventTags[ti]
+                tagLabel = None
+                if isinstance(tag, str):
+                    tagLabel = tag
+                else:
+                    tagLabel = self.safe_string_2(tag, 'slug', 'title')
+                if tagLabel is not None:
+                    tagLower = tagLabel.lower()
+                    for wi in range(0, len(wanted)):
+                        if tagLower.find(wanted[wi]) >= 0:
+                            matched = True
+                            break
+                if matched:
+                    break
+            if matched:
+                result.append(event)
+        return result
+
     async def fetch_events(self, params: fetchEventsParams = {}):
         raise NotSupported(self.id + ' fetchEvents() is not supported yet')
 
@@ -138,7 +174,9 @@ class PredictionExchange(Exchange):
         raise NotSupported(self.id + ' fetchEvent() is not supported yet')
 
     def set_events(self, events: List[Any]):
-        # merge(not reset) so successive scoped fetchEvents calls accumulate into the cache
+        # merge(not reset) so successive scoped fetchEvents calls accumulate into the cache.
+        # index by the unified `event` handle too(that's the identifier every outcome's `event`
+        # field carries), so getEvent(handle) resolves without each exchange hand-writing it
         if self.events is None:
             self.events = {}
         if self.events_by_slug is None:
@@ -147,13 +185,35 @@ class PredictionExchange(Exchange):
             event = events[i]
             id = self.safe_string(event, 'id')
             slug = self.safe_string(event, 'slug')
+            handle = self.safe_string(event, 'event')
             if id is not None:
                 self.events[id] = event
+            if handle is not None:
+                self.events[handle] = event
             if slug is not None:
                 self.events_by_slug[slug] = event
         return self.events
 
+    def events_list(self) -> List[Any]:
+        # the cached events list; empty on a cold instance(self.events is keyed by both
+        # id and handle, so de-duplicate by identity before returning)
+        if self.events is None:
+            return []
+        result = []
+        seen = {}
+        keys = list(self.events.keys())
+        for i in range(0, len(keys)):
+            event = self.events[keys[i]]
+            identity = self.safe_string_2(event, 'id', 'event', keys[i])
+            if not (identity in seen):
+                seen[identity] = True
+                result.append(event)
+        return result
+
     async def load_events_helper(self, reload=False, params={}):
+        # note: the cache-hit shortcut ignores params, so events fetched under one scope are
+        # returned for a later differently-scoped call. events are scoped(unlike global
+        # markets), so prefer fetchEvents(params) directly when you need a specific scope
         if not reload and self.events:
             return self.events
         events = await self.fetch_events(params)
@@ -167,21 +227,21 @@ class PredictionExchange(Exchange):
 
     def get_event(self, eventIdOrSlug: str):
         # cache-only event resolver(the event analogue of self.outcome) - the cache fills
-        # through fetchEvents/loadEvents; self never fetches
+        # through fetchEvents; self never fetches
         if (self.events is not None) and (eventIdOrSlug in self.events):
             return self.events[eventIdOrSlug]
         if (self.events_by_slug is not None) and (eventIdOrSlug in self.events_by_slug):
             return self.events_by_slug[eventIdOrSlug]
-        raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + ' - call loadEvents() or fetchEvents() first')
+        raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents({'query': ...}) first")
 
     def outcome(self, outcomeSymbol: str):
-        if self.outcomes is None:
-            raise ExchangeError(self.id + ' outcomes not loaded')
+        if (self.outcomes is None) or self.is_empty(self.outcomes):
+            raise ExchangeError(self.id + ' outcomes not loaded - call loadOutcomes() or an outcome-addressed method first')
         if outcomeSymbol in self.outcomes:
             return self.outcomes[outcomeSymbol]
-        if outcomeSymbol in self.outcomes_by_id:
+        if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
             return self.outcomes_by_id[outcomeSymbol]
-        raise BadSymbol(self.id + ' does not have outcome symbol ' + outcomeSymbol)
+        raise BadSymbol(self.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents()/loadOutcomes() first')
 
     def safe_outcome(self, outcomeIdOrSymbol: Str, outcomeObj: Any = None):
         if outcomeIdOrSymbol is not None:
@@ -191,7 +251,7 @@ class PredictionExchange(Exchange):
                 return self.outcomes_by_id[outcomeIdOrSymbol]
         if outcomeObj is not None:
             return outcomeObj
-        return {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'info': {}}
+        return {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
 
     def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: Any = None):
         outcomeObj = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
@@ -271,32 +331,60 @@ class PredictionExchange(Exchange):
         self.populate_outcomes()
         return result
 
+    def index_market_outcomes(self, market):
+        # index one market's outcome tokens into self.outcomes / self.outcomes_by_id,
+        # normalizing each to the canonical identity keys(outcome / outcomeId / market) so
+        # consumers and the safe* helpers stay uniform even when an exchange's parseMarket
+        # still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
+        # for a full rebuild and by on-demand single-market fetches(kalshi fetchOutcome), so a
+        # cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
+        if self.outcomes is None:
+            self.outcomes = {}
+        if self.outcomes_by_id is None:
+            self.outcomes_by_id = {}
+        outcomesList = self.safe_list(market, 'outcomes', [])
+        for j in range(0, len(outcomesList)):
+            oc = outcomesList[j]
+            ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol')
+            ocId = self.safe_string_2(oc, 'outcomeId', 'id')
+            # assign unconditionally — safeString2 keeps the canonical key when present
+            # and falls back to the legacy one, so self never clobbers and avoids a
+            # missing-key access that throws in Python/PHP, unlike TS None
+            oc['outcomeId'] = ocId
+            oc['market'] = self.safe_string_2(oc, 'market', 'marketSymbol')
+            if ocSymbol is not None:
+                # shortenSlug is lossy, so two different markets can produce the same handle.
+                # on a real collision of same handle but different outcomeId, disambiguate the
+                # second one deterministically instead of silently overwriting the first —
+                # trading the wrong market would otherwise be indistinguishable
+                existing = self.safe_value(self.outcomes, ocSymbol)
+                if existing is not None:
+                    existingId = self.safe_string(existing, 'outcomeId')
+                    if (existingId is not None) and (ocId is not None) and (existingId != ocId):
+                        idLen = len(ocId)
+                        suffix = ocId
+                        if idLen > 6:
+                            suffix = ocId[idLen - 6:]
+                        ocSymbol = ocSymbol + '_' + suffix.upper()
+                oc['outcome'] = ocSymbol
+                self.outcomes[ocSymbol] = oc
+            else:
+                oc['outcome'] = ocSymbol
+            if ocId is not None:
+                self.outcomes_by_id[ocId] = oc
+
     def populate_outcomes(self):
-        # prediction markets carry their outcome tokens under the outcomes key,
-        # rebuild the outcome lookup caches so cached market data works offline.
-        # normalize each outcome object to the canonical identity keys(outcome /
-        # outcomeId / market) so consumers and the safe* helpers are uniform even when
-        # an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
+        # rebuild the whole outcome lookup cache from self.markets(each market carries its
+        # outcome tokens under the outcomes key) so cached market data works offline. no-op on
+        # a cold instance where markets are not loaded yet(avoids a null-access crash on the
+        # eventId/slug-only fetchEvents path)
         self.outcomes = {}
         self.outcomes_by_id = {}
+        if self.markets is None:
+            return
         marketKeys = list(self.markets.keys())
         for i in range(0, len(marketKeys)):
-            market = self.markets[marketKeys[i]]
-            outcomesList = self.safe_list(market, 'outcomes', [])
-            for j in range(0, len(outcomesList)):
-                oc = outcomesList[j]
-                ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol')
-                ocId = self.safe_string_2(oc, 'outcomeId', 'id')
-                # assign unconditionally — safeString2 keeps the canonical key when present
-                # and falls back to the legacy one, so self never clobbers and avoids a
-                # missing-key access(which throws in Python/PHP, unlike TS None)
-                oc['outcome'] = ocSymbol
-                oc['outcomeId'] = ocId
-                oc['market'] = self.safe_string_2(oc, 'market', 'marketSymbol')
-                if ocSymbol is not None:
-                    self.outcomes[ocSymbol] = oc
-                if ocId is not None:
-                    self.outcomes_by_id[ocId] = oc
+            self.index_market_outcomes(self.markets[marketKeys[i]])
 
     async def load_outcomes(self, reload=False, params={}):
         # outcome-addressed methods(fetchTicker/createOrder/...) call self first, mirroring how
@@ -322,25 +410,29 @@ class PredictionExchange(Exchange):
                 return self.outcomes[outcomeSymbol]
             if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
                 return self.outcomes_by_id[outcomeSymbol]
-        # remember whether the cache was already warm: a miss against a warm cache may just
-        # be staleness(prediction listings churn and some venues re-assign outcome ids), so
-        # it earns one forced refresh; a miss against a freshly loaded cache is authoritative
         wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
+        # if markets are already loaded(offline-injected, or loaded by loadMarkets/fetchEvents)
+        # but the outcome cache is cold, index them for free before hitting the network — self
+        # makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+        if not wasWarm and (self.markets is not None) and not self.is_empty(self.markets):
+            self.populate_outcomes()
+            if self.outcomes is not None:
+                if outcomeSymbol in self.outcomes:
+                    return self.outcomes[outcomeSymbol]
+                if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
+                    return self.outcomes_by_id[outcomeSymbol]
         loadAll = self.safe_bool(self.options, 'loadAllOutcomes', True)
-        if loadAll:
+        if loadAll and not wasWarm:
+            # a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+            # a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+            # listed, so fall through to fetchOutcome(a real BadSymbol) rather than refetching
+            # the whole listing(which would mask typos and clobber offline-injected markets)
             await self.load_outcomes()
             if self.outcomes is not None:
                 if outcomeSymbol in self.outcomes:
                     return self.outcomes[outcomeSymbol]
                 if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
                     return self.outcomes_by_id[outcomeSymbol]
-            if wasWarm:
-                await self.load_outcomes(True)
-                if self.outcomes is not None:
-                    if outcomeSymbol in self.outcomes:
-                        return self.outcomes[outcomeSymbol]
-                    if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-                        return self.outcomes_by_id[outcomeSymbol]
         return await self.fetch_outcome(outcomeSymbol)
 
     async def fetch_outcome(self, outcomeSymbol: str):

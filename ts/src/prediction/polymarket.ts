@@ -309,6 +309,12 @@ export default class polymarket extends Exchange {
             },
             'options': {
                 'defaultFetchEventsLimit': 100,
+                // gamma caps each /events response at 100, so paginate at that page size
+                'eventsPageSize': 100,
+                // cap the cold-start listing: each gamma event is heavy (~90 KB with the HTML
+                // description), so 200 events (2 pages, volume-ordered) is ~18 MB; raise via
+                // params.limit or this option when you need a wider set
+                'fetchMarketsLimit': 200,
                 'maxFetchEventsLimit': 500,
                 'defaultEventStatus': 'active',  // 'active' | 'closed' | 'all'
                 // CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
@@ -454,10 +460,12 @@ export default class polymarket extends Exchange {
      * @returns {object[]} an array of raw gamma event objects
      */
     async fetchRawEventsList (params = {}): Promise<any[]> {
-        const pageSize = this.safeInteger (this.options, 'maxFetchEventsLimit', 500);
+        // gamma hard-caps each response at 100 events regardless of the requested limit, so the
+        // page size must be that cap or pagination never advances (the > check below stays false)
+        const pageSize = this.safeInteger (this.options, 'eventsPageSize', 100);
         // scope the listing: without a search query loadMarkets would otherwise dump every
         // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
-        const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
+        const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 200));
         const maxPages = Math.ceil (limit / pageSize);
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
         // sort maps to the gamma `order` field; 'volume' is the default ranking
@@ -2103,33 +2111,12 @@ export default class polymarket extends Exchange {
                 this.markets[m['symbol'] as string] = m;
             }
             const parsedEvent = this.parseEvent (eventForParsing);
-            const eventSlug = this.safeString (eventForParsing, 'slug', this.safeString (rawEvent, 'slug'));
-            if (eventSlug) {
-                const eventKey = this.shortenSlug (eventSlug);
-                this.events[eventKey] = parsedEvent;
-            }
             result.push (parsedEvent);
         }
-        this.outcomes = {};
-        this.outcomes_by_id = {};
-        const marketKeys = Object.keys (this.markets);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]] as Dict;
-            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'outcome');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                const ocId = this.safeString (oc, 'outcomeId');
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
-                }
-            }
-        }
-        // uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        // from the markets registered above
         this.setEvents (result);
+        this.populateOutcomes ();
         // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
         // client-side (searchIn defaults to 'title', matching the reference behaviour)
         let filtered = result;

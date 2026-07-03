@@ -312,6 +312,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
             },
             'options': {
                 'defaultFetchEventsLimit': 100,
+                # gamma caps each /events response at 100, so paginate at that page size
+                'eventsPageSize': 100,
+                # cap the cold-start listing: each gamma event is heavy(~90 KB with the HTML
+                # description), so 200 events(2 pages, volume-ordered) is ~18 MB; raise via
+                # params.limit or self option when you need a wider set
+                'fetchMarketsLimit': 200,
                 'maxFetchEventsLimit': 500,
                 'defaultEventStatus': 'active',  # 'active' | 'closed' | 'all'
                 # CTF Exchange V2 signing constants(Polygon); the V2 contracts are the same on
@@ -439,10 +445,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [params.limit]: max number of events to fetch(default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
         :returns dict[]: an array of raw gamma event objects
         """
-        pageSize = self.safe_integer(self.options, 'maxFetchEventsLimit', 500)
+        # gamma hard-caps each response at 100 events regardless of the requested limit, so the
+        # page size must be that cap or pagination never advances(the > check below stays False)
+        pageSize = self.safe_integer(self.options, 'eventsPageSize', 100)
         # scope the listing: without a search query loadMarkets would otherwise dump every
         # active event(tens of thousands of markets). Cap to `limit` events(most-traded first).
-        limit = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchMarketsLimit', 1000))
+        limit = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchMarketsLimit', 200))
         maxPages = int(math.ceil(limit / pageSize))
         status = self.safe_string(params, 'status', self.safe_string(self.options, 'defaultEventStatus', 'active'))
         # sort maps to the gamma `order` field; 'volume' is the default ranking
@@ -1958,27 +1966,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 m = ccxtMarkets[mi]
                 self.markets[m['symbol']] = m
             parsedEvent = self.parse_event(eventForParsing)
-            eventSlug = self.safe_string(eventForParsing, 'slug', self.safe_string(rawEvent, 'slug'))
-            if eventSlug:
-                eventKey = self.shorten_slug(eventSlug)
-                self.events[eventKey] = parsedEvent
             result.append(parsedEvent)
-        self.outcomes = {}
-        self.outcomes_by_id = {}
-        marketKeys = list(self.markets.keys())
-        for i in range(0, len(marketKeys)):
-            market = self.markets[marketKeys[i]]
-            outcomesList = self.safe_list(market, 'outcomes', [])
-            for j in range(0, len(outcomesList)):
-                oc = outcomesList[j]
-                ocSymbol = self.safe_string(oc, 'outcome')
-                if ocSymbol is not None:
-                    self.outcomes[ocSymbol] = oc
-                ocId = self.safe_string(oc, 'outcomeId')
-                if ocId is not None:
-                    self.outcomes_by_id[ocId] = oc
-        # uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+        # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        # from the markets registered above
         self.set_events(result)
+        self.populate_outcomes()
         # the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
         # client-side(searchIn defaults to 'title', matching the reference behaviour)
         filtered = result

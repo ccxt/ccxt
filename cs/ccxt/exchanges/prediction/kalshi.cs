@@ -225,7 +225,9 @@ public partial class kalshi : PredictionExchange
         object flatMarkets = new List<object>() {};
         object eventsDict = new Dictionary<string, object>() {};
         object cursor = null;
-        object limit = this.safeInteger(this.options, "maxFetchMarketsLimit", 1000);
+        // don't request a full 1000-market page (3+ MB) when the caller wants fewer
+        object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
+        object limit = mathMin(maxMarkets, pageLimit);
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -331,7 +333,9 @@ public partial class kalshi : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         ((IDictionary<string,object>)this.markets)[(string)getValue(parsed, "symbol")] = parsed;
-        this.populateOutcomes();
+        // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+        // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+        this.indexMarketOutcomes(parsed);
         return this.outcome(outcomeSymbol);
     }
 
@@ -1880,7 +1884,8 @@ public partial class kalshi : PredictionExchange
             object eventKey = ((bool) isTrue(eventTitle)) ? this.shortenSlug(eventTitle) : null;
             if (isTrue(eventKey))
             {
-                ((IDictionary<string,object>)this.events)[(string)eventKey] = parsedEvent;
+                // the event handle keying happens in setEvents (via applyEventFetchParams);
+                // register the parsed markets so populateOutcomes can index their outcomes
                 ((IList<object>)result).Add(parsedEvent);
                 object parsedMarketsRaw = getValue(parsedEvent, "markets");
                 object parsedMarkets = ((bool) isTrue((!isEqual(parsedMarketsRaw, null)))) ? parsedMarketsRaw : new List<object>() {};
@@ -1891,28 +1896,7 @@ public partial class kalshi : PredictionExchange
                 }
             }
         }
-        this.outcomes = new Dictionary<string, object>() {};
-        this.outcomes_by_id = new Dictionary<string, object>() {};
-        object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
-        {
-            object market = getValue(this.markets, getValue(marketKeys, i));
-            object outcomesList = (IList<object>)(this.safeList(market, "outcomes", new List<object>() {}));
-            for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
-            {
-                object oc = getValue(outcomesList, j);
-                object ocSymbol = this.safeString(oc, "outcome");
-                if (isTrue(!isEqual(ocSymbol, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
-                }
-                object ocId = this.safeString(oc, "outcomeId");
-                if (isTrue(!isEqual(ocId, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
-                }
-            }
-        }
+        this.populateOutcomes();
         return this.applyEventFetchParams(result, parameters, queries);
     }
 

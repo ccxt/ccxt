@@ -940,7 +940,7 @@ var exchange = new ccxt.prediction.polymarket();
 await exchange.loadMarkets();
 // discover events -> markets -> outcomes (each outcome has: outcome (handle),
 // outcomeId, market, label); also fetchEvents / fetchEvent are available
-var events = await exchange.fetchEvents(new List<string>() { "Trump" });
+var events = await exchange.fetchEvents(new Dictionary<string, object>() {{ "query", "Trump" }});
 // an outcome handle looks like 'TRUMP_OUT_PRESIDENT_2027:YES'
 string handle = "TRUMP_OUT_PRESIDENT_2027:YES";
 var ticker = await exchange.fetchTicker(handle);

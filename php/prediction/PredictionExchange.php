@@ -75,6 +75,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
             $result = $filtered;
         }
         $result = $this->filter_events_by_status($result, $this->safe_string($params, 'status'));
+        $result = $this->filter_events_by_tags($result, $this->safe_list($params, 'tags'));
         // own-line length read so the regex transpiler treats `$queries` array (count())
         // and not a string (strlen()); guard null since the default is null
         $queriesLength = 0;
@@ -159,6 +160,53 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $result;
     }
 
+    public function filter_events_by_tags(array $events, ?array $tags = null) {
+        // keep $events carrying one of the requested $tags; tolerant to string $tags and to
+        // object $tags (array( slug, title, ... )) since venues differ. no-op when no $tags requested
+        $tagsLength = 0;
+        if ($tags !== null) {
+            $tagsLength = count($tags);
+        }
+        if ($tagsLength === 0) {
+            return $events;
+        }
+        $wanted = array();
+        for ($i = 0; $i < count($tags); $i++) {
+            $wanted[] = strtolower($tags[$i]);
+        }
+        $result = array();
+        for ($i = 0; $i < count($events); $i++) {
+            $event = $events[$i];
+            $eventTags = $this->safe_list($event, 'tags', array());
+            $matched = false;
+            for ($ti = 0; $ti < count($eventTags); $ti++) {
+                $tag = $eventTags[$ti];
+                $tagLabel = null;
+                if (gettype($tag) === 'string') {
+                    $tagLabel = $tag;
+                } else {
+                    $tagLabel = $this->safe_string_2($tag, 'slug', 'title');
+                }
+                if ($tagLabel !== null) {
+                    $tagLower = strtolower($tagLabel);
+                    for ($wi = 0; $wi < count($wanted); $wi++) {
+                        if (mb_strpos($tagLower, $wanted[$wi]) !== false) {
+                            $matched = true;
+                            break;
+                        }
+                    }
+                }
+                if ($matched) {
+                    break;
+                }
+            }
+            if ($matched) {
+                $result[] = $event;
+            }
+        }
+        return $result;
+    }
+
     public function fetch_events(array $params = array()) {
         throw new NotSupported($this->id . ' fetchEvents() is not supported yet');
     }
@@ -168,7 +216,9 @@ class PredictionExchange extends \ccxt\async\Exchange {
     }
 
     public function set_events(array $events) {
-        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
+        // index by the unified `$event` $handle too (that's the identifier every outcome's `$event`
+        // field carries), so getEvent ($handle) resolves without each exchange hand-writing it
         if ($this->events === null) {
             $this->events = array();
         }
@@ -179,8 +229,12 @@ class PredictionExchange extends \ccxt\async\Exchange {
             $event = $events[$i];
             $id = $this->safe_string($event, 'id');
             $slug = $this->safe_string($event, 'slug');
+            $handle = $this->safe_string($event, 'event');
             if ($id !== null) {
                 $this->events[$id] = $event;
+            }
+            if ($handle !== null) {
+                $this->events[$handle] = $event;
             }
             if ($slug !== null) {
                 $this->events_by_slug[$slug] = $event;
@@ -189,8 +243,31 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $this->events;
     }
 
+    public function events_list(): array {
+        // the cached events list; empty on a cold instance ($this->events is keyed by both
+        // id and handle, so de-duplicate by $identity before returning)
+        if ($this->events === null) {
+            return array();
+        }
+        $result = array();
+        $seen = array();
+        $keys = is_array($this->events) ? array_keys($this->events) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $event = $this->events[$keys[$i]];
+            $identity = $this->safe_string_2($event, 'id', 'event', $keys[$i]);
+            if (!(is_array($seen) && array_key_exists($identity, $seen))) {
+                $seen[$identity] = true;
+                $result[] = $event;
+            }
+        }
+        return $result;
+    }
+
     public function load_events_helper($reload = false, $params = array()) {
         return Async\async(function () use ($reload, $params) {
+            // note => the cache-hit shortcut ignores $params, so $events fetched under one scope are
+            // returned for a later differently-scoped call. $events are scoped (unlike global
+            // markets), so prefer fetchEvents ($params) directly when you need a specific scope
             if (!$reload && $this->events) {
                 return $this->events;
             }
@@ -210,27 +287,27 @@ class PredictionExchange extends \ccxt\async\Exchange {
 
     public function get_event(string $eventIdOrSlug) {
         // cache-only event resolver (the event analogue of array($this, 'outcome')) - the cache fills
-        // through fetchEvents/loadEvents; this never fetches
+        // through fetchEvents; this never fetches
         if (($this->events !== null) && (is_array($this->events) && array_key_exists($eventIdOrSlug, $this->events))) {
             return $this->events[$eventIdOrSlug];
         }
         if (($this->events_by_slug !== null) && (is_array($this->events_by_slug) && array_key_exists($eventIdOrSlug, $this->events_by_slug))) {
             return $this->events_by_slug[$eventIdOrSlug];
         }
-        throw new BadSymbol($this->id . ' has no cached event ' . $eventIdOrSlug . ' - call loadEvents() or fetchEvents() first');
+        throw new BadSymbol($this->id . ' has no cached event ' . $eventIdOrSlug . " - call fetchEvents (array( 'query' => ... )) first");
     }
 
     public function outcome(string $outcomeSymbol) {
-        if ($this->outcomes === null) {
-            throw new ExchangeError($this->id . ' outcomes not loaded');
+        if (($this->outcomes === null) || $this->is_empty($this->outcomes)) {
+            throw new ExchangeError($this->id . ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
         if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
             return $this->outcomes[$outcomeSymbol];
         }
-        if (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id)) {
+        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
             return $this->outcomes_by_id[$outcomeSymbol];
         }
-        throw new BadSymbol($this->id . ' does not have outcome symbol ' . $outcomeSymbol);
+        throw new BadSymbol($this->id . ' does not have outcome ' . $outcomeSymbol . ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
 
     public function safe_outcome(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
@@ -245,7 +322,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
         if ($outcomeObj !== null) {
             return $outcomeObj;
         }
-        return array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'info' => array());
+        return array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
@@ -337,35 +414,70 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $result;
     }
 
+    public function index_market_outcomes($market) {
+        // index one market's outcome tokens into $this->outcomes / $this->outcomes_by_id,
+        // normalizing each to the canonical identity keys (outcome / outcomeId / $market) so
+        // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
+        // still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
+        // for a full rebuild and by on-demand single-$market fetches (kalshi fetchOutcome), so a
+        // cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
+        if ($this->outcomes === null) {
+            $this->outcomes = array();
+        }
+        if ($this->outcomes_by_id === null) {
+            $this->outcomes_by_id = array();
+        }
+        $outcomesList = $this->safe_list($market, 'outcomes', array());
+        for ($j = 0; $j < count($outcomesList); $j++) {
+            $oc = $outcomesList[$j];
+            $ocSymbol = $this->safe_string_2($oc, 'outcome', 'symbol');
+            $ocId = $this->safe_string_2($oc, 'outcomeId', 'id');
+            // assign unconditionally — safeString2 keeps the canonical key when present
+            // and falls back to the legacy one, so this never clobbers and avoids a
+            // missing-key access that throws in Python/PHP, unlike TS null
+            $oc['outcomeId'] = $ocId;
+            $oc['market'] = $this->safe_string_2($oc, 'market', 'marketSymbol');
+            if ($ocSymbol !== null) {
+                // shortenSlug is lossy, so two different markets can produce the same handle.
+                // on a real collision of same handle but different outcomeId, disambiguate the
+                // second one deterministically instead of silently overwriting the first —
+                // trading the wrong $market would otherwise be indistinguishable
+                $existing = $this->safe_value($this->outcomes, $ocSymbol);
+                if ($existing !== null) {
+                    $existingId = $this->safe_string($existing, 'outcomeId');
+                    if (($existingId !== null) && ($ocId !== null) && ($existingId !== $ocId)) {
+                        $idLen = count($ocId);
+                        $suffix = $ocId;
+                        if ($idLen > 6) {
+                            $suffix = mb_substr($ocId, $idLen - 6);
+                        }
+                        $ocSymbol = $ocSymbol . '_' . strtoupper($suffix);
+                    }
+                }
+                $oc['outcome'] = $ocSymbol;
+                $this->outcomes[$ocSymbol] = $oc;
+            } else {
+                $oc['outcome'] = $ocSymbol;
+            }
+            if ($ocId !== null) {
+                $this->outcomes_by_id[$ocId] = $oc;
+            }
+        }
+    }
+
     public function populate_outcomes() {
-        // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached $market data works offline.
-        // normalize each outcome object to the canonical identity keys (outcome /
-        // outcomeId / $market) so consumers and the safe* helpers are uniform even when
-        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
+        // rebuild the whole outcome lookup cache from $this->markets(each market carries its
+        // outcome tokens under the outcomes key) so cached market data works offline. no-op on
+        // a cold instance where markets are not loaded yet (avoids a null-access crash on the
+        // eventId/slug-only fetchEvents path)
         $this->outcomes = array();
         $this->outcomes_by_id = array();
+        if ($this->markets === null) {
+            return;
+        }
         $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
         for ($i = 0; $i < count($marketKeys); $i++) {
-            $market = $this->markets[$marketKeys[$i]];
-            $outcomesList = $this->safe_list($market, 'outcomes', array());
-            for ($j = 0; $j < count($outcomesList); $j++) {
-                $oc = $outcomesList[$j];
-                $ocSymbol = $this->safe_string_2($oc, 'outcome', 'symbol');
-                $ocId = $this->safe_string_2($oc, 'outcomeId', 'id');
-                // assign unconditionally — safeString2 keeps the canonical key when present
-                // and falls back to the legacy one, so this never clobbers and avoids a
-                // missing-key access (which throws in Python/PHP, unlike TS null)
-                $oc['outcome'] = $ocSymbol;
-                $oc['outcomeId'] = $ocId;
-                $oc['market'] = $this->safe_string_2($oc, 'market', 'marketSymbol');
-                if ($ocSymbol !== null) {
-                    $this->outcomes[$ocSymbol] = $oc;
-                }
-                if ($ocId !== null) {
-                    $this->outcomes_by_id[$ocId] = $oc;
-                }
-            }
+            $this->index_market_outcomes($this->markets[$marketKeys[$i]]);
         }
     }
 
@@ -401,13 +513,12 @@ class PredictionExchange extends \ccxt\async\Exchange {
                     return $this->outcomes_by_id[$outcomeSymbol];
                 }
             }
-            // remember whether the cache was already warm => a miss against a warm cache may just
-            // be staleness (prediction listings churn and some venues re-assign outcome ids), so
-            // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
             $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
-            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', true);
-            if ($loadAll) {
-                Async\await($this->load_outcomes());
+            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+            // but the outcome cache is cold, index them for free before hitting the network — this
+            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+            if (!$wasWarm && ($this->markets !== null) && !$this->is_empty($this->markets)) {
+                $this->populate_outcomes();
                 if ($this->outcomes !== null) {
                     if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
                         return $this->outcomes[$outcomeSymbol];
@@ -416,15 +527,20 @@ class PredictionExchange extends \ccxt\async\Exchange {
                         return $this->outcomes_by_id[$outcomeSymbol];
                     }
                 }
-                if ($wasWarm) {
-                    Async\await($this->load_outcomes(true));
-                    if ($this->outcomes !== null) {
-                        if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
-                            return $this->outcomes[$outcomeSymbol];
-                        }
-                        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
-                            return $this->outcomes_by_id[$outcomeSymbol];
-                        }
+            }
+            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', true);
+            if ($loadAll && !$wasWarm) {
+                // a miss on a cold cache => bulk-load once so later lookups are 0-network hits.
+                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                // the whole listing (which would mask typos and clobber offline-injected markets)
+                Async\await($this->load_outcomes());
+                if ($this->outcomes !== null) {
+                    if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+                        return $this->outcomes[$outcomeSymbol];
+                    }
+                    if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+                        return $this->outcomes_by_id[$outcomeSymbol];
                     }
                 }
             }

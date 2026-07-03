@@ -287,6 +287,8 @@ public partial class polymarket : PredictionExchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultFetchEventsLimit", 100 },
+                { "eventsPageSize", 100 },
+                { "fetchMarketsLimit", 200 },
                 { "maxFetchEventsLimit", 500 },
                 { "defaultEventStatus", "active" },
                 { "chainId", 137 },
@@ -462,11 +464,13 @@ public partial class polymarket : PredictionExchange
      */
     public async virtual Task<object> fetchRawEventsList(object parameters = null)
     {
+        // gamma hard-caps each response at 100 events regardless of the requested limit, so the
+        // page size must be that cap or pagination never advances (the > check below stays false)
         parameters ??= new Dictionary<string, object>();
-        object pageSize = this.safeInteger(this.options, "maxFetchEventsLimit", 500);
+        object pageSize = this.safeInteger(this.options, "eventsPageSize", 100);
         // scope the listing: without a search query loadMarkets would otherwise dump every
         // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
-        object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
+        object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
         object maxPages = Math.Ceiling(Convert.ToDouble(divide(limit, pageSize)));
         object status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
         // sort maps to the gamma `order` field; 'volume' is the default ranking
@@ -2378,38 +2382,12 @@ public partial class polymarket : PredictionExchange
                 ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "symbol"))] = m;
             }
             object parsedEvent = this.parseEvent(eventForParsing);
-            object eventSlug = this.safeString(eventForParsing, "slug", this.safeString(rawEvent, "slug"));
-            if (isTrue(eventSlug))
-            {
-                object eventKey = this.shortenSlug(eventSlug);
-                ((IDictionary<string,object>)this.events)[(string)eventKey] = parsedEvent;
-            }
             ((IList<object>)result).Add(parsedEvent);
         }
-        this.outcomes = new Dictionary<string, object>() {};
-        this.outcomes_by_id = new Dictionary<string, object>() {};
-        object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
-        {
-            object market = getValue(this.markets, getValue(marketKeys, i));
-            object outcomesList = (IList<object>)(this.safeList(market, "outcomes", new List<object>() {}));
-            for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
-            {
-                object oc = getValue(outcomesList, j);
-                object ocSymbol = this.safeString(oc, "outcome");
-                if (isTrue(!isEqual(ocSymbol, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
-                }
-                object ocId = this.safeString(oc, "outcomeId");
-                if (isTrue(!isEqual(ocId, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
-                }
-            }
-        }
-        // uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        // from the markets registered above
         this.setEvents(result);
+        this.populateOutcomes();
         // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
         // client-side (searchIn defaults to 'title', matching the reference behaviour)
         object filtered = result;

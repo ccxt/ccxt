@@ -225,7 +225,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         flatMarkets = []
         eventsDict = {}
         cursor = None
-        limit = self.safe_integer(self.options, 'maxFetchMarketsLimit', 1000)
+        # don't request a full 1000-market page(3+ MB) when the caller wants fewer
+        pageLimit = self.safe_integer(self.options, 'marketsPageLimit', 1000)
+        limit = min(maxMarkets, pageLimit)
         # default to tradeable(open) markets; kalshi has thousands of closed/settled markets and
         # an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         # closed markets. Pass params.status(e.g. 'closed', 'settled', 'unopened') to override
@@ -297,7 +299,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if self.markets is None:
             self.markets = self.create_safe_dictionary()
         self.markets[parsed['symbol']] = parsed
-        self.populate_outcomes()
+        # index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+        # whole cache — on-demand fetchOutcome(loadAllOutcomes False) is the hot path here
+        self.index_market_outcomes(parsed)
         return self.outcome(outcomeSymbol)
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
@@ -1550,27 +1554,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
             eventTitle = self.safe_string(fullEvent, 'title')
             eventKey = self.shorten_slug(eventTitle) if eventTitle else None
             if eventKey:
-                self.events[eventKey] = parsedEvent
+                # the event handle keying happens in setEvents(via applyEventFetchParams)
+                # register the parsed markets so populateOutcomes can index their outcomes
                 result.append(parsedEvent)
                 parsedMarketsRaw = parsedEvent['markets']
                 parsedMarkets = parsedMarketsRaw if (parsedMarketsRaw is not None) else []
                 for mi in range(0, len(parsedMarkets)):
                     m = parsedMarkets[mi]
                     self.markets[m['symbol']] = m
-        self.outcomes = {}
-        self.outcomes_by_id = {}
-        marketKeys = list(self.markets.keys())
-        for i in range(0, len(marketKeys)):
-            market = self.markets[marketKeys[i]]
-            outcomesList = self.safe_list(market, 'outcomes', [])
-            for j in range(0, len(outcomesList)):
-                oc = outcomesList[j]
-                ocSymbol = self.safe_string(oc, 'outcome')
-                if ocSymbol is not None:
-                    self.outcomes[ocSymbol] = oc
-                ocId = self.safe_string(oc, 'outcomeId')
-                if ocId is not None:
-                    self.outcomes_by_id[ocId] = oc
+        self.populate_outcomes()
         return self.apply_event_fetch_params(result, params, queries)
 
     async def fetch_event(self, id: str, params={}) -> PredictionEvent:

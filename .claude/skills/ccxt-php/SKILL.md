@@ -941,7 +941,7 @@ use React\Async;
 $exchange = new \ccxt\prediction\polymarket();
 Async\await($exchange->load_markets());
 // discover events -> markets -> outcomes
-$events = Async\await($exchange->fetch_events(['Trump']));
+$events = Async\await($exchange->fetch_events(['query' => 'Trump']));
 $outcome = $events[0]['markets'][0]['outcomes'][0];
 // each outcome has: outcome (handle, e.g. 'TRUMP_OUT_PRESIDENT_2027:YES'),
 // outcomeId, market, label ('YES'/'NO')

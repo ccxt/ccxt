@@ -3337,7 +3337,9 @@ public class LimitlessCore extends LimitlessApi
             Object queriesLength = Helpers.getArrayLength(queries);
             if (Helpers.isTrue(!Helpers.isTrue(queries) || Helpers.isTrue(Helpers.isEqual(queriesLength, 0))))
             {
-                result = (java.util.List<Object>)(Helpers.objectValues(this.events));
+                // no query - serve the eventId/slug/tags-only scope from the cache (empty on a
+                // cold instance); applyEventFetchParams filters it below
+                result = this.eventsList();
             } else
             {
                 Object requestedLimit = this.safeInteger(parameters, "limit", 50);
@@ -3404,48 +3406,15 @@ public class LimitlessCore extends LimitlessApi
                     Object eventKey = Helpers.GetValue(eventKeys, i);
                     Object g = Helpers.GetValue(eventGroups, eventKey);
                     Object ev = this.parseEvent(g);
-                    Helpers.addElementToObject(this.events, eventKey, ev);
                     ((java.util.List<Object>)result).add(ev);
                 }
             }
-            this.rebuildOutcomes();
+            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+            this.setEvents(result);
+            this.populateOutcomes();
             return this.applyEventFetchParams(result, parameters, queries);
         });
 
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name limitless#rebuildOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
-     */
-    public void rebuildOutcomes()
-    {
-        this.outcomes = new java.util.HashMap<String, Object>() {{}};
-        this.outcomes_by_id = new java.util.HashMap<String, Object>() {{}};
-        Object marketsMap = ((Helpers.isTrue((!Helpers.isEqual(this.markets, null))))) ? this.markets : new java.util.HashMap<String, Object>() {{}};
-        Object marketKeys = Helpers.objectKeys(marketsMap);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
-        {
-            Object market = Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i));
-            Object outcomesList = (java.util.List<Object>)(this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
-            {
-                Object oc = Helpers.GetValue(outcomesList, j);
-                Object ocSymbol = this.safeString(oc, "outcome");
-                if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
-                {
-                    Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
-                }
-                Object ocId = this.safeString(oc, "outcomeId");
-                if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
-                {
-                    Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
-                }
-            }
-        }
     }
 
     /**
