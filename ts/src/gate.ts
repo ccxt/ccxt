@@ -6149,7 +6149,6 @@ export default class gate extends Exchange {
                 side = 'short';
             }
         }
-        const maintenanceRate = this.safeString (position, 'maintenance_rate');
         const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
         let marginMode: Str = undefined;
@@ -6160,33 +6159,12 @@ export default class gate extends Exchange {
                 marginMode = 'isolated';
             }
         }
-        // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), older responses return "0" for it
-        // in that case use the position margin balance from the margin field (https://github.com/ccxt/ccxt/issues/27152) - but only when positive,
-        // because that balance is debited by funding fees and margin adjustments, so it can drop to zero or below and is not a valid initial margin then
-        // as a last resort fall back to the legacy client-side computation
-        // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
-        // *The default leverage under the full position is the highest leverage in the market.
-        // *Trading fee is charged as Taker Fee Rate (0.075%).
-        let feePaid = this.safeString (position, 'pnl_fee');
+        // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         const marginBalance = this.safeString (position, 'margin');
-        let initialMarginString: Str = this.omitZero (this.safeString (position, 'initial_margin'));
-        if (initialMarginString === undefined) {
-            if ((marginBalance !== undefined) && Precise.stringGt (marginBalance, '0')) {
-                initialMarginString = marginBalance;
-            } else if (feePaid === undefined) {
-                const takerFee = '0.00075';
-                feePaid = Precise.stringMul (takerFee, notional);
-                initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
-            }
-        }
+        const initialMarginString = this.omitZero (this.safeString (position, 'initial_margin'));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        // older responses return "0" for it - in that case fall back to the legacy client-side approximation
-        // Maintenance Margin = Position Value * maintenance_rate
-        let maintenanceMarginString: Str = this.omitZero (this.safeString (position, 'maintenance_margin'));
-        if (maintenanceMarginString === undefined) {
-            maintenanceMarginString = Precise.stringMul (maintenanceRate, notional);
-        }
+        const maintenanceMarginString = this.omitZero (this.safeString (position, 'maintenance_margin'));
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
