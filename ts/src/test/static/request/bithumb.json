@@ -146,55 +146,173 @@
         ],
         "createOrder": [
             {
-                "description": "createOrder",
+                "description": "generation 1 limit createOrder",
                 "method": "createOrder",
-                "url": "https://api.bithumb.com/trade/market_buy",
+                "url": "https://api.bithumb.com/trade/place",
                 "input": [
                     "BTC/KRW",
-                    "market",
+                    "limit",
                     "buy",
-                    0.01,
-                    67734000
+                    0.001,
+                    9500000,
+                    {
+                        "generation": 1
+                    }
                 ],
-                "output": "endpoint=%2Ftrade%2Fmarket_buy&order_currency=BTC&payment_currency=KRW&units=0.01"
+                "output": "endpoint=%2Ftrade%2Fplace&order_currency=BTC&payment_currency=KRW&units=0.001&price=9500000&type=bid"
+            },
+            {
+                "description": "generation 2 limit createOrder",
+                "method": "createOrder",
+                "url": "https://api.bithumb.com/v2/orders",
+                "input": [
+                    "BTC/KRW",
+                    "limit",
+                    "buy",
+                    0.001,
+                    9500000
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"volume\":\"0.001\",\"price\":\"9500000\",\"order_type\":\"limit\",\"side\":\"bid\"}"
             }
         ],
         "fetchOrder": [
             {
-                "description": "fetchOrder",
+                "description": "generation 1 fetchOrder",
                 "method": "fetchOrder",
                 "url": "https://api.bithumb.com/info/order_detail",
                 "input": [
-                    "1429500241523",
-                    "BTC/KRW"
+                    "C0101000003152294086",
+                    "BTC/KRW",
+                    {
+                        "generation": 1
+                    }
                 ],
-                "output": "endpoint=%2Finfo%2Forder_detail&order_id=1429500241523&count=1&order_currency=BTC&payment_currency=KRW"
+                "output": "endpoint=%2Finfo%2Forder_detail&order_id=C0101000003152294086&order_currency=BTC&payment_currency=KRW"
+            },
+            {
+                "description": "generation 2 fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.bithumb.com/v1/order?uuid=C0101000003152406454",
+                "input": [
+                    "C0101000003152406454",
+                    "BTC/KRW"
+                ]
             }
         ],
         "fetchOpenOrders": [
             {
-                "description": "fetchOpenOrders",
+                "description": "generation 1 fetchOpenOrders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.bithumb.com/info/orders",
                 "input": [
-                    "BTC/KRW"
+                    "BTC/KRW",
+                    null,
+                    null,
+                    {
+                        "generation": 1
+                    }
                 ],
                 "output": "endpoint=%2Finfo%2Forders&count=100&order_currency=BTC&payment_currency=KRW"
+            },
+            {
+                "description": "generation 2 fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&state=wait",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    null
+                ]
             }
         ],
         "cancelOrder": [
             {
-                "description": "cancelOrder",
+                "description": "generation 1 cancelOrder",
                 "method": "cancelOrder",
                 "url": "https://api.bithumb.com/trade/cancel",
                 "input": [
-                    "1429500241523",
+                    "C0101000003152294086",
                     "BTC/KRW",
                     {
-                        "side": "buy"
+                        "side": "buy",
+                        "generation": 1
                     }
                 ],
-                "output": "endpoint=%2Ftrade%2Fcancel&order_id=1429500241523&type=bid&order_currency=BTC&payment_currency=KRW"
+                "output": "endpoint=%2Ftrade%2Fcancel&order_id=C0101000003152294086&type=bid&order_currency=BTC&payment_currency=KRW"
+            },
+            {
+                "description": "generation 2 cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bithumb.com/v2/order?order_id=C0101000003152406454",
+                "input": [
+                    "C0101000003152406454",
+                    "BTC/KRW"
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "generation 2 cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://api.bithumb.com/v2/orders/cancel",
+                "input": [
+                    [
+                        "C0101000003152577568",
+                        "C0101000003152577569"
+                    ],
+                    "BTC/KRW"
+                ],
+                "output": "{\"order_ids\":[\"C0101000003152577568\",\"C0101000003152577569\"]}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "generation 2 createOrders",
+                "method": "createOrders",
+                "url": "https://api.bithumb.com/v2/orders/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/KRW",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 9500000
+                        },
+                        {
+                            "symbol": "BTC/KRW",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 9600000
+                        }
+                    ]
+                ],
+                "output": "{\"batch_orders\":[{\"market\":\"KRW-BTC\",\"volume\":\"0.001\",\"price\":\"9500000\",\"order_type\":\"limit\",\"side\":\"bid\"},{\"market\":\"KRW-BTC\",\"volume\":\"0.001\",\"price\":\"9600000\",\"order_type\":\"limit\",\"side\":\"bid\"}]}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "generation 2 fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&limit=3&state=done",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    3
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "generation 2 fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&limit=3&state=cancel",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    3
+                ]
             }
         ]
     }
