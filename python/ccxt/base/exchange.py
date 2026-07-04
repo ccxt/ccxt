@@ -5274,7 +5274,7 @@ class Exchange(object):
 
     def safe_position(self, position: dict):
         # simplified version of: /pull/12765/
-        unrealizedPnlString = self.safe_string(position, 'unrealisedPnl')
+        unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
         initialMarginString = self.safe_string(position, 'initialMargin')
         #
         # PERCENTAGE
