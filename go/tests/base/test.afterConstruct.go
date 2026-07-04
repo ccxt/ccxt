@@ -22,8 +22,7 @@ func TestAfterConstruct(exchange ccxt.ICoreExchange, skippedProperties any) <-ch
 }
 func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 	if !IsTrue((InOp(skippedProperties, "networks"))) {
-		// only allow these whitelisted unified networkCodes to be repeated
-		var allowedUnifiedAliases any = []any{"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SPL", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA"}
+		var allowedUnifiedAliases any = []any{"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"}
 		var networks any = exchange.SafeDict(exchange.GetOptions(), "networks")
 		if IsTrue(IsEqual(networks, nil)) {
 			return

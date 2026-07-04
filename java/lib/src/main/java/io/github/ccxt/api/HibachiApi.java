@@ -24,9 +24,9 @@ public class HibachiApi extends Exchange
         return this.callAsync ("publicGetMarketExchangeInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataTrades (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketInventory (Object... optionalArgs)
     {
-        return this.callAsync ("publicGetMarketDataTrades", optionalArgs);
+        return this.callAsync ("publicGetMarketInventory", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataPrices (Object... optionalArgs)
@@ -39,19 +39,24 @@ public class HibachiApi extends Exchange
         return this.callAsync ("publicGetMarketDataStats", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketDataTrades", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataKlines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketDataKlines", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataOrderbook (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetMarketDataOrderbook", optionalArgs);
-    }
-
     public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketDataOpenInterest", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataOrderbook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketDataOrderbook", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetMarketDataFundingRates (Object... optionalArgs)
@@ -64,9 +69,9 @@ public class HibachiApi extends Exchange
         return this.callAsync ("publicGetExchangeUtcTimestamp", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privateGetCapitalDepositInfo (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  privateGetCapitalBalance (Object... optionalArgs)
     {
-        return this.callAsync ("privateGetCapitalDepositInfo", optionalArgs);
+        return this.callAsync ("privateGetCapitalBalance", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetCapitalHistory (Object... optionalArgs)
@@ -74,9 +79,9 @@ public class HibachiApi extends Exchange
         return this.callAsync ("privateGetCapitalHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privateGetTradeAccountTradingHistory (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  privateGetCapitalDepositInfo (Object... optionalArgs)
     {
-        return this.callAsync ("privateGetTradeAccountTradingHistory", optionalArgs);
+        return this.callAsync ("privateGetCapitalDepositInfo", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetTradeAccountInfo (Object... optionalArgs)
@@ -84,19 +89,34 @@ public class HibachiApi extends Exchange
         return this.callAsync ("privateGetTradeAccountInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privateGetTradeOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("privateGetTradeOrder", optionalArgs);
-    }
-
     public java.util.concurrent.CompletableFuture<Object>  privateGetTradeAccountTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTradeAccountTrades", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetTradeAccountTradingHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTradeAccountTradingHistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetTradeAccountSettlementsHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTradeAccountSettlementsHistory", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetTradeOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTradeOrders", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetTradeOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTradeOrder", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetTradeOrdersHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTradeOrdersHistory", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePutTradeOrder (Object... optionalArgs)
@@ -127,6 +147,16 @@ public class HibachiApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privatePostCapitalWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCapitalWithdraw", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostCapitalTransfer (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCapitalTransfer", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostTradeAccountLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostTradeAccountLeverage", optionalArgs);
     }
 
 }

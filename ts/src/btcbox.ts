@@ -588,7 +588,7 @@ export default class btcbox extends Exchange {
         //
         //     {
         //         "result":true,
-        //         "id":"11"
+        //         "id":"12"
         //     }
         //
         return this.parseOrder (response, market);

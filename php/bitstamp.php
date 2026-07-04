@@ -23,7 +23,7 @@ class bitstamp extends Exchange {
                 'CORS' => true,
                 'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
@@ -483,6 +483,7 @@ class bitstamp extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'mica' => true,
                 'networksById' => array(
                     'bitcoin-cash' => 'BCH',
                     'bitcoin' => 'BTC',

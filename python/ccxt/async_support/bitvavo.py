@@ -418,6 +418,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'mica': True,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
                 'networks': {

@@ -108,7 +108,7 @@ func (this *BitmexCore) Describe() any {
 			"fetchTransfer":                  false,
 			"fetchTransfers":                 false,
 			"fetchVolatilityHistory":         false,
-			"index":                          true,
+			"index":                          false,
 			"reduceMargin":                   nil,
 			"repayCrossMargin":               false,
 			"repayIsolatedMargin":            false,

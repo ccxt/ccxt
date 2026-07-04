@@ -579,7 +579,7 @@ func (this *DydxCore) ParseMarket(market any) any {
 /**
  * @method
  * @name dydx#fetchMarkets
- * @description retrieves data on all markets for hyperliquid
+ * @description retrieves data on all markets for dydx
  * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -675,7 +675,7 @@ func (this *DydxCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name dydx#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+ * @see https://docs.dydx.xyz/indexer-client/http#get-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch

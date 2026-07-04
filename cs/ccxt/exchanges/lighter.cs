@@ -19,7 +19,7 @@ public partial class lighter : Exchange
             { "quoteJsonNumbers", false },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
                 { "swap", true },
                 { "future", false },

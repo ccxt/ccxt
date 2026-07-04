@@ -69,9 +69,9 @@ class aster(Exchange, ImplicitAPI):
             },
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': True,

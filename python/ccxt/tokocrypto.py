@@ -281,7 +281,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
-                    'SPL': 'SOL',
+                    'SOL': 'SOL',
                 },
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',

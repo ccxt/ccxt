@@ -50,7 +50,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': True,
                 'borrowCrossMargin': True,

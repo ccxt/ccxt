@@ -51,6 +51,7 @@ public partial class gateeu : gate
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot"} },
                 } },
+                { "mica", true },
             } },
         });
     }

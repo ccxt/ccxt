@@ -147,7 +147,7 @@ class grvt(ccxt.async_support.grvt):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+        https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint

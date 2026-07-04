@@ -158,7 +158,7 @@ class grvt extends \ccxt\async\grvt {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+             * @see https://api-docs.grvt.io/market_data_streams/#mini-$ticker-snap-feed-selector
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

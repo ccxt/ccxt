@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.63'
+__version__ = '4.5.64'
 
 # -----------------------------------------------------------------------------
 
@@ -38,6 +38,15 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
+
+# -----------------------------------------------------------------------------
+
+try:
+    # patches aiohttp to use zlib-ng for gzip/deflate (~2x faster decompression)
+    import aiohttp_fast_zlib
+    aiohttp_fast_zlib.enable()
+except ImportError:
+    pass
 
 # -----------------------------------------------------------------------------
 
