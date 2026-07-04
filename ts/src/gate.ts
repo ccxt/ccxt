@@ -6179,6 +6179,14 @@ export default class gate extends Exchange {
                 initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
             }
         }
+        // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
+        // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
+        // older responses return "0" for it - in that case fall back to the legacy client-side approximation
+        // Maintenance Margin = Position Value * maintenance_rate
+        let maintenanceMarginString: Str = this.omitZero (this.safeString (position, 'maintenance_margin'));
+        if (maintenanceMarginString === undefined) {
+            maintenanceMarginString = Precise.stringMul (maintenanceRate, notional);
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -6200,8 +6208,8 @@ export default class gate extends Exchange {
             'lastUpdateTimestamp': this.safeTimestamp2 (position, 'update_time', 'time'),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
-            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
-            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMarginString, notional)),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
