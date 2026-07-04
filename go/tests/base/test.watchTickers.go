@@ -13,8 +13,8 @@ func TestWatchTickers(exchange ccxt.ICoreExchange, skippedProperties any, symbol
 		var withoutSymbol any = TestWatchTickersHelper(exchange, skippedProperties, nil)
 		var withSymbol any = TestWatchTickersHelper(exchange, skippedProperties, []any{symbol})
 
-		retRes104 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
-		PanicOnError(retRes104)
+		retRes114 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
+		PanicOnError(retRes114)
 		return nil
 	}()
 	return ch
@@ -30,7 +30,7 @@ func TestWatchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, 
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
 		for IsLessThan(now, ends) {
-			var response any = nil
+			var response any = map[string]any{}
 			var success any = true
 			var shouldReturn any = false
 

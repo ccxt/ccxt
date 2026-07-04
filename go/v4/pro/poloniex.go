@@ -864,7 +864,7 @@ func  (this *PoloniexCore) HandleOHLCV(client any, message any) any  {
     var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
     var parsed any = this.ParseWsOHLCV(data, market)
     ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any {}))
-    var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+    var stored any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(timeframe, nil))), nil, this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe))
     if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
         if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
             var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -903,7 +903,7 @@ func  (this *PoloniexCore) HandleTrade(client any, message any) any  {
             var symbol any = ccxt.GetValue(trade, "symbol")
             var typeVar any = "trades"
             var messageHash any = ccxt.Add(ccxt.Add(typeVar, "::"), symbol)
-            var tradesArray any = this.SafeValue(this.Trades, symbol)
+            var tradesArray any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.SafeValue(this.Trades, symbol))
             if ccxt.IsTrue(ccxt.IsEqual(tradesArray, nil)) {
                 var tradesLimit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
                 tradesArray = ccxt.NewArrayCache(tradesLimit)
@@ -1098,8 +1098,8 @@ func  (this *PoloniexCore) HandleOrder(client any, message any) any  {
         var eventType any = this.SafeString(order, "eventType")
         if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
             var symbol any = this.SafeSymbol(marketId)
-            var orderId any = this.SafeString(order, "orderId")
-            var clientOrderId any = this.SafeString(order, "clientOrderId")
+            var orderId any = this.SafeString(order, "orderId", "")
+            var clientOrderId any = this.SafeString(order, "clientOrderId", "")
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(eventType, "place")) || ccxt.IsTrue(ccxt.IsEqual(eventType, "canceled"))) {
                 var parsed any = this.ParseWsOrder(order)
                 orders.(ccxt.Appender).Append(parsed)
@@ -1496,7 +1496,7 @@ func  (this *PoloniexCore) HandleMessage(client any, message any)  {
         "cancelAllOrders": this.HandleOrderRequest,
         "auth": this.HandleAuthenticate,
     }
-    var method any = this.SafeValue(methods, typeVar)
+    var method any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, nil))), nil, this.SafeValue(methods, typeVar))
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "auth")) {
         this.HandleAuthenticate(client, message)
     } else if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
