@@ -135,7 +135,7 @@ except ImportError:
     json_parser = json
 
     def json_dumps(data):
-        return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
+        return json.dumps(data, separators=(',', ':'))
 
 import math
 import random
@@ -156,15 +156,6 @@ from typing import Any, List
 from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
-
-class SafeJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Exception):
-            return {"name": obj.__class__.__name__}
-        try:
-            return super().default(obj)
-        except TypeError:
-            return f"TypeError: Object of type {type(obj).__name__} is not JSON serializable"
 
 class Exchange(object):
     """Base exchange class"""
