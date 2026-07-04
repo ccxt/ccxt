@@ -4877,7 +4877,7 @@ export default class Exchange {
     }
     safePosition(position) {
         // simplified version of: /pull/12765/
-        const unrealizedPnlString = this.safeString(position, 'unrealisedPnl');
+        const unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
         const initialMarginString = this.safeString(position, 'initialMargin');
         //
         // PERCENTAGE
