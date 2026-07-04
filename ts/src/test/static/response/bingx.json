@@ -2000,7 +2000,29 @@
                         }
                     }
                 ],
-                "httpResponse": "{\"code\":0,\"msg\":\"\",\"data\":{\"order\":{\"orderId\":1743623387810590720,\"symbol\":\"LTC-USDT\",\"positionSide\":\"LONG\",\"side\":\"BUY\",\"type\":\"MARKET\",\"price\":0,\"quantity\":1,\"stopPrice\":0,\"workingType\":\"MARK_PRICE\",\"clientOrderID\":\"\",\"timeInForce\":\"GTC\",\"priceRate\":0,\"stopLoss\":\"{\\\"stopPrice\\\":50,\\\"workingType\\\":\\\"MARK_PRICE\\\",\\\"type\\\":\\\"STOP_MARKET\\\",\\\"quantity\\\":1}\",\"takeProfit\":\"{\\\"stopPrice\\\":100,\\\"workingType\\\":\\\"MARK_PRICE\\\",\\\"type\\\":\\\"TAKE_PROFIT_MARKET\\\",\\\"quantity\\\":1}\",\"reduceOnly\":false}}}",
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "order": {
+                            "orderId": "1743623387810590720",
+                            "symbol": "LTC-USDT",
+                            "positionSide": "LONG",
+                            "side": "BUY",
+                            "type": "MARKET",
+                            "price": "0",
+                            "quantity": "1",
+                            "stopPrice": "0",
+                            "workingType": "MARK_PRICE",
+                            "clientOrderID": "",
+                            "timeInForce": "GTC",
+                            "priceRate": "0",
+                            "stopLoss": "{\"stopPrice\":\"50\",\"workingType\":\"MARK_PRICE\",\"type\":\"STOP_MARKET\",\"quantity\":\"1\"}",
+                            "takeProfit": "{\"stopPrice\":\"100\",\"workingType\":\"MARK_PRICE\",\"type\":\"TAKE_PROFIT_MARKET\",\"quantity\":\"1\"}",
+                            "reduceOnly": false
+                        }
+                    }
+                },
                 "parsedResponse": {
                     "info": {
                         "orderId": "1743623387810590720",
