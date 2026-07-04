@@ -29,7 +29,7 @@ class extended extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,

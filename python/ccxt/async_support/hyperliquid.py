@@ -42,7 +42,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': True,
                 'borrowCrossMargin': False,

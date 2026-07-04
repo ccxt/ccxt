@@ -37,7 +37,7 @@ class extended(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,

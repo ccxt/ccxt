@@ -33,7 +33,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
-                put( "future", true );
+                put( "future", false );
                 put( "option", false );
                 put( "addMargin", true );
                 put( "borrowCrossMargin", false );

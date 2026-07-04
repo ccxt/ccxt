@@ -253,7 +253,7 @@ class tokocrypto extends Exchange {
                     'BEP20' => 'BSC',
                     'OMNI' => 'OMNI',
                     'EOS' => 'EOS',
-                    'SPL' => 'SOL',
+                    'SOL' => 'SOL',
                 ),
                 'reverseNetworks' => array(
                     'tronscan.org' => 'TRC20',

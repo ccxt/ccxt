@@ -4108,7 +4108,7 @@ func (this *DeltaCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
 			"margin_mode": marginMode,
 		}
 
-		retRes362015 := (<-this.CallDynamically("privatePutUsersMarginMode", this.Extend(request, params)))
+		retRes362015 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params)))
 		PanicOnError(retRes362015)
 		ch <- retRes362015
 		return nil

@@ -600,7 +600,7 @@ class kraken(ccxt.async_support.kraken):
         ohlcvsLength = len(data)
         for i in range(0, ohlcvsLength):
             candle = data[ohlcvsLength - i - 1]
-            datetime = self.safe_string(candle, 'timestamp')
+            datetime = self.safe_string(candle, 'interval_begin')
             timestamp = self.parse8601(datetime)
             parsed = [
                 timestamp,

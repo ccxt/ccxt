@@ -27,6 +27,9 @@ class kucoineu extends kucoin {
                     'https://www.kucoin.com/en-eu/docs-new',
                 ),
             ),
+            'options' => array(
+                'mica' => true,
+            ),
         ));
     }
 }

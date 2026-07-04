@@ -124,7 +124,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchVolatilityHistory': False,
-                'index': True,
+                'index': False,
                 'reduceMargin': None,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,

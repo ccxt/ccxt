@@ -31,7 +31,7 @@ public class PoloniexCore extends PoloniexApi
                 put( "spot", true );
                 put( "margin", null );
                 put( "swap", true );
-                put( "future", true );
+                put( "future", false );
                 put( "option", false );
                 put( "addMargin", true );
                 put( "cancelAllOrders", true );

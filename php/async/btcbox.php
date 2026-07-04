@@ -595,7 +595,7 @@ class btcbox extends Exchange {
             //
             //     {
             //         "result":true,
-            //         "id":"11"
+            //         "id":"12"
             //     }
             //
             return $this->parse_order($response, $market);

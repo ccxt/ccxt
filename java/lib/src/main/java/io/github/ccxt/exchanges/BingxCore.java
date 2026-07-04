@@ -3565,6 +3565,17 @@ public class BingxCore extends BingxApi
             {
                 result = data;
             }
+            // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+            Object stopLoss = this.safeString(result, "stopLoss");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLoss, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(stopLoss, "{"), 0)))))
+            {
+                Helpers.addElementToObject(result, "stopLoss", this.parseJson(stopLoss));
+            }
+            Object takeProfit = this.safeString(result, "takeProfit");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfit, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(takeProfit, "{"), 0)))))
+            {
+                Helpers.addElementToObject(result, "takeProfit", this.parseJson(takeProfit));
+            }
             return this.parseOrder(result, market);
         });
 

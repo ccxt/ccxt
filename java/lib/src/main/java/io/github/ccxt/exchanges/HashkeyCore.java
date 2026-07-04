@@ -31,10 +31,10 @@ public class HashkeyCore extends HashkeyApi
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
-                put( "addMargin", false );
+                put( "addMargin", true );
                 put( "borrowCrossMargin", false );
                 put( "borrowIsolatedMargin", false );
                 put( "borrowMargin", false );
@@ -149,13 +149,13 @@ public class HashkeyCore extends HashkeyApi
                 put( "fetchUnderlyingAssets", false );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawals", true );
-                put( "reduceMargin", false );
+                put( "reduceMargin", true );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
                 put( "sandbox", false );
                 put( "setLeverage", true );
                 put( "setMargin", false );
-                put( "setMarginMode", false );
+                put( "setMarginMode", true );
                 put( "setPositionMode", false );
                 put( "transfer", true );
                 put( "withdraw", true );
@@ -226,10 +226,12 @@ public class HashkeyCore extends HashkeyApi
                         put( "api/v1/futures/riskLimit", 1 );
                         put( "api/v1/futures/commissionRate", 1 );
                         put( "api/v1/futures/getBestOrder", 1 );
+                        put( "api/v1/coinInfo", 1 );
                         put( "api/v1/account/vipInfo", 1 );
                         put( "api/v1/account", 1 );
                         put( "api/v1/account/trades", 5 );
                         put( "api/v1/account/type", 5 );
+                        put( "api/v1/account/chainType", 1 );
                         put( "api/v1/account/checkApiKey", 1 );
                         put( "api/v1/account/balanceFlow", 5 );
                         put( "api/v1/spot/subAccount/openOrders", 1 );
@@ -250,6 +252,8 @@ public class HashkeyCore extends HashkeyApi
                         put( "api/v1/spot/batchOrders", 5 );
                         put( "api/v1/futures/leverage", 1 );
                         put( "api/v1/futures/order", 1 );
+                        put( "api/v1/futures/marginType", 1 );
+                        put( "api/v1/futures/positionMargin", 1 );
                         put( "api/v1/futures/position/trading-stop", 3 );
                         put( "api/v1/futures/batchOrders", 5 );
                         put( "api/v1/account/assetTransfer", 1 );
@@ -4297,6 +4301,174 @@ public class HashkeyCore extends HashkeyApi
 
     /**
      * @method
+     * @name hashkey#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public java.util.concurrent.CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
+    {
+        final Object marginMode3 = marginMode2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object marginMode = marginMode3;
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+            }
+            (this.loadMarkets()).join();
+            marginMode = ((String)marginMode).toUpperCase();
+            if (Helpers.isTrue(Helpers.isEqual(marginMode, "CROSSED")))
+            {
+                marginMode = "CROSS";
+            }
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "CROSS"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "ISOLATED")))))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+            }
+            Object market = this.market(symbol);
+            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            {
+                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap markets only")) ;
+            }
+            final Object finalMarginMode = marginMode;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "marginType", finalMarginMode );
+            }};
+            return (this.privatePostApiV1FuturesMarginType(this.extend(request, parameters))).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name hashkey#addMargin
+     * @description add margin
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name hashkey#reduceMargin
+     * @description remove margin from a position
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type2, Object... optionalArgs)
+    {
+        final Object type3 = type2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object type = type3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            {
+                throw new BadSymbol((String)Helpers.add(this.id, " modifyMarginHelper() supports swap markets only")) ;
+            }
+            Object side = null;
+            var sideparametersVariable = this.handleParamString(parameters, "side");
+            side = ((java.util.List<Object>) sideparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) sideparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
+            }
+            side = ((String)side).toUpperCase();
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, "LONG"))) && Helpers.isTrue((!Helpers.isEqual(side, "SHORT")))))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() params[\"side\"] must be either long or short")) ;
+            }
+            Object amountString = this.numberToString(amount);
+            if (Helpers.isTrue(Helpers.isEqual(type, "reduce")))
+            {
+                amountString = Precise.stringMul(amountString, "-1");
+            }
+            final Object finalSide = side;
+            final Object finalAmountString = amountString;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "side", finalSide );
+                put( "amount", finalAmountString );
+            }};
+            Object response = (this.privatePostApiV1FuturesPositionMargin(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "code": "0000",
+            //         "symbol": "BTCUSDT-PERPETUAL",
+            //         "margin": "12344.345",
+            //         "timestamp": "1726869763318"
+            //     }
+            //
+            final Object finalType = type;
+            return this.extend(this.parseMarginModification(response, market), new java.util.HashMap<String, Object>() {{
+                put( "type", finalType );
+                put( "amount", amount );
+            }});
+        });
+
+    }
+
+    public Object parseMarginModification(Object data, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketId = this.safeString(data, "symbol");
+        market = this.safeMarket(marketId, market, null, "swap");
+        Object timestamp = this.safeInteger(data, "timestamp");
+        Object errorCode = this.safeString(data, "code");
+        Object success = Helpers.isEqual(errorCode, "0000");
+        final Object finalMarket = market;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", data );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "type", null );
+            put( "marginMode", "isolated" );
+            put( "amount", null );
+            put( "total", HashkeyCore.this.safeNumber(data, "margin") );
+            put( "code", Helpers.GetValue(finalMarket, "settle") );
+            put( "status", ((Helpers.isTrue((success)))) ? "ok" : "failed" );
+            put( "timestamp", timestamp );
+            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+        }};
+    }
+
+    /**
+     * @method
      * @name hashkey#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
@@ -4429,7 +4601,7 @@ final Object finalI = i;
      * @method
      * @name hashkey#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4467,7 +4639,7 @@ final Object finalI = i;
      * @method
      * @name hashkey#fetchTradingFees
      * @description *for spot markets only* fetch the trading fees for multiple markets
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */

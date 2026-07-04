@@ -922,7 +922,10 @@ class bitget extends \ccxt\async\bitget {
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
-            if (!$isSnapshot && $checksum) {
+            // UTA order books do not provide a crc32 $checksum (they rely on seq/pseq for integrity),
+            // so only validate the $checksum when the exchange actually sends one
+            $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
+            if (!$isSnapshot && $checksum && ($responseChecksum !== null)) {
                 $storedAsks = $storedOrderBook['asks'];
                 $storedBids = $storedOrderBook['bids'];
                 $asksLength = count($storedAsks);
@@ -940,12 +943,7 @@ class bitget extends \ccxt\async\bitget {
                 }
                 $payload = implode(':', $payloadArray);
                 $calculatedChecksum = $this->crc32($payload, true);
-                $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
                 if ($calculatedChecksum !== $responseChecksum) {
-                    // if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                    //     // unset($client->subscriptions[$messageHash]);
-                    //     // unset($this->orderbooks[$symbol]);
-                    // }
                     $this->spawn(array($this, 'handle_check_sum_error'), $client, $symbol, $messageHash);
                     return;
                 }
@@ -2761,10 +2759,14 @@ class bitget extends \ccxt\async\bitget {
         //
         //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"books","instId":"BTCUSDT"))
         //
+        // UTA
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"spot","topic":"books","symbol":"BTCUSDT"))
+        //
         $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string_lower($arg, 'instType');
         $type = ($instType === 'spot') ? 'spot' : 'contract';
-        $instId = $this->safe_string($arg, 'instId');
+        $instId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($instId, null, null, $type);
         $symbol = $market['symbol'];
         $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];

@@ -3225,6 +3225,13 @@ class bingx(Exchange, ImplicitAPI):
                 result = self.safe_dict(data, 'order', data)
         else:
             result = data
+        # when the response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        stopLoss = self.safe_string(result, 'stopLoss')
+        if (stopLoss is not None) and (stopLoss.find('{') == 0):
+            result['stopLoss'] = self.parse_json(stopLoss)
+        takeProfit = self.safe_string(result, 'takeProfit')
+        if (takeProfit is not None) and (takeProfit.find('{') == 0):
+            result['takeProfit'] = self.parse_json(takeProfit)
         return self.parse_order(result, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):

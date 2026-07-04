@@ -1,5 +1,9 @@
 import ccxt.pro
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import time
 
 
@@ -31,4 +35,4 @@ async def main():
         await asyncio.gather(*[exchange.close() for exchange in exchanges])
 
 
-asyncio.run(main())
+run(main())

@@ -60,4 +60,7 @@ class bybiteu(bybit, ImplicitAPI):
                 'future': False,
                 'option': None,
             },
+            'options': {
+                'mica': True,
+            },
         })
