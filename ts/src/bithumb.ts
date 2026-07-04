@@ -967,17 +967,29 @@ export default class bithumb extends Exchange {
         const result: Dict = {};
         if (generation === 2) {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
-            // so we aggregate one market per request to guarantee full coverage.
-            const marketSymbols = (symbols === undefined) ? this.symbols : symbols;
-            const marketIds = this.marketIds (marketSymbols);
+            // so we aggregate one market per request only when symbols are not provided.
+            let marketIds = [];
+            if (symbols === undefined) {
+                marketIds = this.marketIds (this.symbols);
+            } else {
+                marketIds = this.marketIds (symbols);
+                request['markets'] = marketIds.join (',');
+            }
             const promises = [];
-            for (let i = 0; i < marketIds.length; i++) {
-                promises.push (this.publicGetV1Ticker (this.extend ({ 'markets': marketIds[i] }, params)));
+            if (symbols === undefined) {
+                for (let i = 0; i < marketIds.length; i++) {
+                    promises.push (this.publicGetV1Ticker (this.extend ({ 'markets': marketIds[i] }, params)));
+                }
+            } else {
+                promises.push (this.publicGetV1Ticker (this.extend (request, params)));
             }
             const responses = await Promise.all (promises);
             for (let i = 0; i < responses.length; i++) {
                 const response = responses[i];
-                const expectedMarketId = marketIds[i];
+                let expectedMarketId = undefined;
+                if (symbols === undefined) {
+                    expectedMarketId = marketIds[i];
+                }
                 let tickers = [];
                 if (Array.isArray (response)) {
                     tickers = response;
