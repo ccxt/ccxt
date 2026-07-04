@@ -10,6 +10,420 @@
         }
     },
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel order by outcome",
+                "method": "cancelOrder",
+                "input": [
+                    480264497594,
+                    "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "cancel",
+                        "data": {
+                            "statuses": [
+                                "success"
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "480264497594",
+                    "clientOrderId": null,
+                    "info": "success",
+                    "status": "canceled",
+                    "outcome": "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES",
+                    "outcomeId": "#5920",
+                    "label": "YES",
+                    "market": "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES",
+                    "timestamp": 1782467934912,
+                    "datetime": "2026-06-26T09:58:54.912Z",
+                    "fees": [],
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null,
+                    "event": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC-ABOVE-61571-20260626:NO",
+                    null,
+                    1,
+                    {
+                        "address": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "#6491",
+                        "side": "A",
+                        "px": "0.94963",
+                        "sz": "50.0",
+                        "time": "1782401423872",
+                        "hash": "0xad4c5303620a2e93aec6043e8877b2020efe00e8fd0d4d655114fe56210e087e",
+                        "tid": "1009782029860688",
+                        "users": [
+                            "0xa6fab1996dac91ad42c4ad55ec7132f4750a4f8a",
+                            "0xc926ddba8b7617dbc65712f20cf8e1b58b8598d3"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "A",
+                        "px": "0.9514",
+                        "sz": "50.0",
+                        "time": "1782401423872",
+                        "hash": "0xad4c5303620a2e93aec6043e8877b2020efe00e8fd0d4d655114fe56210e087e",
+                        "tid": "217437047108019",
+                        "users": [
+                            "0xa6fab1996dac91ad42c4ad55ec7132f4750a4f8a",
+                            "0xc926ddba8b7617dbc65712f20cf8e1b58b8598d3"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "A",
+                        "px": "0.9535",
+                        "sz": "260.0",
+                        "time": "1782401416549",
+                        "hash": "0x60b416930db792f0622d043e8877480206030078a8bab1c2047cc1e5ccbb6cdb",
+                        "tid": "409774352016317",
+                        "users": [
+                            "0x1e532f0cb079be639b86073d78e0f4006cecfeac",
+                            "0x171c1cf42c8e11589381f5e4846ffe4e2c7f6d95"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "A",
+                        "px": "0.9535",
+                        "sz": "53.0",
+                        "time": "1782401416300",
+                        "hash": "0xd761b3b7f4749b08d8db043e887744020a63009d8f77b9da7b2a5f0ab37874f3",
+                        "tid": "1125419052021664",
+                        "users": [
+                            "0x1e532f0cb079be639b86073d78e0f4006cecfeac",
+                            "0x0e7d09a53f348fcef8bb139af9ebb552f4a33fe9"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "A",
+                        "px": "0.9535",
+                        "sz": "53.0",
+                        "time": "1782401400852",
+                        "hash": "0xcf2a64922a5f59d4d0a4043e887667020e820077c55278a672f30fe4e95333bf",
+                        "tid": "839926853311654",
+                        "users": [
+                            "0x1e532f0cb079be639b86073d78e0f4006cecfeac",
+                            "0x0e7d09a53f348fcef8bb139af9ebb552f4a33fe9"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "B",
+                        "px": "0.95142",
+                        "sz": "880.0",
+                        "time": "1782401390988",
+                        "hash": "0xc2fcab6dc939a2e6c476043e8875da020a210053643cc1b866c556c0883d7cd1",
+                        "tid": "677883539804534",
+                        "users": [
+                            "0xc926ddba8b7617dbc65712f20cf8e1b58b8598d3",
+                            "0xbb498088467c8eee238e7fe45afdae39d737ae51"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "B",
+                        "px": "0.95142",
+                        "sz": "31.0",
+                        "time": "1782401390714",
+                        "hash": "0x2dc429f485d5d2102f3d043e8875d6020d8f00da20d8f0e2d18cd54744d9abfa",
+                        "tid": "654073289847126",
+                        "users": [
+                            "0xa6fab1996dac91ad42c4ad55ec7132f4750a4f8a",
+                            "0xbb498088467c8eee238e7fe45afdae39d737ae51"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "B",
+                        "px": "0.95142",
+                        "sz": "26.0",
+                        "time": "1782401389033",
+                        "hash": "0x77a5678525625b5d791f043e8875bb020cb7006ac0657a2f1b6e12d7e4663548",
+                        "tid": "314429097734144",
+                        "users": [
+                            "0xa6fab1996dac91ad42c4ad55ec7132f4750a4f8a",
+                            "0xbb498088467c8eee238e7fe45afdae39d737ae51"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "A",
+                        "px": "0.95085",
+                        "sz": "105.0",
+                        "time": "1782401378064",
+                        "hash": "0x9a6f01fcc9f8bfcb9be8043e88751b02040800e264fbde9d3e37ad4f88fc99b6",
+                        "tid": "801665461023618",
+                        "users": [
+                            "0x1e532f0cb079be639b86073d78e0f4006cecfeac",
+                            "0xf3a55a179479c766c5234d874bf0f3daf6bcbaa4"
+                        ]
+                    },
+                    {
+                        "coin": "#6491",
+                        "side": "B",
+                        "px": "0.95086",
+                        "sz": "53.0",
+                        "time": "1782401348240",
+                        "hash": "0x6d5dfd2f0525bc4a6ed7043e8873780208a20014a028db1c1126a881c4299635",
+                        "tid": "1006411686614377",
+                        "users": [
+                            "0xc926ddba8b7617dbc65712f20cf8e1b58b8598d3",
+                            "0x0e7d09a53f348fcef8bb139af9ebb552f4a33fe9"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "217437047108019",
+                        "info": {
+                            "coin": "#6491",
+                            "side": "A",
+                            "px": "0.9514",
+                            "sz": "50.0",
+                            "time": "1782401423872",
+                            "hash": "0xad4c5303620a2e93aec6043e8877b2020efe00e8fd0d4d655114fe56210e087e",
+                            "tid": "217437047108019",
+                            "users": [
+                                "0xa6fab1996dac91ad42c4ad55ec7132f4750a4f8a",
+                                "0xc926ddba8b7617dbc65712f20cf8e1b58b8598d3"
+                            ]
+                        },
+                        "timestamp": 1782401423872,
+                        "datetime": "2026-06-25T15:30:23.872Z",
+                        "outcome": "BTC-ABOVE-61571-20260626:NO",
+                        "outcomeId": "#6491",
+                        "label": "NO",
+                        "market": "BTC-ABOVE-61571-20260626:NO",
+                        "order": null,
+                        "type": "limit",
+                        "side": "sell",
+                        "takerOrMaker": "maker",
+                        "price": 0.9514,
+                        "amount": 50,
+                        "cost": 47.57,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "event": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OB by outcome label",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC-ABOVE-62802-20260626:YES"
+                ],
+                "httpResponse": {
+                    "coin": "#6560",
+                    "time": "1782398787486",
+                    "levels": [
+                        [
+                            {
+                                "px": "0.023",
+                                "sz": "870.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.01001",
+                                "sz": "29970.0",
+                                "n": "1"
+                            }
+                        ],
+                        [
+                            {
+                                "px": "0.12799",
+                                "sz": "1652.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.128",
+                                "sz": "1200.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.13",
+                                "sz": "13.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.98999",
+                                "sz": "29970.0",
+                                "n": "1"
+                            }
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            0.023,
+                            870
+                        ],
+                        [
+                            0.01001,
+                            29970
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.12799,
+                            1652
+                        ],
+                        [
+                            0.128,
+                            1200
+                        ],
+                        [
+                            0.13,
+                            13
+                        ],
+                        [
+                            0.98999,
+                            29970
+                        ]
+                    ],
+                    "timestamp": 1782398787486,
+                    "datetime": "2026-06-25T14:46:27.486Z",
+                    "nonce": null,
+                    "outcome": "BTC-ABOVE-62802-20260626:YES",
+                    "outcomeId": "#6560",
+                    "market": "BTC-ABOVE-62802-20260626"
+                }
+            },
+            {
+                "description": "fetch orderbook by id",
+                "method": "fetchOrderBook",
+                "input": [
+                    "#6560"
+                ],
+                "httpResponse": {
+                    "coin": "#6560",
+                    "time": "1782398745627",
+                    "levels": [
+                        [
+                            {
+                                "px": "0.023",
+                                "sz": "870.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.02",
+                                "sz": "1200.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.01001",
+                                "sz": "29970.0",
+                                "n": "1"
+                            }
+                        ],
+                        [
+                            {
+                                "px": "0.12799",
+                                "sz": "1652.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.128",
+                                "sz": "1200.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.13",
+                                "sz": "13.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.98999",
+                                "sz": "29970.0",
+                                "n": "1"
+                            }
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            0.023,
+                            870
+                        ],
+                        [
+                            0.02,
+                            1200
+                        ],
+                        [
+                            0.01001,
+                            29970
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.12799,
+                            1652
+                        ],
+                        [
+                            0.128,
+                            1200
+                        ],
+                        [
+                            0.13,
+                            13
+                        ],
+                        [
+                            0.98999,
+                            29970
+                        ]
+                    ],
+                    "timestamp": 1782398745627,
+                    "datetime": "2026-06-25T14:45:45.627Z",
+                    "nonce": null,
+                    "outcome": "BTC-ABOVE-62802-20260626:YES",
+                    "outcomeId": "#6560",
+                    "market": "BTC-ABOVE-62802-20260626"
+                }
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "ensure orders are dedup when hl returns 2 orders with same id",
@@ -120,6 +534,83 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "input": [
+                    "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES",
+                    "market",
+                    "sell",
+                    21,
+                    0.52
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "order",
+                        "data": {
+                            "statuses": [
+                                {
+                                    "filled": {
+                                        "totalSz": "21.0",
+                                        "avgPx": "0.52",
+                                        "oid": "480263627979"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "480263627979",
+                    "clientOrderId": null,
+                    "info": {
+                        "status": "ok",
+                        "response": {
+                            "type": "order",
+                            "data": {
+                                "statuses": [
+                                    {
+                                        "filled": {
+                                            "totalSz": "21.0",
+                                            "avgPx": "0.52",
+                                            "oid": "480263627979"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "timestamp": 1782467824776,
+                    "datetime": "2026-06-26T09:57:04.776Z",
+                    "status": "closed",
+                    "outcome": "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES",
+                    "outcomeId": "#5920",
+                    "label": "YES",
+                    "market": "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES",
+                    "type": "market",
+                    "side": "sell",
+                    "price": 0.52,
+                    "amount": 21,
+                    "filled": 21,
+                    "remaining": 0,
+                    "cost": 10.92,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "event": null
+                }
+            },
             {
                 "description": "create order",
                 "method": "createOrder",
