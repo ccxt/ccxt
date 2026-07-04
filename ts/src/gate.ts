@@ -6164,8 +6164,8 @@ export default class gate extends Exchange {
         // *The default leverage under the full position is the highest leverage in the market.
         // *Trading fee is charged as Taker Fee Rate (0.075%).
         let feePaid = this.safeString (position, 'pnl_fee');
-        let initialMarginString: Str = undefined;
-        if (feePaid === undefined) {
+        let initialMarginString: Str = this.safeString (position, 'margin');
+        if (initialMarginString === undefined && feePaid === undefined) {
             const takerFee = '0.00075';
             feePaid = Precise.stringMul (takerFee, notional);
             initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
