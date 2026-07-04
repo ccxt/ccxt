@@ -1,7 +1,11 @@
 ```python
 # -*- coding: utf-8 -*-
 
-from asyncio import gather, run
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import pandas_ta as ta
 import pandas as pd
 import os

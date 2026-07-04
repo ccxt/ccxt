@@ -3375,6 +3375,17 @@ public partial class bingx : Exchange
         {
             result = data;
         }
+        // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        object stopLoss = this.safeString(result, "stopLoss");
+        if (isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
+        {
+            ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
+        }
+        object takeProfit = this.safeString(result, "takeProfit");
+        if (isTrue(isTrue((!isEqual(takeProfit, null))) && isTrue((isEqual(getIndexOf(takeProfit, "{"), 0)))))
+        {
+            ((IDictionary<string,object>)result)["takeProfit"] = this.parseJson(takeProfit);
+        }
         return this.parseOrder(result, market);
     }
 

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official hibachi API documentation:** [hibachi.xyz](https://www.hibachi.xyz/)
 
-> 22 implicit endpoints across 2 access groups.
+> 28 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -64,12 +64,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `publicGetMarketExchangeInfo` | GET | `market/exchange-info` | 1 |
-| `publicGetMarketDataTrades` | GET | `market/data/trades` | 1 |
+| `publicGetMarketInventory` | GET | `market/inventory` | 1 |
 | `publicGetMarketDataPrices` | GET | `market/data/prices` | 1 |
 | `publicGetMarketDataStats` | GET | `market/data/stats` | 1 |
+| `publicGetMarketDataTrades` | GET | `market/data/trades` | 1 |
 | `publicGetMarketDataKlines` | GET | `market/data/klines` | 1 |
-| `publicGetMarketDataOrderbook` | GET | `market/data/orderbook` | 1 |
 | `publicGetMarketDataOpenInterest` | GET | `market/data/open-interest` | 1 |
+| `publicGetMarketDataOrderbook` | GET | `market/data/orderbook` | 1 |
 | `publicGetMarketDataFundingRates` | GET | `market/data/funding-rates` | 1 |
 | `publicGetExchangeUtcTimestamp` | GET | `exchange/utc-timestamp` | 1 |
 
@@ -79,17 +80,22 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privateGetCapitalDepositInfo` | GET | `capital/deposit-info` | 1 |
+| `privateGetCapitalBalance` | GET | `capital/balance` | 1 |
 | `privateGetCapitalHistory` | GET | `capital/history` | 1 |
-| `privateGetTradeAccountTradingHistory` | GET | `trade/account/trading_history` | 1 |
+| `privateGetCapitalDepositInfo` | GET | `capital/deposit-info` | 1 |
 | `privateGetTradeAccountInfo` | GET | `trade/account/info` | 1 |
-| `privateGetTradeOrder` | GET | `trade/order` | 1 |
 | `privateGetTradeAccountTrades` | GET | `trade/account/trades` | 1 |
+| `privateGetTradeAccountTradingHistory` | GET | `trade/account/trading_history` | 1 |
+| `privateGetTradeAccountSettlementsHistory` | GET | `trade/account/settlements_history` | 1 |
 | `privateGetTradeOrders` | GET | `trade/orders` | 1 |
+| `privateGetTradeOrder` | GET | `trade/order` | 1 |
+| `privateGetTradeOrdersHistory` | GET | `trade/orders/history` | 1 |
 | `privatePutTradeOrder` | PUT | `trade/order` | 1 |
 | `privateDeleteTradeOrder` | DELETE | `trade/order` | 1 |
 | `privateDeleteTradeOrders` | DELETE | `trade/orders` | 1 |
 | `privatePostTradeOrder` | POST | `trade/order` | 1 |
 | `privatePostTradeOrders` | POST | `trade/orders` | 1 |
 | `privatePostCapitalWithdraw` | POST | `capital/withdraw` | 1 |
+| `privatePostCapitalTransfer` | POST | `capital/transfer` | 1 |
+| `privatePostTradeAccountLeverage` | POST | `trade/account/leverage` | 1 |
 
