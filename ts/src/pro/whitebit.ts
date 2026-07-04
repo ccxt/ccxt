@@ -485,7 +485,10 @@ export default class whitebit extends whitebitRest {
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         1, // side, 1 = sell, 2 = buy
+        //         1, // role, 1 = maker, 2 = taker
+        //         "USDT" // fee currency
         //    ]
         //
         const orderId = this.safeString (trade, 3);
@@ -495,14 +498,30 @@ export default class whitebit extends whitebitRest {
         const amount = this.safeString (trade, 5);
         const marketId = this.safeString (trade, 2);
         market = this.safeMarket (marketId, market);
+        const rawSide = this.safeInteger (trade, 8);
+        let side: Str = undefined;
+        if (rawSide !== undefined) {
+            side = (rawSide === 1) ? 'sell' : 'buy';
+        }
+        const rawRole = this.safeInteger (trade, 9);
+        let takerOrMaker: Str = undefined;
+        if (rawRole !== undefined) {
+            takerOrMaker = (rawRole === 1) ? 'maker' : 'taker';
+        }
         let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 6);
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 10);
+            let feeCurrencyCode = market['quote'];
+            if (feeCurrencyId !== undefined) {
+                feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            }
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             };
         }
+        const cost = Precise.stringMul (price, amount);
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -511,11 +530,11 @@ export default class whitebit extends whitebitRest {
             'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'fee': fee,
         }, market);
     }
