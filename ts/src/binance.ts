@@ -3166,7 +3166,7 @@ export default class binance extends Exchange {
             // if (isDefault) {
             //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
             // }
-            let withdrawPrecision = this.omitZero (this.safeString2 (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin', ''));
+            let withdrawPrecision = this.omitZero (this.safeString2 (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
             // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
             if (withdrawPrecision === undefined && isFiat) {
                 withdrawPrecision = this.safeString (this.options, 'defaultFiatWithdrawPrecision');
@@ -10622,7 +10622,7 @@ export default class binance extends Exchange {
         const contracts = this.parseNumber (contractsAbs);
         const unrealizedPnlString = this.safeString (position, 'unRealizedProfit');
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
-        const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice', ''));
+        const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString: Str = undefined;
         let marginMode = this.safeString (position, 'marginType');
@@ -10687,7 +10687,7 @@ export default class binance extends Exchange {
         }
         collateralString = (collateralString === undefined) ? '0' : collateralString;
         const collateral = this.parseNumber (collateralString);
-        const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice', '')));
+        const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
         let timestamp = this.safeInteger (position, 'updateTime');
         if (timestamp === 0) {
             timestamp = undefined;

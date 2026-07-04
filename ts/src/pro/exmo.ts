@@ -752,8 +752,8 @@ export default class exmo extends exmoRest {
             amount = this.safeString (order, amountField);
         }
         const price = this.safeString (order, 'price');
-        const clientOrderId = this.omitZero (this.safeString (order, 'client_id', ''));
-        const triggerPrice = this.omitZero (this.safeString (order, 'stop_price', ''));
+        const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
+        const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
         let type: Str = undefined;
         if ((orderType !== 'buy') && (orderType !== 'sell')) {
             type = orderType;

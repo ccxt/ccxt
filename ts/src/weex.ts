@@ -2850,7 +2850,7 @@ export default class weex extends Exchange {
         }
         const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
         const rawStatus = this.safeStringLower (order, 'status');
-        const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice', ''));
+        const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         const rawType = this.safeStringUpper2 (order, 'type', 'orderType');
         let takeProfitPrice: Str = undefined;
         let stopLossPrice: Str = undefined;
