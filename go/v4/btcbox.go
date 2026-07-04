@@ -682,7 +682,7 @@ func (this *BtcboxCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		//
 		//     {
 		//         "result":true,
-		//         "id":"11"
+		//         "id":"12"
 		//     }
 		//
 		ch <- this.ParseOrder(response, market)

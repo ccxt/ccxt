@@ -225,7 +225,6 @@ export default class indodax extends Exchange {
                     // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
                     // 'OEP4': 'oep4',
                     // 'OP': 'op',
-                    // 'SPL': 'spl',
                     // 'TRC10': 'trc10',
                     // 'ZRC2': 'zrc2'
                     // 'ETH': 'eth'

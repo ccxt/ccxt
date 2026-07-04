@@ -6,7 +6,7 @@ import Exchange from './abstract/hashkey.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, NullableDict, NullableList, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, NullableDict, NullableList, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -28,10 +28,10 @@ export default class hashkey extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -146,13 +146,13 @@ export default class hashkey extends Exchange {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -223,10 +223,12 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrder': 1,
+                        'api/v1/coinInfo': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1,
                         'api/v1/account/trades': 5,
                         'api/v1/account/type': 5,
+                        'api/v1/account/chainType': 1,
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 5,
                         'api/v1/spot/subAccount/openOrders': 1,
@@ -247,6 +249,8 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/batchOrders': 5,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
+                        'api/v1/futures/marginType': 1,
+                        'api/v1/futures/positionMargin': 1,
                         'api/v1/futures/position/trading-stop': 3,
                         'api/v1/futures/batchOrders': 5,
                         'api/v1/account/assetTransfer': 1,
@@ -4088,6 +4092,128 @@ export default class hashkey extends Exchange {
 
     /**
      * @method
+     * @name hashkey#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<Dict> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        marginMode = marginMode.toUpperCase ();
+        if (marginMode === 'CROSSED') {
+            marginMode = 'CROSS';
+        }
+        if ((marginMode !== 'CROSS') && (marginMode !== 'ISOLATED')) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either cross or isolated');
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        };
+        return await this.privatePostApiV1FuturesMarginType (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name hashkey#addMargin
+     * @description add margin
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    /**
+     * @method
+     * @name hashkey#reduceMargin
+     * @description remove margin from a position
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' modifyMarginHelper() supports swap markets only');
+        }
+        let side: Str = undefined;
+        [ side, params ] = this.handleParamString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"');
+        }
+        side = side.toUpperCase ();
+        if ((side !== 'LONG') && (side !== 'SHORT')) {
+            throw new ArgumentsRequired (this.id + ' ' + type + 'Margin() params["side"] must be either long or short');
+        }
+        let amountString = this.numberToString (amount);
+        if (type === 'reduce') {
+            amountString = Precise.stringMul (amountString, '-1');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side,
+            'amount': amountString,
+        };
+        const response = await this.privatePostApiV1FuturesPositionMargin (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0000",
+        //         "symbol": "BTCUSDT-PERPETUAL",
+        //         "margin": "12344.345",
+        //         "timestamp": "1726869763318"
+        //     }
+        //
+        return this.extend (this.parseMarginModification (response, market), {
+            'type': type,
+            'amount': amount,
+        });
+    }
+
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+        const marketId = this.safeString (data, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const timestamp = this.safeInteger (data, 'timestamp');
+        const errorCode = this.safeString (data, 'code');
+        const success = errorCode === '0000';
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': this.safeNumber (data, 'margin'),
+            'code': market['settle'],
+            'status': (success) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    /**
+     * @method
      * @name hashkey#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
@@ -4207,7 +4333,7 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4241,7 +4367,7 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#fetchTradingFees
      * @description *for spot markets only* fetch the trading fees for multiple markets
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */

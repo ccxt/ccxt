@@ -3663,7 +3663,7 @@ public partial class delta : Exchange
         object request = new Dictionary<string, object>() {
             { "margin_mode", marginMode },
         };
-        return await ((Task<object>)callDynamically(this, "privatePutUsersMarginMode", new object[] { this.extend(request, parameters) }));
+        return await this.privatePutUsersMarginMode(this.extend(request, parameters));
     }
 
     /**

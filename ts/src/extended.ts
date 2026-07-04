@@ -27,7 +27,7 @@ export default class extended extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,

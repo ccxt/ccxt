@@ -40,9 +40,9 @@ func (this *AsterCore) Describe() any {
 		},
 		"has": map[string]any{
 			"CORS":                                 nil,
-			"spot":                                 false,
+			"spot":                                 true,
 			"margin":                               false,
-			"swap":                                 false,
+			"swap":                                 true,
 			"future":                               false,
 			"option":                               false,
 			"addMargin":                            true,

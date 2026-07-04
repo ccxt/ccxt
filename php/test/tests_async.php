@@ -1042,6 +1042,22 @@ class testMainClass {
                 $is_computed_undefined = ($sanitized_new_output === null);
                 $is_stored_undefined = ($sanitized_stored_output === null);
                 $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
+                if (!$should_be_same && ($this->lang === 'PY') && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    $is_number = false;
+                    try {
+                        $exchange->parse_to_numeric($new_output_string);
+                        $exchange->parse_to_numeric($stored_output_string);
+                        $is_number = true;
+                    } catch(\Throwable $e) {
+                        $is_number = false;
+                    }
+                    if ($is_number) {
+                        $this->assert_static_error($exchange->parse_to_numeric($new_output_string) === $exchange->parse_to_numeric($stored_output_string), $message_error, $stored_output, $new_output, $asserting_key);
+                        return true;
+                    }
+                }
                 $this->assert_static_error($should_be_same, 'output type mismatch', $stored_output, $new_output, $asserting_key);
                 $is_boolean = $is_computed_bool || $is_stored_bool;
                 $is_string = $is_computed_string || $is_stored_string;

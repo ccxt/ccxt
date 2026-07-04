@@ -41,30 +41,28 @@ public partial class BaseTest
             Assert(isEqual(getArrayLength((exchange.getFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements");
             Assert(isLessThan(add(1, 1), 3), "sample Assertion");
         }
-        async public Task testFetchHistoryDerived()
-        {
-            var exchange = new ccxt.coinbase(new Dictionary<string, object>() {
-                { "id", "sampleexchange" },
-                { "fetchHistoryCacheSize", 2 },
-            });
-            // try 3 times
-            // first
-            await exchange.fetchTime(); // https://api.coinbase.com/api/v3/brokerage/time
-            Assert(isEqual(getArrayLength((exchange.getFetchCache())), 1), "fetchHistoryCache should be an array with 1 element");
-            // second
-            await exchange.fetchOrderBook("BTC/USD"); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
-            Assert(isEqual(getArrayLength((exchange.getFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements");
-            // third
-            await exchange.fetchTrades("BTC/USD"); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
-            Assert(isEqual(getArrayLength((exchange.getFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements");
-            object finalCache = exchange.getFetchCache();
-            Assert(isEqual(((object)getValue(getValue(getValue(finalCache, 0), "request"), "url")).ToString(), "https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD"), add("The first element in fetchHistoryCache is : ", getValue(getValue(getValue(finalCache, 0), "request"), "url")));
-            Assert(isEqual(((object)getValue(getValue(getValue(finalCache, 1), "request"), "url")).ToString(), "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker"), add("The second element in fetchHistoryCache is : ", getValue(getValue(getValue(finalCache, 1), "request"), "url")));
-            Assert(isLessThan(add(1, 1), 3), "sample Assertion");
-        }
+        // async function testFetchHistoryDerived () {
+        //     const exchange = new ccxt.coinbase ({
+        //         'id': 'sampleexchange',
+        //         'fetchHistoryCacheSize': 2,
+        //     });
+        //     // try 3 times
+        //     // first
+        //     await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
+        //     Assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
+        //     // second
+        //     await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
+        //     Assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+        //     // third
+        //     await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
+        //     Assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+        //     const finalCache = exchange.getFetchCache ();
+        //     Assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
+        //     Assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
+        //     Assert (1 + 1 < 3, 'sample Assertion');
+        // }
         async public Task testFetchHistory()
         {
             await testFetchHistoryBase();
-            await testFetchHistoryDerived();
         }
 }

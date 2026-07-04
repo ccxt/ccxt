@@ -725,7 +725,7 @@ func  (this *KrakenCore) HandleOHLCV(client any, message any)  {
     var ohlcvsLength any =     ccxt.GetArrayLength(data)
     for i := 0; ccxt.IsLessThan(i, ohlcvsLength); i++ {
         var candle any = ccxt.GetValue(data, ccxt.Subtract(ccxt.Subtract(ohlcvsLength, i), 1))
-        var datetime any = this.SafeString(candle, "timestamp")
+        var datetime any = this.SafeString(candle, "interval_begin")
         var timestamp any = this.Parse8601(datetime)
         var parsed any = []any{timestamp, this.SafeString(candle, "open"), this.SafeString(candle, "high"), this.SafeString(candle, "low"), this.SafeString(candle, "close"), this.SafeString(candle, "volume")}
         stored.(ccxt.Appender).Append(parsed)

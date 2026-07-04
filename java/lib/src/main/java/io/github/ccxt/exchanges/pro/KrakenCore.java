@@ -739,7 +739,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
             Object candle = Helpers.GetValue(data, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
-            Object datetime = this.safeString(candle, "timestamp");
+            Object datetime = this.safeString(candle, "interval_begin");
             Object timestamp = this.parse8601(datetime);
             Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});

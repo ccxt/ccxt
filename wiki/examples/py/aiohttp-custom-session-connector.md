@@ -1,7 +1,10 @@
 ```python
 # pip install aiohttp_socks
 
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import ccxt.async_support as ccxt
 import aiohttp
 import aiohttp_socks
@@ -23,6 +26,6 @@ async def test():
 
     # ...
 
-asyncio.run(test())
+run(test())
 
 ```
