@@ -3136,7 +3136,7 @@ public partial class Exchange
     {
         object open = this.omitZero(this.safeString(ticker, "open"));
         object close = this.omitZero(this.safeString2(ticker, "close", "last"));
-        object change = this.omitZero(this.safeString(ticker, "change"));
+        object change = this.safeString(ticker, "change"); // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         object average = this.omitZero(this.safeString(ticker, "average"));
         object vwap = this.safeString(ticker, "vwap");
