@@ -966,40 +966,49 @@ export default class bithumb extends Exchange {
         const request: Dict = {};
         const result: Dict = {};
         if (generation === 2) {
-            if (symbols !== undefined) {
-                request['markets'] = this.marketIds (symbols).join (',');
+            // Bithumb v2 ticker payloads are inconsistent for all-market calls,
+            // so we aggregate one market per request to guarantee full coverage.
+            const marketSymbols = (symbols === undefined) ? this.symbols : symbols;
+            const marketIds = this.marketIds (marketSymbols);
+            const promises = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                promises.push (this.publicGetV1Ticker (this.extend ({ 'markets': marketIds[i] }, params)));
             }
-            const response = await this.publicGetV1Ticker (this.extend (request, params));
-            let tickers = [];
-            if (Array.isArray (response)) {
-                tickers = response;
-            } else if (this.isDictionary (response)) {
-                if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
-                    tickers = [ response ];
-                } else {
-                    const ids = Object.keys (response);
-                    for (let i = 0; i < ids.length; i++) {
-                        const id = ids[i];
-                        const ticker = this.safeDict (response, id);
-                        if (ticker !== undefined) {
-                            ticker['market'] = this.safeString (ticker, 'market', id);
-                            tickers.push (ticker);
+            const responses = await Promise.all (promises);
+            for (let i = 0; i < responses.length; i++) {
+                const response = responses[i];
+                const expectedMarketId = marketIds[i];
+                let tickers = [];
+                if (Array.isArray (response)) {
+                    tickers = response;
+                } else if (this.isDictionary (response)) {
+                    if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
+                        tickers = [ response ];
+                    } else {
+                        const ids = Object.keys (response);
+                        for (let j = 0; j < ids.length; j++) {
+                            const id = ids[j];
+                            const ticker = this.safeDict (response, id);
+                            if (ticker !== undefined) {
+                                ticker['market'] = this.safeString (ticker, 'market', id);
+                                tickers.push (ticker);
+                            }
                         }
                     }
                 }
-            }
-            for (let i = 0; i < tickers.length; i++) {
-                const entry = tickers[i];
-                const marketId = this.safeString (entry, 'market');
-                if (marketId === undefined) {
-                    continue;
+                for (let j = 0; j < tickers.length; j++) {
+                    const entry = tickers[j];
+                    const marketId = this.safeString (entry, 'market', expectedMarketId);
+                    if (marketId === undefined) {
+                        continue;
+                    }
+                    const market = this.safeMarket (marketId);
+                    const symbol = this.safeSymbol (marketId, market);
+                    if (symbol === undefined) {
+                        continue;
+                    }
+                    result[symbol] = this.parseTicker (entry, market);
                 }
-                const market = this.safeMarket (marketId);
-                const symbol = this.safeSymbol (marketId, market);
-                if (symbol === undefined) {
-                    continue;
-                }
-                result[symbol] = this.parseTicker (entry, market);
             }
         } else {
             const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
