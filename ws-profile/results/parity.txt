@@ -1,5 +1,3 @@
-(node:2390888) [UNDICI-WSS] Warning: WebSocketStream is experimental! Expect it to change at any time.
-(Use `node --trace-warnings ...` to show where the warning was created)
 PARITY {
   "WsClient (ws, production)": {
     "connect_future_resolves_with_url": true,
@@ -61,7 +59,7 @@ PARITY {
     "server_close_code_propagated": true,
     "pending_futures_rejected_on_server_close": true,
     "abrupt_destroy_detected": {
-      "onError_fired": true,
+      "onError_fired": false,
       "onClose_fired": true,
       "close_code": 1006,
       "pending_futures_rejected": true

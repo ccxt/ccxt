@@ -200,3 +200,32 @@ Artifacts committed with this document: `ws-profile/` harness (ports moved to
 and `ws-profile/results/profiles/` (4 × `.cpuprofile`/`.folded`/`.report.txt`
 + `TLS-RECV-SUMMARY.txt`). Generated `js/**` build output is deliberately not
 committed.
+
+## Addendum (2026-07-04): WsClientStreamFast rebased onto `ws` duplex, `readableObjectMode: true`
+
+`WsClientStreamFast.mjs` no longer sits on undici's `WebSocketStream` (no
+receive backpressure — `probe-backpressure.mjs`, tracked upstream as
+nodejs/undici#5503). It now wraps the production `ws` socket with
+`createWebSocketStream (sock, { readableObjectMode: true })` and consumes it
+with `for await`. Mode comparison (`probe-duplex-modes.mjs` ->
+`results/duplex-modes.txt`, 200k x 224 B JSON, loopback, node v22.22.1,
+ws 8.21.0):
+
+| consumption mode | throughput | framing under buffering | receive backpressure |
+|---|---|---|---|
+| raw `ws` "message" events | 558k msg/s | 1 event = 1 message | never (`paused=false`) |
+| duplex byte-mode, flowing | 538k msg/s | intact while consumer keeps up | engages |
+| duplex byte-mode, 150 ms stall | n/a | frames fuse: 19133/19153 chunks unparseable, max chunk 86240 B (payload 224 B) | engages |
+| duplex `readableObjectMode`, 150 ms stall | 593k msg/s | intact: 200000/200000 parsed | engages: `ws.pause ()` at ~25 buffered msgs |
+
+`readableObjectMode` survives because ws spreads caller options *before*
+forcing `objectMode`/`writableObjectMode` (ws@8.21.0 `lib/stream.js`). Receive
+side only: sends still go through `sock.send ()` (a byte-mode writable would
+coerce strings to binary frames). The rebase deletes the undici crash
+workaround (persistent writer + `abort` interposition) and the eager-pull O(1)
+queue — while the deferral loop waits, the backlog now throttles the server
+via TCP instead of growing in-process — and protocol ping()/pong is real
+again. Parity suite: all rows pass; fast's `binary_json_frame_parsed` and
+abrupt-destroy signature now match production `ws` exactly
+(`results/parity.txt` refreshed). Stream-fast numbers ABOVE this addendum
+describe the earlier undici-based revision (see git history).

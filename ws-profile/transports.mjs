@@ -10,7 +10,8 @@
 //               path incl. its internal JSON detection/parse in onMessage
 //   ccxt-stream - same built ccxt Client upper layer, transport swapped to
 //               undici's WebSocketStream (ws-profile/WsClientStream.mjs)
-//   ccxt-stream-fast - profile-guided optimized variant (WsClientStreamFast.mjs)
+//   ccxt-stream-fast - profile-guided optimized variant (WsClientStreamFast.mjs),
+//                      rebased onto ws createWebSocketStream({ readableObjectMode: true })
 //   undici    - `import { WebSocket } from 'undici'` (standalone 7.27.2)
 //   global    - globalThis.WebSocket (node-bundled undici build)
 //   stream    - `import { WebSocketStream } from 'undici'` (experimental)

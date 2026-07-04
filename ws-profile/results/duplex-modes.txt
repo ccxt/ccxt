@@ -1,0 +1,5 @@
+# node v22.22.1, ws 8.21.0, 200000 x 224B JSON messages, loopback
+1. raw ws "message" event               358 ms   558k msg/s  chunks=200000  parseOk=200000 parseFail=0 paused=false
+2. duplex byte-mode, flowing            372 ms   538k msg/s  chunks=200000  parseOk=200000 parseFail=0 
+3. duplex byte-mode, stalled 150ms      312 ms   640k msg/s  chunks= 19153  parseOk=20 parseFail=19133 pauseEngaged=true bufferedAtStall=69888B maxChunk=86240B (payload=224B)
+4. duplex readableObjectMode, stalled   337 ms   593k msg/s  chunks=200000  parseOk=200000 parseFail=0 pauseEngaged=true bufferedAtStall=25msgs
