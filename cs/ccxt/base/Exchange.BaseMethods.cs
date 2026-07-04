@@ -3985,7 +3985,7 @@ public partial class Exchange
     public virtual object safePosition(object position)
     {
         // simplified version of: /pull/12765/
-        object unrealizedPnlString = this.safeString(position, "unrealisedPnl");
+        object unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         object initialMarginString = this.safeString(position, "initialMargin");
         //
         // PERCENTAGE
