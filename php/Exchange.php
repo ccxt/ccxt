@@ -5357,7 +5357,7 @@ class Exchange {
     public function safe_ticker(array $ticker, ?array $market = null) {
         $open = $this->omit_zero($this->safe_string($ticker, 'open'));
         $close = $this->omit_zero($this->safe_string_2($ticker, 'close', 'last'));
-        $change = $this->omit_zero($this->safe_string($ticker, 'change'));
+        $change = $this->safe_string($ticker, 'change'); // $change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
         $average = $this->omit_zero($this->safe_string($ticker, 'average'));
         $vwap = $this->safe_string($ticker, 'vwap');
