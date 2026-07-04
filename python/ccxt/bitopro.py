@@ -1004,7 +1004,7 @@ class bitopro(Exchange, ImplicitAPI):
             '4': 'canceled',
             '6': 'canceled',
         }
-        return self.safe_string(statuses, status)
+        return None if (status is None) else self.safe_string(statuses, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1701,7 +1701,7 @@ class bitopro(Exchange, ImplicitAPI):
             networks = self.safe_dict(self.options, 'networks', {})
             requestedNetwork = self.safe_string_upper(params, 'network')
             params = self.omit(params, ['network'])
-            networkId = self.safe_string(networks, requestedNetwork)
+            networkId = None if (requestedNetwork is None) else self.safe_string(networks, requestedNetwork)
             if networkId is None:
                 raise ExchangeError(self.id + ' invalid network ' + requestedNetwork)
             request['protocol'] = networkId
