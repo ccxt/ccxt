@@ -199,7 +199,7 @@
                         "collateral": null,
                         "marginMode": null,
                         "side": "long",
-                        "percentage": null,
+                        "percentage": -1.45,
                         "hedged": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null

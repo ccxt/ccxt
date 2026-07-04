@@ -1703,7 +1703,7 @@
                         "collateral": 1.49257625,
                         "marginMode": "isolated",
                         "side": "long",
-                        "percentage": null,
+                        "percentage": 0.53,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
                     }
