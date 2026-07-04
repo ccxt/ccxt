@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import inspect
 import json
 # import logging
 import os
@@ -179,7 +180,10 @@ async def call_method(test_files, methodName, exchange, skippedProperties, args)
 
 
 async def call_exchange_method_dynamically(exchange, methodName, args):
-    return await getattr(exchange, methodName)(*args)
+    result = getattr(exchange, methodName)(*args)
+    if inspect.isawaitable(result):
+        result = await result
+    return result
 
 def call_exchange_method_dynamically_sync(exchange, methodName, args):
     return getattr(exchange, methodName)(*args)

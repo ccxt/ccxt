@@ -2,6 +2,84 @@
     "exchange": "whitebit",
     "skipKeys": [],
     "methods": {
+        "parseWsTrade": [
+            {
+                "description": "ws deals_update trade from issue #26364 - side, role and fee currency present (marketId changed to LTC_USDT)",
+                "method": "parseWsTrade",
+                "ws": true,
+                "disabledJava": true,
+                "input": [
+                    [10630782211, 1751974316.281914, "LTC_USDT", 1503279262131, "0.1422", "540.7884", "-0.007690011048", "ccxt6375bbc6f6a47c9e", 1, 1, "USDT"]
+                ],
+                "httpResponse": {
+                    "method": "deals_update",
+                    "params": [10630782211, 1751974316.281914, "LTC_USDT", 1503279262131, "0.1422", "540.7884", "-0.007690011048", "ccxt6375bbc6f6a47c9e", 1, 1, "USDT"],
+                    "id": null
+                },
+                "parsedResponse": {
+                    "id": "10630782211",
+                    "info": [10630782211, 1751974316.281914, "LTC_USDT", 1503279262131, "0.1422", "540.7884", "-0.007690011048", "ccxt6375bbc6f6a47c9e", 1, 1, "USDT"],
+                    "timestamp": 1751974316281,
+                    "datetime": "2025-07-08T11:31:56.281Z",
+                    "symbol": "LTC/USDT",
+                    "order": "1503279262131",
+                    "type": null,
+                    "side": "sell",
+                    "takerOrMaker": "maker",
+                    "price": 0.1422,
+                    "amount": 540.7884,
+                    "cost": 76.90011048,
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": -0.007690011048
+                    },
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": -0.007690011048
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "ws deals_update legacy 8-element trade without side, role and fee currency",
+                "method": "parseWsTrade",
+                "ws": true,
+                "disabledJava": true,
+                "input": [
+                    [1894994106, 1656151427.729706, "LTC_USDT", 96624037337, "56.78", "0.16717", "0.0094919126", ""]
+                ],
+                "httpResponse": {
+                    "method": "deals_update",
+                    "params": [1894994106, 1656151427.729706, "LTC_USDT", 96624037337, "56.78", "0.16717", "0.0094919126", ""],
+                    "id": null
+                },
+                "parsedResponse": {
+                    "id": "1894994106",
+                    "info": [1894994106, 1656151427.729706, "LTC_USDT", 96624037337, "56.78", "0.16717", "0.0094919126", ""],
+                    "timestamp": 1656151427729,
+                    "datetime": "2022-06-25T10:03:47.729Z",
+                    "symbol": "LTC/USDT",
+                    "order": "96624037337",
+                    "type": null,
+                    "side": null,
+                    "takerOrMaker": null,
+                    "price": 56.78,
+                    "amount": 0.16717,
+                    "cost": 9.4919126,
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": 0.0094919126
+                    },
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": 0.0094919126
+                        }
+                    ]
+                }
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "fetch funding rate history",

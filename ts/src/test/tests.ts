@@ -1359,7 +1359,7 @@ class testMainClass {
         return true;
     }
 
-    initOfflineExchange (exchangeName: string) {
+    initOfflineExchange (exchangeName: string, isWs: boolean = false) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
         let wasmExecPath: Str = undefined;
@@ -1433,7 +1433,7 @@ class testMainClass {
             options['apiKey'] = "";
             options['secret'] = "";
         }
-        const exchange = initExchange (exchangeName, options);
+        const exchange = initExchange (exchangeName, options, isWs);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;
@@ -1582,8 +1582,18 @@ class testMainClass {
                 if (isDisabledJava && (this.lang === 'java')) {
                     continue;
                 }
+                const isWsTest = exchange.safeBool (result, 'ws', false);
+                if (isWsTest && isSync ()) {
+                    continue; // ws (pro) classes are async-only in python & php
+                }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testResponseStatically (exchange, method, skipKeys, result);
+                if (isWsTest) {
+                    const wsExchange = this.initOfflineExchange (exchangeName, true);
+                    await this.testResponseStatically (wsExchange, method, skipKeys, result);
+                    await close (wsExchange);
+                } else {
+                    await this.testResponseStatically (exchange, method, skipKeys, result);
+                }
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));

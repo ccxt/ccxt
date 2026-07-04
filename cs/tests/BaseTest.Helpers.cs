@@ -218,8 +218,12 @@ public partial class testMainClass : BaseTest
             }
         }
         var res = method.Invoke(exchange, newArgs);
-        var awaittedResult = await ((Task<object>)res);
-        return awaittedResult;
+        if (res is Task<object> task)
+        {
+            var awaittedResult = await task;
+            return awaittedResult;
+        }
+        return res; // sync methods (e.g. parse methods) return the value directly
     }
 
     public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)

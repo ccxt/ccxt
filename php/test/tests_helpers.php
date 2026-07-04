@@ -162,7 +162,12 @@ function call_overriden_method($exchange, $methodName, $args) {
 }
 
 function call_exchange_method_dynamically($exchange, $methodName, $args) {
-    return $exchange->{$methodName}(... $args);
+    $result = $exchange->{$methodName}(... $args);
+    if ($result instanceof \React\Promise\PromiseInterface) {
+        return $result;
+    }
+    // sync methods (e.g. parse methods) return the value directly, wrap it for Async\await
+    return \React\Promise\resolve($result);
 }
 
 function call_exchange_method_dynamically_sync($exchange, $methodName, $args) {
@@ -262,10 +267,12 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
 
 function init_exchange ($exchangeId, $args, $is_ws = false) {
     $exchangeClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
+    $dynamicClassKey = $exchangeId;
     if ($is_ws) {
         $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
+        $dynamicClassKey = $exchangeId . '_ws'; // the mock wrapper class extends the pro class, it must not collide with the rest wrapper
     }
-    $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
+    $newClass = create_dynamic_class ($dynamicClassKey, $exchangeClassString, $args);
     return $newClass;
 }
 
