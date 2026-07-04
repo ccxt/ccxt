@@ -136,13 +136,13 @@ func  (this *XtCore) GetCacheIndex(orderbook any, cache any) any  {
     var nonce any = this.SafeInteger(orderbook, "nonce")
     var firstDelta any = this.SafeValue(cache, 0)
     var firstDeltaNonce any = this.SafeInteger2(firstDelta, "i", "u")
-    if ccxt.IsTrue(ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaNonce, 1))) {
+    if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(nonce, nil))) && ccxt.IsTrue((!ccxt.IsEqual(firstDeltaNonce, nil)))) && ccxt.IsTrue((ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaNonce, 1))))) {
         return ccxt.OpNeg(1)
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(cache)); i++ {
         var delta any = ccxt.GetValue(cache, i)
         var deltaNonce any = this.SafeInteger2(delta, "i", "u")
-        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(deltaNonce, nonce)) {
+        if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(deltaNonce, nil))) && ccxt.IsTrue((!ccxt.IsEqual(nonce, nil)))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(deltaNonce, nonce)))) {
             return i
         }
     }
@@ -932,7 +932,7 @@ func  (this *XtCore) LoadPositionsSnapshot(client any, messageHash any) <- chan 
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
                 var position any = ccxt.GetValue(positions, i)
                 var contracts any = this.SafeNumber(position, "contracts", 0)
-                if ccxt.IsTrue(ccxt.IsGreaterThan(contracts, 0)) {
+                if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(contracts, nil))) && ccxt.IsTrue((ccxt.IsGreaterThan(contracts, 0)))) {
                     cache.(ccxt.Appender).Append(position)
                 }
             }
@@ -1065,7 +1065,9 @@ func  (this *XtCore) HandleTicker(client any, message any) any  {
         var isSpot any = !ccxt.IsEqual(cv, nil)
         var ticker any = this.ParseTicker(data)
         var symbol any = ccxt.GetValue(ticker, "symbol")
-        ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+        if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+            ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+        }
         var event any = this.SafeString(message, "event")
         var messageHashTail any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "contract")
         var messageHash any = ccxt.Add(ccxt.Add(event, "::"), messageHashTail)
@@ -1150,7 +1152,9 @@ func  (this *XtCore) HandleTickers(client any, message any) any  {
         var tickerData any = ccxt.GetValue(data, i)
         var ticker any = this.ParseTicker(tickerData)
         var symbol any = ccxt.GetValue(ticker, "symbol")
-        ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+        if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+            ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+        }
         ccxt.AppendToArray(&newTickers, ticker)
     }
     var messageHashStart any = ccxt.Add(ccxt.Add(this.SafeString(message, "topic"), "::"), tradeType)
@@ -1211,7 +1215,7 @@ func  (this *XtCore) HandleOHLCV(client any, message any) any  {
     var data any = this.SafeDict(message, "data", map[string]any {})
     var marketId any = this.SafeString(data, "s")
     if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
-        var timeframe any = this.SafeString(data, "i")
+        var timeframe any = this.SafeString(data, "i", "")
         var tradeType any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(data, "q"))), "spot", "contract")
         var market any = this.SafeMarket(marketId, nil, nil, tradeType)
         var symbol any = ccxt.GetValue(market, "symbol")
@@ -1345,10 +1349,13 @@ func  (this *XtCore) HandleOrderBook(client any, message any)  {
     var data any = this.SafeDict(message, "data")
     var marketId any = this.SafeString(data, "s")
     if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
-        var event any = this.SafeString(message, "event")
+        var event any = this.SafeString(message, "event", "")
         var splitEvent any = ccxt.Split(event, ",")
-        event = this.SafeString(splitEvent, 0)
-        var tradeType any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(data, "fu"))), "contract", "spot")
+        event = this.SafeString(splitEvent, 0, "")
+        var tradeType any = "spot"
+        if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(data, nil))) && ccxt.IsTrue((ccxt.InOp(data, "fu")))) {
+            tradeType = "contract"
+        }
         var market any = this.SafeMarket(marketId, nil, nil, tradeType)
         var symbol any = ccxt.GetValue(market, "symbol")
         var obAsks any = this.SafeList(data, "a")
@@ -1683,7 +1690,11 @@ func  (this *XtCore) HandleMyTrades(client any, message any)  {
         this.MyTrades = stored
     }
     var parsedTrade any = this.ParseTrade(data)
-    var market any = this.Market(ccxt.GetValue(parsedTrade, "symbol"))
+    var tradeSymbol any = ccxt.GetValue(parsedTrade, "symbol")
+    if ccxt.IsTrue(ccxt.IsEqual(tradeSymbol, nil)) {
+        return
+    }
+    var market any = this.Market(tradeSymbol)
     stored.(ccxt.Appender).Append(parsedTrade)
     var tradeType any = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "contract")), "contract", "spot")
     client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trade::", tradeType))
@@ -1706,10 +1717,10 @@ func  (this *XtCore) HandleMessage(client any, message any)  {
             "order": this.HandleOrder,
             "position": this.HandlePosition,
         }
-        var method any = this.SafeValue(methods, topic)
+        var method any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(topic, nil))), nil, this.SafeValue(methods, topic))
         if ccxt.IsTrue(ccxt.IsEqual(topic, "trade")) {
             var data any = this.SafeDict(message, "data")
-            if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(data, "oi"))) || ccxt.IsTrue((ccxt.InOp(data, "orderId")))) {
+            if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(data, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.InOp(data, "oi"))) || ccxt.IsTrue((ccxt.InOp(data, "orderId")))))) {
                 method = this.HandleMyTrades
             } else {
                 method = this.HandleTrade
