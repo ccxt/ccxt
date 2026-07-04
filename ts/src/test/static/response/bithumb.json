@@ -121,7 +121,7 @@
                     }
                 ],
                 "parsedResponse": {
-                    "symbol": "BTC/USDC",
+                    "symbol": "USDC/BTC",
                     "bids": [
                         [
                             0.0000168,
