@@ -590,12 +590,19 @@ class Exchange(object):
         return response_body.strip()
 
     def on_json_response(self, response_body):
-        if self.quoteJsonNumbers and orjson is None:
+        if self.quoteJsonNumbers:
+            # orjson has no parse_float/parse_int hooks, so the precision-preserving
+            # default mode (numbers parsed as exact strings) requires stdlib json
             return json.loads(response_body, parse_float=str, parse_int=str)
-        else:
-            if orjson:
+        if orjson is not None:
+            try:
+                # note: orjson parses integers beyond 64 bits as floats, like
+                # JSON.parse in the ts source (which is lossy beyond 2**53 already)
                 return orjson.loads(response_body)
-            return json.loads(response_body)
+            except ValueError:
+                # stdlib-parsable edge cases orjson rejects, e.g. NaN/Infinity literals
+                return json.loads(response_body)
+        return json.loads(response_body)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -1762,8 +1769,15 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
-        if orjson:
-            return orjson.dumps(data).decode('utf-8')
+        if orjson is not None:
+            try:
+                # note: like JSON.stringify in the ts source, orjson does not
+                # ascii-escape non-ascii characters (stdlib json does)
+                return orjson.dumps(data).decode('utf-8')
+            except TypeError:
+                # types orjson rejects (ints >= 2**64, non-str dict keys,
+                # objects handled by SafeJSONEncoder) fall back to stdlib
+                pass
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod

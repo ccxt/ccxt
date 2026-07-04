@@ -246,7 +246,11 @@ class Client(object):
             if orjson is None:
                 decode = json.loads(data)
             else:
-                decode = orjson.loads(data)
+                try:
+                    decode = orjson.loads(data)
+                except ValueError:
+                    # stdlib-parsable edge cases orjson rejects, e.g. NaN/Infinity literals
+                    decode = json.loads(data)
         else:
             decode = data
         self.on_message_callback(self, decode)
@@ -310,7 +314,11 @@ class Client(object):
             if orjson is None:
                 send_msg = json.dumps(message, separators=(',', ':'))
             else:
-                send_msg = orjson.dumps(message).decode('utf-8')
+                try:
+                    send_msg = orjson.dumps(message).decode('utf-8')
+                except TypeError:
+                    # types orjson rejects (ints >= 2**64, non-str dict keys) fall back to stdlib
+                    send_msg = json.dumps(message, separators=(',', ':'))
         if self.closed():
             raise ConnectionError('Cannot Send Message: Connection closed before send')
         return await self.connection.send_str(send_msg)

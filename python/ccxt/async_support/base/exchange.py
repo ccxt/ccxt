@@ -42,6 +42,15 @@ from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, C
 # -----------------------------------------------------------------------------
 
 try:
+    # patches aiohttp to use zlib-ng for gzip/deflate (~2x faster decompression)
+    import aiohttp_fast_zlib
+    aiohttp_fast_zlib.enable()
+except ImportError:
+    pass
+
+# -----------------------------------------------------------------------------
+
+try:
     from aiohttp_socks import ProxyConnector as SocksProxyConnector
 except ImportError:
     SocksProxyConnector = None
