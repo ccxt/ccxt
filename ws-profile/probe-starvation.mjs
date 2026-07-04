@@ -28,6 +28,8 @@ async function makeClient (impl, url) {
     let config = {};
     if (impl === 'ccxt') {
         ({ default: Ctor } = await import ('../js/src/base/ws/WsClient.js'));
+    } else if (impl === 'fast-ws-adaptive') {
+        ({ default: Ctor } = await import ('./WsClientFast.mjs')); // adaptive default
     } else {
         ({ default: Ctor } = await import ('./WsClientStreamFast.mjs'));
         if (impl === 'fast-nodefer') {
@@ -120,7 +122,7 @@ async function main () {
     await new Promise ((r) => wss.on ('listening', r));
     const url = 'ws://127.0.0.1:' + PORT;
     const results = [];
-    for (const impl of [ 'ccxt', 'fast-deferred', 'fast-adaptive', 'fast-nodefer' ]) {
+    for (const impl of [ 'ccxt', 'fast-deferred', 'fast-adaptive', 'fast-ws-adaptive', 'fast-nodefer' ]) {
         results.push (await measure (impl, url));
     }
     console.log ('PROBE ' + JSON.stringify (results, null, 2));

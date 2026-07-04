@@ -1,0 +1,26 @@
+# WsClientFast (adaptive over raw ws events) vs production vs WsClientStreamFast
+# TLS loopback wss://127.0.0.1:9602, node v22.22.1, ws 8.21.0, medians of 3 fresh processes, 2026-07-04
+
+== tick100 ceiling ==
+ccxt (production, per-message deferral)   527191 msg/s (   0.0%)  2.00 us/msg  lag p99 0.34 ms  gc 0.38 ms/10k  heap +167 KB
+WsClientFast (ws events, adaptive)        930086 msg/s (  76.4%)  1.13 us/msg  lag p99 3.37 ms  gc 0.25 ms/10k  heap +182 KB
+WsClientStreamFast (duplex, adaptive)     906909 msg/s (  72.0%)  1.18 us/msg  lag p99 1.17 ms  gc 0.28 ms/10k  heap +188 KB
+
+== delta1k ceiling ==
+ccxt (production, per-message deferral)   136957 msg/s (   0.0%)  7.68 us/msg  lag p99 0.20 ms  gc 1.30 ms/10k  heap +208 KB
+WsClientFast (ws events, adaptive)        156420 msg/s (  14.2%)  6.58 us/msg  lag p99 1.62 ms  gc 1.12 ms/10k  heap +174 KB
+WsClientStreamFast (duplex, adaptive)     147811 msg/s (   7.9%)  7.09 us/msg  lag p99 0.46 ms  gc 1.35 ms/10k  heap +198 KB
+
+== delta1k paced @60,000 msg/s (one-way delivery latency, us) ==
+ccxt (production, per-message deferral)  p50=430 p95=876 p99=2903 max=7295  cpu 9.31 us/msg
+WsClientFast (ws events, adaptive)       p50=359 p95=609 p99=805 max=4137  cpu 8.06 us/msg
+WsClientStreamFast (duplex, adaptive)    p50=382 p95=624 p99=1236 max=3607  cpu 8.15 us/msg
+
+# gates after adding WsClientFast:
+# parity: production 14/14, WsClientFast 14/14 (abrupt-destroy signature identical to production), WsClientStreamFast 14/14
+# starvation probe (20k burst, 3-hop re-arm):
+ccxt             wakeups 20000/20000 (100%)
+fast-deferred    wakeups 20000/20000 (100%)
+fast-adaptive    wakeups 20000/20000 (100%)
+fast-ws-adaptive wakeups 20000/20000 (100%)
+fast-nodefer     wakeups 10045/20000 (50.2%)

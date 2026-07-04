@@ -27,18 +27,21 @@ async function makeClient (impl, url, config = {}) {
         ? await import ('./WsClientStream.mjs')
         : (impl === 'stream-fast')
             ? await import ('./WsClientStreamFast.mjs')
-            : await import ('../js/src/base/ws/WsClient.js');
+            : (impl === 'fast')
+                ? await import ('./WsClientFast.mjs')
+                : await import ('../js/src/base/ws/WsClient.js');
     const h = makeClientHarness ();
     const client = new Ctor (url, h.callbacks[0], h.callbacks[1], h.callbacks[2], h.callbacks[3], config);
     return { client, events: h.events };
 }
 
 function sendRawBinary (impl, client, buf) {
-    if (impl !== 'ws') {
+    if (impl !== 'ws' && impl !== 'fast') {
         return client.sendBinary (buf);
     }
-    // production WsClient: one level below client.send (which would
-    // JSON.stringify a Buffer); same frame on the wire
+    // production WsClient (and WsClientFast, same raw ws connection): one
+    // level below client.send (which would JSON.stringify a Buffer); same
+    // frame on the wire
     return new Promise ((res, rej) => client.connection.send (buf, { binary: true }, (e) => (e ? rej (e) : res ())));
 }
 
@@ -195,6 +198,7 @@ async function main () {
         'WsClient (ws, production)': await runSuite ('ws', url),
         'WsClientStream (undici WebSocketStream)': await runSuite ('stream', url),
         'WsClientStreamFast (optimized)': await runSuite ('stream-fast', url),
+        'WsClientFast (ws events, adaptive)': await runSuite ('fast', url),
     };
     console.log ('PARITY ' + JSON.stringify (report, null, 2));
     wss.close ();

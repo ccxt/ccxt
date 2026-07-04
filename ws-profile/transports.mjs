@@ -8,6 +8,9 @@
 //               ccxt's WsClient sets) to isolate that flag's cost
 //   ccxt      - ccxt's built WsClient (js/src/base/ws/WsClient.js), full real
 //               path incl. its internal JSON detection/parse in onMessage
+//   ccxt-fast - production WsClient over raw ws events with ADAPTIVE deferral
+//               (WsClientFast.mjs); ccxt-fast-strict restores production
+//               per-message deferral via { adaptiveDeferral: false }
 //   ccxt-stream - same built ccxt Client upper layer, transport swapped to
 //               undici's WebSocketStream (ws-profile/WsClientStream.mjs)
 //   ccxt-stream-fast - profile-guided optimized variant (WsClientStreamFast.mjs),
@@ -23,7 +26,7 @@
 import WsPackage from 'ws';
 import { WebSocket as UndiciWebSocket, WebSocketStream as UndiciWebSocketStream } from 'undici';
 
-export const TRANSPORTS = [ 'ws', 'ws-async', 'ccxt', 'ccxt-stream', 'ccxt-stream-fast', 'ccxt-stream-fast-deferred', 'ccxt-stream-fast-nodefer', 'undici', 'global', 'stream' ];
+export const TRANSPORTS = [ 'ws', 'ws-async', 'ccxt', 'ccxt-fast', 'ccxt-fast-strict', 'ccxt-stream', 'ccxt-stream-fast', 'ccxt-stream-fast-deferred', 'ccxt-stream-fast-nodefer', 'undici', 'global', 'stream' ];
 
 function makeWhatwgAdapter (WsCtor, url, name) {
     return new Promise ((resolve, reject) => {
@@ -75,7 +78,9 @@ async function makeCcxtAdapter (url, flavor, config = {}) {
         ? await import ('./WsClientStream.mjs')
         : (flavor === 'stream-fast')
             ? await import ('./WsClientStreamFast.mjs')
-            : await import ('../js/src/base/ws/WsClient.js');
+            : (flavor === 'fast')
+                ? await import ('./WsClientFast.mjs')
+                : await import ('../js/src/base/ws/WsClient.js');
     let onMessage = () => {};
     const client = new WsClient (
         url,
@@ -91,11 +96,12 @@ async function makeCcxtAdapter (url, flavor, config = {}) {
         send: (data) => {
             if (typeof data === 'string') {
                 client.send (data).catch (() => {}); // real ccxt send path (Future + completion)
-            } else if (flavor !== 'ws') {
+            } else if (flavor !== 'ws' && flavor !== 'fast') {
                 client.sendBinary (data).catch (() => {});
             } else {
                 // ccxt's send() would JSON.stringify a Buffer; binary send is
                 // not a ccxt code path, so go one level down for bin frames
+                // (WsClientFast shares the production raw-ws connection)
                 client.connection.send (data, { binary: true }, () => {});
             }
         },
@@ -146,6 +152,10 @@ export async function connectTransport (name, url) {
             return makeCcxtAdapter (url, 'ws');
         case 'ccxt-stream':
             return makeCcxtAdapter (url, 'stream');
+        case 'ccxt-fast':
+            return makeCcxtAdapter (url, 'fast');
+        case 'ccxt-fast-strict':
+            return makeCcxtAdapter (url, 'fast', { options: { adaptiveDeferral: false } });
         case 'ccxt-stream-fast-adaptive': // legacy alias — adaptive is now the default
         case 'ccxt-stream-fast':
             return makeCcxtAdapter (url, 'stream-fast');

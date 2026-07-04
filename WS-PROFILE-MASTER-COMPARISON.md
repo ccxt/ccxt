@@ -315,3 +315,35 @@ not recommended). Note this optimization is transport-independent: production
 `WsClient` could apply the same trick over raw `ws` events (set
 `allowSynchronousEvents: true`, defer in `Client.onMessage` only when a
 future was resolved) for the same +63%/+5.8% ceiling gain.
+
+### WsClientFast — adaptive deferral on the production transport wins (2026-07-04)
+
+The transport-independence claim above was then implemented and measured:
+`ws-profile/WsClientFast.mjs` extends the production `WsClient` (same raw
+`ws` socket, same event wiring, cookies, ping/pong/upgrade) and changes only
+the delivery policy — `allowSynchronousEvents: true` on the socket, incoming
+messages enqueued and dispatched by a synchronous drain loop that yields one
+event-loop turn only after a dispatch that resolved an awaited future (or
+every 64 messages for fairness), with `connection.pause ()` above 1024 queued
+messages and `resume ()` on drain (TCP backpressure under overload).
+Head-to-head (`results/ws-fast-vs-stream.txt`, TLS loopback, medians of 3):
+
+| metric | ccxt production | WsClientFast (ws events) | WsClientStreamFast (duplex) |
+|---|---|---|---|
+| tick100 ceiling | 527,191 msg/s | **930,086 (+76.4%)** | 906,909 (+72.0%) |
+| delta1k ceiling | 136,957 | **156,420 (+14.2%)** | 147,811 (+7.9%) |
+| paced 60k/s p50/p95/p99 µs | 430 / 876 / 2,903 | **359 / 609 / 805** | 382 / 624 / 1,236 |
+| parity | 14/14 | **14/14** (abrupt-destroy signature identical to production) | 14/14 |
+| starvation wakeups | 100% | **100%** | 100% |
+
+WsClientFast beats the stream client on every throughput and latency column
+(no duplex/streams dispatch layer — that was the measured ≈4%/msg plumbing
+tax) and even fixes the paced-60k tail where per-message deferral hurt
+production this session. Costs: event-loop lag p99 at the uncapped firehose
+rises to 1.6–3.4 ms (drain bursts of 64; tunable via `fairnessBatch`), and
+backpressure engages at a coarser bound than the duplex HWM (1024 queued
+messages vs 16). Verdict revised accordingly: **the adaptive-deferral
+delivery policy on the production `ws` transport is the winning combination**
+— streams added safety but their dispatch tax is now the only thing they buy.
+PR 29084 ships `WsClientFast.mjs`; the stream client remains on this branch
+for reference.
