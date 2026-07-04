@@ -6168,9 +6168,9 @@ export default class gate extends Exchange {
         // *The default leverage under the full position is the highest leverage in the market.
         // *Trading fee is charged as Taker Fee Rate (0.075%).
         let feePaid = this.safeString (position, 'pnl_fee');
+        const marginBalance = this.safeString (position, 'margin');
         let initialMarginString: Str = this.omitZero (this.safeString (position, 'initial_margin'));
         if (initialMarginString === undefined) {
-            const marginBalance = this.safeString (position, 'margin');
             if ((marginBalance !== undefined) && Precise.stringGt (marginBalance, '0')) {
                 initialMarginString = marginBalance;
             } else if (feePaid === undefined) {
@@ -6178,6 +6178,14 @@ export default class gate extends Exchange {
                 feePaid = Precise.stringMul (takerFee, notional);
                 initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
             }
+        }
+        // the margin field is the position margin balance, which excludes the unrealized pnl,
+        // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
+        // so the unified collateral (the amount that can be lost, affected by pnl) includes it
+        const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
+        let collateral = marginBalance;
+        if ((marginBalance !== undefined) && (unrealisedPnl !== undefined)) {
+            collateral = Precise.stringAdd (marginBalance, unrealisedPnl);
         }
         let timestamp = this.safeTimestamp2 (position, 'open_time', 'first_open_time');
         if (timestamp === 0) {
@@ -6197,7 +6205,7 @@ export default class gate extends Exchange {
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealised_pnl'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'realizedPnl': this.safeNumber2 (position, 'realised_pnl', 'pnl'),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeNumber (market, 'contractSize'),
@@ -6205,7 +6213,7 @@ export default class gate extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
             'lastPrice': undefined,
-            'collateral': this.safeNumber (position, 'margin'),
+            'collateral': this.parseNumber (collateral),
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
