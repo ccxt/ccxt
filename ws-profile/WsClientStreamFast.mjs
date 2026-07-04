@@ -26,15 +26,21 @@
 // real again).
 //
 // Kept (transport-independent semantics, unchanged from the profiled variant):
-// - anti-starvation deferral: deliver each message, then yield one event-loop
-//   turn (setImmediate) before the next, so a `while (true) { await watchX () }`
-//   consumer re-arms its future before the next resolve. Equivalent to ws's
-//   allowSynchronousEvents:false, opt out via { options: {
-//   allowSynchronousEvents: true } }; adaptive mode ({ options: {
-//   adaptiveDeferral: true } }) yields only when a pending future was resolved
-//   or every fairnessBatch messages. While the loop waits, unread messages now
-//   sit in the duplex (HWM 16) and throttle the SERVER via TCP instead of
-//   ballooning in-process — the documented drawback of the undici revision.
+// - anti-starvation deferral, ADAPTIVE by default: after a delivery that
+//   actually resolved an awaited future (a consumer wakeup), yield one
+//   event-loop turn (setImmediate) so the `while (true) { await watchX () }`
+//   loop re-arms before the next resolve; messages nobody awaits (cache
+//   updates, unsubscribed topics, deliveries while the consumer is mid-hop)
+//   flow at full speed, with a fairness yield every fairnessBatch (64)
+//   messages to bound event-loop lag. Starvation probe: 100% consumer
+//   wakeups — same guarantee as production's per-message deferral — at
+//   +10..+66% of production's ceiling (results/deferral-modes.txt). Strict
+//   per-message deferral (exact ws allowSynchronousEvents:false semantics):
+//   { options: { adaptiveDeferral: false } }. No deferral at all:
+//   { options: { allowSynchronousEvents: true } } (drops ~half the wakeups
+//   under burst — measured, not recommended). While the loop waits, unread
+//   messages sit in the duplex (HWM 16) and throttle the SERVER via TCP
+//   instead of ballooning in-process.
 // - lean onMessage: inlined JSON detection + big-int guard, error containment.
 //
 // Standalone: extends the BUILT ccxt Client directly (js/src/base/ws/Client.js)
@@ -141,9 +147,10 @@ export default class WsClientStreamFast extends Client {
     // backlog stays inside the duplex/kernel, so the deferral now *throttles
     // the server* instead of growing an in-process queue.
     async deliverLoop () {
-        const defer = !(this.options && this.options['allowSynchronousEvents']);
-        const adaptive = !!(this.options && this.options['adaptiveDeferral']);
-        const fairnessBatch = (this.options && this.options['fairnessBatch']) || 64;
+        const opts = this.options || {};
+        const defer = !opts['allowSynchronousEvents'];
+        const adaptive = (opts['adaptiveDeferral'] !== false); // adaptive is the default
+        const fairnessBatch = opts['fairnessBatch'] || 64;
         let batch = 0;
         try {
             for await (const message of this.duplex) {

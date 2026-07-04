@@ -32,9 +32,10 @@ async function makeClient (impl, url) {
         ({ default: Ctor } = await import ('./WsClientStreamFast.mjs'));
         if (impl === 'fast-nodefer') {
             config = { options: { allowSynchronousEvents: true } };
-        } else if (impl === 'fast-adaptive') {
-            config = { options: { adaptiveDeferral: true } };
+        } else if (impl === 'fast-deferred') {
+            config = { options: { adaptiveDeferral: false } }; // strict per-message deferral
         }
+        // fast-adaptive: {} — adaptive deferral is WsClientStreamFast's default
     }
     let onDone = () => {};
     const client = new Ctor (

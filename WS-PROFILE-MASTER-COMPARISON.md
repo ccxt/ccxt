@@ -284,3 +284,34 @@ memory, real TCP backpressure, and lower event-loop lag at the ceiling (p99
 0.09 ms vs 0.18 ms). Production stays ahead on pure throughput: with the
 undici pathologies gone, the remaining gap is plain streams dispatch, not a
 fixable defect.
+
+### Deferral-mode pricing — adaptive deferral is now the default (2026-07-04)
+
+The per-message deferral both clients used (production via ws
+`allowSynchronousEvents:false`, fast via one `setImmediate` per delivery) pays
+one event-loop turn per message whether or not anyone was woken. Pricing the
+modes separately (`results/deferral-modes.txt`, TLS ceilings, medians of 3):
+
+| mode | tick100 | vs ccxt | delta1k | vs ccxt | wakeups (starvation probe) |
+|---|---|---|---|---|---|
+| ccxt production (per-message deferral) | 535,013 msg/s | — | 134,691 | — | 100% |
+| fast **adaptive (new default)** | 871,967 | **+63.0%** | 142,487 | **+5.8%** | **100%** |
+| fast strict per-message deferral | 487,031 | −9.0% | 129,462 | −3.9% | 100% |
+| fast no deferral | 914,293 | +70.9% | 157,810 | +17.2% | **50.2%** |
+
+Adaptive deferral yields an event-loop turn only after a delivery that
+actually resolved an awaited future (`resolve()` found the messageHash armed
+— the only case where the consumer must re-arm before the next resolve), plus
+a fairness yield every 64 messages to bound loop lag (p99 0.40–1.64 ms vs
+nodefer's 7.37 ms). Messages nobody awaits — cache updates, unsubscribed
+topics, deliveries while the consumer is mid-re-arm — flow at full speed and
+land in ccxt's caches; nothing is dropped, the consumer's next wakeup sees the
+merged state. Result: nodefer's throughput (95–97% of it) with production's
+semantics (100% of achievable consumer wakeups; parity suite still passes).
+`WsClientStreamFast` now defaults to adaptive; strict per-message semantics
+via `{ options: { adaptiveDeferral: false } }`, no deferral via
+`{ options: { allowSynchronousEvents: true } }` (halves wakeups — measured,
+not recommended). Note this optimization is transport-independent: production
+`WsClient` could apply the same trick over raw `ws` events (set
+`allowSynchronousEvents: true`, defer in `Client.onMessage` only when a
+future was resolved) for the same +63%/+5.8% ceiling gain.

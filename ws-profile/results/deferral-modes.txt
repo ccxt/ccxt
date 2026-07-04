@@ -1,0 +1,22 @@
+# deferral-mode pricing - TLS receive ceilings, medians of 3 fresh processes
+# node v22.22.1, ws 8.21.0, wss://127.0.0.1:9602 loopback, 2026-07-04
+# tick100: 400k x 100B; delta1k: 200k x 1KB. vs-ccxt compares within this run.
+# (independent pre-flip adaptive sample agreed: 889,260 / 147,731 msg/s)
+
+== tick100 ==
+ccxt (production: per-message deferral)     535013 msg/s (   0.0%)  1.95 us/msg  lag p99 0.14 ms  gc 0.31 ms/10k  heap +165 KB
+fast DEFAULT = adaptive deferral            871967 msg/s (  63.0%)  1.24 us/msg  lag p99 0.40 ms  gc 0.30 ms/10k  heap +189 KB
+fast strict per-message deferral            487031 msg/s (  -9.0%)  2.12 us/msg  lag p99 0.19 ms  gc 0.49 ms/10k  heap +158 KB
+fast no deferral (nodefer)                  914293 msg/s (  70.9%)  1.13 us/msg  lag p99 7.37 ms  gc 0.25 ms/10k  heap +172 KB
+
+== delta1k ==
+ccxt (production: per-message deferral)     134691 msg/s (   0.0%)  7.79 us/msg  lag p99 0.10 ms  gc 1.29 ms/10k  heap +210 KB
+fast DEFAULT = adaptive deferral            142487 msg/s (   5.8%)  7.21 us/msg  lag p99 0.45 ms  gc 1.43 ms/10k  heap +198 KB
+fast strict per-message deferral            129462 msg/s (  -3.9%)  8.21 us/msg  lag p99 0.15 ms  gc 1.56 ms/10k  heap +200 KB
+fast no deferral (nodefer)                  157810 msg/s (  17.2%)  6.58 us/msg  lag p99 1.53 ms  gc 1.02 ms/10k  heap +189 KB
+
+# starvation probe (20k burst, 3-hop re-arm) after the default flip:
+ccxt           wakeups 20000/20000 (100%)
+fast-deferred  wakeups 20000/20000 (100%)
+fast-adaptive  wakeups 20000/20000 (100%)
+fast-nodefer   wakeups 10049/20000 (50.2%)

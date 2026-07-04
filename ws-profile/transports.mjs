@@ -11,14 +11,19 @@
 //   ccxt-stream - same built ccxt Client upper layer, transport swapped to
 //               undici's WebSocketStream (ws-profile/WsClientStream.mjs)
 //   ccxt-stream-fast - profile-guided optimized variant (WsClientStreamFast.mjs),
-//                      rebased onto ws createWebSocketStream({ readableObjectMode: true })
+//                      rebased onto ws createWebSocketStream({ readableObjectMode: true });
+//                      adaptive deferral is its default
+//   ccxt-stream-fast-deferred / ccxt-stream-fast-nodefer - same client with
+//                      { adaptiveDeferral: false } (strict per-message deferral) /
+//                      { allowSynchronousEvents: true } (no deferral),
+//                      to price the deferral modes separately
 //   undici    - `import { WebSocket } from 'undici'` (standalone 7.27.2)
 //   global    - globalThis.WebSocket (node-bundled undici build)
 //   stream    - `import { WebSocketStream } from 'undici'` (experimental)
 import WsPackage from 'ws';
 import { WebSocket as UndiciWebSocket, WebSocketStream as UndiciWebSocketStream } from 'undici';
 
-export const TRANSPORTS = [ 'ws', 'ws-async', 'ccxt', 'ccxt-stream', 'ccxt-stream-fast', 'undici', 'global', 'stream' ];
+export const TRANSPORTS = [ 'ws', 'ws-async', 'ccxt', 'ccxt-stream', 'ccxt-stream-fast', 'ccxt-stream-fast-deferred', 'ccxt-stream-fast-nodefer', 'undici', 'global', 'stream' ];
 
 function makeWhatwgAdapter (WsCtor, url, name) {
     return new Promise ((resolve, reject) => {
@@ -65,7 +70,7 @@ function makeWsPackageAdapter (url, name, options) {
     });
 }
 
-async function makeCcxtAdapter (url, flavor) {
+async function makeCcxtAdapter (url, flavor, config = {}) {
     const { default: WsClient } = (flavor === 'stream')
         ? await import ('./WsClientStream.mjs')
         : (flavor === 'stream-fast')
@@ -78,7 +83,7 @@ async function makeCcxtAdapter (url, flavor) {
         (_client, error) => { throw error; },
         () => {},
         () => {},
-        {}
+        config
     );
     await client.connect (0);
     return {
@@ -141,8 +146,13 @@ export async function connectTransport (name, url) {
             return makeCcxtAdapter (url, 'ws');
         case 'ccxt-stream':
             return makeCcxtAdapter (url, 'stream');
+        case 'ccxt-stream-fast-adaptive': // legacy alias — adaptive is now the default
         case 'ccxt-stream-fast':
             return makeCcxtAdapter (url, 'stream-fast');
+        case 'ccxt-stream-fast-deferred':
+            return makeCcxtAdapter (url, 'stream-fast', { options: { adaptiveDeferral: false } });
+        case 'ccxt-stream-fast-nodefer':
+            return makeCcxtAdapter (url, 'stream-fast', { options: { allowSynchronousEvents: true } });
         case 'undici':
             return makeWhatwgAdapter (UndiciWebSocket, url, 'undici');
         case 'global':
