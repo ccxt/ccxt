@@ -533,7 +533,7 @@ export default class bithumb extends Exchange {
                         'cost': {},
                     },
                     'created': undefined,
-                    'info': undefined,
+                    'info': entry,
                 });
             }
         } else {
