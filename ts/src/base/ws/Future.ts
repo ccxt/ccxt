@@ -15,12 +15,12 @@ export function Future (): FutureInterface {
         reject = reject_
     })
 
-    p.resolve = function _resolve () {
+    p.resolve = async function _resolve () {
         // eslint-disable-next-line prefer-rest-params
         resolve.apply (this, arguments)
     }
 
-    p.reject = function _reject () {
+    p.reject = async function _reject () {
         // eslint-disable-next-line prefer-rest-params
         reject.apply (this, arguments)
     }
