@@ -351,7 +351,7 @@ public partial class bitstamp : ccxt.bitstamp
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object stored = this.orders;
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, channel);
+        object subscription = ((bool) isTrue((isEqual(channel, null)))) ? null : this.safeValue(((WebSocketClient)client).subscriptions, channel);
         object symbol = this.safeString(subscription, "symbol");
         object market = this.market(symbol);
         ((IDictionary<string,object>)order)["event"] = this.safeString(message, "event");

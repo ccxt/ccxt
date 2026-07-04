@@ -2672,7 +2672,7 @@ public partial class coinex : Exchange
         {
             object entry = getValue(data, i);
             object code = this.safeString(entry, "code");
-            object message = this.safeString(entry, "message");
+            object message = this.safeString(entry, "message", "");
             if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(((string)message).ToLower(), "ok")))) && !isTrue(data)))))
             {
                 object feedback = add(add(this.id, " "), message);
@@ -3121,7 +3121,7 @@ public partial class coinex : Exchange
         //         "memo": ""
         //     }
         //
-        object coinAddress = this.safeString(depositAddress, "address");
+        object coinAddress = this.safeString(depositAddress, "address", "");
         object parts = ((string)coinAddress).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object address = null;
         object tag = null;
@@ -5464,7 +5464,7 @@ public partial class coinex : Exchange
         }
         object code = this.safeString(response, "code");
         object data = this.safeValue(response, "data");
-        object message = this.safeString(response, "message");
+        object message = this.safeString(response, "message", "");
         if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(((string)message).ToLower(), "ok")))) && !isTrue(data)))))
         {
             object feedback = add(add(this.id, " "), message);
