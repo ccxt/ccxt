@@ -373,7 +373,7 @@
                     "collateral": null,
                     "marginMode": "cross",
                     "side": "long",
-                    "percentage": null,
+                    "percentage": -6.48,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
                 }
@@ -696,7 +696,7 @@
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
-                        "percentage": null,
+                        "percentage": 0.14,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
                     }
