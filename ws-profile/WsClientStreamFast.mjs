@@ -10,8 +10,9 @@
 //   message framing AND applies real backpressure at full throughput:
 //   byte mode fuses frames once anything buffers (99.8% JSON.parse failures in
 //   the probe), while objectMode keeps 1 chunk = 1 message and pauses the
-//   socket at ~25 buffered messages (duplex.push() === false -> ws.pause()
-//   -> TCP backpressure to the server).
+//   socket once readableHighWaterMark messages are buffered (duplex.push()
+//   === false -> ws.pause() -> TCP backpressure to the server; ~25 buffered
+//   msgs in the probe at the stream-default HWM 16, 1024 here — see below).
 // readableObjectMode survives because ws spreads user options BEFORE forcing
 // objectMode/writableObjectMode (ws@8.21.0 lib/stream.js). Only the readable
 // half of the duplex is used: sends go through sock.send() directly — the
@@ -39,8 +40,11 @@
 //   { options: { adaptiveDeferral: false } }. No deferral at all:
 //   { options: { allowSynchronousEvents: true } } (drops ~half the wakeups
 //   under burst — measured, not recommended). While the loop waits, unread
-//   messages sit in the duplex (HWM 16) and throttle the SERVER via TCP
-//   instead of ballooning in-process.
+//   messages sit in the duplex (readableHighWaterMark, default 1024) and
+//   throttle the SERVER via TCP instead of ballooning in-process. No queue
+//   of our own anywhere: the duplex readable is the only buffer, and it is
+//   what delivers per-message granularity (ws emission is chunk-synchronous;
+//   the stream decouples dispatch from it).
 // - lean onMessage: inlined JSON detection + big-int guard, error containment.
 //
 // Standalone: extends the BUILT ccxt Client directly (js/src/base/ws/Client.js)
@@ -62,8 +66,19 @@ export default class WsClientStreamFast extends Client {
         const sock = new WsPackage (this.url, this.protocols, this.options);
         this.sock = sock;
         // attach the duplex synchronously with the socket: messages emitted
-        // between 'open' and a later attachment would be dropped silently
-        this.duplex = createWebSocketStream (sock, { readableObjectMode: true });
+        // between 'open' and a later attachment would be dropped silently.
+        // readableHighWaterMark (messages, objectMode) is the receive-
+        // backpressure bound: ws pauses the socket when the duplex buffers
+        // this many unread messages (stream.js: push() === false -> pause(),
+        // resume on read). The stream default (16) flapped under sustained
+        // paced load - pause threshold and read-triggered resume are one
+        // message apart, so the socket chattered at the boundary (measured:
+        // paced 60k/s delivery p99 1.24-3.08 ms vs 0.8 ms unflapped). 1024
+        // makes backpressure a memory circuit breaker (~1 MB at 1 KB msgs)
+        // that never engages at rates a consumer can sustain, matching the
+        // bound the internal-queue variant used.
+        const recvHighWaterMark = (this.options && this.options['recvHighWaterMark']) || 1024;
+        this.duplex = createWebSocketStream (sock, { readableObjectMode: true, readableHighWaterMark: recvHighWaterMark });
         this.duplex.on ('error', () => {}); // teardown surfaces via sock 'error'/'close'
         this.streamOpen = false;
         // facade for base-class Client paths: Client.js calls

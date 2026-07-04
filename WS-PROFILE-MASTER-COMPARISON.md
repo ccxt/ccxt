@@ -347,3 +347,36 @@ delivery policy on the production `ws` transport is the winning combination**
 — streams added safety but their dispatch tax is now the only thing they buy.
 PR 29084 ships `WsClientFast.mjs`; the stream client remains on this branch
 for reference.
+
+### Final pick: the queueless duplex client, HWM 1024 (2026-07-04)
+
+Decision revised once more, by explicit choice of implementation shape over
+peak throughput: the shipped client is **`WsClientStreamFast` — no internal
+queue**. The duplex readable is the only buffer (Node's stream queue instead
+of a hand-rolled array); it is what converts ws's chunk-synchronous emission
+into per-message delivery, so the adaptive deferral keeps its 100%-wakeup
+guarantee without any queue code of our own. Its one measured flaw — pause/
+resume flapping at the stream-default `readableHighWaterMark` of 16 (pause
+threshold and read-triggered resume sit one message apart, so the socket
+chattered under sustained paced load: delivery p99 1.24–3.08 ms at 60k/s) —
+is fixed by raising the bound to **1024 messages** (`recvHighWaterMark`
+option), turning backpressure into the same memory circuit breaker the queue
+variant used. Same-run head-to-head (`results/queueless-hwm1024.txt`):
+
+| metric | production | WsClientFast (queue) | **WsClientStreamFast (queueless, HWM 1024)** |
+|---|---|---|---|
+| tick100 ceiling | 537,468 msg/s | 941,619 (+75.2%) | **853,190 (+58.7%)** |
+| delta1k ceiling | 135,152 | 154,381 (+14.2%) | **144,465 (+6.9%)** |
+| paced 60k/s p50/p95/p99 µs | 414/710/967 | 353/598/794 | **396/650/864** (was p99 1,236–3,080 at HWM 16) |
+| el-lag p99 at tick100 ceiling | 0.53 ms | 5.19 ms | **1.03 ms** |
+| parity / starvation | 14/14 / 100% | 14/14 / 100% | **14/14 / 100%** |
+
+The streams dispatch tax (~6–9% vs the queue variant) buys: no bespoke
+buffer/drain code (backpressure, pause/resume, and buffering are Node
+streams machinery), smoother event-loop lag at the firehose (1.03 vs
+5.19 ms — the queue's 64-message drain bursts are the queue's own flaw), and
+a single delivery path (`for await`). Still +58.7%/+6.9% over production
+with a clean paced tail. PR 29084 ships `WsClientStreamFast.mjs`;
+`WsClientFast.mjs` (the queue variant) stays on this branch as the
+measured-faster alternative if peak ceiling ever outranks implementation
+simplicity.

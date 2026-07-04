@@ -1,0 +1,21 @@
+# queueless duplex client (WsClientStreamFast, readableHighWaterMark 1024) - final head-to-head
+# TLS loopback wss://127.0.0.1:9602, node v22.22.1, ws 8.21.0, medians of 3 fresh processes, 2026-07-04
+# HWM 16 -> 1024 kills the paced-60k flapping (p99 was 1236-3080us at HWM 16)
+
+== tick100 ceiling ==
+ccxt (production)                           537468 msg/s (   0.0%)  1.94 us/msg  lag p99 0.53 ms  heap +169 KB
+WsClientFast (internal queue)               941619 msg/s (  75.2%)  1.10 us/msg  lag p99 5.19 ms  heap +180 KB
+WsClientStreamFast (queueless, HWM 1024)    853190 msg/s (  58.7%)  1.21 us/msg  lag p99 1.03 ms  heap +161 KB
+
+== delta1k ceiling ==
+ccxt (production)                           135152 msg/s (   0.0%)  7.76 us/msg  lag p99 0.17 ms  heap +211 KB
+WsClientFast (internal queue)               154381 msg/s (  14.2%)  6.73 us/msg  lag p99 1.46 ms  heap +174 KB
+WsClientStreamFast (queueless, HWM 1024)    144465 msg/s (   6.9%)  7.08 us/msg  lag p99 0.67 ms  heap +191 KB
+
+== delta1k paced @60,000 msg/s (one-way delivery latency, us) ==
+ccxt (production)                          p50=414 p95=710 p99=967 max=4184
+WsClientFast (internal queue)              p50=353 p95=598 p99=794 max=1601
+WsClientStreamFast (queueless, HWM 1024)   p50=396 p95=650 p99=864 max=3429
+
+# gates: parity all-pass for production, WsClientFast, WsClientStreamFast;
+# starvation probe: ccxt 100%, fast-deferred 100%, fast-adaptive 100%, fast-ws-adaptive 100%, fast-nodefer 50.2%
