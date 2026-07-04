@@ -3035,7 +3035,7 @@ class deribit extends Exchange {
         //         "amount" => 13.456
         //     }
         //
-        $timestamp = $this->safe_timestamp($transfer, 'created_timestamp');
+        $timestamp = $this->safe_integer($transfer, 'created_timestamp');
         $status = $this->safe_string($transfer, 'state');
         $account = $this->safe_string($transfer, 'other_side');
         $direction = $this->safe_string($transfer, 'direction');
