@@ -28,7 +28,7 @@ function test_watch_bids_asks_helper($exchange, $skipped_properties, $arg_symbol
         while ($now < $ends) {
             $success = true;
             $should_return = false;
-            $response = null;
+            $response = array();
             try {
                 $response = \React\Async\await($exchange->watch_bids_asks($arg_symbols, $arg_params));
             } catch(\Throwable $e) {
