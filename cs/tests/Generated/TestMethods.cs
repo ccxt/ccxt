@@ -1215,6 +1215,26 @@ public partial class testMainClass
                 object isComputedUndefined = (isEqual(sanitizedNewOutput, null));
                 object isStoredUndefined = (isEqual(sanitizedStoredOutput, null));
                 object shouldBeSame = isTrue(isTrue((isEqual(isComputedBool, isStoredBool))) && isTrue((isEqual(isComputedString, isStoredString)))) && isTrue((isEqual(isComputedUndefined, isStoredUndefined)));
+                if (isTrue(isTrue(isTrue(isTrue(isTrue(!isTrue(shouldBeSame) && isTrue((isEqual(this.lang, "PY")))) && !isTrue(isComputedBool)) && !isTrue(isStoredBool)) && !isTrue(isComputedUndefined)) && !isTrue(isStoredUndefined)))
+                {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    object isNumber = false;
+                    try
+                    {
+                        exchange.parseToNumeric(newOutputString);
+                        exchange.parseToNumeric(storedOutputString);
+                        isNumber = true;
+                    } catch(Exception e)
+                    {
+                        isNumber = false;
+                    }
+                    if (isTrue(isNumber))
+                    {
+                        this.assertStaticError(isEqual(exchange.parseToNumeric(newOutputString), exchange.parseToNumeric(storedOutputString)), messageError, storedOutput, newOutput, assertingKey);
+                        return true;
+                    }
+                }
                 this.assertStaticError(shouldBeSame, "output type mismatch", storedOutput, newOutput, assertingKey);
                 object isBoolean = isTrue(isComputedBool) || isTrue(isStoredBool);
                 object isString = isTrue(isComputedString) || isTrue(isStoredString);
