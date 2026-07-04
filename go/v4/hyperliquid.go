@@ -28,7 +28,7 @@ func (this *HyperliquidCore) Describe() any {
 			"spot":                                 true,
 			"margin":                               false,
 			"swap":                                 true,
-			"future":                               true,
+			"future":                               false,
 			"option":                               false,
 			"addMargin":                            true,
 			"borrowCrossMargin":                    false,

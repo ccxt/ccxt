@@ -64,6 +64,9 @@ public class BybiteuCore extends BybiteuApi
                 put( "future", false );
                 put( "option", null );
             }} );
+            put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
+            }} );
         }});
     }
 }

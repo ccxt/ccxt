@@ -836,6 +836,19 @@ class testMainClass:
                 is_computed_undefined = (sanitized_new_output is None)
                 is_stored_undefined = (sanitized_stored_output is None)
                 should_be_same = (is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined)
+                if not should_be_same and (self.lang == 'PY') and not is_computed_bool and not is_stored_bool and not is_computed_undefined and not is_stored_undefined:
+                    # python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    # captured under number-quoting store them as strings - compare numerically like C#/GO
+                    is_number = False
+                    try:
+                        exchange.parse_to_numeric(new_output_string)
+                        exchange.parse_to_numeric(stored_output_string)
+                        is_number = True
+                    except Exception as e:
+                        is_number = False
+                    if is_number:
+                        self.assert_static_error(exchange.parse_to_numeric(new_output_string) == exchange.parse_to_numeric(stored_output_string), message_error, stored_output, new_output, asserting_key)
+                        return True
                 self.assert_static_error(should_be_same, 'output type mismatch', stored_output, new_output, asserting_key)
                 is_boolean = is_computed_bool or is_stored_bool
                 is_string = is_computed_string or is_stored_string

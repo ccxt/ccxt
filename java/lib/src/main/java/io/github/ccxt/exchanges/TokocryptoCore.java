@@ -268,7 +268,7 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "BEP20", "BSC" );
                     put( "OMNI", "OMNI" );
                     put( "EOS", "EOS" );
-                    put( "SPL", "SOL" );
+                    put( "SOL", "SOL" );
                 }} );
                 put( "reverseNetworks", new java.util.HashMap<String, Object>() {{
                     put( "tronscan.org", "TRC20" );

@@ -34,6 +34,9 @@ public class KucoineuCore extends KucoineuApi
                 put( "www", "https://www.kucoin.com/en-eu" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.kucoin.com/en-eu/docs-new")) );
             }} );
+            put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
+            }} );
         }});
     }
 }

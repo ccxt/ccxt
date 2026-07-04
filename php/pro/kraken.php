@@ -642,7 +642,7 @@ class kraken extends \ccxt\async\kraken {
         $ohlcvsLength = count($data);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
             $candle = $data[$ohlcvsLength - $i - 1];
-            $datetime = $this->safe_string($candle, 'timestamp');
+            $datetime = $this->safe_string($candle, 'interval_begin');
             $timestamp = $this->parse8601($datetime);
             $parsed = array(
                 $timestamp,

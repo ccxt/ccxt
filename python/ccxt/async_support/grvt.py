@@ -1395,7 +1395,7 @@ class grvt(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+        https://api-docs.grvt.io/trading_api/#withdrawal-history
 
         :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)

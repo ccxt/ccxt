@@ -1430,7 +1430,6 @@ public class BinanceCore extends BinanceApi
                     put( "XRP", "XRP" );
                     put( "EOS", "EOS" );
                     put( "DOGE", "DOGE" );
-                    put( "SPL", "SOL" );
                     put( "SOL", "SOL" );
                     put( "SONIC", "SONIC" );
                     put( "ARBONE", "ARBITRUM" );

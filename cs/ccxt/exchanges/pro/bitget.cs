@@ -986,7 +986,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             object isSnapshot = isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
-            if (isTrue(!isTrue(isSnapshot) && isTrue(checksum)))
+            // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
+            // so only validate the checksum when the exchange actually sends one
+            object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
+            if (isTrue(isTrue(!isTrue(isSnapshot) && isTrue(checksum)) && isTrue((!isEqual(responseChecksum, null)))))
             {
                 object storedAsks = getValue(storedOrderBook, "asks");
                 object storedBids = getValue(storedOrderBook, "bids");
@@ -1008,13 +1011,8 @@ public partial class bitget : ccxt.bitget
                 }
                 object payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
                 object calculatedChecksum = this.crc32(payload, true);
-                object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
-                    // if (messageHash in ((WebSocketClient)client).subscriptions) {
-                    //     // delete ((WebSocketClient)client).subscriptions[messageHash];
-                    //     // delete this.orderbooks[symbol];
-                    // }
                     this.spawn(this.handleCheckSumError, new object[] { client, symbol, messageHash});
                     return;
                 }
@@ -3014,10 +3012,14 @@ public partial class bitget : ccxt.bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
+        // UTA
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
+        //
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object instType = this.safeStringLower(arg, "instType");
         object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
-        object instId = this.safeString(arg, "instId");
+        object instId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(instId, null, null, type);
         object symbol = getValue(market, "symbol");
         object messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));

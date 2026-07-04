@@ -693,7 +693,7 @@ public partial class kraken : ccxt.kraken
         for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
         {
             object candle = getValue(data, subtract(subtract(ohlcvsLength, i), 1));
-            object datetime = this.safeString(candle, "timestamp");
+            object datetime = this.safeString(candle, "interval_begin");
             object timestamp = this.parse8601(datetime);
             object parsed = new List<object>() {timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")};
             callDynamically(stored, "append", new object[] {parsed});
