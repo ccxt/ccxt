@@ -1,0 +1,70 @@
+(node:2390888) [UNDICI-WSS] Warning: WebSocketStream is experimental! Expect it to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PARITY {
+  "WsClient (ws, production)": {
+    "connect_future_resolves_with_url": true,
+    "onConnected_callback_fired": true,
+    "isOpen_true_after_connect": true,
+    "future_resolved_via_onMessage": true,
+    "json_text_frame_parsed_to_object": true,
+    "bigint_guard_regex_applied": true,
+    "send_future_resolves": true,
+    "binary_json_frame_parsed": true,
+    "close_resolves_disconnected": true,
+    "onClose_callback_fired": true,
+    "gunzip_binary_frame_parsed": true,
+    "inflate_binary_frame_parsed": true,
+    "server_close_code_propagated": true,
+    "pending_futures_rejected_on_server_close": true,
+    "abrupt_destroy_detected": {
+      "onError_fired": false,
+      "onClose_fired": true,
+      "close_code": 1006,
+      "pending_futures_rejected": true
+    }
+  },
+  "WsClientStream (undici WebSocketStream)": {
+    "connect_future_resolves_with_url": true,
+    "onConnected_callback_fired": true,
+    "isOpen_true_after_connect": true,
+    "future_resolved_via_onMessage": true,
+    "json_text_frame_parsed_to_object": true,
+    "bigint_guard_regex_applied": true,
+    "send_future_resolves": true,
+    "binary_json_frame_parsed": "DIVERGENT: got string 123,34,98,105,110,97,114,121,34,58,116,114,117,101,44,34,118",
+    "close_resolves_disconnected": true,
+    "onClose_callback_fired": true,
+    "gunzip_binary_frame_parsed": true,
+    "inflate_binary_frame_parsed": true,
+    "server_close_code_propagated": true,
+    "pending_futures_rejected_on_server_close": true,
+    "abrupt_destroy_detected": {
+      "onError_fired": true,
+      "onClose_fired": true,
+      "close_code": 1006,
+      "pending_futures_rejected": true
+    }
+  },
+  "WsClientStreamFast (optimized)": {
+    "connect_future_resolves_with_url": true,
+    "onConnected_callback_fired": true,
+    "isOpen_true_after_connect": true,
+    "future_resolved_via_onMessage": true,
+    "json_text_frame_parsed_to_object": true,
+    "bigint_guard_regex_applied": true,
+    "send_future_resolves": true,
+    "binary_json_frame_parsed": true,
+    "close_resolves_disconnected": true,
+    "onClose_callback_fired": true,
+    "gunzip_binary_frame_parsed": true,
+    "inflate_binary_frame_parsed": true,
+    "server_close_code_propagated": true,
+    "pending_futures_rejected_on_server_close": true,
+    "abrupt_destroy_detected": {
+      "onError_fired": true,
+      "onClose_fired": true,
+      "close_code": 1006,
+      "pending_futures_rejected": true
+    }
+  }
+}

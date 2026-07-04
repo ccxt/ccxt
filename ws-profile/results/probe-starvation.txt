@@ -1,0 +1,32 @@
+(node:2391340) [UNDICI-WSS] Warning: WebSocketStream is experimental! Expect it to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PROBE [
+  {
+    "impl": "ccxt",
+    "burst": 20000,
+    "rearm_microtask_hops": 3,
+    "wakeups": 20000,
+    "wakeup_pct": 100
+  },
+  {
+    "impl": "fast-deferred",
+    "burst": 20000,
+    "rearm_microtask_hops": 3,
+    "wakeups": 20000,
+    "wakeup_pct": 100
+  },
+  {
+    "impl": "fast-adaptive",
+    "burst": 20000,
+    "rearm_microtask_hops": 3,
+    "wakeups": 20000,
+    "wakeup_pct": 100
+  },
+  {
+    "impl": "fast-nodefer",
+    "burst": 20000,
+    "rearm_microtask_hops": 3,
+    "wakeups": 5074,
+    "wakeup_pct": 25.4
+  }
+]

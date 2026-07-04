@@ -1,0 +1,57 @@
+== tls-recv-ccxt-stream-fast-delta1k.cpuprofile — total sampled 2621ms ==
+-- top 15 functions by SELF time --
+   1064.8ms  40.6%  onMessage ws-profile/WsClientStreamFast.mjs:215
+    929.4ms  35.5%  (idle)
+    163.3ms   6.2%  (garbage collector)
+     49.1ms   1.9%  RegExp: :(\d{15,}),
+     42.9ms   1.6%  compileForInternalLoader node:internal/bootstrap/realm
+     31.9ms   1.2%  (program)
+     28.2ms   1.1%  decode node:internal/encoding
+     18.4ms   0.7%  FastBuffer node:internal/buffer
+     15.1ms   0.6%  readLoop ws-profile/WsClientStreamFast.mjs:112
+     14.0ms   0.5%  processTicksAndRejections node:internal/process/task_queues
+     12.5ms   0.5%  hrtimeBigInt node:internal/process/per_thread
+     10.1ms   0.4%  run node_modules/undici/lib/web/websocket/receiver.js:74
+      9.7ms   0.4%  wrapSafe node:internal/modules/cjs/loader
+      8.7ms   0.3%  compileSourceTextModule node:internal/modules/esm/utils
+      7.9ms   0.3%  createUnsafeBuffer node:internal/buffer
+-- flame tree (nodes >= 1% total, depth <= 14) --
+100.0% (2620.9ms, self 0.0ms) (root)
+  43.8% (1148.1ms, self 15.1ms) readLoop ws-profile/WsClientStreamFast.mjs:112
+    43.0% (1127.6ms, self 1062.5ms) onMessage ws-profile/WsClientStreamFast.mjs:215
+      1.8% (47.9ms, self 47.9ms) RegExp: :(\d{15,}),
+  35.5% (929.4ms, self 929.4ms) (idle)
+  6.2% (163.3ms, self 163.3ms) (garbage collector)
+  4.7% (123.0ms, self 1.4ms) onStreamRead node:internal/stream_base_commons
+    4.6% (121.6ms, self 1.2ms) Readable.push node:internal/streams/readable
+      4.6% (120.4ms, self 0.0ms) readableAddChunkPushByteMode node:internal/streams/readable
+        4.6% (120.3ms, self 4.7ms) addChunk node:internal/streams/readable
+          4.2% (108.9ms, self 0.0ms) emit node:events
+            4.2% (108.9ms, self 0.0ms) onSocketData node_modules/undici/lib/web/websocket/stream/websocketstream.js:51
+              4.2% (108.9ms, self 0.0ms) Writable.write node:internal/streams/writable
+                4.2% (108.9ms, self 0.0ms) _write node:internal/streams/writable
+                  4.2% (108.9ms, self 0.0ms) writeOrBuffer node:internal/streams/writable
+                    4.2% (108.9ms, self 4.4ms) _write node_modules/undici/lib/web/websocket/receiver.js:61
+                      4.0% (104.5ms, self 10.1ms) run node_modules/undici/lib/web/websocket/receiver.js:74
+                        1.8% (47.5ms, self 0.0ms) websocketMessageReceived node_modules/undici/lib/web/websocket/util.js:79
+                          1.8% (47.5ms, self 1.1ms) onMessage node_modules/undici/lib/web/websocket/stream/websocketstream.js:48
+                            1.8% (46.4ms, self 3.6ms) #onMessage node_modules/undici/lib/web/websocket/stream/websocketstream.js:317
+                        1.5% (38.9ms, self 5.9ms) consume node_modules/undici/lib/web/websocket/receiver.js:264
+  2.7% (71.1ms, self 0.0ms) run node:internal/modules/esm/module_job
+    2.5% (64.3ms, self 1.1ms) (anonymous) node:internal/modules/esm/translators
+      2.4% (63.2ms, self 0.0ms) cjsLoader node:internal/modules/esm/translators
+        2.4% (63.2ms, self 1.1ms) wrapModuleLoad node:internal/modules/cjs/loader
+          2.4% (62.1ms, self 0.0ms) traceSync node:diagnostics_channel
+            2.4% (62.1ms, self 0.0ms) Module._load node:internal/modules/cjs/loader
+              2.4% (62.1ms, self 0.0ms) Module.load node:internal/modules/cjs/loader
+                2.4% (62.1ms, self 0.0ms) Module._extensions..js node:internal/modules/cjs/loader
+                  2.4% (62.1ms, self 0.0ms) Module._compile node:internal/modules/cjs/loader
+                    1.7% (45.8ms, self 0.0ms) (anonymous) node_modules/undici/index.js:1
+                      1.7% (45.8ms, self 0.0ms) require node:internal/modules/helpers
+                        1.7% (45.8ms, self 0.0ms) Module.require node:internal/modules/cjs/loader
+                          1.7% (45.8ms, self 0.0ms) wrapModuleLoad node:internal/modules/cjs/loader
+                            1.7% (45.8ms, self 0.0ms) traceSync node:diagnostics_channel
+  2.1% (55.0ms, self 14.0ms) processTicksAndRejections node:internal/process/task_queues
+    1.2% (30.9ms, self 6.3ms) (anonymous) ws-profile/WsClientStreamFast.mjs:135
+  1.2% (31.9ms, self 31.9ms) (program)
+folded stacks (µs) -> ws-profile/results/profiles/tls-recv-ccxt-stream-fast-delta1k.folded

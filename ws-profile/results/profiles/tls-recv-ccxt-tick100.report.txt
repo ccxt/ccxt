@@ -1,0 +1,61 @@
+== tls-recv-ccxt-tick100.cpuprofile — total sampled 1689ms ==
+-- top 15 functions by SELF time --
+   1105.6ms  65.4%  (idle)
+    154.9ms   9.2%  onMessage js/src/base/ws/Client.js:263
+     94.3ms   5.6%  (program)
+     43.5ms   2.6%  (garbage collector)
+     34.8ms   2.1%  compileForInternalLoader node:internal/bootstrap/realm
+     21.0ms   1.2%  FastBuffer node:internal/buffer
+     20.9ms   1.2%  hrtimeBigInt node:internal/process/per_thread
+     20.3ms   1.2%  wrapSafe node:internal/modules/cjs/loader
+     16.5ms   1.0%  consume node_modules/ws/lib/receiver.js:126
+     14.4ms   0.9%  isUtf8 node:buffer
+     11.1ms   0.7%  dataMessage node_modules/ws/lib/receiver.js:595
+      6.5ms   0.4%  initAsyncResource node:internal/timers
+      5.8ms   0.3%  nextTick node:internal/process/task_queues
+      5.4ms   0.3%  compileSourceTextModule node:internal/modules/esm/utils
+      4.9ms   0.3%  __require node:internal/deps/undici/undici
+-- flame tree (nodes >= 1% total, depth <= 14) --
+100.0% (1689.5ms, self 0.0ms) (root)
+  65.4% (1105.6ms, self 1105.6ms) (idle)
+  16.8% (284.2ms, self 2.1ms) processImmediate node:internal/timers
+    16.7% (282.1ms, self 2.2ms) (anonymous) node_modules/ws/lib/receiver.js:654
+      11.3% (190.9ms, self 0.0ms) emit node:events
+        11.3% (190.9ms, self 1.1ms) receiverOnMessage node_modules/ws/lib/websocket.js:1238
+          11.2% (189.9ms, self 0.0ms) emit node:events
+            11.2% (189.9ms, self 0.3ms) onMessage node_modules/ws/lib/event-target.js:203
+              11.1% (187.2ms, self 0.0ms) callListener node_modules/ws/lib/event-target.js:286
+                11.1% (187.2ms, self 154.9ms) onMessage js/src/base/ws/Client.js:263
+                  1.6% (27.8ms, self 3.3ms) name ws-profile/transports.mjs:76
+                    1.4% (24.5ms, self 3.5ms) (anonymous) ws-profile/bench-recv.mjs:28
+                      1.2% (20.9ms, self 20.9ms) hrtimeBigInt node:internal/process/per_thread
+      5.3% (89.0ms, self 4.5ms) startLoop node_modules/ws/lib/receiver.js:171
+        3.4% (57.7ms, self 1.3ms) getData node_modules/ws/lib/receiver.js:479
+          2.1% (35.2ms, self 11.1ms) dataMessage node_modules/ws/lib/receiver.js:595
+          1.3% (21.1ms, self 9.9ms) consume node_modules/ws/lib/receiver.js:126
+  5.6% (94.3ms, self 94.3ms) (program)
+  4.2% (71.5ms, self 0.0ms) run node:internal/modules/esm/module_job
+    3.8% (64.0ms, self 0.0ms) (anonymous) node:internal/modules/esm/translators
+      3.8% (64.0ms, self 0.0ms) cjsLoader node:internal/modules/esm/translators
+        3.8% (64.0ms, self 0.0ms) wrapModuleLoad node:internal/modules/cjs/loader
+          3.8% (64.0ms, self 0.0ms) traceSync node:diagnostics_channel
+            3.8% (64.0ms, self 0.0ms) Module._load node:internal/modules/cjs/loader
+              3.8% (64.0ms, self 0.0ms) Module.load node:internal/modules/cjs/loader
+                3.8% (64.0ms, self 0.0ms) Module._extensions..js node:internal/modules/cjs/loader
+                  3.8% (64.0ms, self 0.0ms) Module._compile node:internal/modules/cjs/loader
+                    2.8% (46.7ms, self 0.0ms) (anonymous) node_modules/undici/index.js:1
+                      2.8% (46.7ms, self 0.0ms) require node:internal/modules/helpers
+                        2.8% (46.7ms, self 0.0ms) Module.require node:internal/modules/cjs/loader
+                          2.8% (46.7ms, self 0.0ms) wrapModuleLoad node:internal/modules/cjs/loader
+                            2.8% (46.7ms, self 0.0ms) traceSync node:diagnostics_channel
+                    1.0% (17.3ms, self 0.0ms) (anonymous) node_modules/ws/lib/stream.js:1
+                      1.0% (17.3ms, self 0.0ms) require node:internal/modules/helpers
+                        1.0% (17.3ms, self 0.0ms) Module.require node:internal/modules/cjs/loader
+                          1.0% (17.3ms, self 0.0ms) wrapModuleLoad node:internal/modules/cjs/loader
+                            1.0% (17.3ms, self 0.0ms) traceSync node:diagnostics_channel
+  2.6% (43.5ms, self 43.5ms) (garbage collector)
+  1.2% (19.7ms, self 0.0ms) getModuleJobForImport node:internal/modules/esm/loader
+    1.2% (19.7ms, self 0.0ms) #getJobFromResolveResult node:internal/modules/esm/loader
+      1.2% (19.7ms, self 0.0ms) #createModuleJob node:internal/modules/esm/loader
+        1.2% (19.7ms, self 0.0ms) loadAndTranslate node:internal/modules/esm/loader
+folded stacks (µs) -> ws-profile/results/profiles/tls-recv-ccxt-tick100.folded
