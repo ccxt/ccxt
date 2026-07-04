@@ -295,6 +295,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         poloniexItf := NewPoloniexCore()
         poloniexItf.Init(exchangeArgs)
         return poloniexItf, true
+    case "rubin":
+        rubinItf := NewRubinCore()
+        rubinItf.Init(exchangeArgs)
+        return rubinItf, true
     case "toobit":
         toobitItf := NewToobitCore()
         toobitItf.Init(exchangeArgs)

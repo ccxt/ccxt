@@ -1476,6 +1476,7 @@ public class  Paradex: paradex { public Paradex(object args = null) : base(args)
 public class  Paymium: paymium { public Paymium(object args = null) : base(args) { } }
 public class  Phemex: phemex { public Phemex(object args = null) : base(args) { } }
 public class  Poloniex: poloniex { public Poloniex(object args = null) : base(args) { } }
+public class  Rubin: rubin { public Rubin(object args = null) : base(args) { } }
 public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : base(args) { } }
 public class  Toobit: toobit { public Toobit(object args = null) : base(args) { } }
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }

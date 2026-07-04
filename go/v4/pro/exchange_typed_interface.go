@@ -232,6 +232,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "poloniex":
         itf := NewPoloniex(options)
         return itf
+    case "rubin":
+        itf := NewRubin(options)
+        return itf
     case "toobit":
         itf := NewToobit(options)
         return itf

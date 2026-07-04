@@ -1301,22 +1301,22 @@ public partial class Exchange
         throw new Exception("Apex currently does not support create order in C# language");
     }
 
-    public async Task<object> loadDydxProtos()
+    public async Task<object> loadV4Protos()
     {
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    public Int64 toDydxLong(object numStr)
+    public Int64 toV4Long(object numStr)
     {
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    public object retrieveDydxCredentials(object entropy)
+    public object retrieveV4Credentials(object entropy)
     {
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    public object encodeDydxTxForSimulation(
+    public object encodeV4TxForSimulation(
         object message,
         object memo,
         object sequence,
@@ -1325,7 +1325,7 @@ public partial class Exchange
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    public object encodeDydxTxForSigning(
+    public object encodeV4TxForSigning(
         object message,
         object memo,
         object chainId,
@@ -1336,7 +1336,7 @@ public partial class Exchange
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    public object encodeDydxTxRaw(object signDoc, object signature)
+    public object encodeV4TxRaw(object signDoc, object signature)
     {
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }

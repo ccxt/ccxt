@@ -6,20 +6,21 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\async\abstract\dydx as Exchange;
+use ccxt\async\abstract\rubin as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
-class dydx extends Exchange {
+class rubin extends Exchange {
+
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
-            'id' => 'dydx',
-            'name' => 'dYdX',
+            'id' => 'rubin',
+            'name' => 'Rubin',
             'countries' => array( 'US' ),
             'rateLimit' => 100,
             'version' => 'v4',
@@ -129,25 +130,25 @@ class dydx extends Exchange {
                 '1d' => '1DAY',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
+                'logo' => 'https://storage.yandexcloud.net/ritbit-static/rubin/logo-xl.png',
                 'api' => array(
-                    'indexer' => 'https://indexer.dydx.trade/v4',
-                    'nodeRpc' => 'https://dydx-ops-rpc.kingnodes.com',
-                    'nodeRest' => 'https://dydx-rest.publicnode.com',
+                    'indexer' => 'https://indexer.mainnet.rubin.trade/v4',
+                    'nodeRpc' => 'https://rpc.mainnet.rubin.trade',
+                    'nodeRest' => 'https://rest.mainnet.rubin.trade',
                 ),
                 'test' => array(
-                    'indexer' => 'https://indexer.v4testnet.dydx.exchange/v4',
-                    'nodeRpc' => 'https://test-dydx-rpc.kingnodes.com',
-                    'nodeRest' => 'https://test-dydx-rest.kingnodes.com',
+                    'indexer' => 'https://indexer.testnet.rubin.trade/v4',
+                    'nodeRpc' => 'https://rpc.testnet.rubin.trade',
+                    'nodeRest' => 'https://rest.testnet.rubin.trade',
                 ),
-                'www' => 'https://www.dydx.xyz',
+                'www' => 'https://rubin.trade',
                 'doc' => array(
-                    'https://docs.dydx.xyz',
+                    'https://docs.rubin.trade',
                 ),
                 'fees' => array(
-                    'https://docs.dydx.exchange/introduction-trading_fees',
+                    'https://docs.rubin.trade',
                 ),
-                'referral' => 'https://dydx.trade?ref=ccxt',
+                'referral' => 'https://rubin.trade?ref=ccxt',
             ),
             'api' => array(
                 'indexer' => array(
@@ -212,7 +213,7 @@ class dydx extends Exchange {
                 ),
                 'nodeRest' => array(
                     'get' => array(
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}' => 1,
+                        'cosmos/auth/v1beta1/account_info/{rubinAddress}' => 1,
                     ),
                     'post' => array(
                         'cosmos/tx/v1beta1/encode' => 1,
@@ -235,17 +236,18 @@ class dydx extends Exchange {
             ),
             'options' => array(
                 'mnemonic' => null, // specify mnemonic, copy secret phrase from UI
-                'chainName' => 'dydx-mainnet-1',
+                'chainName' => 'ritbit-mainnet',
+                'txExtensionTypeUrl' => '/ritbit.accountplus.TxExtension',
                 'chainId' => 1,
                 'sandboxMode' => false,
                 'defaultFeeDenom' => 'uusdc',
                 'defaultFeeMultiplier' => '1.6',
                 'feeDenom' => array(
-                    'USDC_DENOM' => 'ibc/8E27BA2D5493AF5636760E354E46004562C46AB7EC0CC4C1CA14E9E20E2545B5',
+                    'USDC_DENOM' => 'uusdc',
                     'USDC_GAS_DENOM' => 'uusdc',
                     'USDC_DECIMALS' => 6,
                     'USDC_GAS_PRICE' => '0.025',
-                    'CHAINTOKEN_DENOM' => 'adydx',
+                    'CHAINTOKEN_DENOM' => 'urit',
                     'CHAINTOKEN_DECIMALS' => 18,
                     'CHAINTOKEN_GAS_PRICE' => '25000000000',
                 ),
@@ -344,8 +346,8 @@ class dydx extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // error collision for clob and sending modules from 2 - 8
-                    // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
-                    // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
+                    // https://github.com/ritbit/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
+                    // https://github.com/ritbit/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
                     '9' => '\\ccxt\\InvalidOrder', // A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
                     '10' => '\\ccxt\\InvalidOrder', // The next block height is greater than the GoodTilBlock of the message
                     '11' => '\\ccxt\\InvalidOrder', // The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
@@ -456,17 +458,16 @@ class dydx extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array()): PromiseInterface {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-time
+             * @see https://docs.rubin.trade     * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->indexerGetTime($params));
+            $response = Async\await($this->indexerGetTime ($params));
             //
             // {
             //     "iso" => "2025-07-20T15:12:13.466Z",
@@ -474,7 +475,7 @@ class dydx extends Exchange {
             // }
             //
             return $this->safe_integer($response, 'epoch');
-        })();
+        }) ();
     }
 
     public function parse_market(array $market): array {
@@ -577,20 +578,19 @@ class dydx extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array()): PromiseInterface {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves $data on all $markets for dydx
+             * retrieves $data on all $markets for hyperliquid
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$markets
+             * @see https://docs.rubin.trade     * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
             $request = array(
                 // 'limit' => 1000,
             );
-            $response = Async\await($this->indexerGetPerpetualMarkets($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetPerpetualMarkets ($this->extend($request, $params)));
             //
             // {
             //     "markets" => {
@@ -624,7 +624,7 @@ class dydx extends Exchange {
             $data = $this->safe_dict($response, 'markets', array());
             $markets = is_array($data) ? array_values($data) : array();
             return $this->parse_markets($markets);
-        })();
+        }) ();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -662,12 +662,12 @@ class dydx extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-trades
+             * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
              *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -681,9 +681,9 @@ class dydx extends Exchange {
                 'market' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
+                $request['limit'] = min ($limit, 1000);
             }
-            $response = Async\await($this->indexerGetTradesPerpetualMarketMarket($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetTradesPerpetualMarketMarket ($this->extend($request, $params)));
             //
             // {
             //     "trades" => array(
@@ -701,7 +701,7 @@ class dydx extends Exchange {
             //
             $rows = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($rows, $market, $since, $limit);
-        })();
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -732,13 +732,12 @@ class dydx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-candles
+             * @see https://docs.rubin.trade     * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -754,7 +753,7 @@ class dydx extends Exchange {
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
+                $request['limit'] = min ($limit, 1000);
             }
             if ($since !== null) {
                 $request['fromIso'] = $this->iso8601($since);
@@ -764,7 +763,7 @@ class dydx extends Exchange {
             if ($until !== null) {
                 $request['toIso'] = $this->iso8601($until);
             }
-            $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket ($this->extend($request, $params)));
             //
             // {
             //     "candles" => array(
@@ -788,17 +787,16 @@ class dydx extends Exchange {
             //
             $rows = $this->safe_list($response, 'candles', array());
             return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
-        })();
+        }) ();
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-historical-funding
+             * @see https://docs.rubin.trade     * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -820,7 +818,7 @@ class dydx extends Exchange {
             if ($until !== null) {
                 $request['effectiveBeforeOrAt'] = $this->iso8601($until);
             }
-            $response = Async\await($this->indexerGetHistoricalFundingMarket($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetHistoricalFundingMarket ($this->extend($request, $params)));
             //
             // {
             //     "historicalFunding" => array(
@@ -850,7 +848,7 @@ class dydx extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        })();
+        }) ();
     }
 
     public function handle_public_address(string $methodName, array $params) {
@@ -954,14 +952,13 @@ class dydx extends Exchange {
         return $this->safe_string_upper($types, $type, $type);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-$order
+             * @see https://docs.rubin.trade     * @param {string} $id the $order $id
              *
-             * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
@@ -970,19 +967,18 @@ class dydx extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $order = Async\await($this->indexerGetOrdersOrderId($this->extend($request, $params)));
+            $order = Async\await($this->indexerGetOrdersOrderId ($this->extend($request, $params)));
             return $this->parse_order($order);
-        })();
+        }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+             * @see https://docs.rubin.trade     * @param {string} $symbol unified $market $symbol of the $market orders were made in
              *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1007,7 +1003,7 @@ class dydx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->indexerGetOrders($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetOrders ($this->extend($request, $params)));
             //
             // array(
             //     {
@@ -1036,17 +1032,16 @@ class dydx extends Exchange {
             // )
             //
             return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+             * @see https://docs.rubin.trade     * @param {string} $symbol unified market $symbol of the market orders were made in
              *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1058,17 +1053,16 @@ class dydx extends Exchange {
                 'status' => 'OPEN', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+             * @see https://docs.rubin.trade     * @param {string} $symbol unified market $symbol of the market orders were made in
              *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1080,7 +1074,7 @@ class dydx extends Exchange {
                 'status' => 'FILLED', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        }) ();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -1140,14 +1134,13 @@ class dydx extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-$positions
+             * @see https://docs.rubin.trade     * @param {string} $symbol unified market $symbol of the market the position is held in
              *
-             * @param {string} $symbol unified market $symbol of the market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
@@ -1155,17 +1148,16 @@ class dydx extends Exchange {
              */
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             return $this->safe_dict($positions, 0, array());
-        })();
+        }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-positions
+             * @see https://docs.rubin.trade     * @param {string[]} [$symbols] list of unified market $symbols
              *
-             * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
@@ -1181,7 +1173,7 @@ class dydx extends Exchange {
                 'subaccountNumber' => $subAccountNumber,
                 'status' => 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
             );
-            $response = Async\await($this->indexerGetPerpetualPositions($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetPerpetualPositions ($this->extend($request, $params)));
             //
             // {
             //     "positions" => array(
@@ -1208,7 +1200,7 @@ class dydx extends Exchange {
             //
             $rows = $this->safe_list($response, 'positions', array());
             return $this->parse_positions($rows, $symbols);
-        })();
+        }) ();
     }
 
     public function hash_message($message) {
@@ -1231,14 +1223,14 @@ class dydx extends Exchange {
     }
 
     public function sign_onboarding_action(): array {
-        $message = array( 'action' => 'dYdX Chain Onboarding' );
+        $message = array( 'action' => 'Rubin Chain Onboarding' );
         $chainId = $this->options['chainId'];
         $domain = array(
             'chainId' => $chainId,
-            'name' => 'dYdX Chain',
+            'name' => 'Rubin Chain',
         );
         $messageTypes = array(
-            'dYdX' => array(
+            'Rubin' => array(
                 array( 'name' => 'action', 'type' => 'string' ),
             ),
         );
@@ -1250,14 +1242,14 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(string $privateKey, mixed $message, string $memo, string $chainId, mixed $account, mixed $authenticators, $fee = null): string {
+    public function sign_rubin_tx(string $privateKey, mixed $message, string $memo, string $chainId, mixed $account, mixed $authenticators, $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_v4_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         return $this->encode_v4_tx_raw($signDoc, $signature['r'] . $signature['s']);
     }
 
     public function retrieve_credentials(): mixed {
-        $credentials = $this->safe_dict($this->options, 'dydxCredentials');
+        $credentials = $this->safe_dict($this->options, 'rubinCredentials');
         if ($credentials !== null) {
             return $credentials;
         }
@@ -1269,26 +1261,26 @@ class dydx extends Exchange {
         $credentials = $this->retrieve_v4_credentials($entropy);
         $credentials['privateKey'] = bin2hex($credentials['privateKey']);
         $credentials['publicKey'] = bin2hex($credentials['publicKey']);
-        $this->options['dydxCredentials'] = $credentials;
+        $this->options['rubinCredentials'] = $credentials;
         return $credentials;
     }
 
-    public function fetch_dydx_account() {
-        return Async\async(function () {
+    public function fetch_rubin_account() {
+        return Async\async(function ()  {
             // required in js
             Async\await($this->load_v4_protos());
-            $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
-            if ($dydxAccount !== null) {
-                return $dydxAccount;
+            $rubinAccount = $this->safe_dict($this->options, 'rubinAccount');
+            if ($rubinAccount !== null) {
+                return $rubinAccount;
             }
             if ($this->walletAddress === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
+                throw new ArgumentsRequired($this->id . ' fetchRubinAccount() requires the walletAddress to be set using the rit chain address eg => rit1exampleaddressxxxxxxxxxxxxxxxxxxxxxxx');
             }
-            if (str_starts_with(!$this->walletAddress, 'dydx')) {
-                throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
+            if (str_starts_with(!$this->walletAddress, 'rit')) {
+                throw new ArgumentsRequired($this->id . ' fetchRubinAccount() requires a valid rit chain address, starting with rit, not the l1 address.');
             }
             $request = array(
-                'dydxAddress' => $this->walletAddress,
+                'rubinAddress' => $this->walletAddress,
             );
             //
             // {
@@ -1303,15 +1295,15 @@ class dydx extends Exchange {
             //     }
             // }
             //
-            $response = Async\await($this->nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress($request));
+            $response = Async\await($this->nodeRestGetCosmosAuthV1beta1AccountInfoRubinAddress ($request));
             $account = $this->safe_dict($response, 'info', array());
             $account['pub_key'] = array(
                 // encode with binary key would fail in python
                 'key' => $account['pub_key']['key'],
             );
-            $this->options['dydxAccount'] = $account;
+            $this->options['rubinAccount'] = $account;
             return $account;
-        })();
+        }) ();
     }
 
     public function pow(string $n, string $m) {
@@ -1324,7 +1316,7 @@ class dydx extends Exchange {
         return $r;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
@@ -1433,11 +1425,11 @@ class dydx extends Exchange {
                 'clientMetadata' => $clientMetadata,
                 'conditionType' => $conditionalType,
                 'conditionalOrderTriggerSubticks' => $this->to_v4_long($conditionalOrderTriggerSubticks),
-                'orderRouterAddress' => $this->safe_string($this->options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
+                'orderRouterAddress' => $this->safe_string($this->options, 'routerAddress'),
             ),
         );
         $signingPayload = array(
-            'typeUrl' => '/dydxprotocol.clob.MsgPlaceOrder',
+            'typeUrl' => '/ritbit.clob.MsgPlaceOrder',
             'value' => $orderPayload,
         );
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
@@ -1453,16 +1445,16 @@ class dydx extends Exchange {
         return $this->uuid5($nameSp, $orderInfo);
     }
 
-    public function fetch_latest_block_height($params = array()): PromiseInterface {
+    public function fetch_latest_block_height($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->nodeRpcGetAbciInfo($params));
+            $response = Async\await($this->nodeRpcGetAbciInfo ($params));
             //
             // {
             //     "jsonrpc" => "2.0",
             //     "id" => -1,
             //     "result" => {
             //         "response" => {
-            //             "data" => "dydxprotocol",
+            //             "data" => "ritbit",
             //             "version" => "9.1.0-rc0",
             //             "last_block_height" => "49157714",
             //             "last_block_app_hash" => "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
@@ -1473,16 +1465,15 @@ class dydx extends Exchange {
             $result = $this->safe_dict($response, 'result');
             $info = $this->safe_dict($result, 'response');
             return $this->safe_integer($info, 'last_block_height');
-        })();
+        }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              *
-             * @see https://docs.dydx.xyz/interaction/trading#place-an-order
+             * @see https://docs.rubin.trade     * create a trade order
              *
-             * create a trade order
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1502,7 +1493,7 @@ class dydx extends Exchange {
              */
             Async\await($this->load_markets());
             $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
+            $account = Async\await($this->fetch_rubin_account());
             $lastBlockHeight = Async\await($this->fetch_latest_block_height());
             // $params['latestBlockHeight'] = $lastBlockHeight;
             $newParams = $this->extend($params, array( 'latestBlockHeight' => $lastBlockHeight ));
@@ -1510,12 +1501,12 @@ class dydx extends Exchange {
             $orderId = $orderRequestRes[0];
             $orderRequest = $orderRequestRes[1];
             $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $orderRequest, '', $chainName, $account, null);
+            $signedTx = $this->sign_rubin_tx($credentials['privateKey'], $orderRequest, '', $chainName, $account, null);
             $request = array(
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1535,17 +1526,16 @@ class dydx extends Exchange {
                 'id' => $orderId,
                 'clientOrderId' => $orderRequest['value']['order']['orderId']['clientId'],
             ));
-        })();
+        }) ();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
              *
-             * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
+             * @see https://docs.rubin.trade     * @param {string} $id it should be the property_exists($this, $clientOrderId) case
              *
-             * @param {string} $id it should be the property_exists($this, $clientOrderId) case
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client order $id used when creating the order
@@ -1598,7 +1588,7 @@ class dydx extends Exchange {
                 }
             }
             $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
+            $account = Async\await($this->fetch_rubin_account());
             $cancelPayload = array(
                 'orderId' => array(
                     'subaccountId' => array(
@@ -1613,16 +1603,16 @@ class dydx extends Exchange {
                 'goodTilBlockTime' => $goodTillBlockTime,
             );
             $signingPayload = array(
-                'typeUrl' => '/dydxprotocol.clob.MsgCancelOrder',
+                'typeUrl' => '/ritbit.clob.MsgCancelOrder',
                 'value' => $cancelPayload,
             );
             $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
+            $signedTx = $this->sign_rubin_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
             $request = array(
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1640,10 +1630,10 @@ class dydx extends Exchange {
             return $this->safe_order(array(
                 'info' => $result,
             ));
-        })();
+        }) ();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1669,7 +1659,7 @@ class dydx extends Exchange {
             }
             $params = $this->omit($params, array( 'clientOrderIds', 'goodTillBlock', 'subaccountId' ));
             $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
+            $account = Async\await($this->fetch_rubin_account());
             $cancelOrders = array(
                 'clientIds' => $clientOrderIds,
                 'clobPairId' => $market['info']['clobPairId'],
@@ -1683,16 +1673,16 @@ class dydx extends Exchange {
                 'goodTilBlock' => $goodTillBlock,
             );
             $signingPayload = array(
-                'typeUrl' => '/dydxprotocol.clob.MsgBatchCancel',
+                'typeUrl' => '/ritbit.clob.MsgBatchCancel',
                 'value' => $cancelPayload,
             );
             $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
+            $signedTx = $this->sign_rubin_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
             $request = array(
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1710,27 +1700,26 @@ class dydx extends Exchange {
             return array( $this->safe_order(array(
                 'info' => $result,
             )) );
-        })();
+        }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$market-orderbook
+             * @see https://docs.rubin.trade     * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->indexerGetOrderbooksPerpetualMarketMarket($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetOrderbooksPerpetualMarketMarket ($this->extend($request, $params)));
             //
             // {
             //     "bids" => array(
@@ -1748,7 +1737,7 @@ class dydx extends Exchange {
             // }
             //
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
-        })();
+        }) ();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -1756,11 +1745,11 @@ class dydx extends Exchange {
         // {
         //     "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         //     "sender" => array(
-        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "address" => "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //         "subaccountNumber" => 0
         //     ),
         //     "recipient" => array(
-        //         "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "address" => "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         //         "subaccountNumber" => 1
         //     ),
         //     "size" => "0.000001",
@@ -1816,14 +1805,13 @@ class dydx extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+             * @see https://docs.rubin.trade     * @param {string} [$code] unified $currency $code, default is null
              *
-             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1838,7 +1826,7 @@ class dydx extends Exchange {
             }
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchLedger' ))));
             return $this->parse_ledger($response, $currency, $since, $limit);
-        })();
+        }) ();
     }
 
     public function estimate_tx_fee(mixed $message, string $memo, mixed $account): PromiseInterface {
@@ -1847,7 +1835,7 @@ class dydx extends Exchange {
             $request = array(
                 'txBytes' => $txBytes,
             );
-            $response = Async\await($this->nodeRestPostCosmosTxV1beta1Simulate($request));
+            $response = Async\await($this->nodeRestPostCosmosTxV1beta1Simulate ($request));
             //
             // {
             //     gas_info => array( gas_wanted => '18446744073709551615', gas_used => '86055' ),
@@ -1889,10 +1877,10 @@ class dydx extends Exchange {
                 'amount' => array( $feeObj ),
                 'gasLimit' => $gasLimit,
             );
-        })();
+        }) ();
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer currency internally between wallets on the same $account
@@ -1921,7 +1909,7 @@ class dydx extends Exchange {
             }
             $params = $this->omit($params, array( 'fromSubaccountId', 'toSubaccountId' ));
             $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
+            $account = Async\await($this->fetch_rubin_account());
             $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
             $payload = null;
             $signingPayload = null;
@@ -1940,7 +1928,7 @@ class dydx extends Exchange {
                     'quantums' => $usd,
                 );
                 $signingPayload = array(
-                    'typeUrl' => '/dydxprotocol.sending.MsgDepositToSubaccount',
+                    'typeUrl' => '/ritbit.sending.MsgDepositToSubaccount',
                     'value' => $payload,
                 );
             } else {
@@ -1959,18 +1947,18 @@ class dydx extends Exchange {
                     ),
                 );
                 $signingPayload = array(
-                    'typeUrl' => '/dydxprotocol.sending.MsgCreateTransfer',
+                    'typeUrl' => '/ritbit.sending.MsgCreateTransfer',
                     'value' => $payload,
                 );
             }
             $txFee = Async\await($this->estimate_tx_fee($signingPayload, '', $account));
             $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null, $txFee);
+            $signedTx = $this->sign_rubin_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null, $txFee);
             $request = array(
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -1985,7 +1973,7 @@ class dydx extends Exchange {
             // }
             //
             return $this->parse_transfer($response);
-        })();
+        }) ();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1993,11 +1981,11 @@ class dydx extends Exchange {
         // {
         //     "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         //     "sender" => array(
-        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "address" => "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //         "subaccountNumber" => 0
         //     ),
         //     "recipient" => array(
-        //         "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "address" => "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         //         "subaccountNumber" => 1
         //     ),
         //     "size" => "0.000001",
@@ -2030,14 +2018,13 @@ class dydx extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+             * @see https://docs.rubin.trade     * @param {string} $code unified $currency $code of the $currency transferred
              *
-             * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2055,7 +2042,7 @@ class dydx extends Exchange {
             $transferOut = $this->filter_by($response, 'type', 'TRANSFER_OUT');
             $rows = $this->array_concat($transferIn, $transferOut);
             return $this->parse_transfers($rows, $currency, $since, $limit);
-        })();
+        }) ();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2063,11 +2050,11 @@ class dydx extends Exchange {
         // {
         //     "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         //     "sender" => array(
-        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "address" => "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //         "subaccountNumber" => 0
         //     ),
         //     "recipient" => array(
-        //         "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "address" => "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         //         "subaccountNumber" => 1
         //     ),
         //     "size" => "0.000001",
@@ -2112,7 +2099,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2135,7 +2122,7 @@ class dydx extends Exchange {
             $params = $this->omit($params, array( 'subaccountId' ));
             $currency = $this->currency($code);
             $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
+            $account = Async\await($this->fetch_rubin_account());
             $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
             $payload = array(
                 'sender' => array(
@@ -2147,17 +2134,17 @@ class dydx extends Exchange {
                 'quantums' => $usd,
             );
             $signingPayload = array(
-                'typeUrl' => '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
+                'typeUrl' => '/ritbit.sending.MsgWithdrawFromSubaccount',
                 'value' => $payload,
             );
             $txFee = Async\await($this->estimate_tx_fee($signingPayload, $tag, $account));
             $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, $tag, $chainName, $account, null, $txFee);
+            $signedTx = $this->sign_rubin_tx($credentials['privateKey'], $signingPayload, $tag, $chainName, $account, null, $txFee);
             $request = array(
                 'tx' => $signedTx,
             );
             // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+            $response = Async\await($this->nodeRpcGetBroadcastTxSync ($request));
             //
             // {
             //     "jsonrpc" => "2.0",
@@ -2173,17 +2160,16 @@ class dydx extends Exchange {
             //
             $data = $this->safe_dict($response, 'result', array());
             return $this->parse_transaction($data, $currency);
-        })();
+        }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+             * @see https://docs.rubin.trade     * @param {string} $code unified $currency $code
              *
-             * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2199,17 +2185,16 @@ class dydx extends Exchange {
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchWithdrawals' ))));
             $rows = $this->filter_by($response, 'type', 'WITHDRAWAL');
             return $this->parse_transactions($rows, $currency, $since, $limit);
-        })();
+        }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+             * @see https://docs.rubin.trade     * @param {string} $code unified $currency $code
              *
-             * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2225,17 +2210,16 @@ class dydx extends Exchange {
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDeposits' ))));
             $rows = $this->filter_by($response, 'type', 'DEPOSIT');
             return $this->parse_transactions($rows, $currency, $since, $limit);
-        })();
+        }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of $deposits and $withdrawals
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+             * @see https://docs.rubin.trade     * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              *
-             * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2253,10 +2237,10 @@ class dydx extends Exchange {
             $deposits = $this->filter_by($response, 'type', 'DEPOSIT');
             $rows = $this->array_concat($withdrawals, $deposits);
             return $this->parse_transactions($rows, $currency, $since, $limit);
-        })();
+        }) ();
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             $methodName = $this->safe_string($params, 'methodName');
             $params = $this->omit($params, 'methodName');
@@ -2268,18 +2252,18 @@ class dydx extends Exchange {
                 'address' => $userAddress,
                 'subaccountNumber' => $subAccountNumber,
             );
-            $response = Async\await($this->indexerGetTransfers($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetTransfers ($this->extend($request, $params)));
             //
             // {
             //     "transfers" => array(
             //         {
             //             "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
             //             "sender" => array(
-            //                 "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+            //                 "address" => "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
             //                 "subaccountNumber" => 0
             //             ),
             //             "recipient" => array(
-            //                 "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+            //                 "address" => "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
             //                 "subaccountNumber" => 1
             //             ),
             //             "size" => "0.000001",
@@ -2293,17 +2277,16 @@ class dydx extends Exchange {
             // }
             //
             return $this->safe_list($response, 'transfers', array());
-        })();
+        }) ();
     }
 
-    public function fetch_accounts($params = array()): PromiseInterface {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-subaccounts
+             * @see https://docs.rubin.trade     * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
              */
@@ -2312,12 +2295,12 @@ class dydx extends Exchange {
             $request = array(
                 'address' => $userAddress,
             );
-            $response = Async\await($this->indexerGetAddressesAddress($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetAddressesAddress ($this->extend($request, $params)));
             //
             // {
             //     "subaccounts" => array(
             //         {
-            //             "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+            //             "address" => "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
             //             "subaccountNumber" => 0,
             //             "equity" => "25346.73993597",
             //             "freeCollateral" => "24207.8530595294",
@@ -2371,17 +2354,16 @@ class dydx extends Exchange {
                 );
             }
             return $result;
-        })();
+        }) ();
     }
 
-    public function fetch_balance($params = array()): PromiseInterface {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-subaccount
+             * @see https://docs.rubin.trade     * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -2393,11 +2375,11 @@ class dydx extends Exchange {
                 'address' => $userAddress,
                 'subaccountNumber' => $subaccountNumber,
             );
-            $response = Async\await($this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $params)));
+            $response = Async\await($this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber ($this->extend($request, $params)));
             //
             // {
             //     "subaccount" => {
-            //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+            //         "address" => "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
             //         "subaccountNumber" => 0,
             //         "equity" => "161451.040416029",
             //         "freeCollateral" => "152508.28819133578",
@@ -2456,7 +2438,7 @@ class dydx extends Exchange {
             //
             $data = $this->safe_dict($response, 'subaccount');
             return $this->parse_balance($data);
-        })();
+        }) ();
     }
 
     public function parse_balance($response): array {
@@ -2477,18 +2459,18 @@ class dydx extends Exchange {
         if ($this->walletAddress !== null && $this->walletAddress !== '') {
             return $this->walletAddress;
         }
-        $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
-        if ($dydxAccount !== null) {
-            // return $dydxAccount;
-            $wallet = $this->safe_string($dydxAccount, 'address');
+        $rubinAccount = $this->safe_dict($this->options, 'rubinAccount');
+        if ($rubinAccount !== null) {
+            // return $rubinAccount;
+            $wallet = $this->safe_string($rubinAccount, 'address');
             if ($wallet !== null) {
                 return $wallet;
             }
         }
-        throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$dydxAccount` in exchange options.');
+        throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$rubinAccount` in exchange options.');
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $pathWithParams = $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$section]);
         $params = $this->omit($params, $this->extract_params($path));
@@ -2538,7 +2520,7 @@ class dydx extends Exchange {
     public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         // rewrite testnet parameters
-        $this->options['chainName'] = 'dydx-testnet-4';
+        $this->options['chainName'] = 'ritbit-testnet';
         $this->options['chainId'] = 11155111;
         $this->options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
     }

@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-from ccxt.abstract.dydx import ImplicitAPI
+from ccxt.abstract.rubin import ImplicitAPI
 import math
 from ccxt.base.types import Account, Any, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry
 from typing import List
@@ -18,12 +18,12 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class dydx(Exchange, ImplicitAPI):
+class rubin(Exchange, ImplicitAPI):
 
     def describe(self) -> Any:
-        return self.deep_extend(super(dydx, self).describe(), {
-            'id': 'dydx',
-            'name': 'dYdX',
+        return self.deep_extend(super(rubin, self).describe(), {
+            'id': 'rubin',
+            'name': 'Rubin',
             'countries': ['US'],
             'rateLimit': 100,
             'version': 'v4',
@@ -133,25 +133,25 @@ class dydx(Exchange, ImplicitAPI):
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
+                'logo': 'https://storage.yandexcloud.net/ritbit-static/rubin/logo-xl.png',
                 'api': {
-                    'indexer': 'https://indexer.dydx.trade/v4',
-                    'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
-                    'nodeRest': 'https://dydx-rest.publicnode.com',
+                    'indexer': 'https://indexer.mainnet.rubin.trade/v4',
+                    'nodeRpc': 'https://rpc.mainnet.rubin.trade',
+                    'nodeRest': 'https://rest.mainnet.rubin.trade',
                 },
                 'test': {
-                    'indexer': 'https://indexer.v4testnet.dydx.exchange/v4',
-                    'nodeRpc': 'https://test-dydx-rpc.kingnodes.com',
-                    'nodeRest': 'https://test-dydx-rest.kingnodes.com',
+                    'indexer': 'https://indexer.testnet.rubin.trade/v4',
+                    'nodeRpc': 'https://rpc.testnet.rubin.trade',
+                    'nodeRest': 'https://rest.testnet.rubin.trade',
                 },
-                'www': 'https://www.dydx.xyz',
+                'www': 'https://rubin.trade',
                 'doc': [
-                    'https://docs.dydx.xyz',
+                    'https://docs.rubin.trade',
                 ],
                 'fees': [
-                    'https://docs.dydx.exchange/introduction-trading_fees',
+                    'https://docs.rubin.trade',
                 ],
-                'referral': 'https://dydx.trade?ref=ccxt',
+                'referral': 'https://rubin.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
@@ -216,7 +216,7 @@ class dydx(Exchange, ImplicitAPI):
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{rubinAddress}': 1,
                     },
                     'post': {
                         'cosmos/tx/v1beta1/encode': 1,
@@ -239,17 +239,18 @@ class dydx(Exchange, ImplicitAPI):
             },
             'options': {
                 'mnemonic': None,  # specify mnemonic, copy secret phrase from UI
-                'chainName': 'dydx-mainnet-1',
+                'chainName': 'ritbit-mainnet',
+                'txExtensionTypeUrl': '/ritbit.accountplus.TxExtension',
                 'chainId': 1,
                 'sandboxMode': False,
                 'defaultFeeDenom': 'uusdc',
                 'defaultFeeMultiplier': '1.6',
                 'feeDenom': {
-                    'USDC_DENOM': 'ibc/8E27BA2D5493AF5636760E354E46004562C46AB7EC0CC4C1CA14E9E20E2545B5',
+                    'USDC_DENOM': 'uusdc',
                     'USDC_GAS_DENOM': 'uusdc',
                     'USDC_DECIMALS': 6,
                     'USDC_GAS_PRICE': '0.025',
-                    'CHAINTOKEN_DENOM': 'adydx',
+                    'CHAINTOKEN_DENOM': 'urit',
                     'CHAINTOKEN_DECIMALS': 18,
                     'CHAINTOKEN_GAS_PRICE': '25000000000',
                 },
@@ -348,8 +349,8 @@ class dydx(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     # error collision for clob and sending modules from 2 - 8
-                    # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
-                    # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
+                    # https://github.com/ritbit/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
+                    # https://github.com/ritbit/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
                     '9': InvalidOrder,  # A cancel already exists in the memclob for self order with a greater than or equal GoodTilBlock
                     '10': InvalidOrder,  # The next block height is greater than the GoodTilBlock of the message
                     '11': InvalidOrder,  # The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
@@ -463,9 +464,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.dydx.xyz/indexer-client/http#get-time
+        https://docs.rubin.trade    :param dict [params]: extra parameters specific to the exchange API endpoint
 
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.indexerGetTime(params)
@@ -577,14 +577,13 @@ class dydx(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
-        retrieves data on all markets for dydx
+        retrieves data on all markets for hyperliquid
 
-        https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
+        https://docs.rubin.trade    :param dict [params]: extra parameters specific to the exchange API endpoint
 
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {
+        request: dict = {
             # 'limit': 1000,
         }
         response = self.indexerGetPerpetualMarkets(self.extend(request, params))
@@ -660,7 +659,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.dydx.xyz/indexer-client/http#get-trades
+        https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -670,7 +669,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -691,7 +690,7 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rows = self.safe_list(response, 'trades', [])
+        rows: List = self.safe_list(response, 'trades', [])
         return self.parse_trades(rows, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -724,9 +723,8 @@ class dydx(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://docs.dydx.xyz/indexer-client/http#get-candles
+        https://docs.rubin.trade    fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -737,7 +735,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -771,16 +769,15 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rows = self.safe_list(response, 'candles', [])
+        rows: List = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
 
-        https://docs.dydx.xyz/indexer-client/http#get-historical-funding
+        https://docs.rubin.trade    :param str symbol: unified symbol of the market to fetch the funding rate history for
 
-        :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -791,7 +788,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -813,7 +810,7 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rates = []
+        rates: List = []
         rows = self.safe_list(response, 'historicalFunding', [])
         for i in range(0, len(rows)):
             entry = rows[i]
@@ -903,7 +900,7 @@ class dydx(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses = {
+        statuses: dict = {
             'UNTRIGGERED': 'open',
             'OPEN': 'open',
             'FILLED': 'closed',
@@ -913,7 +910,7 @@ class dydx(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, type: Str):
-        types = {
+        types: dict = {
             'LIMIT': 'LIMIT',
             'STOP_LIMIT': 'LIMIT',
             'TAKE_PROFIT_LIMIT': 'LIMIT',
@@ -928,15 +925,14 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://docs.dydx.xyz/indexer-client/http#get-order
+        https://docs.rubin.trade    :param str id: the order id
 
-        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'orderId': id,
         }
         order = self.indexerGetOrdersOrderId(self.extend(request, params))
@@ -946,9 +942,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.dydx.xyz/indexer-client/http#list-orders
+        https://docs.rubin.trade    :param str symbol: unified market symbol of the market orders were made in
 
-        :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -956,16 +951,16 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        userAddress = None
-        subAccountNumber = None
+        userAddress: Str = None
+        subAccountNumber: Str = None
         userAddress, params = self.handle_public_address('fetchOrders', params)
         subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
         self.load_markets()
-        request = {
+        request: dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['ticker'] = market['id']
@@ -1005,9 +1000,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://docs.dydx.xyz/indexer-client/http#list-orders
+        https://docs.rubin.trade    :param str symbol: unified market symbol of the market orders were made in
 
-        :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1015,7 +1009,7 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': 'OPEN',  # ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1024,9 +1018,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://docs.dydx.xyz/indexer-client/http#list-orders
+        https://docs.rubin.trade    :param str symbol: unified market symbol of the market orders were made in
 
-        :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1034,7 +1027,7 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': 'FILLED',  # ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1098,9 +1091,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetch data on an open position
 
-        https://docs.dydx.xyz/indexer-client/http#list-positions
+        https://docs.rubin.trade    :param str symbol: unified market symbol of the market the position is held in
 
-        :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.address]: wallet address that made trades
         :param str [params.subAccountNumber]: sub account number
@@ -1113,20 +1105,19 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://docs.dydx.xyz/indexer-client/http#list-positions
+        https://docs.rubin.trade    :param str[] [symbols]: list of unified market symbols
 
-        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.address]: wallet address that made trades
         :param str [params.subAccountNumber]: sub account number
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        userAddress = None
-        subAccountNumber = None
+        userAddress: Str = None
+        subAccountNumber: Str = None
         userAddress, params = self.handle_public_address('fetchPositions', params)
         subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
         self.load_markets()
-        request = {
+        request: dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
             'status': 'OPEN',  # ['OPEN', 'CLOSED', 'LIQUIDATED']
@@ -1156,7 +1147,7 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rows = self.safe_list(response, 'positions', [])
+        rows: List = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
     def hash_message(self, message):
@@ -1176,14 +1167,14 @@ class dydx(Exchange, ImplicitAPI):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_onboarding_action(self) -> object:
-        message = {'action': 'dYdX Chain Onboarding'}
+        message = {'action': 'Rubin Chain Onboarding'}
         chainId = self.options['chainId']
-        domain = {
+        domain: dict = {
             'chainId': chainId,
-            'name': 'dYdX Chain',
+            'name': 'Rubin Chain',
         }
-        messageTypes = {
-            'dYdX': [
+        messageTypes: dict = {
+            'Rubin': [
                 {'name': 'action', 'type': 'string'},
             ],
         }
@@ -1193,13 +1184,13 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: str, message: Any, memo: str, chainId: str, account: Any, authenticators: Any, fee=None) -> str:
+    def sign_rubin_tx(self, privateKey: str, message: Any, memo: str, chainId: str, account: Any, authenticators: Any, fee=None) -> str:
         encodedTx, signDoc = self.encode_v4_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         return self.encode_v4_tx_raw(signDoc, signature['r'] + signature['s'])
 
     def retrieve_credentials(self) -> Any:
-        credentials = self.safe_dict(self.options, 'dydxCredentials')
+        credentials = self.safe_dict(self.options, 'rubinCredentials')
         if credentials is not None:
             return credentials
         entropy = self.safe_string(self.options, 'mnemonic')
@@ -1209,21 +1200,21 @@ class dydx(Exchange, ImplicitAPI):
         credentials = self.retrieve_v4_credentials(entropy)
         credentials['privateKey'] = self.binary_to_base16(credentials['privateKey'])
         credentials['publicKey'] = self.binary_to_base16(credentials['publicKey'])
-        self.options['dydxCredentials'] = credentials
+        self.options['rubinCredentials'] = credentials
         return credentials
 
-    def fetch_dydx_account(self):
+    def fetch_rubin_account(self):
         # required in js
         self.load_v4_protos()
-        dydxAccount = self.safe_dict(self.options, 'dydxAccount')
-        if dydxAccount is not None:
-            return dydxAccount
+        rubinAccount = self.safe_dict(self.options, 'rubinAccount')
+        if rubinAccount is not None:
+            return rubinAccount
         if self.walletAddress is None:
-            raise ArgumentsRequired(self.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz')
-        if not self.walletAddress.startswith('dydx'):
-            raise ArgumentsRequired(self.id + ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.')
+            raise ArgumentsRequired(self.id + ' fetchRubinAccount() requires the walletAddress to be set using the rit chain address eg: rit1exampleaddressxxxxxxxxxxxxxxxxxxxxxxx')
+        if not self.walletAddress.startswith('rit'):
+            raise ArgumentsRequired(self.id + ' fetchRubinAccount() requires a valid rit chain address, starting with rit, not the l1 address.')
         request = {
-            'dydxAddress': self.walletAddress,
+            'rubinAddress': self.walletAddress,
         }
         #
         # {
@@ -1238,13 +1229,13 @@ class dydx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        response = self.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)
+        response = self.nodeRestGetCosmosAuthV1beta1AccountInfoRubinAddress(request)
         account = self.safe_dict(response, 'info', {})
         account['pub_key'] = {
             # encode with binary key would fail in python
             'key': account['pub_key']['key'],
         }
-        self.options['dydxAccount'] = account
+        self.options['rubinAccount'] = account
         return account
 
     def pow(self, n: str, m: str):
@@ -1281,8 +1272,8 @@ class dydx(Exchange, ImplicitAPI):
         clientMetadata = 0
         conditionalType = 0
         conditionalOrderTriggerSubticks = '0'
-        orderFlag = None
-        timeInForceNumber = None
+        orderFlag: Int = None
+        timeInForceNumber: Int = None
         if timeInForce == 'FOK':
             raise InvalidOrder(self.id + ' timeInForce fok has been deprecated')
         if orderType == 'MARKET':
@@ -1318,7 +1309,7 @@ class dydx(Exchange, ImplicitAPI):
             conditionalOrderTriggerSubticks = Precise.string_mul(conditionalOrderTriggerSubticks, priceScale)
         latestBlockHeight = self.safe_integer(params, 'latestBlockHeight')
         goodTillBlock = self.safe_integer(params, 'goodTillBlock')
-        goodTillBlockTime = None
+        goodTillBlockTime: Num = None
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         if orderFlag == 0:
@@ -1353,11 +1344,11 @@ class dydx(Exchange, ImplicitAPI):
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
                 'conditionalOrderTriggerSubticks': self.to_v4_long(conditionalOrderTriggerSubticks),
-                'orderRouterAddress': self.safe_string(self.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
+                'orderRouterAddress': self.safe_string(self.options, 'routerAddress'),
             },
         }
         signingPayload = {
-            'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
+            'typeUrl': '/ritbit.clob.MsgPlaceOrder',
             'value': orderPayload,
         }
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId'])
@@ -1379,7 +1370,7 @@ class dydx(Exchange, ImplicitAPI):
         #     "id": -1,
         #     "result": {
         #         "response": {
-        #             "data": "dydxprotocol",
+        #             "data": "ritbit",
         #             "version": "9.1.0-rc0",
         #             "last_block_height": "49157714",
         #             "last_block_app_hash": "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
@@ -1394,9 +1385,8 @@ class dydx(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
 
-        https://docs.dydx.xyz/interaction/trading#place-an-order
+        https://docs.rubin.trade    create a trade order
 
-        create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1416,7 +1406,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         self.load_markets()
         credentials = self.retrieve_credentials()
-        account = self.fetch_dydx_account()
+        account = self.fetch_rubin_account()
         lastBlockHeight = self.fetch_latest_block_height()
         # params['latestBlockHeight'] = lastBlockHeight
         newParams = self.extend(params, {'latestBlockHeight': lastBlockHeight})
@@ -1424,7 +1414,7 @@ class dydx(Exchange, ImplicitAPI):
         orderId = orderRequestRes[0]
         orderRequest = orderRequestRes[1]
         chainName = self.options['chainName']
-        signedTx = self.sign_dydx_tx(credentials['privateKey'], orderRequest, '', chainName, account, None)
+        signedTx = self.sign_rubin_tx(credentials['privateKey'], orderRequest, '', chainName, account, None)
         request = {
             'tx': signedTx,
         }
@@ -1454,9 +1444,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://docs.dydx.xyz/interaction/trading/#cancel-an-order
+        https://docs.rubin.trade    :param str id: it should be the hasattr(self, clientOrderId) case
 
-        :param str id: it should be the hasattr(self, clientOrderId) case
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id used when creating the order
@@ -1472,7 +1461,7 @@ class dydx(Exchange, ImplicitAPI):
         if not isTrigger and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
+        market: Market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId', id)
         if clientOrderId is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.')
@@ -1482,7 +1471,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlock = self.safe_integer(params, 'goodTillBlock')
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
-        goodTillBlockTime = None
+        goodTillBlockTime: Num = None
         defaultOrderFlags = 32 if (isTrigger) else 64
         orderFlags = self.safe_integer(params, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
@@ -1501,7 +1490,7 @@ class dydx(Exchange, ImplicitAPI):
                 latestBlockHeight = self.fetch_latest_block_height()
                 goodTillBlock = latestBlockHeight + 20
         credentials = self.retrieve_credentials()
-        account = self.fetch_dydx_account()
+        account = self.fetch_rubin_account()
         cancelPayload = {
             'orderId': {
                 'subaccountId': {
@@ -1516,11 +1505,11 @@ class dydx(Exchange, ImplicitAPI):
             'goodTilBlockTime': goodTillBlockTime,
         }
         signingPayload = {
-            'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
+            'typeUrl': '/ritbit.clob.MsgCancelOrder',
             'value': cancelPayload,
         }
         chainName = self.options['chainName']
-        signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
+        signedTx = self.sign_rubin_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
         }
@@ -1555,7 +1544,7 @@ class dydx(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = self.market(symbol)
+        market: Market = self.market(symbol)
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
         if not clientOrderIds:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
@@ -1567,7 +1556,7 @@ class dydx(Exchange, ImplicitAPI):
             goodTillBlock = latestBlockHeight + 20
         params = self.omit(params, ['clientOrderIds', 'goodTillBlock', 'subaccountId'])
         credentials = self.retrieve_credentials()
-        account = self.fetch_dydx_account()
+        account = self.fetch_rubin_account()
         cancelOrders = {
             'clientIds': clientOrderIds,
             'clobPairId': market['info']['clobPairId'],
@@ -1581,11 +1570,11 @@ class dydx(Exchange, ImplicitAPI):
             'goodTilBlock': goodTillBlock,
         }
         signingPayload = {
-            'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
+            'typeUrl': '/ritbit.clob.MsgBatchCancel',
             'value': cancelPayload,
         }
         chainName = self.options['chainName']
-        signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
+        signedTx = self.sign_rubin_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
         }
@@ -1613,16 +1602,15 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.dydx.xyz/indexer-client/http#get-perpetual-market-orderbook
+        https://docs.rubin.trade    :param str symbol: unified symbol of the market to fetch the order book for
 
-        :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.indexerGetOrderbooksPerpetualMarketMarket(self.extend(request, params))
@@ -1649,11 +1637,11 @@ class dydx(Exchange, ImplicitAPI):
         # {
         #     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         #     "sender": {
-        #         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        #         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         #         "subaccountNumber": 0
         #     },
         #     "recipient": {
-        #         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        #         "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         #         "subaccountNumber": 1
         #     },
         #     "size": "0.000001",
@@ -1668,7 +1656,7 @@ class dydx(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         currency = self.safe_currency(currencyId, currency)
         type = self.safe_string_upper(item, 'type')
-        direction = None
+        direction: Str = None
         if type is not None:
             if type == 'TRANSFER_IN' or type == 'DEPOSIT':
                 direction = 'in'
@@ -1697,7 +1685,7 @@ class dydx(Exchange, ImplicitAPI):
         }, currency)
 
     def parse_ledger_entry_type(self, type):
-        ledgerType = {
+        ledgerType: dict = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
             'DEPOSIT': 'deposit',
@@ -1709,9 +1697,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
-        https://docs.dydx.xyz/indexer-client/http#get-transfers
+        https://docs.rubin.trade    :param str [code]: unified currency code, default is None
 
-        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1720,7 +1707,7 @@ class dydx(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
@@ -1749,8 +1736,8 @@ class dydx(Exchange, ImplicitAPI):
         defaultFeeDenom = self.safe_string(self.options, 'defaultFeeDenom')
         defaultFeeMultiplier = self.safe_string(self.options, 'defaultFeeMultiplier')
         feeDenom = self.safe_dict(self.options, 'feeDenom', {})
-        gasPrice = None
-        denom = None
+        gasPrice: Str = None
+        denom: Str = None
         if defaultFeeDenom == 'uusdc':
             gasPrice = feeDenom['USDC_GAS_PRICE']
             denom = feeDenom['USDC_DENOM']
@@ -1794,10 +1781,10 @@ class dydx(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' transfer requires fromSubaccountId and toSubaccountId.')
         params = self.omit(params, ['fromSubaccountId', 'toSubaccountId'])
         credentials = self.retrieve_credentials()
-        account = self.fetch_dydx_account()
+        account = self.fetch_rubin_account()
         usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
-        payload = None
-        signingPayload = None
+        payload: NullableDict = None
+        signingPayload: NullableDict = None
         if fromAccount == 'main':
             # deposit to subaccount
             if toSubaccountId is None:
@@ -1812,7 +1799,7 @@ class dydx(Exchange, ImplicitAPI):
                 'quantums': usd,
             }
             signingPayload = {
-                'typeUrl': '/dydxprotocol.sending.MsgDepositToSubaccount',
+                'typeUrl': '/ritbit.sending.MsgDepositToSubaccount',
                 'value': payload,
             }
         else:
@@ -1831,12 +1818,12 @@ class dydx(Exchange, ImplicitAPI):
                 },
             }
             signingPayload = {
-                'typeUrl': '/dydxprotocol.sending.MsgCreateTransfer',
+                'typeUrl': '/ritbit.sending.MsgCreateTransfer',
                 'value': payload,
             }
         txFee = self.estimate_tx_fee(signingPayload, '', account)
         chainName = self.options['chainName']
-        signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None, txFee)
+        signedTx = self.sign_rubin_tx(credentials['privateKey'], signingPayload, '', chainName, account, None, txFee)
         request = {
             'tx': signedTx,
         }
@@ -1862,11 +1849,11 @@ class dydx(Exchange, ImplicitAPI):
         # {
         #     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         #     "sender": {
-        #         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        #         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         #         "subaccountNumber": 0
         #     },
         #     "recipient": {
-        #         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        #         "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         #         "subaccountNumber": 1
         #     },
         #     "size": "0.000001",
@@ -1902,9 +1889,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetch a history of internal transfers made on an account
 
-        https://docs.dydx.xyz/indexer-client/http#get-transfers
+        https://docs.rubin.trade    :param str code: unified currency code of the currency transferred
 
-        :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1913,12 +1899,12 @@ class dydx(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchTransfers'}))
-        transferIn = self.filter_by(response, 'type', 'TRANSFER_IN')
-        transferOut = self.filter_by(response, 'type', 'TRANSFER_OUT')
+        transferIn: List = self.filter_by(response, 'type', 'TRANSFER_IN')
+        transferOut: List = self.filter_by(response, 'type', 'TRANSFER_OUT')
         rows = self.array_concat(transferIn, transferOut)
         return self.parse_transfers(rows, currency, since, limit)
 
@@ -1927,11 +1913,11 @@ class dydx(Exchange, ImplicitAPI):
         # {
         #     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         #     "sender": {
-        #         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        #         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         #         "subaccountNumber": 0
         #     },
         #     "recipient": {
-        #         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        #         "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         #         "subaccountNumber": 1
         #     },
         #     "size": "0.000001",
@@ -1995,7 +1981,7 @@ class dydx(Exchange, ImplicitAPI):
         params = self.omit(params, ['subaccountId'])
         currency = self.currency(code)
         credentials = self.retrieve_credentials()
-        account = self.fetch_dydx_account()
+        account = self.fetch_rubin_account()
         usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
         payload = {
             'sender': {
@@ -2007,12 +1993,12 @@ class dydx(Exchange, ImplicitAPI):
             'quantums': usd,
         }
         signingPayload = {
-            'typeUrl': '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
+            'typeUrl': '/ritbit.sending.MsgWithdrawFromSubaccount',
             'value': payload,
         }
         txFee = self.estimate_tx_fee(signingPayload, tag, account)
         chainName = self.options['chainName']
-        signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, tag, chainName, account, None, txFee)
+        signedTx = self.sign_rubin_tx(credentials['privateKey'], signingPayload, tag, chainName, account, None, txFee)
         request = {
             'tx': signedTx,
         }
@@ -2031,16 +2017,15 @@ class dydx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'result', {})
+        data: dict = self.safe_dict(response, 'result', {})
         return self.parse_transaction(data, currency)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
 
-        https://docs.dydx.xyz/indexer-client/http#get-transfers
+        https://docs.rubin.trade    :param str code: unified currency code
 
-        :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2049,20 +2034,19 @@ class dydx(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchWithdrawals'}))
-        rows = self.filter_by(response, 'type', 'WITHDRAWAL')
+        rows: List = self.filter_by(response, 'type', 'WITHDRAWAL')
         return self.parse_transactions(rows, currency, since, limit)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
 
-        https://docs.dydx.xyz/indexer-client/http#get-transfers
+        https://docs.rubin.trade    :param str code: unified currency code
 
-        :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2071,20 +2055,19 @@ class dydx(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchDeposits'}))
-        rows = self.filter_by(response, 'type', 'DEPOSIT')
+        rows: List = self.filter_by(response, 'type', 'DEPOSIT')
         return self.parse_transactions(rows, currency, since, limit)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
 
-        https://docs.dydx.xyz/indexer-client/http#get-transfers
+        https://docs.rubin.trade    :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
 
-        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2093,23 +2076,23 @@ class dydx(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchDepositsWithdrawals'}))
-        withdrawals = self.filter_by(response, 'type', 'WITHDRAWAL')
-        deposits = self.filter_by(response, 'type', 'DEPOSIT')
+        withdrawals: List = self.filter_by(response, 'type', 'WITHDRAWAL')
+        deposits: List = self.filter_by(response, 'type', 'DEPOSIT')
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
     def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         methodName = self.safe_string(params, 'methodName')
         params = self.omit(params, 'methodName')
-        userAddress = None
-        subAccountNumber = None
+        userAddress: Str = None
+        subAccountNumber: Str = None
         userAddress, params = self.handle_public_address(methodName, params)
         subAccountNumber, params = self.handle_option_and_params(params, methodName, 'subAccountNumber', '0')
-        request = {
+        request: dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
         }
@@ -2120,11 +2103,11 @@ class dydx(Exchange, ImplicitAPI):
         #         {
         #             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         #             "sender": {
-        #                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        #                 "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         #                 "subaccountNumber": 0
         #             },
         #             "recipient": {
-        #                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        #                 "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         #                 "subaccountNumber": 1
         #             },
         #             "size": "0.000001",
@@ -2143,15 +2126,14 @@ class dydx(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
 
-        https://docs.dydx.xyz/indexer-client/http#get-subaccounts
+        https://docs.rubin.trade    :param dict [params]: extra parameters specific to the exchange API endpoint
 
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.address]: wallet address that made trades
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        userAddress = None
+        userAddress: Str = None
         userAddress, params = self.handle_public_address('fetchAccounts', params)
-        request = {
+        request: dict = {
             'address': userAddress,
         }
         response = self.indexerGetAddressesAddress(self.extend(request, params))
@@ -2159,7 +2141,7 @@ class dydx(Exchange, ImplicitAPI):
         # {
         #     "subaccounts": [
         #         {
-        #             "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        #             "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         #             "subaccountNumber": 0,
         #             "equity": "25346.73993597",
         #             "freeCollateral": "24207.8530595294",
@@ -2200,7 +2182,7 @@ class dydx(Exchange, ImplicitAPI):
         # }
         #
         rows = self.safe_list(response, 'subaccounts', [])
-        result = []
+        result: List = []
         for i in range(0, len(rows)):
             account = rows[i]
             accountId = self.safe_string(account, 'subaccountNumber')
@@ -2217,17 +2199,16 @@ class dydx(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.dydx.xyz/indexer-client/http#get-subaccount
+        https://docs.rubin.trade    :param dict [params]: extra parameters specific to the exchange API endpoint
 
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
-        userAddress = None
+        userAddress: Str = None
         userAddress, params = self.handle_public_address('fetchAccounts', params)
-        subaccountNumber = None
+        subaccountNumber: Int = None
         subaccountNumber, params = self.handle_option_and_params(params, 'fetchAccounts', 'subaccountNumber', 0)
-        request = {
+        request: dict = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
         }
@@ -2235,7 +2216,7 @@ class dydx(Exchange, ImplicitAPI):
         #
         # {
         #     "subaccount": {
-        #         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        #         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         #         "subaccountNumber": 0,
         #         "equity": "161451.040416029",
         #         "freeCollateral": "152508.28819133578",
@@ -2298,7 +2279,7 @@ class dydx(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         account = self.account()
         account['free'] = self.safe_string(response, 'freeCollateral')
-        result = {
+        result: dict = {
             'info': response,
             'USDC': account,
         }
@@ -2310,13 +2291,13 @@ class dydx(Exchange, ImplicitAPI):
     def get_wallet_address(self):
         if self.walletAddress is not None and self.walletAddress != '':
             return self.walletAddress
-        dydxAccount = self.safe_dict(self.options, 'dydxAccount')
-        if dydxAccount is not None:
-            # return dydxAccount
-            wallet = self.safe_string(dydxAccount, 'address')
+        rubinAccount = self.safe_dict(self.options, 'rubinAccount')
+        if rubinAccount is not None:
+            # return rubinAccount
+            wallet = self.safe_string(rubinAccount, 'address')
             if wallet is not None:
                 return wallet
-        raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
+        raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `rubinAccount` in exchange options.')
 
     def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         pathWithParams = self.implode_params(path, params)
@@ -2358,8 +2339,8 @@ class dydx(Exchange, ImplicitAPI):
         return None
 
     def set_sandbox_mode(self, enable: bool):
-        super(dydx, self).set_sandbox_mode(enable)
+        super(rubin, self).set_sandbox_mode(enable)
         # rewrite testnet parameters
-        self.options['chainName'] = 'dydx-testnet-4'
+        self.options['chainName'] = 'ritbit-testnet'
         self.options['chainId'] = 11155111
         self.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt'

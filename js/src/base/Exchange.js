@@ -1442,7 +1442,7 @@ export default class Exchange {
         const zkSign = tx?.signature?.signature;
         return zkSign;
     }
-    async loadDydxProtos() {
+    async loadV4Protos() {
         // load dydx protos
         const tasks = [
             import('../static_dependencies/dydx-v4-client/registry.js'),
@@ -1458,10 +1458,10 @@ export default class Exchange {
         SignDoc = modules[1].SignDoc;
         SignMode = modules[2].SignMode;
     }
-    toDydxLong(numStr) {
+    toV4Long(numStr) {
         return Long.fromString(numStr);
     }
-    retrieveDydxCredentials(entropy) {
+    retrieveV4Credentials(entropy) {
         let credentials = undefined;
         if (entropy.indexOf(' ') > 0) {
             credentials = deriveHDKeyFromMnemonic(entropy);
@@ -1471,7 +1471,7 @@ export default class Exchange {
         credentials = exportMnemonicAndPrivateKey(this.base16ToBinary(entropy));
         return credentials;
     }
-    encodeDydxTxForSimulation(message, memo, sequence, publicKey) {
+    encodeV4TxForSimulation(message, memo, sequence, publicKey) {
         if (!encodeAsAny) {
             throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
@@ -1502,7 +1502,7 @@ export default class Exchange {
         });
         return this.binaryToBase64(Tx.encode(tx).finish());
     }
-    encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee = undefined) {
+    encodeV4TxForSigning(message, memo, chainId, account, authenticators, fee = undefined) {
         if (!encodeAsAny) {
             throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
@@ -1520,7 +1520,7 @@ export default class Exchange {
         const encodedMessages = messages.map((msg) => encodeAsAny(msg));
         const nonCriticalExtensionOptions = [
             encodeAsAny({
-                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'typeUrl': this.safeString(this.options, 'txExtensionTypeUrl', '/dydxprotocol.accountplus.TxExtension'),
                 'value': {
                     'selectedAuthenticators': authenticators ?? [],
                 },
@@ -1554,7 +1554,7 @@ export default class Exchange {
         const signingHash = this.hash(SignDoc.encode(signDoc).finish(), sha256, 'hex');
         return [signingHash, signDoc];
     }
-    encodeDydxTxRaw(signDoc, signature) {
+    encodeV4TxRaw(signDoc, signature) {
         if (!encodeAsAny) {
             throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }

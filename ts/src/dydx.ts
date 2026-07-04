@@ -1230,9 +1230,9 @@ export default class dydx extends Exchange {
     }
 
     signDydxTx (privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee = undefined): string {
-        const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
+        const [ encodedTx, signDoc ] = this.encodeV4TxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
-        return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
+        return this.encodeV4TxRaw (signDoc, signature['r'] + signature['s']);
     }
 
     retrieveCredentials (): any {
@@ -1245,7 +1245,7 @@ export default class dydx extends Exchange {
             const signature = this.signOnboardingAction ();
             entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
         }
-        credentials = this.retrieveDydxCredentials (entropy);
+        credentials = this.retrieveV4Credentials (entropy);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
@@ -1254,7 +1254,7 @@ export default class dydx extends Exchange {
 
     async fetchDydxAccount () {
         // required in js
-        await this.loadDydxProtos ();
+        await this.loadV4Protos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
         if (dydxAccount !== undefined) {
             return dydxAccount;
@@ -1401,15 +1401,15 @@ export default class dydx extends Exchange {
                     'clobPairId': marketInfo['clobPairId'],
                 },
                 'side': sideNumber,
-                'quantums': this.toDydxLong (quantums),
-                'subticks': this.toDydxLong (subticks),
+                'quantums': this.toV4Long (quantums),
+                'subticks': this.toV4Long (subticks),
                 'goodTilBlock': goodTillBlock,
                 'goodTilBlockTime': goodTillBlockTime,
                 'timeInForce': timeInForceNumber,
                 'reduceOnly': reduceOnly,
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
-                'conditionalOrderTriggerSubticks': this.toDydxLong (conditionalOrderTriggerSubticks),
+                'conditionalOrderTriggerSubticks': this.toV4Long (conditionalOrderTriggerSubticks),
                 'orderRouterAddress': this.safeString (this.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
             },
         };
@@ -1809,7 +1809,7 @@ export default class dydx extends Exchange {
     }
 
     async estimateTxFee (message: any, memo: string, account: any): Promise<any> {
-        const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
+        const txBytes = this.encodeV4TxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request = {
             'txBytes': txBytes,
         };

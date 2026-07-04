@@ -428,6 +428,7 @@ class Exchange {
         'paymium',
         'phemex',
         'poloniex',
+        'rubin',
         'tokocrypto',
         'toobit',
         'upbit',

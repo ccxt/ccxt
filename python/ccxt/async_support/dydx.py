@@ -1194,9 +1194,9 @@ class dydx(Exchange, ImplicitAPI):
         return signature
 
     def sign_dydx_tx(self, privateKey: str, message: Any, memo: str, chainId: str, account: Any, authenticators: Any, fee=None) -> str:
-        encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
+        encodedTx, signDoc = self.encode_v4_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
-        return self.encode_dydx_tx_raw(signDoc, signature['r'] + signature['s'])
+        return self.encode_v4_tx_raw(signDoc, signature['r'] + signature['s'])
 
     def retrieve_credentials(self) -> Any:
         credentials = self.safe_dict(self.options, 'dydxCredentials')
@@ -1206,7 +1206,7 @@ class dydx(Exchange, ImplicitAPI):
         if entropy is None:
             signature = self.sign_onboarding_action()
             entropy = self.hash_message(self.base16_to_binary(signature['r'] + signature['s']))
-        credentials = self.retrieve_dydx_credentials(entropy)
+        credentials = self.retrieve_v4_credentials(entropy)
         credentials['privateKey'] = self.binary_to_base16(credentials['privateKey'])
         credentials['publicKey'] = self.binary_to_base16(credentials['publicKey'])
         self.options['dydxCredentials'] = credentials
@@ -1214,7 +1214,7 @@ class dydx(Exchange, ImplicitAPI):
 
     async def fetch_dydx_account(self):
         # required in js
-        await self.load_dydx_protos()
+        await self.load_v4_protos()
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
         if dydxAccount is not None:
             return dydxAccount
@@ -1344,15 +1344,15 @@ class dydx(Exchange, ImplicitAPI):
                     'clobPairId': marketInfo['clobPairId'],
                 },
                 'side': sideNumber,
-                'quantums': self.to_dydx_long(quantums),
-                'subticks': self.to_dydx_long(subticks),
+                'quantums': self.to_v4_long(quantums),
+                'subticks': self.to_v4_long(subticks),
                 'goodTilBlock': goodTillBlock,
                 'goodTilBlockTime': goodTillBlockTime,
                 'timeInForce': timeInForceNumber,
                 'reduceOnly': reduceOnly,
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
-                'conditionalOrderTriggerSubticks': self.to_dydx_long(conditionalOrderTriggerSubticks),
+                'conditionalOrderTriggerSubticks': self.to_v4_long(conditionalOrderTriggerSubticks),
                 'orderRouterAddress': self.safe_string(self.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
             },
         }
@@ -1727,7 +1727,7 @@ class dydx(Exchange, ImplicitAPI):
         return self.parse_ledger(response, currency, since, limit)
 
     async def estimate_tx_fee(self, message: Any, memo: str, account: Any) -> Any:
-        txBytes = self.encode_dydx_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
+        txBytes = self.encode_v4_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
         request = {
             'txBytes': txBytes,
         }

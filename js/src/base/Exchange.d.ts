@@ -392,12 +392,12 @@ export default class Exchange {
     extendedStarknetComputePoseidonHashOnElements(data: any): string;
     getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
-    loadDydxProtos(): Promise<void>;
-    toDydxLong(numStr: string): object;
-    retrieveDydxCredentials(entropy: string): object;
-    encodeDydxTxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
-    encodeDydxTxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
-    encodeDydxTxRaw(signDoc: Dict, signature: string): string;
+    loadV4Protos(): Promise<void>;
+    toV4Long(numStr: string): object;
+    retrieveV4Credentials(entropy: string): object;
+    encodeV4TxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
+    encodeV4TxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
+    encodeV4TxRaw(signDoc: Dict, signature: string): string;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(isWs?: boolean): {};

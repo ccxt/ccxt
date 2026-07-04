@@ -139,6 +139,7 @@ import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
+import rubin from  './src/rubin.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
@@ -224,6 +225,7 @@ import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
+import rubinPro from  './src/pro/rubin.js'
 import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
 import weexPro from  './src/pro/weex.js'
@@ -328,6 +330,7 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
+    'rubin':                  rubin,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
     'upbit':                  upbit,
@@ -413,6 +416,7 @@ const pro = {
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
+    'rubin':                  rubinPro,
     'toobit':                 toobitPro,
     'upbit':                  upbitPro,
     'weex':                   weexPro,
@@ -661,6 +665,7 @@ export {
     paymium,
     phemex,
     poloniex,
+    rubin,
     tokocrypto,
     toobit,
     upbit,
