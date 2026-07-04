@@ -2037,8 +2037,18 @@
                         "clientOrderID": "",
                         "timeInForce": "GTC",
                         "priceRate": "0",
-                        "stopLoss": "{\"stopPrice\":\"50\",\"workingType\":\"MARK_PRICE\",\"type\":\"STOP_MARKET\",\"quantity\":\"1\"}",
-                        "takeProfit": "{\"stopPrice\":\"100\",\"workingType\":\"MARK_PRICE\",\"type\":\"TAKE_PROFIT_MARKET\",\"quantity\":\"1\"}",
+                        "stopLoss": {
+                            "stopPrice": "50",
+                            "workingType": "MARK_PRICE",
+                            "type": "STOP_MARKET",
+                            "quantity": "1"
+                        },
+                        "takeProfit": {
+                            "stopPrice": "100",
+                            "workingType": "MARK_PRICE",
+                            "type": "TAKE_PROFIT_MARKET",
+                            "quantity": "1"
+                        },
                         "reduceOnly": false
                     },
                     "id": "1743623387810590720",
