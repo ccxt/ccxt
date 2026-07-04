@@ -155,9 +155,9 @@ export default class nado extends Exchange {
                 'editOrder': {
                     'placeRequiresUnfilled': true,
                 },
-                "builderFee": true,
-                "builder": "",
-                "feeRate": "10"
+                'builderFee': true,
+                'builder': '',
+                'feeRate': '10',
             },
             'timeframes': {
                 '1m': 60,
@@ -366,13 +366,8 @@ export default class nado extends Exchange {
         let recvWindow = undefined;
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'createOrder', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
-        let appendix = this.safeString (params, 'appendix');
-        if (appendix === undefined) {
-            appendix = this.createOrderAppendix (params);
-        }
         const requestId = this.safeInteger (params, 'id');
         const spotLeverage = this.safeBool2 (params, 'spotLeverage', 'spot_leverage');
-        params = this.omit (params, [ 'expiration', 'nonce', 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'id', 'spotLeverage', 'spot_leverage' ]);
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const order: Dict = {
             'sender': sender,
@@ -380,15 +375,9 @@ export default class nado extends Exchange {
             'amount': amountX18,
             'expiration': expiration,
             'nonce': nonce,
-            'appendix': appendix,
         };
-        const contracts = await this.queryContracts ();
-        const chainId = this.safeString (contracts, 'chain_id');
-        const signature = this.signOrder (order, productId, chainId);
         const placeOrder: Dict = {
             'product_id': productId,
-            'order': order,
-            'signature': signature,
         };
         if (requestId !== undefined) {
             placeOrder['id'] = requestId;
@@ -396,10 +385,66 @@ export default class nado extends Exchange {
         if (spotLeverage !== undefined) {
             placeOrder['spot_leverage'] = spotLeverage;
         }
+        const isBuy = (side === 'buy');
+        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLossOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
+        const isStopOrder = triggerPrice !== undefined;
+        const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
+        if (isStopOrder) {
+            const triggerDirection = this.safeStringLower (params, 'triggerDirection');
+            if (triggerDirection === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires triggerDirection for trigger order');
+            }
+            const triggerPriceX18 = this.convertToX18 (triggerPrice);
+            const priceRequirement = {};
+            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
+            const trigger = {
+                'price_trigger': {
+                    'price_requirement': priceRequirement,
+                },
+            };
+            placeOrder['trigger'] = trigger;
+        } else if (isStopLossOrder || isTakeProfitOrder) {
+            let triggerDirection = '';
+            if (isBuy) {
+                triggerDirection = isStopLossOrder ? 'above' : 'below';
+            } else {
+                triggerDirection = isStopLossOrder ? 'below' : 'above';
+            }
+            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            const triggerPriceX18 = this.convertToX18 (triggerPrice);
+            const priceRequirement = {};
+            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
+            const trigger = {
+                'price_trigger': {
+                    'price_requirement': priceRequirement,
+                },
+            };
+            placeOrder['trigger'] = trigger;
+        }
+        let appendix = this.safeString (params, 'appendix');
+        if (appendix === undefined) {
+            appendix = this.createOrderAppendix (isTriggerOrder, params);
+        }
+        order['appendix'] = appendix;
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
+        const signature = this.signOrder (order, productId, chainId);
+        placeOrder['order'] = order;
+        placeOrder['signature'] = signature;
+        params = this.omit (params, [ 'expiration', 'nonce', 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'id', 'spotLeverage', 'spot_leverage', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice' ]);
         const request: Dict = {
             'place_order': placeOrder,
         };
-        const response = await this.gatewayPrivatePostExecute (this.extend (request, params));
+        let response = undefined;
+        if (isTriggerOrder) {
+            response = await this.triggerPrivatePostExecute (this.extend (request, params));
+        } else {
+            response = await this.gatewayPrivatePostExecute (this.extend (request, params));
+        }
         //
         //     {
         //         "status": "success",
@@ -2506,7 +2551,7 @@ export default class nado extends Exchange {
         return Precise.stringMul (this.numberToString (expires), '1048576');
     }
 
-    createOrderAppendix (params = {}) {
+    createOrderAppendix (isTriggerOrder, params = {}) {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -2536,6 +2581,9 @@ export default class nado extends Exchange {
             const builderFeeRate = this.safeString (this.options, 'feeRate', '10'); // 10 units = 0.01%
             appendix = Precise.stringAdd (appendix, Precise.stringMul (builder, '281474976710656')); // 1<<48
             appendix = Precise.stringAdd (appendix, Precise.stringMul (builderFeeRate, '274877906944')); // 1<<32
+        }
+        if (isTriggerOrder) {
+            appendix = Precise.stringAdd (appendix, '4096');
         }
         return appendix;
     }
