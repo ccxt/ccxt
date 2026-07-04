@@ -166,7 +166,10 @@ export default class gemini extends geminiRest {
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        let stored = ((symbol !== undefined) ? this.safeValue (this.trades, symbol) : undefined);
+        let stored = undefined;
+        if (symbol !== undefined) {
+            stored = this.safeValue (this.trades, symbol);
+        }
         if (stored === undefined) {
             stored = new ArrayCache (tradesLimit);
             if (symbol !== undefined) {
@@ -337,7 +340,7 @@ export default class gemini extends geminiRest {
         const changes = this.safeValue (message, 'changes', []);
         const timeframe = this.findTimeframe (timeframeId);
         if (timeframe === undefined) {
-            return;
+            return undefined;
         }
         const ohlcvsBySymbol = this.safeValue (this.ohlcvs, symbol);
         if (ohlcvsBySymbol === undefined) {

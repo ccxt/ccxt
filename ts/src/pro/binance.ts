@@ -211,11 +211,11 @@ export default class binance extends binanceRest {
 
     stream (type: Str, subscriptionHash: Str, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', this.createSafeDictionary ());
-        let stream = ((subscriptionHash !== undefined) ? this.safeString (streamBySubscriptionsHash, subscriptionHash) : undefined);
+        let stream = (subscriptionHash !== undefined) ? this.safeString (streamBySubscriptionsHash, subscriptionHash) : undefined;
         if (stream === undefined) {
             let streamIndex = this.safeInteger (this.options, 'streamIndex', -1);
             const streamLimits = this.safeValue (this.options, 'streamLimits');
-            const streamLimit = ((type !== undefined) ? this.safeInteger (streamLimits, type) : undefined);
+            const streamLimit = (type !== undefined) ? this.safeInteger (streamLimits, type) : undefined;
             streamIndex = streamIndex + 1;
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
@@ -1118,7 +1118,7 @@ export default class binance extends binanceRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = ((id !== undefined) ? this.safeValue (subscriptionsById, id, {}) : {});
+        const subscription = (id !== undefined) ? this.safeValue (subscriptionsById, id, {}) : {};
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
@@ -4642,7 +4642,7 @@ export default class binance extends binanceRest {
             }
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const order = ((orderId !== undefined) ? this.safeValue (orders, orderId) : undefined);
+            const order = (orderId !== undefined) ? this.safeValue (orders, orderId) : undefined;
             if (order !== undefined) {
                 const fee = this.safeValue (order, 'fee');
                 if (fee !== undefined) {
@@ -4748,7 +4748,7 @@ export default class binance extends binanceRest {
         }
         // user subscription wraps message in subscriptionId and event
         const id = this.safeString (message, 'id');
-        const subscriptions = ((id !== undefined) ? this.safeValue (client.subscriptions, id) : undefined);
+        const subscriptions = (id !== undefined) ? this.safeValue (client.subscriptions, id) : undefined;
         let method = this.safeValue (subscriptions, 'method');
         if (method !== undefined) {
             method.call (this, client, message);
@@ -4790,7 +4790,7 @@ export default class binance extends binanceRest {
             const data = message[0];
             event = this.safeString (data, 'e') + '@arr';
         }
-        method = ((event !== undefined) ? this.safeValue (methods, event) : undefined);
+        method = (event !== undefined) ? this.safeValue (methods, event) : undefined;
         if (method === undefined) {
             const requestId = this.safeString (message, 'id');
             if (requestId !== undefined) {

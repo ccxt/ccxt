@@ -713,7 +713,7 @@ export default class woofipro extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString (networkEntry, 'chain_id');
-            const networkRow = ((networkId !== undefined) ? this.safeDict (indexedChains, networkId) : undefined);
+            const networkRow = (networkId !== undefined) ? this.safeDict (indexedChains, networkId) : undefined;
             const networkName = this.safeString (networkRow, 'name');
             const networkCode = this.networkIdToCode (networkName, code);
             resultingNetworks[networkCode] = {
@@ -1396,7 +1396,7 @@ export default class woofipro extends Exchange {
         //
         const timestamp = this.safeIntegerN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
         const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
-        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId', '')); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1411,7 +1411,7 @@ export default class woofipro extends Exchange {
         }
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice', ''));
+        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
@@ -1470,7 +1470,7 @@ export default class woofipro extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return ((timeInForce !== undefined) ? this.safeString (timeInForces, timeInForce) : undefined);
+        return (timeInForce !== undefined) ? this.safeString (timeInForces, timeInForce) : undefined;
     }
 
     parseOrderStatus (status: Str) {
@@ -1500,7 +1500,7 @@ export default class woofipro extends Exchange {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
-        return ((type !== undefined) ? this.safeStringLower (types, type, type) : type);
+        return (type !== undefined) ? this.safeStringLower (types, type, type) : type;
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

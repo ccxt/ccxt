@@ -5,7 +5,7 @@ import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, List, Market, NullableDict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, List, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -737,7 +737,10 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = this.safeSymbol (marketId);
             const orderId = this.safeString (order, 'order_id');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = ((orderId !== undefined) ? this.safeValue (previousOrders, orderId) : undefined);
+            let previousOrder = undefined;
+            if (orderId !== undefined) {
+                previousOrder = this.safeValue (previousOrders, orderId);
+            }
             const reason = this.safeString (message, 'reason');
             if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
                 const parsed = this.parseWsOrder (order);
@@ -1524,7 +1527,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: NullableDict = undefined, params = {}) {
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: Dict = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         // symbols are required
@@ -1630,7 +1633,10 @@ export default class krakenfutures extends krakenfuturesRest {
                 'balances_snapshot': this.handleBalance,
                 'open_positions': this.handlePositions,
             };
-            const method = ((feed !== undefined) ? this.safeValue (methods, feed) : undefined);
+            let method = undefined;
+            if (feed !== undefined) {
+                method = this.safeValue (methods, feed);
+            }
             if (method !== undefined) {
                 method.call (this, client, message);
             }

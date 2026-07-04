@@ -906,7 +906,7 @@ export default class xt extends Exchange {
             const entry = currenciesData[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const networkEntry = ((currencyId !== undefined) ? this.safeValue (chainsDataIndexed, currencyId, {}) : {});
+            const networkEntry = (currencyId !== undefined) ? this.safeValue (chainsDataIndexed, currencyId, {}) : {};
             const rawNetworks = this.safeValue (networkEntry, 'supportChains', []);
             const networks = {};
             for (let j = 0; j < rawNetworks.length; j++) {

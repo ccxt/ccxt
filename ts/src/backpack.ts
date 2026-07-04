@@ -551,7 +551,7 @@ export default class backpack extends Exchange {
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (network, 'minimumWithdrawal'),
-                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maximumWithdrawal', ''))),
+                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maximumWithdrawal'))),
                     },
                     'deposit': {
                         'min': this.safeNumber (network, 'minimumDeposit'),

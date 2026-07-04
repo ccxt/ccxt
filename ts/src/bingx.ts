@@ -3826,29 +3826,29 @@ export default class bingx extends Exchange {
         let stopLoss = this.safeValue (order, 'stopLoss');
         let stopLossPrice: Str = undefined;
         if ((stopLoss !== undefined) && (stopLoss !== '')) {
-            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopLoss', ''));
+            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopLoss'));
         }
         if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
                 stopLoss = this.parseJson (stopLoss);
             }
-            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopPrice', ''));
+            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopPrice'));
         }
         let takeProfit = this.safeValue (order, 'takeProfit');
         let takeProfitPrice: Str = undefined;
         if (takeProfit !== undefined && (takeProfit !== '')) {
-            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'takeProfit', ''));
+            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'takeProfit'));
         }
         if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
                 takeProfit = this.parseJson (takeProfit);
             }
-            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'stopPrice', ''));
+            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'stopPrice'));
         }
         const rawType = this.safeStringLower2 (order, 'type', 'o') as string;
-        const stopPrice = this.omitZero (this.safeString2 (order, 'StopPrice', 'stopPrice', ''));
+        const stopPrice = this.omitZero (this.safeString2 (order, 'StopPrice', 'stopPrice'));
         let triggerPrice = stopPrice;
         if (stopPrice !== undefined) {
             if ((rawType.indexOf ('stop') > -1) && (stopLossPrice === undefined)) {
@@ -5310,7 +5310,10 @@ export default class bingx extends Exchange {
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                return ((key !== undefined) ? this.safeDict (addressStructures, key) : undefined) as DepositAddress;
+                if (key === undefined) {
+                    return undefined;
+                }
+                return this.safeDict (addressStructures, key) as DepositAddress;
             }
         }
     }

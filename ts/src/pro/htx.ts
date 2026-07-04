@@ -453,13 +453,14 @@ export default class htx extends htxRest {
             messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (limit) + '.high_freq';
         }
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
+        let orderbook = undefined;
         if (!market['spot']) {
             params = this.extend (params);
             params['data_type'] = 'incremental';
-            const incrementalOrderbook = await this.subscribePublic (url, symbol, messageHash, undefined, params);
-            return incrementalOrderbook.limit ();
+            orderbook = await this.subscribePublic (url, symbol, messageHash, undefined, params);
+        } else {
+            orderbook = await this.subscribePublic (url, symbol, messageHash, this.handleOrderBookSubscription, params);
         }
-        const orderbook = await this.subscribePublic (url, symbol, messageHash, this.handleOrderBookSubscription, params);
         return orderbook.limit ();
     }
 

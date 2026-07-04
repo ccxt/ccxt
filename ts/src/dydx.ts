@@ -945,7 +945,7 @@ export default class dydx extends Exchange {
             'TAKE_PROFIT_MARKET': 'MARKET',
             'TRAILING_STOP': 'MARKET',
         };
-        return ((type !== undefined) ? this.safeStringUpper (types, type, type) : type);
+        return (type !== undefined) ? this.safeStringUpper (types, type, type) : type;
     }
 
     /**

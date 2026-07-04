@@ -2184,7 +2184,7 @@ export default class bybit extends Exchange {
             let expiry: Int = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
-                const deliveryTime = this.omitZero (this.safeString (market, 'deliveryTime', ''));
+                const deliveryTime = this.omitZero (this.safeString (market, 'deliveryTime'));
                 if (deliveryTime !== undefined) {
                     expiry = this.parseToInt (deliveryTime);
                 }
@@ -3663,7 +3663,7 @@ export default class bybit extends Exchange {
             }
         }
         const accountTypes = this.safeDict (this.options, 'accountsByType', {});
-        const unifiedType = ((type !== undefined) ? this.safeStringUpper (accountTypes, type, type) : type);
+        const unifiedType = (type !== undefined) ? this.safeStringUpper (accountTypes, type, type) : type;
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let response: Dict;
@@ -3987,13 +3987,13 @@ export default class bybit extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
-        const avgPrice = this.omitZero (this.safeString (order, 'avgPrice', ''));
+        const avgPrice = this.omitZero (this.safeString (order, 'avgPrice'));
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (rawTimeInForce);
-        const triggerPrice = this.omitZero (this.safeString (order, 'triggerPrice', ''));
+        const triggerPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
         const reduceOnly = this.safeBool (order, 'reduceOnly');
-        let takeProfitPrice = this.omitZero (this.safeString (order, 'takeProfit', ''));
-        let stopLossPrice = this.omitZero (this.safeString (order, 'stopLoss', ''));
+        let takeProfitPrice = this.omitZero (this.safeString (order, 'takeProfit'));
+        let stopLossPrice = this.omitZero (this.safeString (order, 'stopLoss'));
         const triggerDirection = this.safeString (order, 'triggerDirection');
         const isAscending = (triggerDirection === '1');
         const isStopOrderType2 = (triggerPrice !== undefined) && reduceOnly;
@@ -6898,7 +6898,7 @@ export default class bybit extends Exchange {
         } else {
             notional = this.safeString2 (position, 'positionValue', 'cumExitValue');
         }
-        const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl', ''));
+        const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
         let initialMarginString = this.safeString2 (position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString (position, 'positionMM');
         const timestamp = this.safeIntegerN (position, [ 'createdTime', 'createdAt' ]);
@@ -6907,8 +6907,8 @@ export default class bybit extends Exchange {
             lastUpdateTimestamp = this.safeIntegerN (position, [ 'updatedTime', 'updatedAt', 'updatedTime' ]);
         }
         let collateralString = this.safeString (position, 'positionBalance');
-        const entryPrice = this.omitZero (this.safeStringN (position, [ 'entryPrice', 'avgPrice', 'avgEntryPrice' ], ''));
-        const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice', ''));
+        const entryPrice = this.omitZero (this.safeStringN (position, [ 'entryPrice', 'avgPrice', 'avgEntryPrice' ]));
+        const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
         if (liquidationPrice !== undefined) {
             if (market['settle'] === 'USDC') {

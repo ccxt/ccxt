@@ -1862,7 +1862,7 @@ export default class bydfi extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-            'average': this.omitZero (this.safeString (order, 'avgPrice', '')),
+            'average': this.omitZero (this.safeString (order, 'avgPrice')),
         }, market);
     }
 

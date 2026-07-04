@@ -1773,7 +1773,7 @@ export default class bittrade extends Exchange {
         const networkId = this.safeString (depositAddress, 'chain');
         const networks = this.safeValue (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
-        const networkValue = ((networkId !== undefined) ? this.safeValue (networksById, networkId, networkId) : networkId);
+        const networkValue = (networkId !== undefined) ? this.safeValue (networksById, networkId, networkId) : networkId;
         const network = this.safeString (networkValue, 'network');
         this.checkAddress (address);
         return {
@@ -1987,7 +1987,7 @@ export default class bittrade extends Exchange {
         }
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = ((network !== undefined) ? this.safeStringLower (networks, network, network) : network); // handle ETH>ERC20 alias
+        network = (network !== undefined) ? this.safeStringLower (networks, network, network) : network; // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {
