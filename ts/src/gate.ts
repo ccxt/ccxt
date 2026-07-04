@@ -6160,15 +6160,24 @@ export default class gate extends Exchange {
                 marginMode = 'isolated';
             }
         }
+        // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), older responses return "0" for it
+        // in that case use the position margin balance from the margin field (https://github.com/ccxt/ccxt/issues/27152) - but only when positive,
+        // because that balance is debited by funding fees and margin adjustments, so it can drop to zero or below and is not a valid initial margin then
+        // as a last resort fall back to the legacy client-side computation
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         // *The default leverage under the full position is the highest leverage in the market.
         // *Trading fee is charged as Taker Fee Rate (0.075%).
         let feePaid = this.safeString (position, 'pnl_fee');
-        let initialMarginString: Str = this.safeString (position, 'margin');
-        if (initialMarginString === undefined && feePaid === undefined) {
-            const takerFee = '0.00075';
-            feePaid = Precise.stringMul (takerFee, notional);
-            initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+        let initialMarginString: Str = this.omitZero (this.safeString (position, 'initial_margin'));
+        if (initialMarginString === undefined) {
+            const marginBalance = this.safeString (position, 'margin');
+            if ((marginBalance !== undefined) && Precise.stringGt (marginBalance, '0')) {
+                initialMarginString = marginBalance;
+            } else if (feePaid === undefined) {
+                const takerFee = '0.00075';
+                feePaid = Precise.stringMul (takerFee, notional);
+                initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+            }
         }
         let timestamp = this.safeTimestamp2 (position, 'open_time', 'first_open_time');
         if (timestamp === 0) {
