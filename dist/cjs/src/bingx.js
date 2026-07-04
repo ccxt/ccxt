@@ -3378,6 +3378,15 @@ class bingx extends bingx$1["default"] {
         else {
             result = data;
         }
+        // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        const stopLoss = this.safeString(result, 'stopLoss');
+        if ((stopLoss !== undefined) && (stopLoss.indexOf('{') === 0)) {
+            result['stopLoss'] = this.parseJson(stopLoss);
+        }
+        const takeProfit = this.safeString(result, 'takeProfit');
+        if ((takeProfit !== undefined) && (takeProfit.indexOf('{') === 0)) {
+            result['takeProfit'] = this.parseJson(takeProfit);
+        }
         return this.parseOrder(result, market);
     }
     /**
