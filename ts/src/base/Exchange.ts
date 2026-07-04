@@ -4866,7 +4866,7 @@ export default class Exchange {
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
-        let change = this.omitZero (this.safeString (ticker, 'change'));
+        let change = this.safeString (ticker, 'change'); // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
         let average = this.omitZero (this.safeString (ticker, 'average'));
         let vwap = this.safeString (ticker, 'vwap');
