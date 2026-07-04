@@ -27,7 +27,7 @@ import type {
     Account, fetchEventsParams,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
 
@@ -2743,28 +2743,26 @@ export default class limitless extends Exchange {
      * @description fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.limitless.exchange/api-reference/markets/search
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by market address or slug
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
-        let result = [];
         const queriesLength = queries.length;
-        if (!queries || queriesLength === 0) {
-            // no query - serve the eventId/slug/tags-only scope from the cache (empty on a
-            // cold instance); applyEventFetchParams filters it below
-            result = this.eventsList ();
-        } else {
+        const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
+        const eventId = this.safeString2 (params, 'eventId', 'slug');
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
+        // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
+        const rawMarkets: any[] = [];
+        if (queriesLength > 0) {
             const requestedLimit = this.safeInteger (params, 'limit', 50);
-            // the search endpoint rejects limit > 50 - cap the per-query request and let
-            // maxMarkets bound the overall collection
+            // the search endpoint rejects limit > 50 - cap the per-query request
             const limit = Math.min (requestedLimit, 50);
-            const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
             const seen: Dict = {};
-            const rawMarkets: any[] = [];
             for (let i = 0; i < queries.length; i++) {
                 const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({
@@ -2781,40 +2779,88 @@ export default class limitless extends Exchange {
                     }
                 }
             }
-            if (!this.events) {
-                this.events = {};
+        } else if (eventId !== undefined) {
+            const response = await this.limitlessPublicGetMarketsAddressOrSlug (this.extend ({ 'addressOrSlug': eventId }, rest));
+            rawMarkets.push (response);
+        } else {
+            const listRaw = await this.fetchRawActiveMarkets (params);
+            const listRawLength = listRaw.length;
+            for (let i = 0; i < listRawLength; i++) {
+                rawMarkets.push (listRaw[i]);
             }
-            if (!this.markets) {
-                this.markets = this.createSafeDictionary ();
-            }
-            const eventGroups: Dict = {};
-            for (let i = 0; i < rawMarkets.length; i++) {
-                const raw = rawMarkets[i];
-                const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
-                const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
-                const m = this.parseMarket (raw);
-                this.markets[m['symbol'] as string] = m;
-                if (eventKey) {
-                    if (!(eventKey in eventGroups)) {
-                        eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
-                    }
-                    const eventGroup = eventGroups[eventKey] as Dict;
-                    eventGroup['markets'].push (m);
+        }
+        if (!this.events) {
+            this.events = {};
+        }
+        if (!this.markets) {
+            this.markets = this.createSafeDictionary ();
+        }
+        const eventGroups: Dict = {};
+        const rawMarketsLength = rawMarkets.length;
+        for (let i = 0; i < rawMarketsLength; i++) {
+            const raw = rawMarkets[i];
+            const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
+            const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
+            const m = this.parseMarket (raw);
+            this.markets[m['symbol'] as string] = m;
+            if (eventKey) {
+                if (!(eventKey in eventGroups)) {
+                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
                 }
+                const eventGroup = eventGroups[eventKey] as Dict;
+                eventGroup['markets'].push (m);
             }
-            result = [];
-            const eventKeys = Object.keys (eventGroups);
-            for (let i = 0; i < eventKeys.length; i++) {
-                const eventKey = eventKeys[i];
-                const g = eventGroups[eventKey] as Dict;
-                const ev = this.parseEvent (g);
-                result.push (ev);
-            }
+        }
+        const result: any[] = [];
+        const eventKeys = Object.keys (eventGroups);
+        const eventKeysLength = eventKeys.length;
+        for (let i = 0; i < eventKeysLength; i++) {
+            const g = eventGroups[eventKeys[i]] as Dict;
+            const ev = this.parseEvent (g);
+            result.push (ev);
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         this.setEvents (result);
         this.populateOutcomes ();
         return this.applyEventFetchParams (result, params, queries);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#fetchRawActiveMarkets
+     * @description pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] max number of raw markets to collect
+     * @returns {object[]} raw limitless market objects
+     */
+    async fetchRawActiveMarkets (params = {}): Promise<any[]> {
+        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
+        const pageSize = this.safeInteger (this.options, 'marketsPageSize', 25);
+        const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
+        const allRaw: any[] = [];
+        let page = 1;
+        let collected = 0;
+        while (true) {
+            const request: Dict = { 'page': page, 'limit': pageSize };
+            const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
+            const data = this.safeList (response, 'data', []) as any[];
+            const dataLength = data.length;
+            if (dataLength === 0) {
+                break;
+            }
+            for (let i = 0; i < dataLength; i++) {
+                if (collected < maxMarkets) {
+                    allRaw.push (data[i]);
+                    collected = this.sum (collected, 1);
+                }
+            }
+            page = this.sum (page, 1);
+            if (dataLength < pageSize || collected >= maxMarkets) {
+                break;
+            }
+        }
+        return allRaw;
     }
 
     /**

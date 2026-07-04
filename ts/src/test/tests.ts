@@ -869,6 +869,42 @@ class testMainClass {
                     const event = await callExchangeMethodDynamically (exchange, 'fetchEvent', [ eventId ]);
                     this.assertPredictionEvent (exchange, event);
                 }
+                // exercise EACH scoping parameter path, not just the initial query. a scope that
+                // silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                // series filter) is a real bug that only surfaces if the path is actually asserted.
+                // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                const scopesToTest = [];
+                if (eventId !== undefined) {
+                    // copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                    // since eventId is reassigned above. every venue must refetch an event by its own id
+                    const eventIdScope = eventId;
+                    scopesToTest.push ({ 'eventId': eventIdScope });
+                }
+                // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                const extraScopes = exchange.safeList (this.skippedSettingsForExchange, 'preferredEventScopes', []);
+                const extraScopesLength = extraScopes.length;
+                for (let si = 0; si < extraScopesLength; si++) {
+                    scopesToTest.push (extraScopes[si]);
+                }
+                const scopesToTestLength = scopesToTest.length;
+                for (let sj = 0; sj < scopesToTestLength; sj++) {
+                    const scope = scopesToTest[sj];
+                    // fetchEvents scoped by a single parameter must return a non-empty, valid list
+                    const scopedEvents = await callExchangeMethodDynamically (exchange, 'fetchEvents', [ scope ]);
+                    const scopedList = exchange.safeList ({ 'events': scopedEvents }, 'events', []);
+                    const scopedListLength = scopedList.length;
+                    assert (scopedListLength > 0, exchange.id + ' fetchEvents scoped by ' + exchange.json (scope) + ' returned no events - the parameter path may be broken');
+                    this.assertPredictionEvents (exchange, scopedList);
+                }
+                if (eventQuery !== undefined) {
+                    // limit must bound the number of events returned (applied by applyEventFetchParams)
+                    const limited = await callExchangeMethodDynamically (exchange, 'fetchEvents', [ { 'query': eventQuery, 'limit': 1 } ]);
+                    const limitedList = exchange.safeList ({ 'events': limited }, 'events', []);
+                    const limitedListLength = limitedList.length;
+                    assert (limitedListLength <= 1, exchange.id + ' fetchEvents did not honour limit=1');
+                }
             } catch (e) {
                 dump ('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exceptionMessage (e));
                 return false;

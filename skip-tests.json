@@ -1523,6 +1523,10 @@
     "kalshi": {
         "until": "2026-12-31",
         "preferredEventQuery": "trump",
+        "preferredEventScopes": [
+            { "tags": [ "BTC" ], "limit": 3 },
+            { "category": "Crypto", "limit": 3 }
+        ],
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchPositions": "demo/test account holds no open positions and the fetchPositions test asserts a non-empty array; run with a funded position to re-enable"

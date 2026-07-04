@@ -357,6 +357,22 @@ export default class myriad extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        const response = await this.fetchRawMarketById (id, params);
+        const market = this.parseMyriadMarket (response);
+        const event: any = this.parseMarketToEvent (response, market);
+        return event;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawMarketById
+     * @description fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+     * @param {string} id the unified event/market id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw myriad market object
+     */
+    async fetchRawMarketById (id: string, params = {}): Promise<any> {
         // the unified event id is a composite networkId:marketId
         const parts = id.split (':');
         const partsLength = parts.length;
@@ -367,10 +383,7 @@ export default class myriad extends Exchange {
         } else {
             request['id'] = id;
         }
-        const response = await this.myriadPublicGetMarketsId (this.extend (request, params));
-        const market = this.parseMyriadMarket (response);
-        const event: any = this.parseMarketToEvent (response, market);
-        return event;
+        return await this.myriadPublicGetMarketsId (this.extend (request, params));
     }
 
     /**
@@ -2302,8 +2315,9 @@ export default class myriad extends Exchange {
      * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
@@ -2313,17 +2327,25 @@ export default class myriad extends Exchange {
         const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
         const queriesLength = queries.length;
-        if (queriesLength === 0) {
-            // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
-            const existingEvents = this.eventsList ();
-            return this.applyEventFetchParams (existingEvents, params, queries);
+        const eventId = this.safeString (params, 'eventId');
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
+        // an eventId does a direct lookup, and any other scope (tags) pages the markets listing so
+        // applyEventFetchParams can filter it below
+        let rawMarkets: any[] = [];
+        if (queriesLength > 0) {
+            rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
+        } else if (eventId !== undefined) {
+            const rawMarket = await this.fetchRawMarketById (eventId, rest);
+            rawMarkets = [ rawMarket ];
+        } else {
+            rawMarkets = await this.fetchRawMarketsList (rest);
         }
-        const rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
         if (!this.markets) {
             this.markets = this.createSafeDictionary ();
         }
         const result: any[] = [];
-        for (let i = 0; i < rawMarkets.length; i++) {
+        const rawMarketsLength = rawMarkets.length;
+        for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
             const m = this.parseMyriadMarket (raw);
             this.markets[m['symbol'] as string] = m;
