@@ -1,0 +1,26 @@
+# plain-loop WsClientStreamFast (no options, bare for-await, HWM 1024) - final head-to-head
+# TLS loopback wss://127.0.0.1:9602, node v22.22.1, ws 8.21.0, medians of 3 fresh processes, 2026-07-04
+
+== tick100 ceiling ==
+ccxt (production)                       568302 msg/s (   0.0%)  1.85 us/msg  lag p99 0.16 ms  heap +168 KB
+WsClientFast (queue, adaptive)          979522 msg/s (  72.4%)  1.06 us/msg  lag p99 12.30 ms  heap +169 KB
+WsClientStreamFast (plain for-await)    956413 msg/s (  68.3%)  1.08 us/msg  lag p99 4.47 ms  heap +154 KB
+
+== delta1k ceiling ==
+ccxt (production)                       136415 msg/s (   0.0%)  7.67 us/msg  lag p99 0.17 ms  heap +210 KB
+WsClientFast (queue, adaptive)          157846 msg/s (  15.7%)  6.58 us/msg  lag p99 5.96 ms  heap +174 KB
+WsClientStreamFast (plain for-await)    147760 msg/s (   8.3%)  7.01 us/msg  lag p99 1.56 ms  heap +162 KB
+
+== delta1k paced @60,000 msg/s (one-way delivery latency, us) ==
+ccxt (production)                      p50=422 p95=749 p99=982 max=3519
+WsClientFast (queue, adaptive)         p50=381 p95=645 p99=771 max=2063
+WsClientStreamFast (plain for-await)   p50=375 p95=626 p99=824 max=2286
+
+# gates: parity all-pass (production, WsClientFast, WsClientStreamFast)
+# starvation probe (20k burst, 3-hop re-arm):
+ccxt             wakeups 20000/20000 (100%)
+fast             wakeups 10045/20000 (50.2%)
+fast-ws-adaptive wakeups 20000/20000 (100%)
+# plain loop: per-message microtask boundary only -> ~50% of burst wakeups (messages still
+# land in caches; consumer wakes at its own pace). Paced rates: each message is its own
+# event-loop turn -> wakeups ~100% for all clients.

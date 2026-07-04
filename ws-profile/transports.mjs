@@ -13,20 +13,16 @@
 //               per-message deferral via { adaptiveDeferral: false }
 //   ccxt-stream - same built ccxt Client upper layer, transport swapped to
 //               undici's WebSocketStream (ws-profile/WsClientStream.mjs)
-//   ccxt-stream-fast - profile-guided optimized variant (WsClientStreamFast.mjs),
-//                      rebased onto ws createWebSocketStream({ readableObjectMode: true });
-//                      adaptive deferral is its default
-//   ccxt-stream-fast-deferred / ccxt-stream-fast-nodefer - same client with
-//                      { adaptiveDeferral: false } (strict per-message deferral) /
-//                      { allowSynchronousEvents: true } (no deferral),
-//                      to price the deferral modes separately
+//   ccxt-stream-fast - WsClientStreamFast.mjs: ccxt Client over the ws duplex
+//                      (readableObjectMode, HWM 1024), plain for-await
+//                      delivery, no options
 //   undici    - `import { WebSocket } from 'undici'` (standalone 7.27.2)
 //   global    - globalThis.WebSocket (node-bundled undici build)
 //   stream    - `import { WebSocketStream } from 'undici'` (experimental)
 import WsPackage from 'ws';
 import { WebSocket as UndiciWebSocket, WebSocketStream as UndiciWebSocketStream } from 'undici';
 
-export const TRANSPORTS = [ 'ws', 'ws-async', 'ccxt', 'ccxt-fast', 'ccxt-fast-strict', 'ccxt-stream', 'ccxt-stream-fast', 'ccxt-stream-fast-deferred', 'ccxt-stream-fast-nodefer', 'undici', 'global', 'stream' ];
+export const TRANSPORTS = [ 'ws', 'ws-async', 'ccxt', 'ccxt-fast', 'ccxt-fast-strict', 'ccxt-stream', 'ccxt-stream-fast', 'undici', 'global', 'stream' ];
 
 function makeWhatwgAdapter (WsCtor, url, name) {
     return new Promise ((resolve, reject) => {
@@ -156,13 +152,9 @@ export async function connectTransport (name, url) {
             return makeCcxtAdapter (url, 'fast');
         case 'ccxt-fast-strict':
             return makeCcxtAdapter (url, 'fast', { options: { adaptiveDeferral: false } });
-        case 'ccxt-stream-fast-adaptive': // legacy alias — adaptive is now the default
+        case 'ccxt-stream-fast-adaptive': // legacy alias (options removed — plain loop now)
         case 'ccxt-stream-fast':
             return makeCcxtAdapter (url, 'stream-fast');
-        case 'ccxt-stream-fast-deferred':
-            return makeCcxtAdapter (url, 'stream-fast', { options: { adaptiveDeferral: false } });
-        case 'ccxt-stream-fast-nodefer':
-            return makeCcxtAdapter (url, 'stream-fast', { options: { allowSynchronousEvents: true } });
         case 'undici':
             return makeWhatwgAdapter (UndiciWebSocket, url, 'undici');
         case 'global':

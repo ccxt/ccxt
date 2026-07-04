@@ -25,19 +25,13 @@ const REARM_HOPS = 3;
 
 async function makeClient (impl, url) {
     let Ctor;
-    let config = {};
+    const config = {};
     if (impl === 'ccxt') {
         ({ default: Ctor } = await import ('../js/src/base/ws/WsClient.js'));
     } else if (impl === 'fast-ws-adaptive') {
-        ({ default: Ctor } = await import ('./WsClientFast.mjs')); // adaptive default
+        ({ default: Ctor } = await import ('./WsClientFast.mjs')); // adaptive deferral (queue variant)
     } else {
-        ({ default: Ctor } = await import ('./WsClientStreamFast.mjs'));
-        if (impl === 'fast-nodefer') {
-            config = { options: { allowSynchronousEvents: true } };
-        } else if (impl === 'fast-deferred') {
-            config = { options: { adaptiveDeferral: false } }; // strict per-message deferral
-        }
-        // fast-adaptive: {} — adaptive deferral is WsClientStreamFast's default
+        ({ default: Ctor } = await import ('./WsClientStreamFast.mjs')); // 'fast': plain for-await, no options
     }
     let onDone = () => {};
     const client = new Ctor (
@@ -122,7 +116,7 @@ async function main () {
     await new Promise ((r) => wss.on ('listening', r));
     const url = 'ws://127.0.0.1:' + PORT;
     const results = [];
-    for (const impl of [ 'ccxt', 'fast-deferred', 'fast-adaptive', 'fast-ws-adaptive', 'fast-nodefer' ]) {
+    for (const impl of [ 'ccxt', 'fast', 'fast-ws-adaptive' ]) {
         results.push (await measure (impl, url));
     }
     console.log ('PROBE ' + JSON.stringify (results, null, 2));

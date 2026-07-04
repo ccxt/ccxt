@@ -380,3 +380,41 @@ with a clean paced tail. PR 29084 ships `WsClientStreamFast.mjs`;
 `WsClientFast.mjs` (the queue variant) stays on this branch as the
 measured-faster alternative if peak ceiling ever outranks implementation
 simplicity.
+
+### Simplification: all delivery options removed, bare `for await` (2026-07-04)
+
+By explicit product decision — per-message wakeup guarantees are not required
+("resolve most of them") — `WsClientStreamFast` dropped `adaptiveDeferral`,
+`allowSynchronousEvents`, `fairnessBatch`, `recvHighWaterMark`, and the
+resolve/reject wakeup hooks. The delivery loop is now literally:
+
+```js
+for await (const message of this.duplex) { this.onMessage ({ data: message }); }
+```
+
+(One message per async-iterator step — a microtask boundary between every
+two deliveries; HWM stays hardcoded at 1024 as the memory circuit breaker.)
+Same-run head-to-head (`results/plain-loop.txt`):
+
+| metric | production | WsClientFast (queue, adaptive) | **WsClientStreamFast (plain loop)** |
+|---|---|---|---|
+| tick100 ceiling | 568,302 msg/s | 979,522 (+72.4%) | **956,413 (+68.3%)** |
+| delta1k ceiling | 136,415 | 157,846 (+15.7%) | **147,760 (+8.3%)** |
+| paced 60k/s p50/p95/p99 µs | 422/749/982 | 381/645/771 | **375/626/824** |
+| el-lag p99 at tick100 firehose | 0.16 ms | 12.30 ms | **4.47 ms** |
+| parity | pass | pass | **pass** |
+| starvation-burst wakeups | 100% | 100% | **50.2%** |
+
+Removing the yields buys back most of the adaptive gap (956k vs the adaptive
+revision's 853k at tick100) at the documented price: under a saturating
+burst, a `while (true) { await watchX () }` consumer wakes for ~half the
+messages (per-message microtask boundary loses the multi-hop future re-arm
+race about half the time). Nothing is dropped — every message runs through
+`onMessage` and lands in the caches; the consumer's next wakeup sees the
+merged state. At paced (realistic) rates each message arrives in its own
+event-loop turn and wakeups are ~100% for all clients. Event-loop lag at the
+uncapped firehose is bounded by the HWM (microtask delivery monopolizes a
+turn until the duplex pauses the socket at 1024 unread messages). PR 29084
+ships this version; the adaptive variants (stream: git history; queue:
+`WsClientFast.mjs`) remain available if the 100% burst-wakeup guarantee is
+ever needed again.
