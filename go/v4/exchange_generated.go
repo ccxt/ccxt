@@ -3350,7 +3350,7 @@ func (this *Exchange) SafeTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var open any = this.OmitZero(this.SafeString(ticker, "open"))
 	var close any = this.OmitZero(this.SafeString2(ticker, "close", "last"))
-	var change any = this.OmitZero(this.SafeString(ticker, "change"))
+	var change any = this.SafeString(ticker, "change") // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
 	var percentage any = this.OmitZero(this.SafeString(ticker, "percentage"))
 	var average any = this.OmitZero(this.SafeString(ticker, "average"))
 	var vwap any = this.SafeString(ticker, "vwap")
