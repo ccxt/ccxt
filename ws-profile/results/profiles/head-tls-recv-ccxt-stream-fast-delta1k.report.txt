@@ -1,0 +1,66 @@
+== head-tls-recv-ccxt-stream-fast-delta1k.cpuprofile — total sampled 2853ms ==
+-- top 25 functions by SELF time --
+   1100.9ms  38.6%  onMessage ws-profile/WsClientStreamFast.mjs:180
+    958.8ms  33.6%  (idle)
+    125.4ms   4.4%  (program)
+     94.2ms   3.3%  (garbage collector)
+     51.7ms   1.8%  RegExp: :(\d{15,}),
+     47.0ms   1.6%  compileForInternalLoader node:internal/bootstrap/realm
+     30.0ms   1.1%  deliverLoop ws-profile/WsClientStreamFast.mjs:143
+     28.7ms   1.0%  FastBuffer node:internal/buffer
+     26.6ms   0.9%  nextTick node:internal/process/task_queues
+     26.3ms   0.9%  consume node_modules/ws/lib/receiver.js:126
+     23.8ms   0.8%  message node_modules/ws/lib/stream.js:62
+     23.2ms   0.8%  toString node:buffer
+     16.7ms   0.6%  Readable.read node:internal/streams/readable
+     12.8ms   0.4%  startLoop node_modules/ws/lib/receiver.js:171
+     11.7ms   0.4%  onStreamRead node:internal/stream_base_commons
+     11.5ms   0.4%  wrapSafe node:internal/modules/cjs/loader
+     10.3ms   0.4%  isUtf8 node:buffer
+     10.1ms   0.4%  readableAddChunkPushByteMode node:internal/streams/readable
+      9.8ms   0.3%  processImmediate node:internal/timers
+      9.4ms   0.3%  hrtimeBigInt node:internal/process/per_thread
+      9.1ms   0.3%  createAsyncIterator node:internal/streams/readable
+      7.8ms   0.3%  setImmediate node:timers
+      7.5ms   0.3%  Immediate node:internal/timers
+      7.4ms   0.3%  compileSourceTextModule node:internal/modules/esm/utils
+      6.9ms   0.2%  get node:internal/bootstrap/node
+-- flame tree (nodes >= 1% total, depth <= 14) --
+100.0% (2853.5ms, self 0.0ms) (root)
+  44.0% (1255.8ms, self 30.0ms) deliverLoop ws-profile/WsClientStreamFast.mjs:143
+    41.1% (1172.0ms, self 1097.6ms) onMessage ws-profile/WsClientStreamFast.mjs:180
+      1.8% (50.7ms, self 50.7ms) RegExp: :(\d{15,}),
+    1.2% (35.3ms, self 7.8ms) createAsyncIterator node:internal/streams/readable
+  33.6% (958.8ms, self 958.8ms) (idle)
+  7.1% (203.5ms, self 3.2ms) processTicksAndRejections node:internal/process/task_queues
+    6.2% (178.0ms, self 3.6ms) resume_ node:internal/streams/readable
+      6.1% (173.2ms, self 0.0ms) flow node:internal/streams/readable
+        6.1% (173.2ms, self 0.0ms) Socket.read node:net
+          6.0% (172.2ms, self 4.3ms) Readable.read node:internal/streams/readable
+            5.8% (164.3ms, self 0.0ms) emit node:events
+              5.7% (163.3ms, self 1.7ms) socketOnData node_modules/ws/lib/websocket.js:1373
+                5.7% (161.6ms, self 2.3ms) Writable.write node:internal/streams/writable
+                  5.6% (159.3ms, self 2.4ms) _write node:internal/streams/writable
+                    5.5% (156.9ms, self 0.0ms) writeOrBuffer node:internal/streams/writable
+                      5.5% (156.9ms, self 1.4ms) _write node_modules/ws/lib/receiver.js:95
+                        5.4% (153.0ms, self 12.8ms) startLoop node_modules/ws/lib/receiver.js:171
+                          3.6% (102.7ms, self 4.7ms) getData node_modules/ws/lib/receiver.js:479
+                            2.5% (70.6ms, self 0.0ms) dataMessage node_modules/ws/lib/receiver.js:595
+  4.4% (125.4ms, self 125.4ms) (program)
+  3.3% (94.2ms, self 94.2ms) (garbage collector)
+  2.5% (72.0ms, self 0.0ms) run node:internal/modules/esm/module_job
+    2.3% (65.2ms, self 0.0ms) (anonymous) node:internal/modules/esm/translators
+      2.3% (65.2ms, self 0.0ms) cjsLoader node:internal/modules/esm/translators
+        2.3% (65.2ms, self 0.0ms) wrapModuleLoad node:internal/modules/cjs/loader
+          2.3% (65.2ms, self 0.0ms) traceSync node:diagnostics_channel
+            2.3% (65.2ms, self 1.1ms) Module._load node:internal/modules/cjs/loader
+              2.2% (64.1ms, self 0.0ms) Module.load node:internal/modules/cjs/loader
+                2.2% (64.1ms, self 0.0ms) Module._extensions..js node:internal/modules/cjs/loader
+                  2.2% (63.1ms, self 0.0ms) Module._compile node:internal/modules/cjs/loader
+                    1.6% (44.3ms, self 0.0ms) (anonymous) node_modules/undici/index.js:1
+                      1.6% (44.3ms, self 0.0ms) require node:internal/modules/helpers
+                        1.6% (44.3ms, self 0.0ms) Module.require node:internal/modules/cjs/loader
+                          1.6% (44.3ms, self 0.0ms) wrapModuleLoad node:internal/modules/cjs/loader
+                            1.6% (44.3ms, self 0.0ms) traceSync node:diagnostics_channel
+  1.3% (37.5ms, self 11.7ms) onStreamRead node:internal/stream_base_commons
+folded stacks (µs) -> results/profiles/head-tls-recv-ccxt-stream-fast-delta1k.folded

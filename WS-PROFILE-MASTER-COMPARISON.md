@@ -229,3 +229,58 @@ again. Parity suite: all rows pass; fast's `binary_json_frame_parsed` and
 abrupt-destroy signature now match production `ws` exactly
 (`results/parity.txt` refreshed). Stream-fast numbers ABOVE this addendum
 describe the earlier undici-based revision (see git history).
+
+### Re-profile: HEAD vs origin/master (2026-07-04, after the ws-duplex rebase)
+
+Baseline validity: HEAD is 8 commits behind origin/master (fetched at
+58f2be3437, merge-base 4af7fa740e) with ZERO diff in `ts/src/base/ws`,
+`js/src/base/ws` and `package.json` — the `ccxt` transport benched here is
+byte-identical to origin/master's production WsClient, so this same-day
+re-run IS the HEAD-vs-master comparison. Absolute numbers differ from the
+tables above (different day/machine state); compare only within a run.
+Artifacts: `results/tls-recv-head.{median,raw}.json`,
+`results/probe-starvation-head.txt`,
+`results/profiles/head-tls-recv-*-delta1k.{cpuprofile,folded,report.txt}`;
+the committed pre-rebase result files are untouched.
+
+Receive ceilings (TLS loopback, medians of 3):
+
+| kind | ccxt (= origin/master) | ccxt-stream-fast (HEAD) | Δ ceiling |
+|---|---|---|---|
+| tick100 | 570,833 msg/s, 1.86 µs cpu/msg, el-lag p99 0.17 ms | 519,063 msg/s, 2.01 µs, 0.22 ms | -9.1% |
+| delta1k | 134,512 msg/s, 7.73 µs, 0.18 ms | 131,488 msg/s, 8.03 µs, 0.09 ms | -2.2% |
+| snap20k | 17,630 msg/s, 60.94 µs, 0.18 ms | 16,683 msg/s, 63.59 µs, 0.09 ms | -5.4% |
+
+Paced delivery latency (delta1k, 240k msgs, µs p50/p95/p99/max):
+
+| rate | ccxt | ccxt-stream-fast |
+|---|---|---|
+| 20k/s | 170 / 408 / 599 / 3061 | 178 / 456 / 639 / 2596 |
+| 60k/s | 425 / 725 / 928 / 3979 | 466 / 1462 / 3080 / 6063 |
+
+Sustained receive leak (500k, then 2N): both clean
+(`linear_growth_leak=false`, heap plateaus: ccxt +173/-6 KB, fast +160/-2 KB);
+fast's RSS after 2N is 116 MB vs 101 MB — bounded duplex buffering headroom.
+
+CPU profiles (delta1k ceiling, 200k msgs, `--cpu-prof`): both transports are
+JSON.parse-bound — `onMessage` self time 36.4% (ccxt) vs 38.6% (fast). The
+duplex plumbing is second-order: ws `stream.js` message handler 0.8% +
+`Readable.read` 0.6% + `readableAddChunkPushByteMode` 0.4% + async-iterator
+0.3% + `deliverLoop` 1.1% + `setImmediate`/`processImmediate` ≈0.7% — ≈4% of
+samples, consistent with the +0.30 µs/msg median cpu delta at the delta1k
+ceiling. The fixed per-message plumbing costs most in relative terms on small
+frames (tick100: -9.1%).
+
+Starvation probe re-run: guarantees unchanged — ccxt 100%, fast-deferred
+100%, fast-adaptive 100% consumer wakeups; the no-deferral control moves
+25.4% -> 50.2% (the async iterator yields a microtask boundary per chunk, so
+even undeferred delivery starves less than the undici revision did).
+
+Interpretation: HEAD's fast client trades 2-9% of raw ceiling and paced tail
+latency at high rate (p99 3.08 ms vs 0.93 ms at 60k/s — pause/resume cycling
+around the duplex's HWM of 16 messages once real backpressure engages;
+tunable via `readableHighWaterMark`, deliberately not tuned here) for bounded
+memory, real TCP backpressure, and lower event-loop lag at the ceiling (p99
+0.09 ms vs 0.18 ms). Production stays ahead on pure throughput: with the
+undici pathologies gone, the remaining gap is plain streams dispatch, not a
+fixable defect.
