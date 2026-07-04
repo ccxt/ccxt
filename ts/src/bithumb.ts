@@ -234,6 +234,7 @@ export default class bithumb extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
+                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -248,6 +249,7 @@ export default class bithumb extends Exchange {
                         'iceberg': false,
                     },
                     'createOrders': {
+                        'max': 20,
                         'marginMode': false,
                         'triggerPrice': false,
                         'triggerPriceType': undefined,
@@ -256,6 +258,7 @@ export default class bithumb extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
+                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -286,6 +289,8 @@ export default class bithumb extends Exchange {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
+                        'daysBack': 0,
+                        'untilDays': 0,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -300,6 +305,9 @@ export default class bithumb extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
+                        'daysBack': 0,
+                        'daysBackCanceled': 0,
+                        'untilDays': 0,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -907,12 +915,21 @@ export default class bithumb extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market);
         const close = this.safeString2 (ticker, 'closing_price', 'trade_price');
+        let high = this.safeString2 (ticker, 'max_price', 'high_price');
+        let low = this.safeString2 (ticker, 'min_price', 'low_price');
+        // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
+        if ((close !== undefined) && (high !== undefined) && Precise.stringGt (close, high)) {
+            high = close;
+        }
+        if ((close !== undefined) && (low !== undefined) && Precise.stringLt (close, low)) {
+            low = close;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString2 (ticker, 'max_price', 'high_price'),
-            'low': this.safeString2 (ticker, 'min_price', 'low_price'),
+            'high': high,
+            'low': low,
             'bid': this.safeString (ticker, 'buy_price'),
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'sell_price'),
@@ -949,45 +966,39 @@ export default class bithumb extends Exchange {
         const request: Dict = {};
         const result: Dict = {};
         if (generation === 2) {
-            request['markets'] = this.marketIds (symbols).join (',');
+            if (symbols !== undefined) {
+                request['markets'] = this.marketIds (symbols).join (',');
+            }
             const response = await this.publicGetV1Ticker (this.extend (request, params));
-            //
-            //     [
-            //         {
-            //             "market": "BTC-USDC",
-            //             "trade_date": "20260701",
-            //             "trade_time": "233533",
-            //             "trade_date_kst": "20260702",
-            //             "trade_time_kst": "083533",
-            //             "trade_timestamp": 1782981333650,
-            //             "opening_price": 0.00001667,
-            //             "high_price": 0.00001667,
-            //             "low_price": 0.00001645,
-            //             "trade_price": 0.00001659,
-            //             "prev_closing_price": 0.00001673,
-            //             "change": "FALL",
-            //             "change_price": 1.4E-7,
-            //             "change_rate": 0.0084,
-            //             "signed_change_price": -1.4E-7,
-            //             "signed_change_rate": -0.0084,
-            //             "trade_volume": 1.43724182,
-            //             "acc_trade_price": 0.77934383561689,
-            //             "acc_trade_price_24h": 1.76373410121466379999997512,
-            //             "acc_trade_volume": 47175.3220805,
-            //             "acc_trade_volume_24h": 104565.90238645676844763,
-            //             "highest_52_week_price": 0.00006592,
-            //             "highest_52_week_date": "2025-11-05",
-            //             "lowest_52_week_price": 0.00000782,
-            //             "lowest_52_week_date": "2026-02-22",
-            //             "timestamp": 1782981333650
-            //         },
-            //     ]
-            //
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+            let tickers = [];
+            if (Array.isArray (response)) {
+                tickers = response;
+            } else if (this.isDictionary (response)) {
+                if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
+                    tickers = [ response ];
+                } else {
+                    const ids = Object.keys (response);
+                    for (let i = 0; i < ids.length; i++) {
+                        const id = ids[i];
+                        const ticker = this.safeDict (response, id);
+                        if (ticker !== undefined) {
+                            ticker['market'] = this.safeString (ticker, 'market', id);
+                            tickers.push (ticker);
+                        }
+                    }
+                }
+            }
+            for (let i = 0; i < tickers.length; i++) {
+                const entry = tickers[i];
                 const marketId = this.safeString (entry, 'market');
-                const market = this.market (marketId);
+                if (marketId === undefined) {
+                    continue;
+                }
+                const market = this.safeMarket (marketId);
                 const symbol = this.safeSymbol (marketId, market);
+                if (symbol === undefined) {
+                    continue;
+                }
                 result[symbol] = this.parseTicker (entry, market);
             }
         } else {
@@ -1153,8 +1164,14 @@ export default class bithumb extends Exchange {
         //         "unit": 1
         //     }
         //
+        let timestamp = undefined;
+        if (Array.isArray (ohlcv)) {
+            timestamp = this.safeInteger2 (ohlcv, 0, 'timestamp');
+        } else {
+            timestamp = this.parse8601 (this.safeString2 (ohlcv, 'candle_date_time_utc', 'candle_date_time_kst'));
+        }
         return [
-            this.safeInteger2 (ohlcv, 0, 'timestamp'),
+            timestamp,
             this.safeNumber2 (ohlcv, 1, 'opening_price'),
             this.safeNumber2 (ohlcv, 3, 'high_price'),
             this.safeNumber2 (ohlcv, 4, 'low_price'),
