@@ -152,6 +152,19 @@
         ],
         "createOrder": [
             {
+                "description": "create order",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES",
+                    "market",
+                    "sell",
+                    21,
+                    0.52
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":100005920,\"b\":false,\"p\":\"0.494\",\"s\":\"21\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1782467824776,\"signature\":{\"r\":\"0xb17ddf735d6c6105f450bb506d921ca6e28fe66d3730b4c985a94fe7186b6076\",\"s\":\"0x4b3600c16981574a12e1c1bdf1e989562c26be358c0252a57fb5e70064011958\",\"v\":27}}"
+            },
+            {
                 "description": "limit order with more than 5 sig digs",
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
@@ -719,6 +732,16 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel order by outcome",
+                "method": "cancelOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    480264497594,
+                    "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES"
+                ],
+                "output": "{\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":100005920,\"o\":480264497594}]},\"nonce\":1782467933792,\"signature\":{\"r\":\"0x2f3df12a1bfb70d0583cb0bc471feda7e72d1ffc0c4e72a0e44d477b506041d1\",\"s\":\"0x29810dfe452bec8fd671207e50de6249d40de0903e70e584ed1c2ec7791905a4\",\"v\":27}}"
+            },
+            {
                 "description": "cancel order",
                 "method": "cancelOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
@@ -817,6 +840,24 @@
             }
         ],
         "fetchOrderBook": [
+            {
+                "description": "fetch OB by outcome label",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC-ABOVE-62802-20260626:YES"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"#6560\"}"
+            },
+            {
+                "description": "fetch orderbook by id",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "#6560"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"#6560\"}"
+            },
             {
                 "description": "fetch orderbook with kilo pair",
                 "method": "fetchOrderBook",
@@ -1081,6 +1122,20 @@
             }
         ],
         "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC-ABOVE-61571-20260626:NO",
+                    null,
+                    1,
+                    {
+                        "address": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31"
+                    }
+                ],
+                "output": "{\"type\":\"recentTrades\",\"coin\":\"#6491\",\"address\":\"0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31\"}"
+            },
             {
                 "description": "fetchTrades",
                 "method": "fetchTradesxp",
