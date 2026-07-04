@@ -123,14 +123,20 @@ import hmac
 import io
 import tempfile
 
-# load orjson if available, otherwise default to json
-orjson = None
-try:
-    import orjson as orjson
-except ImportError:
-    pass
-
 import json
+
+# use orjson if importable, otherwise default to the stdlib json
+try:
+    import orjson as json_parser
+
+    def json_dumps(data):
+        return json_parser.dumps(data).decode('utf-8')
+except ImportError:
+    json_parser = json
+
+    def json_dumps(data):
+        return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
+
 import math
 import random
 from numbers import Number
@@ -590,19 +596,10 @@ class Exchange(object):
         return response_body.strip()
 
     def on_json_response(self, response_body):
-        if self.quoteJsonNumbers:
-            # orjson has no parse_float/parse_int hooks, so the precision-preserving
-            # default mode (numbers parsed as exact strings) requires stdlib json
-            return json.loads(response_body, parse_float=str, parse_int=str)
-        if orjson is not None:
-            try:
-                # note: orjson parses integers beyond 64 bits as floats, like
-                # JSON.parse in the ts source (which is lossy beyond 2**53 already)
-                return orjson.loads(response_body)
-            except ValueError:
-                # stdlib-parsable edge cases orjson rejects, e.g. NaN/Infinity literals
-                return json.loads(response_body)
-        return json.loads(response_body)
+        # note: quoteJsonNumbers is ignored in python - unlike javascript, python
+        # ints have arbitrary precision, so large ids survive parsing natively,
+        # and floats follow the same IEEE-754 semantics as JSON.parse in the ts source
+        return json_parser.loads(response_body)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -1769,16 +1766,7 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
-        if orjson is not None:
-            try:
-                # note: like JSON.stringify in the ts source, orjson does not
-                # ascii-escape non-ascii characters (stdlib json does)
-                return orjson.dumps(data).decode('utf-8')
-            except TypeError:
-                # types orjson rejects (ints >= 2**64, non-str dict keys,
-                # objects handled by SafeJSONEncoder) fall back to stdlib
-                pass
-        return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
+        return json_dumps(data)
 
     @staticmethod
     def is_json_encoded_object(input):

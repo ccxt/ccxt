@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 
-orjson = None
-try:
-    import orjson as orjson
-except ImportError:
-    pass
-
 import json
+
+# use orjson if importable, otherwise default to the stdlib json
+try:
+    import orjson as json_parser
+
+    def json_dumps(message):
+        return json_parser.dumps(message).decode('utf-8')
+except ImportError:
+    json_parser = json
+
+    def json_dumps(message):
+        return json.dumps(message, separators=(',', ':'))
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
 from .functions import milliseconds, iso8601, deep_extend, is_json_encoded_object
@@ -243,14 +249,7 @@ class Client(object):
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):
-            if orjson is None:
-                decode = json.loads(data)
-            else:
-                try:
-                    decode = orjson.loads(data)
-                except ValueError:
-                    # stdlib-parsable edge cases orjson rejects, e.g. NaN/Infinity literals
-                    decode = json.loads(data)
+            decode = json_parser.loads(data)
         else:
             decode = data
         self.on_message_callback(self, decode)
@@ -311,14 +310,7 @@ class Client(object):
         if isinstance(message, str):
             send_msg = message
         else:
-            if orjson is None:
-                send_msg = json.dumps(message, separators=(',', ':'))
-            else:
-                try:
-                    send_msg = orjson.dumps(message).decode('utf-8')
-                except TypeError:
-                    # types orjson rejects (ints >= 2**64, non-str dict keys) fall back to stdlib
-                    send_msg = json.dumps(message, separators=(',', ':'))
+            send_msg = json_dumps(message)
         if self.closed():
             raise ConnectionError('Cannot Send Message: Connection closed before send')
         return await self.connection.send_str(send_msg)
