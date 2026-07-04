@@ -1970,8 +1970,8 @@ export default class bitget extends bitgetRest {
         const avgPrice = (avgPriceString === undefined) ? undefined : this.omitZero (avgPriceString);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        const accBaseVolume = this.omitZero (this.safeString2 (order, 'accBaseVolume', 'cumExecQty', ''));
-        const newSizeValue = this.omitZero (this.safeString2 (order, 'newSize', 'cumExecValue', ''));
+        const accBaseVolume = this.omitZero (this.safeString2 (order, 'accBaseVolume', 'cumExecQty'));
+        const newSizeValue = this.omitZero (this.safeString2 (order, 'newSize', 'cumExecValue'));
         const isMarketOrder = (type === 'market');
         const isBuy = (side === 'buy');
         let totalAmount: Str = undefined;
