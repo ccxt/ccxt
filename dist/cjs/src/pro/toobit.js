@@ -137,7 +137,7 @@ class toobit extends toobit$1["default"] {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = this.safeValue(methods, topic);
+        const method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);
         }
@@ -146,7 +146,7 @@ class toobit extends toobit$1["default"] {
             for (let i = 0; i < message.length; i++) {
                 const item = message[i];
                 const event = this.safeString(item, 'e');
-                const method2 = this.safeValue(methods, event);
+                const method2 = (event === undefined) ? undefined : this.safeValue(methods, event);
                 if (method2 !== undefined) {
                     method2.call(this, client, item);
                 }
