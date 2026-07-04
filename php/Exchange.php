@@ -6020,7 +6020,7 @@ class Exchange {
 
     public function safe_position(array $position) {
         // simplified version of => /pull/12765/
-        $unrealizedPnlString = $this->safe_string($position, 'unrealisedPnl');
+        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         //
         // PERCENTAGE
