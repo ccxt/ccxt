@@ -263,7 +263,7 @@ func (this *TokocryptoCore) Describe() any {
 				"BEP20": "BSC",
 				"OMNI":  "OMNI",
 				"EOS":   "EOS",
-				"SPL":   "SOL",
+				"SOL":   "SOL",
 			},
 			"reverseNetworks": map[string]any{
 				"tronscan.org":                   "TRC20",

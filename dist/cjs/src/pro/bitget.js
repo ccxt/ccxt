@@ -886,7 +886,10 @@ class bitget extends bitget$1["default"] {
             storedOrderBook['datetime'] = this.iso8601(timestamp);
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
-            if (!isSnapshot && checksum) {
+            // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
+            // so only validate the checksum when the exchange actually sends one
+            const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
+            if (!isSnapshot && checksum && (responseChecksum !== undefined)) {
                 const storedAsks = storedOrderBook['asks'];
                 const storedBids = storedOrderBook['bids'];
                 const asksLength = storedAsks.length;
@@ -904,12 +907,7 @@ class bitget extends bitget$1["default"] {
                 }
                 const payload = payloadArray.join(':');
                 const calculatedChecksum = this.crc32(payload, true);
-                const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
-                    // if (messageHash in client.subscriptions) {
-                    //     // delete client.subscriptions[messageHash];
-                    //     // delete this.orderbooks[symbol];
-                    // }
                     this.spawn(this.handleCheckSumError, client, symbol, messageHash);
                     return;
                 }
@@ -2698,10 +2696,14 @@ class bitget extends bitget$1["default"] {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
+        // UTA
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
+        //
         const arg = this.safeDict(message, 'arg', {});
         const instType = this.safeStringLower(arg, 'instType');
         const type = (instType === 'spot') ? 'spot' : 'contract';
-        const instId = this.safeString(arg, 'instId');
+        const instId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(instId, undefined, undefined, type);
         const symbol = market['symbol'];
         const messageHash = 'unsubscribe:orderbook:' + market['symbol'];

@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.63';
+const version = '4.5.64';
 
 //-----------------------------------------------------------------------------
 
@@ -127,6 +127,7 @@ import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
+import mudrex from  './src/mudrex.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import okx from  './src/okx.js'
@@ -212,6 +213,7 @@ import lighterPro from  './src/pro/lighter.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
+import mudrexPro from  './src/pro/mudrex.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okxPro from  './src/pro/okx.js'
@@ -320,6 +322,7 @@ const exchanges = {
     'mercado':                mercado,
     'mexc':                   mexc,
     'modetrade':              modetrade,
+    'mudrex':                 mudrex,
     'myokx':                  myokx,
     'ndax':                   ndax,
     'okx':                    okx,
@@ -405,6 +408,7 @@ const pro = {
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'modetrade':              modetradePro,
+    'mudrex':                 mudrexPro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
     'okx':                    okxPro,
@@ -679,6 +683,7 @@ export {
     mercado,
     mexc,
     modetrade,
+    mudrex,
     myokx,
     ndax,
     okx,

@@ -13,11 +13,7 @@ async function testAfterConstruct(exchange, skippedProperties) {
 }
 function testOptionsNetworks(exchange, skippedProperties) {
     if (!('networks' in skippedProperties)) {
-        // only allow these whitelisted unified networkCodes to be repeated
-        const allowedUnifiedAliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SPL', 'SOL', 'POLYGON', 'MATIC', 'CARDANO', 'ADA'];
-        // safeDict, not exchange.options['networks']: a direct missing-key access throws
-        // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
-        // hyperliquid prediction market)
+        const allowedUnifiedAliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SOL', 'POLYGON', 'MATIC', 'CARDANO', 'ADA', 'ATOM', 'COSMOS'];
         const networks = exchange.safeDict(exchange.options, 'networks');
         if (networks === undefined) {
             return;

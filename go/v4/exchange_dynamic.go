@@ -341,6 +341,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		modetradeItf := NewModetradeCore()
 		modetradeItf.Init(exchangeArgs)
 		return modetradeItf, true
+	case "mudrex":
+		mudrexItf := NewMudrexCore()
+		mudrexItf.Init(exchangeArgs)
+		return mudrexItf, true
 	case "myokx":
 		myokxItf := NewMyokxCore()
 		myokxItf.Init(exchangeArgs)
