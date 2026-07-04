@@ -41,6 +41,9 @@ class upbit extends upbit$1["default"] {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols(symbols);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const marketIds = this.marketIds(symbols);
         const url = this.implodeParams(this.urls['api']['ws'], {
             'hostname': this.hostname,
@@ -213,7 +216,9 @@ class upbit extends upbit$1["default"] {
         //   "stream_type": "SNAPSHOT" }
         const ticker = this.parseTicker(message);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
     }
@@ -288,6 +293,9 @@ class upbit extends upbit$1["default"] {
         //   "stream_type": "REALTIME" }
         const trade = this.parseTrade(message);
         const symbol = trade['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -441,6 +449,9 @@ class upbit extends upbit$1["default"] {
             'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseWsOrder(order, market = undefined) {
@@ -580,8 +591,8 @@ class upbit extends upbit$1["default"] {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const cachedOrders = this.orders;
-        const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-        const order = this.safeValue(orders, orderId);
+        const orders = (symbol === undefined) ? {} : this.safeValue(cachedOrders.hashmap, symbol, {});
+        const order = (orderId === undefined) ? undefined : this.safeValue(orders, orderId);
         if (order !== undefined) {
             const fee = this.safeValue(order, 'fee');
             if (fee !== undefined) {
@@ -661,7 +672,7 @@ class upbit extends upbit$1["default"] {
             'candle.1s': this.handleOHLCV,
         };
         const methodName = this.safeString(message, 'type');
-        const method = this.safeValue(methods, methodName);
+        const method = (methodName === undefined) ? undefined : this.safeValue(methods, methodName);
         if (method !== undefined) {
             method.call(this, client, message);
         }
