@@ -8181,7 +8181,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object item = Helpers.GetValue(response, i);
-                Object id = this.safeString(item, marketIdKey);
+                Object id = ((Helpers.isTrue((Helpers.isEqual(marketIdKey, null))))) ? null : this.safeString(item, marketIdKey);
                 Object market = this.safeMarket(id, null, null, "swap");
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object contract = this.safeBool(market, "contract", false);
@@ -11465,7 +11465,7 @@ public Object describe()
                 } else
                 {
                     Object keys = Helpers.objectKeys(addressStructures);
-                    Object key = this.safeString(keys, 0);
+                    Object key = Helpers.GetValue(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
             } else
@@ -12966,7 +12966,11 @@ public Object describe()
         {
             Object entry = Helpers.GetValue(responseKeys, i);
             Object dictionary = ((Helpers.isTrue(isArray))) ? entry : Helpers.GetValue(response, entry);
-            Object currencyId = ((Helpers.isTrue(isArray))) ? this.safeString(dictionary, currencyIdKey) : entry;
+            Object currencyId = entry;
+            if (Helpers.isTrue(isArray))
+            {
+                currencyId = ((Helpers.isTrue((Helpers.isEqual(currencyIdKey, null))))) ? null : this.safeString(dictionary, currencyIdKey);
+            }
             Object currency = this.safeCurrency(currencyId);
             Object code = this.safeString(currency, "code");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
@@ -13498,7 +13502,7 @@ public Object describe()
                         Object index = Helpers.subtract(Helpers.subtract(responseLength, j), 1);
                         Object entry = this.safeDict(response, index);
                         Object info = this.safeDict(entry, "info");
-                        Object cursor = this.safeValue(info, cursorReceived);
+                        Object cursor = ((Helpers.isTrue((Helpers.isEqual(cursorReceived, null))))) ? null : this.safeValue(info, cursorReceived);
                         if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))
                         {
                             cursorValue = cursor;
@@ -13791,9 +13795,9 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString(info, currencyKey);
+            Object currencyId = ((Helpers.isTrue((Helpers.isEqual(currencyKey, null))))) ? null : this.safeString(info, currencyKey);
             Object currency = this.safeCurrency(currencyId);
-            Object marketId = this.safeString(info, symbolKey);
+            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             Object market = this.safeMarket(marketId, null, null, "option");
             Helpers.addElementToObject(optionStructures, Helpers.GetValue(market, "symbol"), this.parseOption(info, currency, market));
         }
@@ -13813,7 +13817,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object marketId = this.safeString(info, symbolKey);
+            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             Object market = this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
@@ -13842,7 +13846,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object marketId = this.safeString(info, symbolKey);
+            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             Object market = this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
@@ -13873,8 +13877,8 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(conversions)); i++)
         {
             Object entry = Helpers.GetValue(conversions, i);
-            Object fromId = this.safeString(entry, fromCurrencyKey);
-            Object toId = this.safeString(entry, toCurrencyKey);
+            Object fromId = ((Helpers.isTrue((Helpers.isEqual(fromCurrencyKey, null))))) ? null : this.safeString(entry, fromCurrencyKey);
+            Object toId = ((Helpers.isTrue((Helpers.isEqual(toCurrencyKey, null))))) ? null : this.safeString(entry, toCurrencyKey);
             if (Helpers.isTrue(!Helpers.isEqual(fromId, null)))
             {
                 fromCurrency = this.safeCurrency(fromId);
@@ -14068,7 +14072,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object marketId = this.safeString(info, symbolKey);
+            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             Object market = this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
