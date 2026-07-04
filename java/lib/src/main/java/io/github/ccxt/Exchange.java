@@ -8238,7 +8238,7 @@ public Object describe()
     public Object safePosition(Object position)
     {
         // simplified version of: /pull/12765/
-        Object unrealizedPnlString = this.safeString(position, "unrealisedPnl");
+        Object unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         Object initialMarginString = this.safeString(position, "initialMargin");
         //
         // PERCENTAGE
