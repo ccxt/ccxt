@@ -79,6 +79,9 @@ class bithumb extends \ccxt\async\bithumb {
             $marketIds = array();
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols, null, false, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);

@@ -130,14 +130,14 @@ class derive extends \ccxt\async\derive {
         // }
         //
         $params = $this->safe_dict($message, 'params');
-        $data = $this->safe_dict($params, 'data');
+        $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'instrument_name');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($params, 'channel');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-            $subscription = $client->subscriptions[$topic];
+            $subscription = ($topic === null) ? null : $client->subscriptions[$topic];
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
@@ -246,10 +246,13 @@ class derive extends \ccxt\async\derive {
         //
         $params = $this->safe_dict($message, 'params');
         $rawData = $this->safe_dict($params, 'data');
-        $data = $this->safe_dict($rawData, 'instrument_ticker');
+        $data = $this->safe_dict($rawData, 'instrument_ticker', array());
         $topic = $this->safe_value($params, 'channel');
         $ticker = $this->parse_ticker($data);
-        $this->tickers[$ticker['symbol']] = $ticker;
+        $tickerSymbol = $ticker['symbol'];
+        if ($tickerSymbol !== null) {
+            $this->tickers[$tickerSymbol] = $ticker;
+        }
         $client->resolve($ticker, $topic);
         return $message;
     }
@@ -427,7 +430,7 @@ class derive extends \ccxt\async\derive {
         //
         //
         $params = $this->safe_dict($message, 'params');
-        $data = $this->safe_dict($params, 'data');
+        $data = $this->safe_dict($params, 'data', array());
         $topic = $this->safe_value($params, 'channel');
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
@@ -585,7 +588,7 @@ class derive extends \ccxt\async\derive {
         //
         $params = $this->safe_dict($message, 'params');
         $topic = $this->safe_string($params, 'channel');
-        $rawOrders = $this->safe_list($params, 'data');
+        $rawOrders = $this->safe_list($params, 'data', array());
         for ($i = 0; $i < count($rawOrders); $i++) {
             $data = $rawOrders[$i];
             $parsed = $this->parse_order($data);
@@ -598,7 +601,7 @@ class derive extends \ccxt\async\derive {
                 }
                 $cachedOrders = $this->orders;
                 $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-                $order = $this->safe_value($orders, $orderId);
+                $order = ($orderId === null) ? null : $this->safe_value($orders, $orderId);
                 if ($order !== null) {
                     $fee = $this->safe_value($order, 'fee');
                     if ($fee !== null) {
@@ -675,7 +678,7 @@ class derive extends \ccxt\async\derive {
         }
         $params = $this->safe_dict($message, 'params');
         $topic = $this->safe_string($params, 'channel');
-        $rawTrades = $this->safe_list($params, 'data');
+        $rawTrades = $this->safe_list($params, 'data', array());
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $this->parse_trade($message);
             $myTrades->append($trade);
@@ -746,7 +749,7 @@ class derive extends \ccxt\async\derive {
                 }
             }
         }
-        $method = $this->safe_value($methods, $event);
+        $method = ($event === null) ? null : $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
             return;
@@ -754,7 +757,7 @@ class derive extends \ccxt\async\derive {
         if (is_array($message) && array_key_exists('id', $message)) {
             $id = $this->safe_string($message, 'id');
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = $this->safe_value($subscriptionsById, $id, array());
+            $subscription = ($id === null) ? array() : $this->safe_value($subscriptionsById, $id, array());
             if (is_array($subscription) && array_key_exists('method', $subscription)) {
                 if ($subscription['method'] === 'public/login') {
                     $this->handle_auth($client, $message);
@@ -774,7 +777,7 @@ class derive extends \ccxt\async\derive {
         // }
         //
         $messageHash = 'authenticated';
-        $ids = $this->safe_list($message, 'result');
+        $ids = $this->safe_list($message, 'result', array());
         if (strlen($ids) > 0) {
             // $client->resolve($message, $messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
