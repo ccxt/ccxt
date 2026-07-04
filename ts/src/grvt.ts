@@ -1616,7 +1616,8 @@ export default class grvt extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         if ('transfer_metadata' in transaction) {
-            const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata', ''));
+            const metaDataRaw = this.safeString (transaction, 'transfer_metadata', '');
+            const metaData = (metaDataRaw === '') ? undefined : this.omitZero (metaDataRaw);
             if (metaData !== undefined) {
                 const parsedMeta = this.parseJson (metaData);
                 direction = this.safeStringLower (parsedMeta, 'direction');
@@ -2189,7 +2190,7 @@ export default class grvt extends Exchange {
                 'isBuyingContract': leg['is_buying_asset'],
             };
             const limitPrice = this.safeString (leg, 'limit_price', '');
-            if (this.omitZero (limitPrice) !== undefined) {
+            if ((limitPrice !== '') && (this.omitZero (limitPrice) !== undefined)) {
                 const price = leg['limit_price'];
                 const limitParts = price.split ('.');
                 const limitDec = this.safeString (limitParts, 1, '');
