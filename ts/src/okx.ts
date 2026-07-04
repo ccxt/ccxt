@@ -1270,9 +1270,11 @@ export default class okx extends Exchange {
                 },
                 'fetchCanceledOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'withdraw': {
                     // a funding password credential is required by the exchange for the
