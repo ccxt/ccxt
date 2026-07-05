@@ -174,10 +174,9 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-// onJsonResponse regexes, hoisted to module scope (shared safely: 'test' regex is non-global,
-// and String.replace resets lastIndex on the global one) - profiled neutral vs function-local
-// literals (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
-const PRECISION_RISKY_NUMBER_REGEX = /":[0-9.eE+-]{16}|":[0-9.+-]*[eE]/;
+// onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
+// lastIndex on the global regex) - profiled neutral vs a function-local literal
+// (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
 const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 
 // -----------------------------------------------------------------------------
@@ -1321,10 +1320,45 @@ export default class Exchange {
         return JSON.stringify (obj, (_, v) => (v === undefined ? null : v));
     }
 
+    hasUnsafeInteger (value) {
+        if (typeof value === 'number') {
+            return (value > Number.MAX_SAFE_INTEGER) || (value < -Number.MAX_SAFE_INTEGER);
+        }
+        if (value !== null && typeof value === 'object') {
+            if (Array.isArray (value)) {
+                for (let i = 0; i < value.length; i++) {
+                    if (this.hasUnsafeInteger (value[i])) {
+                        return true;
+                    }
+                }
+            } else {
+                for (const key in value) {
+                    if (this.hasUnsafeInteger (value[key])) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
-                return JSON.parse (this.onJsonResponse (jsonString));
+                if (!this.quoteJsonNumbers) {
+                    return JSON.parse (jsonString);
+                }
+                // fast path: a plain parse followed by a scan for integers beyond
+                // Number.MAX_SAFE_INTEGER (2^53), the only values whose original
+                // digits a plain parse can lose in practice (exchanges cap decimal
+                // precision well below 16 significant digits) — any lossy integer
+                // token rounds to a double >= 2^53, so it is always detected here
+                const parsed = JSON.parse (jsonString);
+                if (this.hasUnsafeInteger (parsed)) {
+                    // slow path: requote all numbers as strings and reparse
+                    return JSON.parse (this.onJsonResponse (jsonString));
+                }
+                return parsed;
             }
         } catch (e) {
             // SyntaxError
@@ -1410,19 +1444,13 @@ export default class Exchange {
         // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
         //
         // perf notes (benchmarked on node 22, real 0.3-1.9MB binance payloads, cpu-profiled):
-        // - the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
-        //   string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
-        //   rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
-        // - doubles round-trip exactly up to 15 significant digits, so when no object-valued number
-        //   token is 16+ chars long or in exponent form, nothing can lose precision and the whole
-        //   quoting pass is skipped after one cheap test() scan (~7% instead of ~43%); docs that
-        //   do contain a risky token keep the old quote-everything behavior
-        if (!this.quoteJsonNumbers) {
-            return responseBody;
-        }
-        if (!PRECISION_RISKY_NUMBER_REGEX.test (responseBody)) {
-            return responseBody;
-        }
+        // the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
+        // string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
+        // rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
+        //
+        // no quoteJsonNumbers guard needed here: parseJson returns early when
+        // quoteJsonNumbers is false, so this is only reached after an integer
+        // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
         return responseBody.replace (QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
 
