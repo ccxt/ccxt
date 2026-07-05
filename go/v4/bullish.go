@@ -1769,7 +1769,7 @@ func (this *BullishCore) FetchOrders(optionalArgs ...any) <-chan any {
 		methodparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "method", method)
 		method = GetValue(methodparamsVariable, 0)
 		params = GetValue(methodparamsVariable, 1)
-		var response any = nil
+		var response any = []any{}
 		if IsTrue(IsEqual(method, "privateGetV2Orders")) {
 			//
 			//     [

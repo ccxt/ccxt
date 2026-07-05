@@ -549,7 +549,7 @@ func  (this *ApexCore) HandleTicker(client any, message any)  {
     var updateType any = this.SafeString(message, "type", "")
     var data any = this.SafeDict(message, "data", map[string]any {})
     var symbol any = nil
-    var parsed any = nil
+    var parsed any = this.ParseTicker(data)
     if ccxt.IsTrue((ccxt.IsEqual(updateType, "snapshot"))) {
         parsed = this.ParseTicker(data)
         symbol = ccxt.GetValue(parsed, "symbol")
@@ -920,8 +920,7 @@ func  (this *ApexCore) HandleMyTrades(client any, lists any)  {
     var symbols any = map[string]any {}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(lists)); i++ {
         var rawTrade any = ccxt.GetValue(lists, i)
-        var parsed any = nil
-        parsed = this.ParseWsTrade(rawTrade)
+        var parsed any = this.ParseWsTrade(rawTrade)
         var symbol any = ccxt.GetValue(parsed, "symbol")
         ccxt.AddElementToObject(symbols, symbol, true)
         trades.(ccxt.Appender).Append(parsed)
@@ -972,8 +971,7 @@ func  (this *ApexCore) HandleOrder(client any, lists any)  {
     var orders any = this.Orders
     var symbols any = map[string]any {}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(lists)); i++ {
-        var parsed any = nil
-        parsed = this.ParseOrder(ccxt.GetValue(lists, i))
+        var parsed any = this.ParseOrder(ccxt.GetValue(lists, i))
         var symbol any = ccxt.GetValue(parsed, "symbol")
         ccxt.AddElementToObject(symbols, symbol, true)
         orders.(ccxt.Appender).Append(parsed)
@@ -1124,9 +1122,9 @@ func  (this *ApexCore) Authenticate(url any, optionalArgs ...any) <- chan any {
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes90515 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes90515)
-                ch <- retRes90515
+                retRes90315 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes90315)
+                ch <- retRes90315
                 return nil
         
             }()
@@ -1314,11 +1312,11 @@ func  (this *ApexCore) Pong(client any, message any) <- chan any {
                         }()
             		    // try block:
                         
-                    retRes105212 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                    retRes105012 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
                         "args": []any{ccxt.ToString(timeStamp)},
                         "op": "pong",
                     }))
-                    ccxt.PanicOnError(retRes105212)
+                    ccxt.PanicOnError(retRes105012)
             		    return nil
             	    }(this)
                 

@@ -2075,7 +2075,7 @@ func (this *HashkeyCore) ParseDepositAddress(depositAddress any, optionalArgs ..
 	}
 	return map[string]any{
 		"info":     depositAddress,
-		"currency": GetValue(currency, "code"),
+		"currency": this.SafeString(currency, "code"),
 		"network":  nil,
 		"address":  address,
 		"tag":      tag,
