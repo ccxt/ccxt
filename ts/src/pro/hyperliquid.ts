@@ -324,7 +324,6 @@ export default class hyperliquid extends hyperliquidRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -346,7 +345,6 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -355,13 +353,10 @@ export default class hyperliquid extends hyperliquidRest {
         symbols = this.marketSymbols (symbols, undefined, true);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
-        let channel = 'webData2';
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', channel);
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': channel, // webData2 or allMids
-                'user': '0x0000000000000000000000000000000000000000',
+                'type': 'allMids',
             },
         };
         let defaultDex = this.safeString (params, 'dex');
@@ -393,22 +388,18 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const subMessageHash = 'tickers';
-        let channel = 'webData2';
-        [ channel, params ] = this.handleOptionAndParams (params, 'unWatchTickers', 'channel', channel);
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': channel, // allMids
-                'user': '0x0000000000000000000000000000000000000000',
+                'type': 'allMids',
             },
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -500,110 +491,28 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         // }
         //
-        //     {
-        //         "channel": "webData2",
-        //         "data": {
-        //             "meta": {
-        //                 "universe": [
-        //                     {
-        //                         "szDecimals": 5,
-        //                         "name": "BTC",
-        //                         "maxLeverage": 50,
-        //                         "onlyIsolated": false
-        //                     },
-        //                     ...
-        //                 ],
-        //             },
-        //             "assetCtxs": [
-        //                 {
-        //                     "funding": "0.00003005",
-        //                     "openInterest": "2311.50778",
-        //                     "prevDayPx": "63475.0",
-        //                     "dayNtlVlm": "468043329.64289033",
-        //                     "premium": "0.00094264",
-        //                     "oraclePx": "64712.0",
-        //                     "markPx": "64774.0",
-        //                     "midPx": "64773.5",
-        //                     "impactPxs": [
-        //                         "64773.0",
-        //                         "64774.0"
-        //                     ]
-        //                 },
-        //                 ...
-        //             ],
-        //             "spotAssetCtxs": [
-        //                 {
-        //                     "prevDayPx": "0.20937",
-        //                     "dayNtlVlm": "11188888.61984999",
-        //                     "markPx": "0.19722",
-        //                     "midPx": "0.197145",
-        //                     "circulatingSupply": "598760557.12072003",
-        //                     "coin": "PURR/USDC"
-        //                 },
-        //                 ...
-        //             ],
-        //         }
-        //     }
-        //
         // handle hip3 mids
-        const channel = this.safeString (message, 'channel');
-        if (channel === 'allMids') {
-            const data = this.safeDict (message, 'data', {});
-            const mids = this.safeDict (data, 'mids', {});
-            if (mids !== undefined) {
-                const keys = Object.keys (mids);
-                for (let i = 0; i < keys.length; i++) {
-                    const name = keys[i];
-                    const marketId = this.coinToMarketId (name);
-                    const market = this.safeMarket (marketId, undefined, undefined, 'swap');
-                    const symbol = market['symbol'];
-                    const ticker = this.parseWsTicker ({
-                        'price': this.safeNumber (mids, name),
-                    }, market);
-                    this.tickers[symbol] = ticker;
-                }
-                let messageHash = 'tickers';
-                const dexMessage = this.safeString (data, 'dex');
-                if (dexMessage !== undefined) {
-                    messageHash += ':' + dexMessage;
-                }
-                client.resolve (this.tickers, messageHash);
-                return true;
+        const data = this.safeDict (message, 'data', {});
+        const mids = this.safeDict (data, 'mids', {});
+        if (mids !== undefined) {
+            const keys = Object.keys (mids);
+            for (let i = 0; i < keys.length; i++) {
+                const name = keys[i];
+                const marketId = this.coinToMarketId (name);
+                const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const ticker = this.parseWsTicker ({
+                    'price': this.safeNumber (mids, name),
+                }, market);
+                this.tickers[symbol] = ticker;
             }
+            let messageHash = 'tickers';
+            const dexMessage = this.safeString (data, 'dex');
+            if (dexMessage !== undefined) {
+                messageHash += ':' + dexMessage;
+            }
+            client.resolve (this.tickers, messageHash);
         }
-        // spot
-        const rawData = this.safeDict (message, 'data', {});
-        const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
-        const parsedTickers: Ticker[] = [];
-        for (let i = 0; i < spotAssets.length; i++) {
-            const assetObject = spotAssets[i];
-            const coin = this.safeString (assetObject, 'coin');
-            const marketId = this.coinToMarketId (coin);
-            const market = this.safeMarket (marketId, undefined, undefined, 'spot');
-            const symbol = market['symbol'];
-            const ticker = this.parseWsTicker (assetObject, market);
-            parsedTickers.push (ticker);
-            this.tickers[symbol] = ticker;
-        }
-        // perpetuals
-        const meta = this.safeDict (rawData, 'meta', {});
-        const universe = this.safeList (meta, 'universe', []);
-        const assetCtxs = this.safeList (rawData, 'assetCtxs', []);
-        for (let i = 0; i < universe.length; i++) {
-            const data = this.extend (
-                this.safeDict (universe, i, {}),
-                this.safeDict (assetCtxs, i, {})
-            );
-            const coin = this.safeString (data, 'name');
-            const marketId = this.coinToMarketId (coin);
-            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
-            const symbol = market['symbol'];
-            const ticker = this.parseWsTicker (data, market);
-            this.tickers[symbol] = ticker;
-            parsedTickers.push (ticker);
-        }
-        const tickers = this.indexBy (parsedTickers, 'symbol');
-        client.resolve (tickers, 'tickers');
         return true;
     }
 
@@ -1622,8 +1531,6 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handleOrderBookUnsubscription (client, subscription);
             } else if (type === 'trades') {
                 this.handleTradesUnsubscription (client, subscription);
-            } else if (type === 'webData2') {
-                this.handleTickersUnsubscription (client, subscription);
             } else if (type === 'candle') {
                 this.handleOHLCVUnsubscription (client, subscription);
             } else if (type === 'orderUpdates') {
@@ -1664,7 +1571,6 @@ export default class hyperliquid extends hyperliquidRest {
             'candle': this.handleOHLCV,
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
-            'webData2': this.handleWsTickers,
             'allMids': this.handleWsTickers,
             'post': this.handleWsPost,
             'subscriptionResponse': this.handleSubscriptionResponse,
