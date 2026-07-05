@@ -193,6 +193,7 @@ class kalshi extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     'not_found' => '\\ccxt\\BadSymbol',   // 404 for an unknown market/ticker id — distinguish from an outage
+                    'invalid_order' => '\\ccxt\\InvalidOrder',   // bad price/size/params on a 400
                     'fill_or_kill_insufficient_resting_volume' => '\\ccxt\\OrderNotFillable',   // a killed FOK is a normal outcome, not an outage
                 ),
                 'broad' => array(),

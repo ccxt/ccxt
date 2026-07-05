@@ -8,7 +8,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
-import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable } from '../base/errors.js';
+import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class kalshi
@@ -192,6 +192,7 @@ export default class kalshi extends Exchange {
             'exceptions': {
                 'exact': {
                     'not_found': BadSymbol, // 404 for an unknown market/ticker id — distinguish from an outage
+                    'invalid_order': InvalidOrder, // bad price/size/params on a 400
                     'fill_or_kill_insufficient_resting_volume': OrderNotFillable, // a killed FOK is a normal outcome, not an outage
                 },
                 'broad': {},

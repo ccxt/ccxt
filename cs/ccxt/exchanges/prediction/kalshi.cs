@@ -179,6 +179,7 @@ public partial class kalshi : PredictionExchange
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "not_found", typeof(BadSymbol) },
+                    { "invalid_order", typeof(InvalidOrder) },
                     { "fill_or_kill_insufficient_resting_volume", typeof(OrderNotFillable) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },

@@ -10,6 +10,7 @@ from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.precise import Precise
@@ -194,6 +195,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'not_found': BadSymbol,   # 404 for an unknown market/ticker id — distinguish from an outage
+                    'invalid_order': InvalidOrder,   # bad price/size/params on a 400
                     'fill_or_kill_insufficient_resting_volume': OrderNotFillable,   # a killed FOK is a normal outcome, not an outage
                 },
                 'broad': {},
