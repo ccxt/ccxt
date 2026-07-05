@@ -57,8 +57,7 @@ except ImportError:
     coincurve = None
 
 # eth signing
-from ccxt.static_dependencies.ethereum import abi
-from ccxt.static_dependencies.ethereum import account
+from ccxt.static_dependencies import ethabi
 from ccxt.static_dependencies.msgpack import packb
 
 # starknet
@@ -1501,11 +1500,11 @@ class Exchange(object):
 
     @staticmethod
     def eth_abi_encode(types, args):
-        return abi.encode(types, args)
+        return ethabi.encode(types, args)
 
     @staticmethod
     def eth_encode_structured_data(domain, messageTypes, message):
-        encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
+        encodedData = ethabi.encode_typed_data(domain, messageTypes, message)
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
