@@ -811,7 +811,7 @@ public class IndodaxCore extends IndodaxApi
             put( "filled", "closed" );
             put( "cancelled", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1109,7 +1109,7 @@ public class IndodaxCore extends IndodaxApi
                         Object costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
-                    Helpers.addElementToObject(request, Helpers.GetValue(market, "quoteId"), quoteAmount);
+                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), quoteAmount);
                 } else
                 {
                     quantityIsRequired = true;
@@ -1120,7 +1120,7 @@ public class IndodaxCore extends IndodaxApi
                 quantityIsRequired = true;
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Helpers.addElementToObject(request, Helpers.GetValue(market, "quoteId"), this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
+                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
                 }
             }
             if (Helpers.isTrue(priceIsRequired))
@@ -1133,7 +1133,7 @@ public class IndodaxCore extends IndodaxApi
             }
             if (Helpers.isTrue(quantityIsRequired))
             {
-                Helpers.addElementToObject(request, Helpers.GetValue(market, "baseId"), this.amountToPrecision(symbol, amount));
+                Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "baseId")), this.amountToPrecision(symbol, amount));
             }
             Object result = (this.privatePostTrade(this.extend(request, parameters))).join();
             Object data = this.safeValue(result, "return", new java.util.HashMap<String, Object>() {{}});
@@ -1517,7 +1517,7 @@ public class IndodaxCore extends IndodaxApi
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**

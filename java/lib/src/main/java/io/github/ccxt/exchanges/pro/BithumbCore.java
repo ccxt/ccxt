@@ -97,6 +97,10 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols, null, false, true, true);
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);

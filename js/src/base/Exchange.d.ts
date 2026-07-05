@@ -15,7 +15,7 @@ export default class Exchange {
     api: Dictionary<any>;
     certified: boolean;
     pro: boolean;
-    countries: Str[];
+    countries: Strings;
     proxy: any;
     proxyUrl: Str;
     proxy_url: Str;
@@ -35,10 +35,10 @@ export default class Exchange {
     socks_proxy_callback: any;
     userAgent: {
         'User-Agent': string;
-    } | false;
+    } | false | undefined;
     user_agent: {
         'User-Agent': string;
-    } | false;
+    } | false | undefined;
     wsProxy: Str;
     ws_proxy: Str;
     wssProxy: Str;
@@ -83,13 +83,13 @@ export default class Exchange {
     tickers: Dictionary<Ticker>;
     fundingRates: Dictionary<FundingRate>;
     bidsasks: Dictionary<Ticker>;
-    orders: ArrayCache;
+    orders: ArrayCache | undefined;
     triggerOrders: ArrayCache;
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction>;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: any;
-    myTrades: ArrayCache;
+    myTrades: ArrayCache | undefined;
     positions: any;
     urls: {
         logo?: string;
@@ -360,7 +360,7 @@ export default class Exchange {
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
-    ping(client: Client): any;
+    ping(client: Client): Dict | Str;
     client(url: string): WsClient;
     watchMultiple(url: string, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): import("./ws/Future.js").FutureInterface;
     watch(url: string, messageHash: string, message?: any, subscribeHash?: any, subscription?: any): any;
@@ -371,7 +371,7 @@ export default class Exchange {
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
-    valueIsDefined(value: any): boolean;
+    valueIsDefined<T>(value: T): value is NonNullable<T>;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
@@ -451,10 +451,10 @@ export default class Exchange {
     getCacheIndex(orderbook: any, deltas: any): number;
     arraysConcat(arraysOfArrays: any[]): any[];
     findTimeframe(timeframe: any, timeframes?: NullableDict): string;
-    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): any;
+    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): string;
     urlEncoderForProxyUrl(targetUrl: string): string;
-    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): any[];
-    checkWsProxySettings(): any[];
+    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): string[];
+    checkWsProxySettings(): string[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     checkAddress(address?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
@@ -708,7 +708,7 @@ export default class Exchange {
     safeNumber2(dictionary: object, key1: IndexType, key2: IndexType, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
-    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): LeverageTiers;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     safePosition(position: Dict): Position;
     parsePositions(positions: any[], symbols?: string[], params?: {}): Position[];
@@ -1015,7 +1015,7 @@ export default class Exchange {
     convertTypeToAccount(account: any): any;
     checkRequiredArgument(methodName: string, argument: any, argumentName: any, options?: any[]): void;
     checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
-    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): any;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     depositWithdrawFee(info: any): any;
     assignDefaultDepositWithdrawFees(fee: any, currency?: Currency): any;

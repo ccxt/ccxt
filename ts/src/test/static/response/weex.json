@@ -1202,7 +1202,7 @@
                         "lastPrice": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
-                        "percentage": null,
+                        "percentage": 1.46,
                         "info": {
                             "id": "749422759074857895",
                             "asset": "USDT",

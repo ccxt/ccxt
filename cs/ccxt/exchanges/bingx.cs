@@ -3216,12 +3216,16 @@ public partial class bingx : Exchange
                 positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            object amountReq = amount;
-            if (!isTrue(getValue(market, "inverse")))
+            object closePosition = this.safeBool(parameters, "closePosition", false);
+            if (!isTrue(closePosition))
             {
-                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                object amountReq = amount;
+                if (!isTrue(getValue(market, "inverse")))
+                {
+                    amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
+                ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
             }
-            ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
         }
         parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
@@ -3258,6 +3262,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)

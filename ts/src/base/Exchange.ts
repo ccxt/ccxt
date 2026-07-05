@@ -186,10 +186,10 @@ export default class Exchange {
 
     isSandboxModeEnabled: boolean = false;
 
-    api: Dictionary<any> = undefined;
+    api!: Dictionary<any>;
     certified: boolean = false;
     pro: boolean = false;
-    countries: Str[] = undefined;
+    countries: Strings = undefined;
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any;  // maintained for backwards compatibility, no-one should use it from now on
@@ -209,8 +209,8 @@ export default class Exchange {
     socks_proxy: Str = undefined;
     socksProxyCallback: any;
     socks_proxy_callback: any;
-    userAgent: { 'User-Agent': string } | false = undefined;
-    user_agent: { 'User-Agent': string } | false = undefined;
+    userAgent: { 'User-Agent': string } | false | undefined = undefined;
+    user_agent: { 'User-Agent': string } | false | undefined = undefined;
     wsProxy: Str = undefined;
     ws_proxy: Str = undefined;
     wssProxy: Str = undefined;
@@ -272,13 +272,13 @@ export default class Exchange {
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
     bidsasks: Dictionary<Ticker> = {};
-    orders: ArrayCache = undefined;
-    triggerOrders: ArrayCache = undefined;
+    orders: ArrayCache | undefined = undefined;
+    triggerOrders!: ArrayCache;
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: any = undefined;
-    myTrades: ArrayCache;
+    myTrades: ArrayCache | undefined;
     positions: any;
     urls!: {
         logo?: string;
@@ -292,21 +292,21 @@ export default class Exchange {
     };
 
     requiresWeb3: boolean = false;
-    precision: {
+    precision!: {
         amount: Num,
         price: Num,
         cost?: Num,
         base?: Num,
         quote?: Num,
-    } = undefined;
+    };
 
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response: string = undefined;
+    last_http_response!: string;
     last_json_response: any = undefined;
-    last_response_headers: Dictionary<string> = undefined;
-    last_request_headers: Dictionary<string> = undefined;
+    last_response_headers!: Dictionary<string>;
+    last_request_headers!: Dictionary<string>;
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
@@ -315,16 +315,16 @@ export default class Exchange {
 
     id: string = 'Exchange';
 
-    markets: Dictionary<any> = undefined;
+    markets!: Dictionary<any>;
     has!: Dictionary<boolean | 'emulated' | undefined>;
-    features: Dictionary<Dictionary<any>> = undefined;
-    status: {
+    features!: Dictionary<Dictionary<any>>;
+    status!: {
         status: Str,
         updated: Num,
         eta: Num,
         url: Str,
         info: any,
-    } = undefined;
+    };
 
     requiredCredentials!: {
         apiKey: Bool,
@@ -339,20 +339,20 @@ export default class Exchange {
     };
 
     rateLimit: Num = 2000; // milliseconds
-    tokenBucket: Dictionary<number> = undefined;
+    tokenBucket!: Dictionary<number>;
     throttler: any = undefined;
     enableRateLimit: boolean = true;
     rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
     rateLimiterAlgorithm: string = 'leakyBucket';
 
-    httpExceptions: Dictionary<any> = undefined;
+    httpExceptions!: Dictionary<any>;
 
-    limits: {
+    limits!: {
         amount?: MinMax,
         cost?: MinMax,
         leverage?: MinMax,
         price?: MinMax,
-    } = undefined;
+    };
 
     fees!: {
         trading: {
@@ -369,23 +369,23 @@ export default class Exchange {
         },
     };
 
-    markets_by_id: Dictionary<any> = undefined;
+    markets_by_id!: Dictionary<any>;
     symbols: Strings = undefined;
     ids: Strings = undefined;
     currencies: Currencies = {};
 
-    baseCurrencies: Dictionary<CurrencyInterface> = undefined;
-    quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
-    currencies_by_id: Dictionary<CurrencyInterface> = undefined;
+    baseCurrencies!: Dictionary<CurrencyInterface>;
+    quoteCurrencies!: Dictionary<CurrencyInterface>;
+    currencies_by_id!: Dictionary<CurrencyInterface>;
     codes: Strings = undefined;
 
     reloadingMarkets: Bool = undefined;
-    marketsLoading: Promise<Dictionary<Market>> = undefined;
+    marketsLoading!: Promise<Dictionary<Market>>;
 
-    accounts: Account[] = undefined;
-    accountsById: Dictionary<Account> = undefined;
+    accounts!: Account[];
+    accountsById!: Dictionary<Account>;
 
-    commonCurrencies: Dictionary<string> = undefined;
+    commonCurrencies!: Dictionary<string>;
 
     hostname: Str = undefined;
 
@@ -401,14 +401,14 @@ export default class Exchange {
 
     lastRestRequestTimestamp: int;
 
-    targetAccount: string = undefined;
+    targetAccount!: string;
 
     httpProxyAgentModule: any = undefined;
     httpsProxyAgentModule: any = undefined;
     socksProxyAgentModule: any = undefined;
     socksProxyAgentModuleChecked: boolean = false;
     proxyDictionaries: Dictionary<any> = {};
-    proxiesModulesLoading: Promise<any> = undefined;
+    proxiesModulesLoading!: Promise<any>;
     alias: boolean = false;
 
     // WS/PRO options
@@ -550,16 +550,6 @@ export default class Exchange {
         // default property values
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2FA)
-        // default credentials
-        this.apiKey = undefined;
-        this.secret = undefined;
-        this.uid = undefined;
-        this.login = undefined;
-        this.password = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
         // placeholders for cached data
         this.balance = {};
         this.bidsasks = {};
@@ -580,13 +570,8 @@ export default class Exchange {
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
-        this.last_http_response = undefined;
         this.last_json_response = undefined;
-        this.last_response_headers = undefined;
-        this.last_request_headers = undefined;
         this.last_request_body = undefined;
-        this.last_request_url = undefined;
-        this.last_request_path = undefined;
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -1196,7 +1181,7 @@ export default class Exchange {
 
     parseNumber (value, d: Num = undefined): number {
         if (value === undefined) {
-            return d;
+            return d as number;
         } else {
             try {
                 // we should handle scientific notation here
@@ -1204,13 +1189,16 @@ export default class Exchange {
                 // this function will return 0.00000001
                 // check https://github.com/ccxt/ccxt/issues/24135
                 const numberNormalized = this.numberToString (value);
+                if (numberNormalized === undefined) {
+                    return d as number;
+                }
                 if (numberNormalized.indexOf ('e-') > -1) {
                     return this.number (numberToString (parseFloat (numberNormalized)));
                 }
                 const result = this.number (numberNormalized);
-                return Number.isNaN (result) ? d : result;
+                return (Number.isNaN (result) ? d : result) as number;
             } catch (e) {
-                return d;
+                return d as number;
             }
         }
     }
@@ -1285,7 +1273,7 @@ export default class Exchange {
 
     // ping (client: Client) {} // stub to override
 
-    ping (client: Client) {
+    ping (client: Client): Dict | Str {
         return undefined;
     }
 
@@ -1580,7 +1568,7 @@ export default class Exchange {
         return value.split ('');
     }
 
-    valueIsDefined (value: any) {
+    valueIsDefined<T> (value: T): value is NonNullable<T> {
         return value !== undefined && value !== null;
     }
 
@@ -2852,8 +2840,8 @@ export default class Exchange {
     }
 
     checkProxyUrlSettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
-        const usedProxies = [];
-        let proxyUrl = undefined;
+        const usedProxies: string[] = [];
+        let proxyUrl: Str = undefined;
         if (this.proxyUrl !== undefined) {
             usedProxies.push ('proxyUrl');
             proxyUrl = this.proxyUrl;
@@ -2895,10 +2883,10 @@ export default class Exchange {
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
-        const usedProxies = [];
-        let httpProxy = undefined;
-        let httpsProxy = undefined;
-        let socksProxy = undefined;
+        const usedProxies: string[] = [];
+        let httpProxy: Str = undefined;
+        let httpsProxy: Str = undefined;
+        let socksProxy: Str = undefined;
         // httpProxy
         const isHttpProxyDefined = this.valueIsDefined (this.httpProxy);
         const isHttp_proxy_defined = this.valueIsDefined (this.http_proxy);
@@ -2948,10 +2936,10 @@ export default class Exchange {
     }
 
     checkWsProxySettings () {
-        const usedProxies = [];
-        let wsProxy = undefined;
-        let wssProxy = undefined;
-        let wsSocksProxy = undefined;
+        const usedProxies: string[] = [];
+        let wsProxy: Str = undefined;
+        let wssProxy: Str = undefined;
+        let wsSocksProxy: Str = undefined;
         // ws proxy
         const isWsProxyDefined = this.valueIsDefined (this.wsProxy);
         const is_ws_proxy_defined = this.valueIsDefined (this.ws_proxy);
@@ -3002,7 +2990,7 @@ export default class Exchange {
     }
 
     findMessageHashes (client, element: string): string[] {
-        const result = [];
+        const result: string[] = [];
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -4072,7 +4060,7 @@ export default class Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        const values = [];
+        const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
         // we insert spot markets first
@@ -4113,8 +4101,8 @@ export default class Exchange {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
         } else {
-            let baseCurrencies = [];
-            let quoteCurrencies = [];
+            let baseCurrencies: CurrencyInterface[] = [];
+            let quoteCurrencies: CurrencyInterface[] = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
@@ -4145,7 +4133,7 @@ export default class Exchange {
             const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
             const groupedCurrencies = this.groupBy (allCurrencies, 'code');
             const codes = Object.keys (groupedCurrencies);
-            const resultingCurrencies = [];
+            const resultingCurrencies: CurrencyInterface[] = [];
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
                 const groupedCurrenciesCode = this.safeList (groupedCurrencies, code, []);
@@ -4866,7 +4854,7 @@ export default class Exchange {
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
-        let change = this.omitZero (this.safeString (ticker, 'change'));
+        let change = this.safeString (ticker, 'change'); // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
         let average = this.omitZero (this.safeString (ticker, 'average'));
         let vwap = this.safeString (ticker, 'vwap');
@@ -5489,7 +5477,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
-    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols (symbols);
         const tiers = {};
@@ -5501,7 +5489,7 @@ export default class Exchange {
         if (Array.isArray (response)) {
             for (let i = 0; i < response.length; i++) {
                 const item = response[i];
-                const id = this.safeString (item, marketIdKey);
+                const id = (marketIdKey === undefined) ? undefined : this.safeString (item, marketIdKey);
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
@@ -5541,7 +5529,7 @@ export default class Exchange {
 
     safePosition (position: Dict): Position {
         // simplified version of: /pull/12765/
-        const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
+        const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
         const initialMarginString = this.safeString (position, 'initialMargin');
         //
         // PERCENTAGE
@@ -7333,7 +7321,7 @@ export default class Exchange {
                 return this.safeDict (addressStructures, network) as DepositAddress;
             } else {
                 const keys = Object.keys (addressStructures);
-                const key = this.safeString (keys, 0);
+                const key = keys[0];
                 return this.safeDict (addressStructures, key) as DepositAddress;
             }
         } else {
@@ -8294,7 +8282,7 @@ export default class Exchange {
         }
     }
 
-    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined): any {
+    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
         /**
          * @ignore
          * @method
@@ -8312,7 +8300,10 @@ export default class Exchange {
         for (let i = 0; i < responseKeys.length; i++) {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
-            const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
+            let currencyId = entry;
+            if (isArray) {
+                currencyId = (currencyIdKey === undefined) ? undefined : this.safeString (dictionary, currencyIdKey);
+            }
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
@@ -8677,7 +8668,7 @@ export default class Exchange {
                     const index = responseLength - j - 1;
                     const entry = this.safeDict (response, index);
                     const info = this.safeDict (entry, 'info');
-                    const cursor = this.safeValue (info, cursorReceived);
+                    const cursor = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
                     if (cursor !== undefined) {
                         cursorValue = cursor;
                         break;
@@ -8893,9 +8884,9 @@ export default class Exchange {
         const optionStructures = {};
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const currencyId = this.safeString (info, currencyKey);
+            const currencyId = (currencyKey === undefined) ? undefined : this.safeString (info, currencyKey);
             const currency = this.safeCurrency (currencyId);
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, 'option');
             optionStructures[market['symbol']] = this.parseOption (info, currency, market);
         }
@@ -8909,7 +8900,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 marginModeStructures[market['symbol']] = this.parseMarginMode (info, market);
@@ -8929,7 +8920,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 leverageStructures[market['symbol']] = this.parseLeverage (info, market);
@@ -8949,8 +8940,8 @@ export default class Exchange {
         let toCurrency = undefined;
         for (let i = 0; i < conversions.length; i++) {
             const entry = conversions[i];
-            const fromId = this.safeString (entry, fromCurrencyKey);
-            const toId = this.safeString (entry, toCurrencyKey);
+            const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString (entry, fromCurrencyKey);
+            const toId = (toCurrencyKey === undefined) ? undefined : this.safeString (entry, toCurrencyKey);
             if (fromId !== undefined) {
                 fromCurrency = this.safeCurrency (fromId);
             }
@@ -9096,7 +9087,7 @@ export default class Exchange {
         const marginModifications = [];
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 marginModifications.push (this.parseMarginModification (info, market));

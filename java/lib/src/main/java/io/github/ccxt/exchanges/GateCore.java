@@ -7035,7 +7035,6 @@ final Object finalRebate = rebate;
                 side = "short";
             }
         }
-        Object maintenanceRate = this.safeString(position, "maintenance_rate");
         Object notional = this.safeString(position, "value");
         Object leverage = this.safeString(position, "leverage");
         Object marginMode = null;
@@ -7049,16 +7048,20 @@ final Object finalRebate = rebate;
                 marginMode = "isolated";
             }
         }
-        // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
-        // *The default leverage under the full position is the highest leverage in the market.
-        // *Trading fee is charged as Taker Fee Rate (0.075%).
-        Object feePaid = this.safeString(position, "pnl_fee");
-        Object initialMarginString = null;
-        if (Helpers.isTrue(Helpers.isEqual(feePaid, null)))
+        // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
+        Object marginBalance = this.safeString(position, "margin");
+        Object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
+        // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
+        // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
+        Object maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        // the margin field is the position margin balance, which excludes the unrealized pnl,
+        // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
+        // so the unified collateral (the amount that can be lost, affected by pnl) includes it
+        Object unrealisedPnl = this.safeString(position, "unrealised_pnl");
+        Object collateral = marginBalance;
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginBalance, null))) && Helpers.isTrue((!Helpers.isEqual(unrealisedPnl, null)))))
         {
-            Object takerFee = "0.00075";
-            feePaid = Precise.stringMul(takerFee, notional);
-            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
+            collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
         }
         Object timestamp = this.safeTimestamp2(position, "open_time", "first_open_time");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
@@ -7067,7 +7070,8 @@ final Object finalRebate = rebate;
         }
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
-        final Object finalInitialMarginString = initialMarginString;
+        final Object finalUnrealisedPnl = unrealisedPnl;
+        final Object finalCollateral = collateral;
         final Object finalMarginMode = marginMode;
         final Object finalSide = side;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -7077,14 +7081,14 @@ final Object finalRebate = rebate;
             put( "timestamp", finalTimestamp );
             put( "datetime", GateCore.this.iso8601(finalTimestamp) );
             put( "lastUpdateTimestamp", GateCore.this.safeTimestamp2(position, "update_time", "time") );
-            put( "initialMargin", GateCore.this.parseNumber(finalInitialMarginString) );
-            put( "initialMarginPercentage", GateCore.this.parseNumber(Precise.stringDiv(finalInitialMarginString, notional)) );
-            put( "maintenanceMargin", GateCore.this.parseNumber(Precise.stringMul(maintenanceRate, notional)) );
-            put( "maintenanceMarginPercentage", GateCore.this.parseNumber(maintenanceRate) );
+            put( "initialMargin", GateCore.this.parseNumber(initialMarginString) );
+            put( "initialMarginPercentage", GateCore.this.parseNumber(Precise.stringDiv(initialMarginString, notional)) );
+            put( "maintenanceMargin", GateCore.this.parseNumber(maintenanceMarginString) );
+            put( "maintenanceMarginPercentage", GateCore.this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional)) );
             put( "entryPrice", GateCore.this.safeNumber(position, "entry_price") );
             put( "notional", GateCore.this.parseNumber(notional) );
             put( "leverage", GateCore.this.safeNumber(position, "leverage") );
-            put( "unrealizedPnl", GateCore.this.safeNumber(position, "unrealised_pnl") );
+            put( "unrealizedPnl", GateCore.this.parseNumber(finalUnrealisedPnl) );
             put( "realizedPnl", GateCore.this.safeNumber2(position, "realised_pnl", "pnl") );
             put( "contracts", GateCore.this.parseNumber(Precise.stringAbs(size)) );
             put( "contractSize", GateCore.this.safeNumber(finalMarket, "contractSize") );
@@ -7092,7 +7096,7 @@ final Object finalRebate = rebate;
             put( "liquidationPrice", GateCore.this.safeNumber(position, "liq_price") );
             put( "markPrice", GateCore.this.safeNumber(position, "mark_price") );
             put( "lastPrice", null );
-            put( "collateral", GateCore.this.safeNumber(position, "margin") );
+            put( "collateral", GateCore.this.parseNumber(finalCollateral) );
             put( "marginMode", finalMarginMode );
             put( "side", finalSide );
             put( "percentage", null );

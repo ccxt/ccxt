@@ -631,17 +631,17 @@ class testMainClass:
             return True
         # try proxy several times
         max_retries = 3
-        exception = None
+        exception_message_string = None
         for j in range(0, max_retries):
             try:
                 await self.test_method(proxy_test_name, exchange, [], True)
                 return True   # if successfull, then end the test
             except Exception as e:
-                exception = e
+                exception_message_string = exception_message(e)
                 await exchange.sleep(j * 1000)
         # if exception was set, then throw it
-        if exception is not None:
-            error_message = '[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception)
+        if exception_message_string is not None:
+            error_message = '[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message_string
             # temporary comment the below, because c# transpilation failure
             # throw new Exchange Error (errorMessage.toString ());
             dump('[TEST_WARNING]' + error_message)
@@ -1295,7 +1295,7 @@ class testMainClass:
         spot_id = 'x-TKT5PX2F'
         swap_id = 'x-cvBPrNm9'
         inverse_swap_id = 'x-xcKtGhcu'
-        spot_order_request = None
+        spot_order_request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1303,12 +1303,12 @@ class testMainClass:
         client_order_id = spot_order_request['newClientOrderId']
         spot_id_string = str(spot_id)
         assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
-        swap_order_request = None
+        swap_order_request = {}
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_order_request = self.urlencoded_to_dict(exchange.last_request_body)
-        swap_inverse_order_request = None
+        swap_inverse_order_request = {}
         try:
             await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1321,7 +1321,7 @@ class testMainClass:
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
         # linear swap conditional order
-        swap_algo_order_request = None
+        swap_algo_order_request = {}
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, {
                 'triggerPrice': 101000,
@@ -1334,7 +1334,7 @@ class testMainClass:
             assert client_algo_id_swap.startswith(swap_algo_id_string), 'binance - swap clientOrderId: ' + client_algo_id_swap + ' does not start with swapId' + swap_algo_id_string
         except Exception as e:
             swap_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
-        create_orders_request = None
+        create_orders_request = {}
         try:
             orders = [{
     'symbol': 'BTC/USDT:USDT',
@@ -1363,7 +1363,7 @@ class testMainClass:
     async def test_okx(self):
         exchange = self.init_offline_exchange('okx')
         id = '6b9ad766b55dBCDE'
-        spot_order_request = None
+        spot_order_request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1373,7 +1373,7 @@ class testMainClass:
         assert client_order_id.startswith(id_string), 'okx - spot clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
         spot_tag = spot_order_request[0]['tag']
         assert spot_tag == id, 'okx - id: ' + id + ' different from spot tag: ' + spot_tag
-        swap_order_request = None
+        swap_order_request = {}
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1390,7 +1390,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('cryptocom')
         id = 'CCXT'
         await exchange.load_markets()
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1403,7 +1403,7 @@ class testMainClass:
 
     async def test_bybit(self):
         exchange = self.init_offline_exchange('bybit')
-        req_headers = None
+        req_headers = {}
         id = 'CCXT'
         assert exchange.options['brokerId'] == id, 'id not in options'
         try:
@@ -1419,7 +1419,7 @@ class testMainClass:
     async def test_kucoin(self):
         exchange = self.init_offline_exchange('kucoin')
         exchange.options['uta'] = False  # prevents fetching account mode inside createOrder
-        req_headers = None
+        req_headers = {}
         spot_id = exchange.options['partner']['spot']['id']
         spot_key = exchange.options['partner']['spot']['key']
         assert spot_id == 'ccxt', 'kucoin - id: ' + spot_id + ' not in options'
@@ -1461,7 +1461,7 @@ class testMainClass:
 
     async def test_kucoinfutures(self):
         exchange = self.init_offline_exchange('kucoinfutures')
-        req_headers = None
+        req_headers = {}
         id = 'ccxtfutures'
         future_id = exchange.options['partner']['future']['id']
         future_key = exchange.options['partner']['future']['key']
@@ -1485,7 +1485,7 @@ class testMainClass:
 
     async def test_bitget(self):
         exchange = self.init_offline_exchange('bitget')
-        req_headers = None
+        req_headers = {}
         id = 'p4sve'
         assert exchange.options['broker'] == id, 'bitget - id: ' + id + ' not in options'
         try:
@@ -1499,7 +1499,7 @@ class testMainClass:
 
     async def test_mexc(self):
         exchange = self.init_offline_exchange('mexc')
-        req_headers = None
+        req_headers = {}
         id = 'CCXT'
         assert exchange.options['broker'] == id, 'mexc - id: ' + id + ' not in options'
         await exchange.load_markets()
@@ -1516,7 +1516,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('htx')
         # spot test
         id = 'AA03022abc'
-        spot_order_request = None
+        spot_order_request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1525,12 +1525,12 @@ class testMainClass:
         id_string = str(id)
         assert client_order_id.startswith(id_string), 'htx - spot clientOrderId ' + client_order_id + ' does not start with id: ' + id_string
         # swap test
-        swap_order_request = None
+        swap_order_request = {}
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_order_request = json_parse(exchange.last_request_body)
-        swap_inverse_order_request = None
+        swap_inverse_order_request = {}
         try:
             await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1547,7 +1547,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('woo')
         # spot test
         id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
-        spot_order_request = None
+        spot_order_request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1556,7 +1556,7 @@ class testMainClass:
         id_string = str(id)
         assert broker_id.startswith(id_string), 'woo - broker_id: ' + broker_id + ' does not start with id: ' + id_string
         # swap test
-        stop_order_request = None
+        stop_order_request = {}
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
                 'stopPrice': 30000,
@@ -1571,7 +1571,7 @@ class testMainClass:
 
     async def test_bitmart(self):
         exchange = self.init_offline_exchange('bitmart')
-        req_headers = None
+        req_headers = {}
         id = 'CCXTxBitmart000'
         assert exchange.options['brokerId'] == id, 'bitmart - id: ' + id + ' not in options'
         await exchange.load_markets()
@@ -1588,7 +1588,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('coinex')
         id = 'x-167673045'
         assert exchange.options['brokerId'] == id, 'coinex - id: ' + id + ' not in options'
-        spot_order_request = None
+        spot_order_request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1602,7 +1602,7 @@ class testMainClass:
 
     async def test_bingx(self):
         exchange = self.init_offline_exchange('bingx')
-        req_headers = None
+        req_headers = {}
         id = 'CCXT'
         assert exchange.options['broker'] == id, 'bingx - id: ' + id + ' not in options'
         try:
@@ -1618,7 +1618,7 @@ class testMainClass:
     async def test_phemex(self):
         exchange = self.init_offline_exchange('phemex')
         id = 'CCXT123456'
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1633,7 +1633,7 @@ class testMainClass:
     async def test_blofin(self):
         exchange = self.init_offline_exchange('blofin')
         id = 'ec6dd3a7dd982d0b'
-        request = None
+        request = {}
         try:
             await exchange.create_order('LTC/USDT:USDT', 'market', 'buy', 1)
         except Exception as e:
@@ -1666,7 +1666,7 @@ class testMainClass:
         exchange.options['portfolio'] = 'random'
         id = 'nfqkvdjp'
         assert exchange.options['brokerId'] == id, 'id not in options'
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1681,7 +1681,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('coinbase')
         id = 'ccxt'
         assert exchange.options['brokerId'] == id, 'id not in options'
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1699,7 +1699,7 @@ class testMainClass:
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
         id = 'CCXT'
         await exchange.load_markets()
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1713,14 +1713,14 @@ class testMainClass:
     async def test_xt(self):
         exchange = self.init_offline_exchange('xt')
         id = 'CCXT'
-        spot_order_request = None
+        spot_order_request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
         spot_media = spot_order_request['media']
         assert spot_media == id, 'xt - id: ' + id + ' different from swap tag: ' + spot_media
-        swap_order_request = None
+        swap_order_request = {}
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1762,7 +1762,7 @@ class testMainClass:
             'l1_chain_id': '11155111',
             'liquidation_fee': '0.2',
         }
-        req_headers = None
+        req_headers = {}
         id = 'CCXT'
         assert exchange.options['broker'] == id, 'paradex - id: ' + id + ' not in options'
         await exchange.load_markets()
@@ -1777,7 +1777,7 @@ class testMainClass:
 
     async def test_hashkey(self):
         exchange = self.init_offline_exchange('hashkey')
-        req_headers = None
+        req_headers = {}
         id = '10000700011'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
@@ -1791,7 +1791,7 @@ class testMainClass:
 
     async def test_cryptomus(self):
         exchange = self.init_offline_exchange('cryptomus')
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'sell', 1, 20000)
         except Exception as e:
@@ -1808,7 +1808,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('derive')
         id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'
         assert exchange.options['id'] == id, 'derive - id: ' + id + ' not in options'
-        request = None
+        request = {}
         try:
             params = {
                 'subaccount_id': 1234,
@@ -1832,7 +1832,7 @@ class testMainClass:
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
         id = 'CCXTMODE'
         await exchange.load_markets()
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1847,7 +1847,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('backpack')
         exchange.apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo='
         exchange.secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU='
-        req_headers = None
+        req_headers = {}
         id = '1400'
         try:
             await exchange.create_order('ETH/USDC', 'limit', 'buy', 1, 5000)
@@ -1861,7 +1861,7 @@ class testMainClass:
 
     async def test_toobit(self):
         exchange = self.init_offline_exchange('toobit')
-        req_headers = None
+        req_headers = {}
         id = '177321641268789'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
@@ -1877,7 +1877,7 @@ class testMainClass:
         exchange = self.init_offline_exchange('weex')
         id = 'b-WEEX111125'
         assert exchange.options['partner'] == id, 'weex - id: ' + id + ' not in options'
-        request = None
+        request = {}
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:

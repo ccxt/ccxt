@@ -105,12 +105,12 @@ public class TestTicker extends BaseTest {
         //
         // base & quote volumes
         //
-        Object baseVolume = exchange.omitZero(exchange.safeString(entry, "baseVolume"));
-        Object quoteVolume = exchange.omitZero(exchange.safeString(entry, "quoteVolume"));
-        Object high = exchange.omitZero(exchange.safeString(entry, "high"));
-        Object low = exchange.omitZero(exchange.safeString(entry, "low"));
-        Object open = exchange.omitZero(exchange.safeString(entry, "open"));
-        Object close = exchange.omitZero(exchange.safeString(entry, "close"));
+        Object baseVolume = exchange.omitZero(((String)exchange.safeString(entry, "baseVolume")));
+        Object quoteVolume = exchange.omitZero(((String)exchange.safeString(entry, "quoteVolume")));
+        Object high = exchange.omitZero(((String)exchange.safeString(entry, "high")));
+        Object low = exchange.omitZero(((String)exchange.safeString(entry, "low")));
+        Object open = exchange.omitZero(((String)exchange.safeString(entry, "open")));
+        Object close = exchange.omitZero(((String)exchange.safeString(entry, "close")));
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
@@ -178,7 +178,7 @@ public class TestTicker extends BaseTest {
         Object bidString = exchange.safeString(entry, "bid");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(askString, null))) && Helpers.isTrue((!Helpers.isEqual(bidString, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "spread")))))
         {
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", ((String)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         Object allowedPercentageVariation = "0.01";

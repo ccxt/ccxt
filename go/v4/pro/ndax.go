@@ -206,7 +206,7 @@ func  (this *NdaxCore) HandleTrades(client any, message any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(payload)); i++ {
         var trade any = this.ParseTrade(ccxt.GetValue(payload, i))
         var symbol any = ccxt.GetValue(trade, "symbol")
-        var tradesArray any = this.SafeValue(this.Trades, symbol)
+        var tradesArray any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.SafeValue(this.Trades, symbol))
         if ccxt.IsTrue(ccxt.IsEqual(tradesArray, nil)) {
             var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
             tradesArray = ccxt.NewArrayCache(limit)
@@ -544,7 +544,7 @@ func  (this *NdaxCore) HandleSubscriptionStatus(client any, message any)  {
     //
     var subscriptionsById any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
     var id any = this.SafeInteger(message, "i")
-    var subscription any = this.SafeValue(subscriptionsById, id)
+    var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(id, nil))), nil, this.SafeValue(subscriptionsById, id))
     if ccxt.IsTrue(!ccxt.IsEqual(subscription, nil)) {
         var method any = this.SafeValue(subscription, "method")
         if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
@@ -591,7 +591,7 @@ func  (this *NdaxCore) HandleMessage(client any, message any)  {
         "TickerDataUpdateEvent": this.HandleOHLCV,
     }
     var event any = this.SafeString(message, "n")
-    var method any = this.SafeValue(methods, event)
+    var method any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(event, nil))), nil, this.SafeValue(methods, event))
     if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
         ccxt.CallDynamically(method, client, message)
     }

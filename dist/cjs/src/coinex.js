@@ -3120,7 +3120,7 @@ class coinex extends coinex$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const code = this.safeString(entry, 'code');
-            const message = this.safeString(entry, 'message');
+            const message = this.safeString(entry, 'message', '');
             if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
                 const feedback = this.id + ' ' + message;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
@@ -4018,7 +4018,7 @@ class coinex extends coinex$1["default"] {
         //         "memo": ""
         //     }
         //
-        const coinAddress = this.safeString(depositAddress, 'address');
+        const coinAddress = this.safeString(depositAddress, 'address', '');
         const parts = coinAddress.split(':');
         let address = undefined;
         let tag = undefined;
@@ -6184,7 +6184,7 @@ class coinex extends coinex$1["default"] {
         }
         const code = this.safeString(response, 'code');
         const data = this.safeValue(response, 'data');
-        const message = this.safeString(response, 'message');
+        const message = this.safeString(response, 'message', '');
         if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

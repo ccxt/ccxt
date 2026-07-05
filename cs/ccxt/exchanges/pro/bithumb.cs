@@ -77,6 +77,10 @@ public partial class bithumb : ccxt.bithumb
         object marketIds = new List<object>() {};
         object messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);

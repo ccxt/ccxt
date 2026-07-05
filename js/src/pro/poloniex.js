@@ -584,7 +584,7 @@ export default class poloniex extends poloniexRest {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.ohlcvs[symbol], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -623,7 +623,7 @@ export default class poloniex extends poloniexRest {
                 const symbol = trade['symbol'];
                 const type = 'trades';
                 const messageHash = type + '::' + symbol;
-                let tradesArray = this.safeValue(this.trades, symbol);
+                let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                     tradesArray = new ArrayCache(tradesLimit);
@@ -815,8 +815,8 @@ export default class poloniex extends poloniexRest {
             const eventType = this.safeString(order, 'eventType');
             if (marketId !== undefined) {
                 const symbol = this.safeSymbol(marketId);
-                const orderId = this.safeString(order, 'orderId');
-                const clientOrderId = this.safeString(order, 'clientOrderId');
+                const orderId = this.safeString(order, 'orderId', '');
+                const clientOrderId = this.safeString(order, 'clientOrderId', '');
                 if (eventType === 'place' || eventType === 'canceled') {
                     const parsed = this.parseWsOrder(order);
                     orders.append(parsed);
@@ -1211,7 +1211,7 @@ export default class poloniex extends poloniexRest {
             'cancelAllOrders': this.handleOrderRequest,
             'auth': this.handleAuthenticate,
         };
-        const method = this.safeValue(methods, type);
+        const method = (type === undefined) ? undefined : this.safeValue(methods, type);
         if (type === 'auth') {
             this.handleAuthenticate(client, message);
         }

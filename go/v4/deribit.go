@@ -3550,7 +3550,7 @@ func (this *DeribitCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp any = this.SafeTimestamp(transfer, "created_timestamp")
+	var timestamp any = this.SafeInteger(transfer, "created_timestamp")
 	var status any = this.SafeString(transfer, "state")
 	var account any = this.SafeString(transfer, "other_side")
 	var direction any = this.SafeString(transfer, "direction")

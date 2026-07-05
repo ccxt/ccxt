@@ -306,7 +306,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        subscription = self.safe_value(client.subscriptions, channel)
+        subscription = None if (channel is None) else self.safe_value(client.subscriptions, channel)
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
         order['event'] = self.safe_string(message, 'event')

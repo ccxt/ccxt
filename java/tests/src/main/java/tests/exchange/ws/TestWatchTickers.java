@@ -34,7 +34,7 @@ public class TestWatchTickers extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         while (Helpers.isLessThan(now, ends))
         {
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             Object success = true;
             Object shouldReturn = false;
             try

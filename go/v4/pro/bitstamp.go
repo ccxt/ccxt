@@ -385,7 +385,7 @@ func  (this *BitstampCore) HandleOrders(client any, message any)  {
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
     var stored any = this.Orders
-    var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
+    var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(channel, nil))), nil, this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel))
     var symbol any = this.SafeString(subscription, "symbol")
     var market any = this.Market(symbol)
     ccxt.AddElementToObject(order, "event", this.SafeString(message, "event"))

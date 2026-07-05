@@ -3639,7 +3639,7 @@
                         "lastPrice": 2399.67,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
-                        "percentage": null,
+                        "percentage": 83.34,
                         "info": {
                             "symbol": "ETHUSDT-PERPETUAL",
                             "side": "SHORT",

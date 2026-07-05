@@ -100,7 +100,9 @@ jobs:
       - name: vss
         run: npm run vss
       - name: Commit files
-        run: git add . -A
+        run: |
+          git add . -A
+          git add -f exchanges.json
       - name: Git status
         run: git status
       - name: cleanup old tags

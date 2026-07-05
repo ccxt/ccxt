@@ -336,7 +336,10 @@ export default class modetrade extends modetradeRest {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk(this.extend(data[i], { 'ts': timestamp }));
-            this.tickers[ticker['symbol']] = ticker;
+            const symbol = ticker['symbol'];
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             result.push(ticker);
         }
         client.resolve(result, topic);
@@ -415,6 +418,9 @@ export default class modetrade extends modetradeRest {
         const symbol = market['symbol'];
         const interval = this.safeString(data, 'type');
         const timeframe = this.findTimeframe(interval);
+        if (timeframe === undefined) {
+            return;
+        }
         const parsed = [
             this.safeInteger(data, 'startTime'),
             this.safeNumber(data, 'open'),
@@ -541,7 +547,7 @@ export default class modetrade extends modetradeRest {
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
-        let fee = undefined;
+        let fee = {};
         const feeValue = this.safeString(trade, 'fee');
         if (feeValue !== undefined) {
             fee = {
@@ -777,7 +783,7 @@ export default class modetrade extends modetradeRest {
         //
         const orderId = this.safeString(order, 'orderId');
         const marketId = this.safeString(order, 'symbol');
-        market = this.market(marketId);
+        market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(order, 'timestamp');
         const fee = {
@@ -864,7 +870,8 @@ export default class modetrade extends modetradeRest {
             // algoexecutionreport
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
-                const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
+                const tradeIdStr = this.safeString(data, 'tradeId');
+                const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero(tradeIdStr);
                 if (tradeId !== undefined) {
                     this.handleMyTrade(client, order);
                 }
@@ -873,7 +880,8 @@ export default class modetrade extends modetradeRest {
         }
         else {
             // executionreport
-            const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
+            const tradeIdStr = this.safeString(data, 'tradeId');
+            const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero(tradeIdStr);
             if (tradeId !== undefined) {
                 this.handleMyTrade(client, data);
             }
@@ -891,7 +899,7 @@ export default class modetrade extends modetradeRest {
             }
             const cachedOrders = this.orders;
             const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
-            const order = this.safeDict(orders, orderId);
+            const order = (orderId === undefined) ? undefined : this.safeDict(orders, orderId);
             if (order !== undefined) {
                 const fee = this.safeValue(order, 'fee');
                 if (fee !== undefined) {
@@ -901,7 +909,7 @@ export default class modetrade extends modetradeRest {
                 if (fees !== undefined) {
                     parsed['fees'] = fees;
                 }
-                parsed['trades'] = this.safeList(order, 'trades');
+                parsed['trades'] = this.safeList(order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger(order, 'timestamp');
                 parsed['datetime'] = this.safeString(order, 'datetime');
             }
@@ -971,7 +979,7 @@ export default class modetrade extends modetradeRest {
         await this.loadMarkets();
         const messageHashes = [];
         symbols = this.marketSymbols(symbols);
-        if (!this.isEmpty(symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push('positions::' + symbol);
@@ -1278,7 +1286,7 @@ export default class modetrade extends modetradeRest {
             'bbos': this.handleBidAsk,
         };
         const event = this.safeString(message, 'event');
-        let method = this.safeValue(methods, event);
+        let method = (event === undefined) ? undefined : this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
             return;
@@ -1294,6 +1302,9 @@ export default class modetrade extends modetradeRest {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString(splitTopic, 1);
+                if (name === undefined) {
+                    return;
+                }
                 method = this.safeValue(methods, name);
                 if (method !== undefined) {
                     method.call(this, client, message);
@@ -1302,7 +1313,8 @@ export default class modetrade extends modetradeRest {
                 const splitName = name.split('_');
                 const splitNameLength = splitTopic.length;
                 if (splitNameLength === 2) {
-                    method = this.safeValue(methods, this.safeString(splitName, 0));
+                    const splitNameFirst = this.safeString(splitName, 0);
+                    method = (splitNameFirst === undefined) ? undefined : this.safeValue(methods, splitNameFirst);
                     if (method !== undefined) {
                         method.call(this, client, message);
                     }

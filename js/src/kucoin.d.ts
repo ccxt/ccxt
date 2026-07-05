@@ -882,7 +882,7 @@ export default class kucoin extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchUtaOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
-    handleTradeType(isContractMarket?: boolean, marginMode?: any, isUnified?: boolean, params?: {}): string;
+    handleTradeType(isContractMarket?: boolean, marginMode?: Str, isUnified?: boolean, params?: {}): string;
     parseOrder(order: Dict, market?: Market): Order;
     parseContractOrder(order: Dict, market?: Market): Order;
     parseSpotOrder(order: Dict, market?: Market): Order;
@@ -1539,7 +1539,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name kucoin#setMarginMode

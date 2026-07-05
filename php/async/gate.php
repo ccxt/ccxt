@@ -6228,7 +6228,6 @@ class gate extends Exchange {
                 $side = 'short';
             }
         }
-        $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
         $leverage = $this->safe_string($position, 'leverage');
         $marginMode = null;
@@ -6239,15 +6238,19 @@ class gate extends Exchange {
                 $marginMode = 'isolated';
             }
         }
-        // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
-        // *The default $leverage under the full $position is the highest $leverage in the $market->
-        // *Trading fee is charged Fee Rate (0.075%).
-        $feePaid = $this->safe_string($position, 'pnl_fee');
-        $initialMarginString = null;
-        if ($feePaid === null) {
-            $takerFee = '0.00075';
-            $feePaid = Precise::string_mul($takerFee, $notional);
-            $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
+        // gate returns the initial margin requirement in the initial_margin field (= value / $leverage . taker fee), see https://github.com/ccxt/ccxt/issues/27152
+        $marginBalance = $this->safe_string($position, 'margin');
+        $initialMarginString = $this->omit_zero($this->safe_string($position, 'initial_margin'));
+        // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate . taker fee))
+        // it is the exact liquidation threshold => the $position is liquidated when margin . unrealised_pnl drops to maintenance_margin
+        $maintenanceMarginString = $this->omit_zero($this->safe_string($position, 'maintenance_margin'));
+        // the margin field is the $position margin balance, which excludes the unrealized pnl,
+        // the $position is liquidated when margin . unrealised_pnl drops to the maintenance margin,
+        // so the unified $collateral (the amount that can be lost, affected by pnl) includes it
+        $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
+        $collateral = $marginBalance;
+        if (($marginBalance !== null) && ($unrealisedPnl !== null)) {
+            $collateral = Precise::string_add($marginBalance, $unrealisedPnl);
         }
         $timestamp = $this->safe_timestamp_2($position, 'open_time', 'first_open_time');
         if ($timestamp === 0) {
@@ -6262,12 +6265,12 @@ class gate extends Exchange {
             'lastUpdateTimestamp' => $this->safe_timestamp_2($position, 'update_time', 'time'),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional)),
-            'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notional)),
-            'maintenanceMarginPercentage' => $this->parse_number($maintenanceRate),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_div($maintenanceMarginString, $notional)),
             'entryPrice' => $this->safe_number($position, 'entry_price'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealised_pnl'),
+            'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'realizedPnl' => $this->safe_number_2($position, 'realised_pnl', 'pnl'),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_number($market, 'contractSize'),
@@ -6275,7 +6278,7 @@ class gate extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'lastPrice' => null,
-            'collateral' => $this->safe_number($position, 'margin'),
+            'collateral' => $this->parse_number($collateral),
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,

@@ -277,7 +277,7 @@ class independentreserve extends independentreserve$1["default"] {
             'OrderBookSnapshot': this.handleOrderBook,
             'OrderBookChange': this.handleOrderBook,
         };
-        const handler = this.safeValue(handlers, event);
+        const handler = (event === undefined) ? undefined : this.safeValue(handlers, event);
         if (handler !== undefined) {
             handler.call(this, client, message);
             return;

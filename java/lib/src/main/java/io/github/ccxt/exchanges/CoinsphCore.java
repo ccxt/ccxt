@@ -939,7 +939,7 @@ public class CoinsphCore extends CoinsphApi
             Object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
             Object options = this.safeDict(this.options, "fetchTickers", new java.util.HashMap<String, Object>() {{}});
             Object method = this.safeString(options, "method", defaultMethod);
-            Object tickers = null;
+            Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
             {
                 tickers = (this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, parameters))).join();
@@ -980,7 +980,7 @@ public class CoinsphCore extends CoinsphApi
             Object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
             Object options = this.safeDict(this.options, "fetchTicker", new java.util.HashMap<String, Object>() {{}});
             Object method = this.safeString(options, "method", defaultMethod);
-            Object ticker = null;
+            Object ticker = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
             {
                 ticker = (this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, parameters))).join();
@@ -1392,7 +1392,7 @@ public class CoinsphCore extends CoinsphApi
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "qty");
         Object type = null;
-        Object fee = null;
+        Object fee = new java.util.HashMap<String, Object>() {{}};
         Object feeCost = this.safeString(trade, "commission");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1607,7 +1607,7 @@ public class CoinsphCore extends CoinsphApi
             }
             Helpers.addElementToObject(request, "newOrderRespType", newOrderRespType);
             parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(testOrder))
             {
                 response = (this.privatePostOpenapiV1OrderTest(this.extend(request, parameters))).join();
@@ -1941,6 +1941,10 @@ public class CoinsphCore extends CoinsphApi
             put( "BUY", "buy" );
             put( "SELL", "sell" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1950,6 +1954,10 @@ public class CoinsphCore extends CoinsphApi
             put( "buy", "BUY" );
             put( "sell", "SELL" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1964,6 +1972,10 @@ public class CoinsphCore extends CoinsphApi
             put( "TAKE_PROFIT", "market" );
             put( "TAKE_PROFIT_LIMIT", "limit" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1978,6 +1990,10 @@ public class CoinsphCore extends CoinsphApi
             put( "take_profit", "TAKE_PROFIT" );
             put( "take_profit_limit", "TAKE_PROFIT_LIMIT" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1991,6 +2007,10 @@ public class CoinsphCore extends CoinsphApi
             put( "PARTIALLY_CANCELED", "canceled" );
             put( "REJECTED", "rejected" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -2001,6 +2021,10 @@ public class CoinsphCore extends CoinsphApi
             put( "FOK", "FOK" );
             put( "IOC", "IOC" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -2075,7 +2099,10 @@ public class CoinsphCore extends CoinsphApi
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(response, i));
                 Object symbol = Helpers.GetValue(fee, "symbol");
-                Helpers.addElementToObject(result, symbol, fee);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, fee);
+                }
             }
             return result;
         });
@@ -2131,7 +2158,7 @@ public class CoinsphCore extends CoinsphApi
                 throw new InvalidAddress((String)Helpers.add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }
             Object networkCode = this.safeString(parameters, "network");
-            Object networkId = this.networkCodeToId(networkCode, code);
+            Object networkId = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " withdraw() require network parameter")) ;
@@ -2420,6 +2447,10 @@ public class CoinsphCore extends CoinsphApi
             put( "2", "failed" );
             put( "3", "pending" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -2440,7 +2471,7 @@ public class CoinsphCore extends CoinsphApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object networkCode = this.safeString(parameters, "network");
-            Object networkId = this.networkCodeToId(networkCode, code);
+            Object networkId = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddress() require network parameter")) ;
