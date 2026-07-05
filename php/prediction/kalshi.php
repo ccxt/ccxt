@@ -193,6 +193,7 @@ class kalshi extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     'not_found' => '\\ccxt\\BadSymbol',   // 404 for an unknown market/ticker id — distinguish from an outage
+                    'fill_or_kill_insufficient_resting_volume' => '\\ccxt\\OrderNotFillable',   // a killed FOK is a normal outcome, not an outage
                 ),
                 'broad' => array(),
             ),
@@ -1867,8 +1868,12 @@ class kalshi extends Exchange {
             $unifiedTif = $this->safe_string_upper($params, 'timeInForce');
             $params = $this->omit($params, 'timeInForce');
             $defaultTif = ($isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
-            if (($unifiedTif === 'IOC') || ($unifiedTif === 'FOK')) {
+            // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
+            // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
+            if ($unifiedTif === 'IOC') {
                 $defaultTif = 'immediate_or_cancel';
+            } elseif ($unifiedTif === 'FOK') {
+                $defaultTif = 'fill_or_kill';
             } elseif ($unifiedTif === 'GTC') {
                 $defaultTif = 'good_till_canceled';
             }

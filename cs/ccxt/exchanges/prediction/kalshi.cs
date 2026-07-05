@@ -179,6 +179,7 @@ public partial class kalshi : PredictionExchange
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "not_found", typeof(BadSymbol) },
+                    { "fill_or_kill_insufficient_resting_volume", typeof(OrderNotFillable) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -2038,9 +2039,14 @@ public partial class kalshi : PredictionExchange
         object unifiedTif = this.safeStringUpper(parameters, "timeInForce");
         parameters = this.omit(parameters, "timeInForce");
         object defaultTif = ((bool) isTrue((isMarket))) ? "immediate_or_cancel" : "good_till_canceled";
-        if (isTrue(isTrue((isEqual(unifiedTif, "IOC"))) || isTrue((isEqual(unifiedTif, "FOK")))))
+        // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
+        // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
+        if (isTrue(isEqual(unifiedTif, "IOC")))
         {
             defaultTif = "immediate_or_cancel";
+        } else if (isTrue(isEqual(unifiedTif, "FOK")))
+        {
+            defaultTif = "fill_or_kill";
         } else if (isTrue(isEqual(unifiedTif, "GTC")))
         {
             defaultTif = "good_till_canceled";

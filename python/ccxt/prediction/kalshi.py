@@ -10,6 +10,7 @@ from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.precise import Precise
 
@@ -193,6 +194,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'not_found': BadSymbol,   # 404 for an unknown market/ticker id — distinguish from an outage
+                    'fill_or_kill_insufficient_resting_volume': OrderNotFillable,   # a killed FOK is a normal outcome, not an outage
                 },
                 'broad': {},
             },
@@ -1697,8 +1699,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         unifiedTif = self.safe_string_upper(params, 'timeInForce')
         params = self.omit(params, 'timeInForce')
         defaultTif = 'immediate_or_cancel' if (isMarket) else 'good_till_canceled'
-        if (unifiedTif == 'IOC') or (unifiedTif == 'FOK'):
+        # kalshi has BOTH immediate_or_cancel(partial ok) and fill_or_kill(all-or-nothing)
+        # map the unified tokens to the matching primitive rather than collapsing FOK into IOC
+        if unifiedTif == 'IOC':
             defaultTif = 'immediate_or_cancel'
+        elif unifiedTif == 'FOK':
+            defaultTif = 'fill_or_kill'
         elif unifiedTif == 'GTC':
             defaultTif = 'good_till_canceled'
         timeInForce = None

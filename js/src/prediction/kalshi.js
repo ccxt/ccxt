@@ -8,7 +8,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
-import { BadSymbol, ArgumentsRequired, BadRequest } from '../base/errors.js';
+import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class kalshi
@@ -192,6 +192,7 @@ export default class kalshi extends Exchange {
             'exceptions': {
                 'exact': {
                     'not_found': BadSymbol, // 404 for an unknown market/ticker id — distinguish from an outage
+                    'fill_or_kill_insufficient_resting_volume': OrderNotFillable, // a killed FOK is a normal outcome, not an outage
                 },
                 'broad': {},
             },
@@ -1837,8 +1838,13 @@ export default class kalshi extends Exchange {
         const unifiedTif = this.safeStringUpper(params, 'timeInForce');
         params = this.omit(params, 'timeInForce');
         let defaultTif = (isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
-        if ((unifiedTif === 'IOC') || (unifiedTif === 'FOK')) {
+        // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
+        // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
+        if (unifiedTif === 'IOC') {
             defaultTif = 'immediate_or_cancel';
+        }
+        else if (unifiedTif === 'FOK') {
+            defaultTif = 'fill_or_kill';
         }
         else if (unifiedTif === 'GTC') {
             defaultTif = 'good_till_canceled';
