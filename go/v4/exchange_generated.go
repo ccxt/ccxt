@@ -4303,7 +4303,7 @@ func (this *Exchange) LoadTradingLimits(optionalArgs ...any) <-chan any {
 }
 func (this *Exchange) SafePosition(position any) any {
 	// simplified version of: /pull/12765/
-	var unrealizedPnlString any = this.SafeString(position, "unrealisedPnl")
+	var unrealizedPnlString any = this.SafeString(position, "unrealizedPnl")
 	var initialMarginString any = this.SafeString(position, "initialMargin")
 	//
 	// PERCENTAGE
