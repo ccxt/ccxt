@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -208,11 +208,11 @@ export default class lbank extends lbankRest {
             const timeframeId = this.safeString (message, 'kbar');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
@@ -231,11 +231,11 @@ export default class lbank extends lbankRest {
             ];
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -327,7 +327,7 @@ export default class lbank extends lbankRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //     {
         //         "tick":{
@@ -488,7 +488,7 @@ export default class lbank extends lbankRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // request
         //    [ 'timestamp', 'price', 'volume', 'direction' ]
@@ -507,7 +507,7 @@ export default class lbank extends lbankRest {
             timestamp = this.parse8601 (datetime);
         }
         const rawSide = this.safeString2 (trade, 'direction', 3);
-        const parts = rawSide.split ('_');
+        const parts = (rawSide as string).split ('_');
         const firstPart = this.safeString (parts, 0);
         const secondPart = this.safeString (parts, 1);
         let side = firstPart;
@@ -557,7 +557,7 @@ export default class lbank extends lbankRest {
             const market = this.market (symbol);
             symbol = this.symbol (symbol);
             messageHash = 'orders:' + market['symbol'];
-            pair = market['id'];
+            pair = market['id'] as string;
         }
         const message: Dict = {
             'action': 'subscribe',
@@ -591,12 +591,10 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId, undefined, '_');
-        let myOrders = undefined;
+        let myOrders = this.orders;
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             myOrders = new ArrayCacheBySymbolById (limit);
-        } else {
-            myOrders = this.orders;
         }
         const order = this.parseWsOrder (message);
         myOrders.append (order);
@@ -944,7 +942,7 @@ export default class lbank extends lbankRest {
             'orderUpdate': this.handleOrders,
             'assetUpdate': this.handleBalance,
         };
-        const handler = this.safeValue (handlers, type);
+        const handler = this.safeValue (handlers, type as string);
         if (handler !== undefined) {
             handler.call (this, client, message);
         }

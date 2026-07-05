@@ -156,8 +156,8 @@ class p2b(ccxt.async_support.p2b):
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
         messageHashes = []
         args = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len((symbols))):
+            market = self.market((symbols)[i])
             messageHashes.append(name + '::' + market['symbol'])
             args.append(market['id'])
         url = self.urls['api']['ws']
@@ -315,8 +315,8 @@ class p2b(ccxt.async_support.p2b):
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesArray = ArrayCache(tradesLimit)
             self.trades[symbol] = tradesArray
-        for i in range(0, len(trades)):
-            item = trades[i]
+        for i in range(0, len((trades))):
+            item = (trades)[i]
             trade = self.parse_trade(item, market)
             tradesArray.append(trade)
         messageHash = 'deals::' + symbol

@@ -2137,8 +2137,8 @@ class bitget(Exchange, ImplicitAPI):
                     expiry = self.safe_integer(market, 'deliveryTime')
                     expiryDatetime = self.iso8601(expiry)
                     expiryParts = expiryDatetime.split('-')
-                    yearPart = self.safe_string(expiryParts, 0)
-                    dayPart = self.safe_string(expiryParts, 2)
+                    yearPart = self.safe_string(expiryParts, 0, '')
+                    dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
                     month = self.safe_string(expiryParts, 1)
                     day = dayPart[0:2]
@@ -2390,8 +2390,8 @@ class bitget(Exchange, ImplicitAPI):
                     expiry = self.safe_integer(market, 'deliveryTime')
                     expiryDatetime = self.iso8601(expiry)
                     expiryParts = expiryDatetime.split('-')
-                    yearPart = self.safe_string(expiryParts, 0)
-                    dayPart = self.safe_string(expiryParts, 2)
+                    yearPart = self.safe_string(expiryParts, 0, '')
+                    dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
                     month = self.safe_string(expiryParts, 1)
                     day = dayPart[0:2]
@@ -5698,7 +5698,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         marginMode = None
-        response = None
+        response = {}
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         request = {}
         trailing = self.safe_value(params, 'trailing')
@@ -5809,10 +5809,10 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        order = None
+        order = {}
         if isContractTriggerEndpoint:
             orderInfo = self.safe_value(data, 'successList', [])
-            order = orderInfo[0]
+            order = self.safe_dict(orderInfo, 0, {})
         else:
             if uta and trigger:
                 order = response
@@ -7201,7 +7201,7 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(item, 'cTime')
         after = self.safe_number(item, 'balance')
         fee = self.safe_number_2(item, 'fees', 'fee')
-        amountRaw = self.safe_string_2(item, 'size', 'amount')
+        amountRaw = self.safe_string_2(item, 'size', 'amount', '')
         amount = self.parse_number(Precise.string_abs(amountRaw))
         direction = 'in'
         if amountRaw.find('-') >= 0:
@@ -8485,7 +8485,7 @@ class bitget(Exchange, ImplicitAPI):
             'id': self.safe_string_2(contract, 'billId', 'id'),
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+    def parse_funding_histories(self, contracts, market: Market = None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
@@ -8678,7 +8678,7 @@ class bitget(Exchange, ImplicitAPI):
             'leverage': self.number_to_string(leverage),
         }
         uta = None
-        response = None
+        response = {}
         uta, params = self.handle_uta_and_params(params, 'setLeverage', False)
         if uta:
             if productType == 'SPOT':
@@ -8785,7 +8785,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         uta = None
-        response = None
+        response = {}
         productType, params = self.handle_product_type_and_params(market, params)
         uta, params = self.handle_uta_and_params(params, 'setPositionMode', False)
         if uta:
@@ -9648,7 +9648,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         uta = None
         response = None
-        result = None
+        result = {}
         uta, params = self.handle_uta_and_params(params, 'fetchCrossBorrowRate', False)
         if uta:
             response = self.publicUtaGetV3MarketMarginLoans(self.extend(request, params))
@@ -10065,7 +10065,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marginType = self.safe_string(marginMode, 'marginMode')
         marginType = 'cross' if (marginType == 'crossed') else marginType
         return {

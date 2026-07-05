@@ -1915,7 +1915,7 @@ export default class hashkey extends Exchange {
         }
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': this.safeString(currency, 'code'),
             'network': undefined,
             'address': address,
             'tag': tag,

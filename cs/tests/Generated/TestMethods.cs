@@ -911,7 +911,7 @@ public partial class testMainClass
         }
         // try proxy several times
         object maxRetries = 3;
-        object exception = null;
+        object exceptionMessageString = null;
         for (object j = 0; isLessThan(j, maxRetries); postFixIncrement(ref j))
         {
             try
@@ -920,14 +920,14 @@ public partial class testMainClass
                 return true;  // if successfull, then end the test
             } catch(Exception e)
             {
-                exception = e;
+                exceptionMessageString = exceptionMessage(e);
                 await exchange.sleep(multiply(j, 1000));
             }
         }
         // if exception was set, then throw it
-        if (isTrue(!isEqual(exception, null)))
+        if (isTrue(!isEqual(exceptionMessageString, null)))
         {
-            object errorMessage = add(add(add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessage(exception));
+            object errorMessage = add(add(add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessageString);
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
             dump(add("[TEST_WARNING]", errorMessage));
@@ -1272,8 +1272,8 @@ public partial class testMainClass
                 {
                     if (isTrue(isEqual(this.lang, "C#")))
                     {
-                        object stringifiedNewOutput = exchange.numberToString(sanitizedNewOutput);
-                        object stringifiedStoredOutput = exchange.numberToString(sanitizedStoredOutput);
+                        object stringifiedNewOutput = ((string)exchange.numberToString(sanitizedNewOutput));
+                        object stringifiedStoredOutput = ((string)exchange.numberToString(sanitizedStoredOutput));
                         this.assertStaticError(isEqual(((object)stringifiedNewOutput).ToString(), ((object)stringifiedStoredOutput).ToString()), messageError, storedOutput, newOutput, assertingKey);
                     } else
                     {
@@ -1439,7 +1439,7 @@ public partial class testMainClass
         try
         {
             object callOutput = exchange.safeValue(data, "output");
-            this.assertStaticRequestOutput(exchange, type, skipKeys, getValue(data, "url"), requestUrl, callOutput, output);
+            this.assertStaticRequestOutput(exchange, type, skipKeys, getValue(data, "url"), ((string)requestUrl), callOutput, output);
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
@@ -1575,25 +1575,25 @@ public partial class testMainClass
         if (!isTrue(exchange.isEmptyString(apiKey)))
         {
             // c# to string requirement
-            exchange.apiKey = ((object)apiKey).ToString();
+            exchange.apiKey = ((object)((string)apiKey)).ToString();
         }
         object secret = exchange.safeString(exchangeData, "secret");
         if (!isTrue(exchange.isEmptyString(secret)))
         {
             // c# to string requirement
-            exchange.secret = ((object)secret).ToString();
+            exchange.secret = ((object)((string)secret)).ToString();
         }
         object privateKey = exchange.safeString(exchangeData, "privateKey");
         if (!isTrue(exchange.isEmptyString(privateKey)))
         {
             // c# to string requirement
-            exchange.privateKey = ((object)privateKey).ToString();
+            exchange.privateKey = ((object)((string)privateKey)).ToString();
         }
         object walletAddress = exchange.safeString(exchangeData, "walletAddress");
         if (!isTrue(exchange.isEmptyString(walletAddress)))
         {
             // c# to string requirement
-            exchange.walletAddress = ((object)walletAddress).ToString();
+            exchange.walletAddress = ((object)((string)walletAddress)).ToString();
         }
         object accounts = exchange.safeList(exchangeData, "accounts");
         if (isTrue(accounts))
@@ -1647,7 +1647,7 @@ public partial class testMainClass
                 }
                 object type = exchange.safeString(exchangeData, "outputType");
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
-                await this.testRequestStatically(exchange, method, result, type, skipKeys);
+                await this.testRequestStatically(exchange, method, result, ((string)type), skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
@@ -1667,25 +1667,25 @@ public partial class testMainClass
         if (!isTrue(exchange.isEmptyString(apiKey)))
         {
             // c# to string requirement
-            exchange.apiKey = ((object)apiKey).ToString();
+            exchange.apiKey = ((object)((string)apiKey)).ToString();
         }
         object secret = exchange.safeString(exchangeData, "secret");
         if (!isTrue(exchange.isEmptyString(secret)))
         {
             // c# to string requirement
-            exchange.secret = ((object)secret).ToString();
+            exchange.secret = ((object)((string)secret)).ToString();
         }
         object privateKey = exchange.safeString(exchangeData, "privateKey");
         if (!isTrue(exchange.isEmptyString(privateKey)))
         {
             // c# to string requirement
-            exchange.privateKey = ((object)privateKey).ToString();
+            exchange.privateKey = ((object)((string)privateKey)).ToString();
         }
         object walletAddress = exchange.safeString(exchangeData, "walletAddress");
         if (!isTrue(exchange.isEmptyString(walletAddress)))
         {
             // c# to string requirement
-            exchange.walletAddress = ((object)walletAddress).ToString();
+            exchange.walletAddress = ((object)((string)walletAddress)).ToString();
         }
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
         object options = exchange.safeValue(exchangeData, "options", new Dictionary<string, object>() {});
@@ -1902,7 +1902,7 @@ public partial class testMainClass
         object spotId = "x-TKT5PX2F";
         object swapId = "x-cvBPrNm9";
         object inverseSwapId = "x-xcKtGhcu";
-        object spotOrderRequest = null;
+        object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -1913,7 +1913,7 @@ public partial class testMainClass
         object clientOrderId = getValue(spotOrderRequest, "newClientOrderId");
         object spotIdString = ((object)spotId).ToString();
         assert(((string)clientOrderId).StartsWith(((string)spotIdString)), add(add(add("binance - spot clientOrderId: ", clientOrderId), " does not start with spotId"), spotIdString));
-        object swapOrderRequest = null;
+        object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
@@ -1921,7 +1921,7 @@ public partial class testMainClass
         {
             swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
-        object swapInverseOrderRequest = null;
+        object swapInverseOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
@@ -1937,7 +1937,7 @@ public partial class testMainClass
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
         // linear swap conditional order
-        object swapAlgoOrderRequest = null;
+        object swapAlgoOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
@@ -1953,7 +1953,7 @@ public partial class testMainClass
         {
             swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
-        object createOrdersRequest = null;
+        object createOrdersRequest = new Dictionary<string, object>() {};
         try
         {
             object orders = new List<object>() {new Dictionary<string, object>() {
@@ -1991,7 +1991,7 @@ public partial class testMainClass
     {
         Exchange exchange = this.initOfflineExchange("okx");
         object id = "6b9ad766b55dBCDE";
-        object spotOrderRequest = null;
+        object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -2004,7 +2004,7 @@ public partial class testMainClass
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("okx - spot clientOrderId: ", clientOrderId), " does not start with id: "), idString));
         object spotTag = getValue(getValue(spotOrderRequest, 0), "tag");
         assert(isEqual(spotTag, id), add(add(add("okx - id: ", id), " different from spot tag: "), spotTag));
-        object swapOrderRequest = null;
+        object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
@@ -2028,7 +2028,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("cryptocom");
         object id = "CCXT";
         await exchange.loadMarkets();
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -2048,7 +2048,7 @@ public partial class testMainClass
     public async virtual Task<object> testBybit()
     {
         Exchange exchange = this.initOfflineExchange("bybit");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "CCXT";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
         try
@@ -2071,7 +2071,7 @@ public partial class testMainClass
     {
         Exchange exchange = this.initOfflineExchange("kucoin");
         ((IDictionary<string,object>)exchange.options)["uta"] = false; // prevents fetching account mode inside createOrder
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object spotId = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "id");
         object spotKey = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "key");
         assert(isEqual(spotId, "ccxt"), add(add("kucoin - id: ", spotId), " not in options"));
@@ -2129,7 +2129,7 @@ public partial class testMainClass
     public async virtual Task<object> testKucoinfutures()
     {
         Exchange exchange = this.initOfflineExchange("kucoinfutures");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "ccxtfutures";
         object futureId = getValue(getValue(getValue(exchange.options, "partner"), "future"), "id");
         object futureKey = getValue(getValue(getValue(exchange.options, "partner"), "future"), "key");
@@ -2163,7 +2163,7 @@ public partial class testMainClass
     public async virtual Task<object> testBitget()
     {
         Exchange exchange = this.initOfflineExchange("bitget");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "p4sve";
         assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bitget - id: ", id), " not in options"));
         try
@@ -2184,7 +2184,7 @@ public partial class testMainClass
     public async virtual Task<object> testMexc()
     {
         Exchange exchange = this.initOfflineExchange("mexc");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "CCXT";
         assert(isEqual(getValue(exchange.options, "broker"), id), add(add("mexc - id: ", id), " not in options"));
         await exchange.loadMarkets();
@@ -2208,7 +2208,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("htx");
         // spot test
         object id = "AA03022abc";
-        object spotOrderRequest = null;
+        object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -2220,7 +2220,7 @@ public partial class testMainClass
         object idString = ((object)id).ToString();
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("htx - spot clientOrderId ", clientOrderId), " does not start with id: "), idString));
         // swap test
-        object swapOrderRequest = null;
+        object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
@@ -2228,7 +2228,7 @@ public partial class testMainClass
         {
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
-        object swapInverseOrderRequest = null;
+        object swapInverseOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
@@ -2252,7 +2252,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("woo");
         // spot test
         object id = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
-        object spotOrderRequest = null;
+        object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -2264,7 +2264,7 @@ public partial class testMainClass
         object idString = ((object)id).ToString();
         assert(((string)brokerId).StartsWith(((string)idString)), add(add(add("woo - broker_id: ", brokerId), " does not start with id: "), idString));
         // swap test
-        object stopOrderRequest = null;
+        object stopOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
@@ -2286,7 +2286,7 @@ public partial class testMainClass
     public async virtual Task<object> testBitmart()
     {
         Exchange exchange = this.initOfflineExchange("bitmart");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "CCXTxBitmart000";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), add(add("bitmart - id: ", id), " not in options"));
         await exchange.loadMarkets();
@@ -2310,7 +2310,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("coinex");
         object id = "x-167673045";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), add(add("coinex - id: ", id), " not in options"));
-        object spotOrderRequest = null;
+        object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -2331,7 +2331,7 @@ public partial class testMainClass
     public async virtual Task<object> testBingx()
     {
         Exchange exchange = this.initOfflineExchange("bingx");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "CCXT";
         assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bingx - id: ", id), " not in options"));
         try
@@ -2354,7 +2354,7 @@ public partial class testMainClass
     {
         Exchange exchange = this.initOfflineExchange("phemex");
         object id = "CCXT123456";
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -2376,7 +2376,7 @@ public partial class testMainClass
     {
         Exchange exchange = this.initOfflineExchange("blofin");
         object id = "ec6dd3a7dd982d0b";
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("LTC/USDT:USDT", "market", "buy", 1);
@@ -2416,7 +2416,7 @@ public partial class testMainClass
         ((IDictionary<string,object>)exchange.options)["portfolio"] = "random";
         object id = "nfqkvdjp";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
@@ -2438,7 +2438,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("coinbase");
         object id = "ccxt";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDC", "limit", "buy", 1, 20000);
@@ -2465,7 +2465,7 @@ public partial class testMainClass
         exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
         object id = "CCXT";
         await exchange.loadMarkets();
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
@@ -2486,7 +2486,7 @@ public partial class testMainClass
     {
         Exchange exchange = this.initOfflineExchange("xt");
         object id = "CCXT";
-        object spotOrderRequest = null;
+        object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -2496,7 +2496,7 @@ public partial class testMainClass
         }
         object spotMedia = getValue(spotOrderRequest, "media");
         assert(isEqual(spotMedia, id), add(add(add("xt - id: ", id), " different from swap tag: "), spotMedia));
-        object swapOrderRequest = null;
+        object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
@@ -2547,7 +2547,7 @@ public partial class testMainClass
             { "l1_chain_id", "11155111" },
             { "liquidation_fee", "0.2" },
         };
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "CCXT";
         assert(isEqual(getValue(exchange.options, "broker"), id), add(add("paradex - id: ", id), " not in options"));
         await exchange.loadMarkets();
@@ -2569,7 +2569,7 @@ public partial class testMainClass
     public async virtual Task<object> testHashkey()
     {
         Exchange exchange = this.initOfflineExchange("hashkey");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "10000700011";
         try
         {
@@ -2590,7 +2590,7 @@ public partial class testMainClass
     public async virtual Task<object> testCryptomus()
     {
         Exchange exchange = this.initOfflineExchange("cryptomus");
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "sell", 1, 20000);
@@ -2616,7 +2616,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("derive");
         object id = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
         assert(isEqual(getValue(exchange.options, "id"), id), add(add("derive - id: ", id), " not in options"));
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             object parameters = new Dictionary<string, object>() {
@@ -2649,7 +2649,7 @@ public partial class testMainClass
         exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
         object id = "CCXTMODE";
         await exchange.loadMarkets();
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
@@ -2671,7 +2671,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("backpack");
         exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
         exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "1400";
         try
         {
@@ -2692,7 +2692,7 @@ public partial class testMainClass
     public async virtual Task<object> testToobit()
     {
         Exchange exchange = this.initOfflineExchange("toobit");
-        object reqHeaders = null;
+        object reqHeaders = new Dictionary<string, object>() {};
         object id = "177321641268789";
         try
         {
@@ -2715,7 +2715,7 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange("weex");
         object id = "b-WEEX111125";
         assert(isEqual(getValue(exchange.options, "partner"), id), add(add("weex - id: ", id), " not in options"));
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);

@@ -160,7 +160,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         // public
         //    {
@@ -414,8 +414,8 @@ class apex extends \ccxt\async\apex {
             $messageHashes = array();
             $url = $this->get_ws_public_url();
             $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count(($symbols)); $i++) {
+                $symbol = ($symbols)[$i];
                 $market = $this->market($symbol);
                 $topic = 'instrumentInfo' . '.H.' . $market['id2'];
                 $topics[] = $topic;
@@ -458,7 +458,7 @@ class apex extends \ccxt\async\apex {
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_dict($message, 'data', array());
         $symbol = null;
-        $parsed = null;
+        $parsed = $this->parse_ticker($data);
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
             $symbol = $parsed['symbol'];
@@ -661,7 +661,7 @@ class apex extends \ccxt\async\apex {
             $messageHash = '';
             if (!$this->is_empty($symbols)) {
                 $symbols = $this->market_symbols($symbols);
-                $messageHash = '::' . implode(',', $symbols);
+                $messageHash = '::' . implode(',', ($symbols));
             }
             $url = $this->get_ws_private_url();
             $messageHash = 'positions' . $messageHash;
@@ -738,7 +738,6 @@ class apex extends \ccxt\async\apex {
         $symbols = array();
         for ($i = 0; $i < count($lists); $i++) {
             $rawTrade = $lists[$i];
-            $parsed = null;
             $parsed = $this->parse_ws_trade($rawTrade);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
@@ -791,7 +790,6 @@ class apex extends \ccxt\async\apex {
         $orders = $this->orders;
         $symbols = array();
         for ($i = 0; $i < count($lists); $i++) {
-            $parsed = null;
             $parsed = $this->parse_order($lists[$i]);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;

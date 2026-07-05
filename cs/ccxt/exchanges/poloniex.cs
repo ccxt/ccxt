@@ -1486,7 +1486,7 @@ public partial class poloniex : Exchange
             //         },
             //
             object tradesList = this.safeList(response, "data");
-            return this.parseTrades(tradesList, market, since, limit);
+            return this.parseTrades((IList<object>)(tradesList), market, since, limit);
         }
         object trades = await this.publicGetMarketsSymbolTrades(this.extend(request, parameters));
         //
@@ -1594,7 +1594,7 @@ public partial class poloniex : Exchange
             //            },
             //
             object data = this.safeList(raw, "data");
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades((IList<object>)(data), market, since, limit);
         }
         object response = await this.privateGetTrades(this.extend(request, parameters));
         //
@@ -1633,7 +1633,7 @@ public partial class poloniex : Exchange
             { "CANCELED", "canceled" },
             { "FAILED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1749,7 +1749,7 @@ public partial class poloniex : Exchange
         {
             if (!isTrue(((resultingTrades is IList<object>) || (resultingTrades.GetType().IsGenericType && resultingTrades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                resultingTrades = this.safeValue(resultingTrades, this.safeString(market, "id", marketId));
+                resultingTrades = this.safeValue(resultingTrades, ((string)this.safeString(market, "id", marketId)));
             }
         }
         object price = this.safeStringN(order, new List<object>() {"price", "rate", "px"});
@@ -1880,7 +1880,7 @@ public partial class poloniex : Exchange
         }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(!isEqual(marketType, "spot")))
         {
             object raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, parameters));
@@ -1923,7 +1923,7 @@ public partial class poloniex : Exchange
             //                "qCcy": "USDT"
             //            },
             //
-            response = this.safeList(raw, "data");
+            response = this.safeList(raw, "data", new List<object>() {});
         } else if (isTrue(isTrigger))
         {
             response = await this.privateGetSmartorders(this.extend(request, parameters));
@@ -2070,20 +2070,20 @@ public partial class poloniex : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
         };
         object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"))))
         {
             object responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, parameters));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
-            response = this.safeDict(responseInitial, "data");
+            response = this.safeDict(responseInitial, "data", new Dictionary<string, object>() {});
         } else if (isTrue(!isEqual(triggerPrice, null)))
         {
             response = await this.privatePostSmartorders(this.extend(request, parameters));
@@ -2235,7 +2235,7 @@ public partial class poloniex : Exchange
         var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(triggerPrice, null)))
         {
             response = await this.privatePutSmartordersId(this.extend(request, parameters));
@@ -2293,7 +2293,7 @@ public partial class poloniex : Exchange
             //        }
             //    }
             //
-            return this.parseOrder(this.safeDict(raw, "data"));
+            return this.parseOrder(this.safeDict(raw, "data", new Dictionary<string, object>() {}));
         }
         object clientOrderId = this.safeValue(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -2303,7 +2303,7 @@ public partial class poloniex : Exchange
         ((IDictionary<string,object>)request)["id"] = id;
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"});
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(isTrigger))
         {
             response = await this.privateDeleteSmartordersId(this.extend(request, parameters));
@@ -2348,7 +2348,7 @@ public partial class poloniex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbols"] = new List<object>() {getValue(market, "id")};
         }
-        object response = null;
+        object response = new List<object>() {};
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
@@ -2370,7 +2370,7 @@ public partial class poloniex : Exchange
             //        ]
             //    }
             //
-            response = this.safeList(raw, "data");
+            response = this.safeList(raw, "data", new List<object>() {});
             return this.parseOrders(response, market);
         }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
@@ -2438,7 +2438,7 @@ public partial class poloniex : Exchange
         }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(isTrigger))
         {
             response = await this.privateGetSmartordersId(this.extend(request, parameters));
@@ -3190,7 +3190,7 @@ public partial class poloniex : Exchange
             object entry = getValue(response, i);
             object currencies = new List<object>(((IDictionary<string,object>)entry).Keys);
             object currencyId = this.safeString(currencies, 0);
-            ((IDictionary<string,object>)data)[(string)currencyId] = getValue(entry, currencyId);
+            ((IDictionary<string,object>)data)[(string)((string)currencyId)] = getValue(entry, ((string)currencyId));
         }
         return this.parseDepositWithdrawFees(data, codes);
     }
@@ -3263,7 +3263,8 @@ public partial class poloniex : Exchange
     public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
         object depositWithdrawFee = this.depositWithdrawFee(new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)getValue(depositWithdrawFee, "info"))[(string)getValue(currency, "code")] = fee;
+        object currencyCode = this.safeString(currency, "code");
+        ((IDictionary<string,object>)getValue(depositWithdrawFee, "info"))[(string)((string)currencyCode)] = fee;
         object networkId = this.safeString(fee, "blockchain");
         object withdrawFee = this.safeNumber(fee, "withdrawalFee");
         object withdrawResult = new Dictionary<string, object>() {
@@ -3321,7 +3322,7 @@ public partial class poloniex : Exchange
             { "COMPLETE ERROR", "failed" },
             { "COMPLETE_ERROR", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -3370,7 +3371,7 @@ public partial class poloniex : Exchange
         object currencyId = this.safeString(transaction, "currency");
         object code = this.safeCurrencyCode(currencyId);
         object status = this.safeString(transaction, "status", "pending");
-        status = this.parseTransactionStatus(status);
+        status = ((string)this.parseTransactionStatus(status));
         object txid = this.safeString(transaction, "txid");
         object type = ((bool) isTrue((inOp(transaction, "withdrawalRequestsId")))) ? "withdrawal" : "deposit";
         object id = this.safeString2(transaction, "withdrawalRequestsId", "depositNumber");
@@ -3740,7 +3741,7 @@ public partial class poloniex : Exchange
             { "collateral", collateral },
             { "initialMargin", initialMargin },
             { "initialMarginPercentage", null },
-            { "leverage", parseInt(leverage) },
+            { "leverage", parseInt(((string)leverage)) },
             { "marginRatio", this.safeNumber(position, "mgnRatio") },
             { "stopLossPrice", this.safeNumber(position, "slTrgPx") },
             { "takeProfitPrice", this.safeNumber(position, "tpTrgPx") },

@@ -1488,7 +1488,7 @@ class bullish extends Exchange {
         }
         $method = 'privateGetV2HistoryOrders';
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'method', $method);
-        $response = null;
+        $response = array();
         if ($method === 'privateGetV2Orders') {
             //
             //     array(

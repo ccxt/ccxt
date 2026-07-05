@@ -3664,7 +3664,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         # fetchDepositAddress
         #    {
@@ -5301,7 +5301,7 @@ class bitmart(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'amount'),
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+    def parse_funding_histories(self, contracts, market: Market = None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]

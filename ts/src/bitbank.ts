@@ -727,7 +727,7 @@ export default class bitbank extends Exchange {
             'CANCELED_UNFILLED': 'canceled',
             'CANCELED_PARTIALLY_FILLED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -797,7 +797,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data, market);
+        return this.parseOrder (data as Dict, market);
     }
 
     /**
@@ -890,7 +890,7 @@ export default class bitbank extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data, market);
+        return this.parseOrder (data as Dict, market);
     }
 
     /**
@@ -1187,7 +1187,7 @@ export default class bitbank extends Exchange {
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
             const code = this.safeString (data, 'code');
-            const message = this.safeString (errorMessages, code, 'Error');
+            const message = this.safeString (errorMessages, code as string, 'Error');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, message);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }

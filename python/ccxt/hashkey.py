@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1898,7 +1898,7 @@ class hashkey(Exchange, ImplicitAPI):
             tag = None
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': self.safe_string(currency, 'code'),
             'network': None,
             'address': address,
             'tag': tag,
@@ -3391,7 +3391,7 @@ class hashkey(Exchange, ImplicitAPI):
         if (paramsType is not None) and (paramsType != 'spot') and (paramsType != 'swap'):
             raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
 
-    def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue=None):
+    def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
         isTrigger = defaultValue
         isTrigger, params = self.handle_option_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
         return [isTrigger, params]
