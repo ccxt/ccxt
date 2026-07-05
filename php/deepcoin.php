@@ -360,7 +360,7 @@ class deepcoin extends Exchange {
         ));
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), $defaultValue = null): mixed {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), mixed $defaultValue = null): array {
         $instType = $this->safe_string($params, 'instType');
         $params = $this->omit($params, 'instType');
         $type = $this->safe_string($params, 'type');
@@ -372,6 +372,9 @@ class deepcoin extends Exchange {
 
     public function convert_to_instrument_type($type) {
         $exchangeTypes = $this->safe_dict($this->options, 'exchangeType', array());
+        if ($type === null) {
+            return $type;
+        }
         return $this->safe_string($exchangeTypes, $type, $type);
     }
 
@@ -1350,6 +1353,9 @@ class deepcoin extends Exchange {
             '4' => 'transfer',
             '5' => 'fee',
         );
+        if ($type === null) {
+            return $type;
+        }
         return $this->safe_string($ledgerType, $type, $type);
     }
 
