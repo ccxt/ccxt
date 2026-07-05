@@ -221,9 +221,9 @@ public partial class deribit : ccxt.deribit
             await this.authenticate();
         }
         object channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            object market = this.market(getValue((IList<string>)(symbols), i));
             ((IList<object>)channels).Add(add(add(add("ticker.", getValue(market, "id")), "."), interval));
         }
         object message = new Dictionary<string, object>() {
@@ -302,9 +302,9 @@ public partial class deribit : ccxt.deribit
         symbols = this.marketSymbols(symbols, null, false);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            object market = this.market(getValue((IList<string>)(symbols), i));
             ((IList<object>)channels).Add(add("quote.", getValue(market, "id")));
         }
         object message = new Dictionary<string, object>() {
@@ -349,7 +349,7 @@ public partial class deribit : ccxt.deribit
         object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object ticker = this.parseWsBidAsk(data);
         object symbol = getValue(ticker, "symbol");
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+        ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
         object messageHash = this.safeString(parameters, "channel");
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
@@ -559,7 +559,7 @@ public partial class deribit : ccxt.deribit
             object trade = getValue(parsed, i);
             callDynamically(cachedTrades, "append", new object[] {trade});
             object symbol = getValue(trade, "symbol");
-            ((IDictionary<string,object>)marketIds)[(string)symbol] = true;
+            ((IDictionary<string,object>)marketIds)[(string)((string)symbol)] = true;
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {cachedTrades, channel});
     }
@@ -621,7 +621,7 @@ public partial class deribit : ccxt.deribit
             descriptor = add(add(add(add(group, "."), depth), "."), interval);
         } else
         {
-            descriptor = interval;
+            descriptor = ((string)interval);
         }
         object orderbook = await this.watchMultipleWrapper("book", descriptor, symbols, parameters);
         return (orderbook as IOrderBook).limit();
@@ -677,7 +677,7 @@ public partial class deribit : ccxt.deribit
         object parameters = this.safeValue(message, "params", new Dictionary<string, object>() {});
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
         object channel = this.safeString(parameters, "channel");
-        object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)channel)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object descriptor = "";
         object partsLength = getArrayLength(parts);
         object isDetailed = isEqual(partsLength, 5);
@@ -690,7 +690,7 @@ public partial class deribit : ccxt.deribit
         } else
         {
             object interval = this.safeString(parts, 2);
-            descriptor = interval;
+            descriptor = ((string)interval);
         }
         object marketId = this.safeString(data, "instrument_name");
         object symbol = this.safeSymbol(marketId);
@@ -941,17 +941,17 @@ public partial class deribit : ccxt.deribit
         object timeframes = this.safeDict(wsOptions, "timeframes", new Dictionary<string, object>() {});
         object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe), null)))
+        if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe)), null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
+        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe));
         object ohlcv = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         // data contains a single OHLCV candle
         object parsed = this.parseWsOHLCV(ohlcv, market);
         callDynamically(stored, "append", new object[] {parsed});
-        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
+        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = stored;
         object resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         object messageHash = add(add(add("chart.trades|", symbol), "|"), rawTimeframe);
         callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHash});
@@ -1102,9 +1102,9 @@ public partial class deribit : ccxt.deribit
                 { "book", this.handleOrderBook },
                 { "trades", this.handleTrades },
                 { "chart", this.handleOHLCV },
-                { "user", this.safeValue(userHandlers, this.safeString(parts, 1)) },
+                { "user", this.safeValue(userHandlers, ((string)this.safeString(parts, 1))) },
             };
-            object handler = this.safeValue(handlers, channelId);
+            object handler = this.safeValue(handlers, ((string)channelId));
             if (isTrue(!isEqual(handler, null)))
             {
                 DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
