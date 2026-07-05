@@ -26,6 +26,7 @@ public partial class kalshi : PredictionExchange
                 { "cancelOrder", true },
                 { "createOrder", true },
                 { "fetchBalance", true },
+                { "fetchClosedOrders", true },
                 { "fetchCurrencies", false },
                 { "fetchEvent", true },
                 { "fetchEvents", true },
@@ -36,6 +37,7 @@ public partial class kalshi : PredictionExchange
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
+                { "fetchOrders", true },
                 { "fetchPositions", true },
                 { "fetchSettlements", true },
                 { "fetchStatus", true },
@@ -1796,6 +1798,70 @@ public partial class kalshi : PredictionExchange
         object response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters));
         object orders = (IList<object>)(this.safeList(response, "orders", new List<object>() {}));
         return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchOrders
+     * @description fetches all orders (resting, executed and canceled) for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            await this.loadOutcome(outcome);
+        } else
+        {
+            await this.loadOutcomes();
+        }
+        // no status filter — the endpoint returns every order; pass params.status to narrow
+        object request = new Dictionary<string, object>() {};
+        object outcomeObj = null;
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            outcomeObj = this.outcome(outcome);
+            ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
+        }
+        object response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters));
+        object orders = (IList<object>)(this.safeList(response, "orders", new List<object>() {}));
+        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchClosedOrders
+     * @description fetches the closed (executed or canceled) orders for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
+        // both executed and canceled, so fetch every order and keep the non-open ones client-side
+        parameters ??= new Dictionary<string, object>();
+        object orders = await this.fetchOrders(outcome, null, null, parameters);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            object status = this.safeString(order, "status");
+            if (isTrue(isTrue((isEqual(status, "closed"))) || isTrue((isEqual(status, "canceled")))))
+            {
+                ((IList<object>)result).Add(order);
+            }
+        }
+        return this.filterBySinceLimit(result, since, limit, "timestamp");
     }
 
     /**

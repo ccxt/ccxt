@@ -252,6 +252,30 @@ export default class kalshi extends Exchange {
     fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
+     * @name kalshi#fetchOrders
+     * @description fetches all orders (resting, executed and canceled) for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    /**
+     * @method
+     * @name kalshi#fetchClosedOrders
+     * @description fetches the closed (executed or canceled) orders for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    /**
+     * @method
      * @name kalshi#fetchOrder
      * @description fetches a single order by id from the kalshi portfolio endpoint
      * @see https://trading-api.readme.io/reference/getorder

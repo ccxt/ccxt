@@ -34,6 +34,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': False,
                 'fetchEvent': True,
                 'fetchEvents': True,
@@ -44,6 +45,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchPositions': True,
                 'fetchSettlements': True,
                 'fetchStatus': True,
@@ -1503,6 +1505,55 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
         return self.parse_prediction_orders(orders, outcomeObj, since, limit)
+
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+        """
+        fetches all orders(resting, executed and canceled) for the authenticated kalshi user
+
+        https://trading-api.readme.io/reference/getorders
+
+        :param str [outcome]: filter by unified outcome
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
+        if outcome is not None:
+            await self.load_outcome(outcome)
+        else:
+            await self.load_outcomes()
+        # no status filter — the endpoint returns every order; pass params.status to narrow
+        request = {}
+        outcomeObj = None
+        if outcome is not None:
+            outcomeObj = self.outcome(outcome)
+            request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
+        response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
+        orders = self.safe_list(response, 'orders', [])
+        return self.parse_prediction_orders(orders, outcomeObj, since, limit)
+
+    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+        """
+        fetches the closed(executed or canceled) orders for the authenticated kalshi user
+
+        https://trading-api.readme.io/reference/getorders
+
+        :param str [outcome]: filter by unified outcome
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
+        # kalshi's status filter takes a single value(resting|executed|canceled); "closed" spans
+        # both executed and canceled, so fetch every order and keep the non-open ones client-side
+        orders = await self.fetch_orders(outcome, None, None, params)
+        result = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            status = self.safe_string(order, 'status')
+            if (status == 'closed') or (status == 'canceled'):
+                result.append(order)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp')
 
     async def fetch_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
         """

@@ -461,6 +461,94 @@ func (this *Kalshi) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.P
 }
 /**
  * @method
+ * @name kalshi#fetchOrders
+ * @description fetches all orders (resting, executed and canceled) for the authenticated kalshi user
+ * @see https://trading-api.readme.io/reference/getorders
+ * @param {string} [outcome] filter by unified outcome
+ * @param {int} [since] timestamp in ms of the earliest order to fetch
+ * @param {int} [limit] the maximum number of orders to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func (this *Kalshi) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
+
+    opts := FetchOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var outcome any = nil
+    if opts.Outcome != nil {
+        outcome = *opts.Outcome
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchOrders(outcome, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPredictionOrderArray(res), nil
+}
+/**
+ * @method
+ * @name kalshi#fetchClosedOrders
+ * @description fetches the closed (executed or canceled) orders for the authenticated kalshi user
+ * @see https://trading-api.readme.io/reference/getorders
+ * @param {string} [outcome] filter by unified outcome
+ * @param {int} [since] timestamp in ms of the earliest order to fetch
+ * @param {int} [limit] the maximum number of orders to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func (this *Kalshi) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
+
+    opts := FetchClosedOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var outcome any = nil
+    if opts.Outcome != nil {
+        outcome = *opts.Outcome
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchClosedOrders(outcome, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPredictionOrderArray(res), nil
+}
+/**
+ * @method
  * @name kalshi#fetchOrder
  * @description fetches a single order by id from the kalshi portfolio endpoint
  * @see https://trading-api.readme.io/reference/getorder
@@ -842,39 +930,6 @@ func (this *Kalshi) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Ti
 func (this *Kalshi) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
 func (this *Kalshi) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
 func (this *Kalshi) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
-func (this *Kalshi) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
-
-    opts := FetchClosedOrdersOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var outcome any = nil
-    if opts.Outcome != nil {
-        outcome = *opts.Outcome
-    }
-
-    var since any = nil
-    if opts.Since != nil {
-        since = *opts.Since
-    }
-
-    var limit any = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params any = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.FetchClosedOrders(outcome, since, limit, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewPredictionOrderArray(res), nil
-}
 func (this *Kalshi) FetchConvertCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
 func (this *Kalshi) FetchConvertQuote(fromCode string, toCode string, options ...ccxt.FetchConvertQuoteOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
 func (this *Kalshi) FetchConvertTrade(id string, options ...ccxt.FetchConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
@@ -923,39 +978,6 @@ func (this *Kalshi) FetchOption(symbol string, options ...ccxt.FetchOptionOption
 func (this *Kalshi) FetchOptionChain(code string, options ...ccxt.FetchOptionChainOptions) (ccxt.OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
 func (this *Kalshi) FetchOrderWithClientOrderId(clientOrderId string, options ...ccxt.FetchOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Kalshi) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
-func (this *Kalshi) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
-
-    opts := FetchOrdersOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var outcome any = nil
-    if opts.Outcome != nil {
-        outcome = *opts.Outcome
-    }
-
-    var since any = nil
-    if opts.Since != nil {
-        since = *opts.Since
-    }
-
-    var limit any = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params any = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.FetchOrders(outcome, since, limit, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewPredictionOrderArray(res), nil
-}
 func (this *Kalshi) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
 func (this *Kalshi) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]ccxt.PredictionTrade, error) {
 

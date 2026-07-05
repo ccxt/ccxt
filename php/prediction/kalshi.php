@@ -34,6 +34,7 @@ class kalshi extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
                 'fetchEvent' => true,
                 'fetchEvents' => true,
@@ -44,6 +45,7 @@ class kalshi extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchPositions' => true,
                 'fetchSettlements' => true,
                 'fetchStatus' => true,
@@ -1646,6 +1648,65 @@ class kalshi extends Exchange {
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
             $orders = $this->safe_list($response, 'orders', array());
             return $this->parse_prediction_orders($orders, $outcomeObj, $since, $limit);
+        })();
+    }
+
+    public function fetch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
+            /**
+             * fetches all $orders (resting, executed and canceled) for the authenticated kalshi user
+             *
+             * @see https://trading-api.readme.io/reference/getorders
+             *
+             * @param {string} [$outcome] filter by unified $outcome
+             * @param {int} [$since] timestamp in ms of the earliest order to fetch
+             * @param {int} [$limit] the maximum number of $orders to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
+            } else {
+                Async\await($this->load_outcomes());
+            }
+            // no status filter — the endpoint returns every order; pass $params->status to narrow
+            $request = array();
+            $outcomeObj = null;
+            if ($outcome !== null) {
+                $outcomeObj = $this->outcome($outcome);
+                $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
+            }
+            $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
+            $orders = $this->safe_list($response, 'orders', array());
+            return $this->parse_prediction_orders($orders, $outcomeObj, $since, $limit);
+        })();
+    }
+
+    public function fetch_closed_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
+            /**
+             * fetches the closed (executed or canceled) $orders for the authenticated kalshi user
+             *
+             * @see https://trading-api.readme.io/reference/getorders
+             *
+             * @param {string} [$outcome] filter by unified $outcome
+             * @param {int} [$since] timestamp in ms of the earliest $order to fetch
+             * @param {int} [$limit] the maximum number of $orders to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [$order structures](https://docs.ccxt.com/#/?id=$order-structure)
+             */
+            // kalshi's $status filter takes a single value (resting|executed|canceled); "closed" spans
+            // both executed and canceled, so fetch every $order and keep the non-open ones client-side
+            $orders = Async\await($this->fetch_orders($outcome, null, null, $params));
+            $result = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                $status = $this->safe_string($order, 'status');
+                if (($status === 'closed') || ($status === 'canceled')) {
+                    $result[] = $order;
+                }
+            }
+            return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
         })();
     }
 

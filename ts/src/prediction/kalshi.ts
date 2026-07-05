@@ -37,6 +37,7 @@ export default class kalshi extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchEvent': true,
                 'fetchEvents': true,
@@ -47,6 +48,7 @@ export default class kalshi extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchSettlements': true,
                 'fetchStatus': true,
@@ -1645,6 +1647,61 @@ export default class kalshi extends Exchange {
         const response = await this.kalshiPrivateGetPortfolioOrders (this.extend (request, params));
         const orders = this.safeList (response, 'orders', []) as any[];
         return this.parsePredictionOrders (orders, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchOrders
+     * @description fetches all orders (resting, executed and canceled) for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        } else {
+            await this.loadOutcomes ();
+        }
+        // no status filter — the endpoint returns every order; pass params.status to narrow
+        const request: Dict = {};
+        let outcomeObj: any = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = this.outcome (outcome);
+            request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
+        }
+        const response = await this.kalshiPrivateGetPortfolioOrders (this.extend (request, params));
+        const orders = this.safeList (response, 'orders', []) as any[];
+        return this.parsePredictionOrders (orders, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchClosedOrders
+     * @description fetches the closed (executed or canceled) orders for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
+        // both executed and canceled, so fetch every order and keep the non-open ones client-side
+        const orders = await this.fetchOrders (outcome, undefined, undefined, params);
+        const result: any[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const status = this.safeString (order, 'status');
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push (order);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionOrder[];
     }
 
     /**
