@@ -227,6 +227,46 @@ public partial class kalshi
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
+    /// fetch the fills (executed trades) of the authenticated kalshi user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getfills"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter to a single unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest fill timestamp (ms) to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of fills to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
+    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    /// <summary>
     /// fetches the authenticated user's USD portfolio balance from kalshi
     /// </summary>
     /// <remarks>

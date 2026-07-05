@@ -761,6 +761,24 @@ class PredictionOpenInterest(OpenInterest):
     market: Str
 
 
+class PredictionSettlement(TypedDict):
+    info: Any
+    id: Str
+    timestamp: Int
+    datetime: Str
+    outcome: Str
+    outcomeId: Str
+    market: Str
+    event: Str
+    result: Str
+    won: Bool
+    amount: Num
+    price: Num
+    cost: Num
+    payout: Num
+    pnl: Num
+
+
 class fetchEventsParams(TypedDict):
     query: Str
     limit: Int

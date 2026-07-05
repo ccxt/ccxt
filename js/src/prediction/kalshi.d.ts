@@ -158,6 +158,28 @@ export default class kalshi extends Exchange {
     parseTrade(trade: Dict, market?: Market): PredictionTrade;
     /**
      * @method
+     * @name kalshi#fetchMyTrades
+     * @description fetch the fills (executed trades) of the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getfills
+     * @param {string} [outcome] filter to a single unified outcome
+     * @param {int} [since] the earliest fill timestamp (ms) to fetch
+     * @param {int} [limit] the maximum number of fills to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseMyTrade
+     * @description parses one raw kalshi fill into the unified trade shape
+     * @param {object} fill the raw kalshi fill
+     * @param {object} [market] a resolved outcome/market hint
+     * @returns {object} a unified trade structure
+     */
+    parseMyTrade(fill: Dict, market?: Market): PredictionTrade;
+    /**
+     * @method
      * @name kalshi#fetchBalance
      * @description fetches the authenticated user's USD portfolio balance from kalshi
      * @see https://trading-api.readme.io/reference/getbalance

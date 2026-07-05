@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
-from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest
+from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -38,6 +38,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'fetchEvent': True,
                 'fetchEvents': True,
                 'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
@@ -1161,6 +1162,114 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'amount': amount,
             'cost': cost,
             'fee': None,
+        }, market)
+
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+        """
+        fetch the fills(executed trades) of the authenticated kalshi user
+
+        https://trading-api.readme.io/reference/getfills
+
+        :param str [outcome]: filter to a single unified outcome
+        :param int [since]: the earliest fill timestamp(ms) to fetch
+        :param int [limit]: the maximum number of fills to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        """
+        if outcome is not None:
+            await self.load_outcome(outcome)
+        else:
+            await self.load_outcomes()
+        request = {}
+        outcomeObj = None
+        if outcome is not None:
+            # the ticker filter narrows to the market; a market has both legs, so the
+            # wanted-leg filter below still drops the opposite-leg fills
+            outcomeObj = self.outcome(outcome)
+            request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.kalshiPrivateGetPortfolioFills(self.extend(request, params))
+        fills = self.safe_list(response, 'fills', [])
+        fillsLength = len(fills)
+        trades = []
+        for i in range(0, fillsLength):
+            trades.append(self.parse_my_trade(fills[i], outcomeObj))
+        wantedOutcome = None
+        if outcome is not None:
+            wantedOutcome = self.safe_string(self.outcome(outcome), 'outcome')
+        result = []
+        for i in range(0, len(trades)):
+            trade = trades[i]
+            if (wantedOutcome is None) or (self.safe_string(trade, 'outcome') == wantedOutcome):
+                result.append(trade)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp')
+
+    def parse_my_trade(self, fill: dict, market: Market = None) -> PredictionTrade:
+        """
+ @ignore
+        parses one raw kalshi fill into the unified trade shape
+        :param dict fill: the raw kalshi fill
+        :param dict [market]: a resolved outcome/market hint
+        :returns dict: a unified trade structure
+        """
+        id = self.safe_string_2(fill, 'fill_id', 'trade_id')
+        orderId = self.safe_string(fill, 'order_id')
+        ticker = self.safe_string_2(fill, 'ticker', 'market_ticker')
+        # the leg the fill executed on('yes' | 'no'); NO is addressed as <ticker>-NO
+        sideLeg = self.safe_string_lower(fill, 'side')
+        outcomeKey = ticker
+        if (sideLeg == 'no') and (ticker is not None):
+            outcomeKey = ticker + '-NO'
+        mkt = self.safe_outcome(outcomeKey, market)
+        ts = self.parse8601(self.safe_string(fill, 'created_time'))
+        # action is the order side(buy/sell) of the held leg
+        action = self.safe_string_lower(fill, 'action')
+        side = 'sell' if (action == 'sell') else 'buy'
+        # price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
+        price = None
+        if sideLeg == 'no':
+            price = self.safe_number(fill, 'no_price_dollars')
+            if price is None:
+                noCents = self.safe_number(fill, 'no_price')
+                if noCents is not None:
+                    price = noCents / 100
+        else:
+            price = self.safe_number(fill, 'yes_price_dollars')
+            if price is None:
+                yesCents = self.safe_number(fill, 'yes_price')
+                if yesCents is not None:
+                    price = yesCents / 100
+        amount = self.safe_number_2(fill, 'count_fp', 'count')
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
+        isTaker = self.safe_bool(fill, 'is_taker', True)
+        takerOrMaker = 'taker' if (isTaker) else 'maker'
+        feeCost = self.safe_number(fill, 'fee_cost')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': 'USD',
+            }
+        return self.safe_prediction_trade({
+            'id': id,
+            'info': fill,
+            'timestamp': ts,
+            'datetime': self.iso8601(ts),
+            'outcome': self.safe_string(mkt, 'outcome', outcomeKey),
+            'outcomeId': self.safe_string_2(mkt, 'outcomeId', 'id'),
+            'label': self.safe_string(mkt, 'label'),
+            'market': self.safe_string_2(mkt, 'market', 'outcome'),
+            'order': orderId,
+            'type': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }, market)
 
     async def fetch_balance(self, params={}) -> Balances:

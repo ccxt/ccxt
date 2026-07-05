@@ -30,6 +30,7 @@ public partial class kalshi : PredictionExchange
                 { "fetchEvent", true },
                 { "fetchEvents", true },
                 { "fetchMarkets", true },
+                { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
@@ -1334,6 +1335,153 @@ public partial class kalshi : PredictionExchange
             { "amount", amount },
             { "cost", cost },
             { "fee", null },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchMyTrades
+     * @description fetch the fills (executed trades) of the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getfills
+     * @param {string} [outcome] filter to a single unified outcome
+     * @param {int} [since] the earliest fill timestamp (ms) to fetch
+     * @param {int} [limit] the maximum number of fills to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            await this.loadOutcome(outcome);
+        } else
+        {
+            await this.loadOutcomes();
+        }
+        object request = new Dictionary<string, object>() {};
+        object outcomeObj = null;
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            // the ticker filter narrows to the market; a market has both legs, so the
+            // wanted-leg filter below still drops the opposite-leg fills
+            outcomeObj = this.outcome(outcome);
+            ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.kalshiPrivateGetPortfolioFills(this.extend(request, parameters));
+        object fills = (IList<object>)(this.safeList(response, "fills", new List<object>() {}));
+        object fillsLength = getArrayLength(fills);
+        object trades = new List<object>() {};
+        for (object i = 0; isLessThan(i, fillsLength); postFixIncrement(ref i))
+        {
+            ((IList<object>)trades).Add(this.parseMyTrade(getValue(fills, i), outcomeObj));
+        }
+        object wantedOutcome = null;
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        {
+            object trade = getValue(trades, i);
+            if (isTrue(isTrue((isEqual(wantedOutcome, null))) || isTrue((isEqual(this.safeString(trade, "outcome"), wantedOutcome)))))
+            {
+                ((IList<object>)result).Add(trade);
+            }
+        }
+        return this.filterBySinceLimit(result, since, limit, "timestamp");
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseMyTrade
+     * @description parses one raw kalshi fill into the unified trade shape
+     * @param {object} fill the raw kalshi fill
+     * @param {object} [market] a resolved outcome/market hint
+     * @returns {object} a unified trade structure
+     */
+    public virtual object parseMyTrade(object fill, object market = null)
+    {
+        object id = this.safeString2(fill, "fill_id", "trade_id");
+        object orderId = this.safeString(fill, "order_id");
+        object ticker = this.safeString2(fill, "ticker", "market_ticker");
+        // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
+        object sideLeg = this.safeStringLower(fill, "side");
+        object outcomeKey = ticker;
+        if (isTrue(isTrue((isEqual(sideLeg, "no"))) && isTrue((!isEqual(ticker, null)))))
+        {
+            outcomeKey = add(ticker, "-NO");
+        }
+        object mkt = this.safeOutcome(outcomeKey, ((object)market));
+        object ts = this.parse8601(this.safeString(fill, "created_time"));
+        // action is the order side (buy/sell) of the held leg
+        object action = this.safeStringLower(fill, "action");
+        object side = ((bool) isTrue((isEqual(action, "sell")))) ? "sell" : "buy";
+        // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
+        object price = null;
+        if (isTrue(isEqual(sideLeg, "no")))
+        {
+            price = this.safeNumber(fill, "no_price_dollars");
+            if (isTrue(isEqual(price, null)))
+            {
+                object noCents = this.safeNumber(fill, "no_price");
+                if (isTrue(!isEqual(noCents, null)))
+                {
+                    price = divide(noCents, 100);
+                }
+            }
+        } else
+        {
+            price = this.safeNumber(fill, "yes_price_dollars");
+            if (isTrue(isEqual(price, null)))
+            {
+                object yesCents = this.safeNumber(fill, "yes_price");
+                if (isTrue(!isEqual(yesCents, null)))
+                {
+                    price = divide(yesCents, 100);
+                }
+            }
+        }
+        object amount = this.safeNumber2(fill, "count_fp", "count");
+        object cost = null;
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(amount, null)))))
+        {
+            cost = multiply(price, amount);
+        }
+        object isTaker = this.safeBool(fill, "is_taker", true);
+        object takerOrMaker = ((bool) isTrue((isTaker))) ? "taker" : "maker";
+        object feeCost = this.safeNumber(fill, "fee_cost");
+        object fee = null;
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "currency", "USD" },
+            };
+        }
+        return this.safePredictionTrade(new Dictionary<string, object>() {
+            { "id", id },
+            { "info", fill },
+            { "timestamp", ts },
+            { "datetime", this.iso8601(ts) },
+            { "outcome", this.safeString(mkt, "outcome", outcomeKey) },
+            { "outcomeId", this.safeString2(mkt, "outcomeId", "id") },
+            { "label", this.safeString(mkt, "label") },
+            { "market", this.safeString2(mkt, "market", "outcome") },
+            { "order", orderId },
+            { "type", null },
+            { "side", side },
+            { "takerOrMaker", takerOrMaker },
+            { "price", price },
+            { "amount", amount },
+            { "cost", cost },
+            { "fee", fee },
         }, market);
     }
 

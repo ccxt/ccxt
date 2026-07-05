@@ -282,6 +282,50 @@ func (this *Kalshi) FetchTrades(outcome string, options ...ccxt.FetchTradesOptio
 }
 /**
  * @method
+ * @name kalshi#fetchMyTrades
+ * @description fetch the fills (executed trades) of the authenticated kalshi user
+ * @see https://trading-api.readme.io/reference/getfills
+ * @param {string} [outcome] filter to a single unified outcome
+ * @param {int} [since] the earliest fill timestamp (ms) to fetch
+ * @param {int} [limit] the maximum number of fills to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ */
+func (this *Kalshi) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
+
+    opts := FetchMyTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var outcome any = nil
+    if opts.Outcome != nil {
+        outcome = *opts.Outcome
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchMyTrades(outcome, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPredictionTradeArray(res), nil
+}
+/**
+ * @method
  * @name kalshi#fetchBalance
  * @description fetches the authenticated user's USD portfolio balance from kalshi
  * @see https://trading-api.readme.io/reference/getbalance
@@ -873,39 +917,6 @@ func (this *Kalshi) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCV
 func (this *Kalshi) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
 func (this *Kalshi) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
 func (this *Kalshi) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.FetchMyLiquidations(options...)}
-func (this *Kalshi) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
-
-    opts := FetchMyTradesOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var outcome any = nil
-    if opts.Outcome != nil {
-        outcome = *opts.Outcome
-    }
-
-    var since any = nil
-    if opts.Since != nil {
-        since = *opts.Since
-    }
-
-    var limit any = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params any = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.FetchMyTrades(outcome, since, limit, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewPredictionTradeArray(res), nil
-}
 func (this *Kalshi) FetchOpenInterestHistory(symbol string, options ...ccxt.FetchOpenInterestHistoryOptions) ([]ccxt.OpenInterest, error) {return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)}
 func (this *Kalshi) FetchOpenInterests(options ...ccxt.FetchOpenInterestsOptions) (ccxt.OpenInterests, error) {return this.exchangeTyped.FetchOpenInterests(options...)}
 func (this *Kalshi) FetchOption(symbol string, options ...ccxt.FetchOptionOptions) (ccxt.Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}

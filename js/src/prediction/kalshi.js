@@ -38,6 +38,7 @@ export default class kalshi extends Exchange {
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
@@ -1233,6 +1234,133 @@ export default class kalshi extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
+        }, market);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchMyTrades
+     * @description fetch the fills (executed trades) of the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getfills
+     * @param {string} [outcome] filter to a single unified outcome
+     * @param {int} [since] the earliest fill timestamp (ms) to fetch
+     * @param {int} [limit] the maximum number of fills to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
+        else {
+            await this.loadOutcomes();
+        }
+        const request = {};
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            // the ticker filter narrows to the market; a market has both legs, so the
+            // wanted-leg filter below still drops the opposite-leg fills
+            outcomeObj = this.outcome(outcome);
+            request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.kalshiPrivateGetPortfolioFills(this.extend(request, params));
+        const fills = this.safeList(response, 'fills', []);
+        const fillsLength = fills.length;
+        const trades = [];
+        for (let i = 0; i < fillsLength; i++) {
+            trades.push(this.parseMyTrade(fills[i], outcomeObj));
+        }
+        let wantedOutcome = undefined;
+        if (outcome !== undefined) {
+            wantedOutcome = this.safeString(this.outcome(outcome), 'outcome');
+        }
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            if ((wantedOutcome === undefined) || (this.safeString(trade, 'outcome') === wantedOutcome)) {
+                result.push(trade);
+            }
+        }
+        return this.filterBySinceLimit(result, since, limit, 'timestamp');
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseMyTrade
+     * @description parses one raw kalshi fill into the unified trade shape
+     * @param {object} fill the raw kalshi fill
+     * @param {object} [market] a resolved outcome/market hint
+     * @returns {object} a unified trade structure
+     */
+    parseMyTrade(fill, market = undefined) {
+        const id = this.safeString2(fill, 'fill_id', 'trade_id');
+        const orderId = this.safeString(fill, 'order_id');
+        const ticker = this.safeString2(fill, 'ticker', 'market_ticker');
+        // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
+        const sideLeg = this.safeStringLower(fill, 'side');
+        let outcomeKey = ticker;
+        if ((sideLeg === 'no') && (ticker !== undefined)) {
+            outcomeKey = ticker + '-NO';
+        }
+        const mkt = this.safeOutcome(outcomeKey, market);
+        const ts = this.parse8601(this.safeString(fill, 'created_time'));
+        // action is the order side (buy/sell) of the held leg
+        const action = this.safeStringLower(fill, 'action');
+        const side = (action === 'sell') ? 'sell' : 'buy';
+        // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
+        let price = undefined;
+        if (sideLeg === 'no') {
+            price = this.safeNumber(fill, 'no_price_dollars');
+            if (price === undefined) {
+                const noCents = this.safeNumber(fill, 'no_price');
+                if (noCents !== undefined) {
+                    price = noCents / 100;
+                }
+            }
+        }
+        else {
+            price = this.safeNumber(fill, 'yes_price_dollars');
+            if (price === undefined) {
+                const yesCents = this.safeNumber(fill, 'yes_price');
+                if (yesCents !== undefined) {
+                    price = yesCents / 100;
+                }
+            }
+        }
+        const amount = this.safeNumber2(fill, 'count_fp', 'count');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const isTaker = this.safeBool(fill, 'is_taker', true);
+        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        const feeCost = this.safeNumber(fill, 'fee_cost');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': 'USD',
+            };
+        }
+        return this.safePredictionTrade({
+            'id': id,
+            'info': fill,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'outcome': this.safeString(mkt, 'outcome', outcomeKey),
+            'outcomeId': this.safeString2(mkt, 'outcomeId', 'id'),
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString2(mkt, 'market', 'outcome'),
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }, market);
     }
     /**

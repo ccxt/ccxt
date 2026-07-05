@@ -38,6 +38,7 @@ class kalshi extends Exchange {
                 'fetchEvent' => true,
                 'fetchEvents' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
@@ -1249,6 +1250,133 @@ class kalshi extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
+        ), $market);
+    }
+
+    public function fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
+            /**
+             * fetch the $fills (executed $trades) of the authenticated kalshi user
+             *
+             * @see https://trading-api.readme.io/reference/getfills
+             *
+             * @param {string} [$outcome] filter to a single unified $outcome
+             * @param {int} [$since] the earliest fill timestamp (ms) to fetch
+             * @param {int} [$limit] the maximum number of $fills to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=$trade-structure)
+             */
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
+            } else {
+                Async\await($this->load_outcomes());
+            }
+            $request = array();
+            $outcomeObj = null;
+            if ($outcome !== null) {
+                // the ticker filter narrows to the market; a market has both legs, so the
+                // wanted-leg filter below still drops the opposite-leg $fills
+                $outcomeObj = $this->outcome($outcome);
+                $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->kalshiPrivateGetPortfolioFills($this->extend($request, $params)));
+            $fills = $this->safe_list($response, 'fills', array());
+            $fillsLength = count($fills);
+            $trades = array();
+            for ($i = 0; $i < $fillsLength; $i++) {
+                $trades[] = $this->parse_my_trade($fills[$i], $outcomeObj);
+            }
+            $wantedOutcome = null;
+            if ($outcome !== null) {
+                $wantedOutcome = $this->safe_string($this->outcome($outcome), 'outcome');
+            }
+            $result = array();
+            for ($i = 0; $i < count($trades); $i++) {
+                $trade = $trades[$i];
+                if (($wantedOutcome === null) || ($this->safe_string($trade, 'outcome') === $wantedOutcome)) {
+                    $result[] = $trade;
+                }
+            }
+            return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
+        })();
+    }
+
+    public function parse_my_trade(array $fill, ?array $market = null): array {
+        /**
+         * @ignore
+         * parses one raw kalshi $fill into the unified trade shape
+         * @param {array} $fill the raw kalshi $fill
+         * @param {array} [$market] a resolved outcome/market hint
+         * @return {array} a unified trade structure
+         */
+        $id = $this->safe_string_2($fill, 'fill_id', 'trade_id');
+        $orderId = $this->safe_string($fill, 'order_id');
+        $ticker = $this->safe_string_2($fill, 'ticker', 'market_ticker');
+        // the leg the $fill executed on ('yes' | 'no'); NO is addressed as <$ticker>-NO
+        $sideLeg = $this->safe_string_lower($fill, 'side');
+        $outcomeKey = $ticker;
+        if (($sideLeg === 'no') && ($ticker !== null)) {
+            $outcomeKey = $ticker . '-NO';
+        }
+        $mkt = $this->safe_outcome($outcomeKey, $market);
+        $ts = $this->parse8601($this->safe_string($fill, 'created_time'));
+        // $action is the order $side (buy/sell) of the held leg
+        $action = $this->safe_string_lower($fill, 'action');
+        $side = ($action === 'sell') ? 'sell' : 'buy';
+        // $price is the $price of the leg held; kalshi reports dollars in V2, cents otherwise
+        $price = null;
+        if ($sideLeg === 'no') {
+            $price = $this->safe_number($fill, 'no_price_dollars');
+            if ($price === null) {
+                $noCents = $this->safe_number($fill, 'no_price');
+                if ($noCents !== null) {
+                    $price = $noCents / 100;
+                }
+            }
+        } else {
+            $price = $this->safe_number($fill, 'yes_price_dollars');
+            if ($price === null) {
+                $yesCents = $this->safe_number($fill, 'yes_price');
+                if ($yesCents !== null) {
+                    $price = $yesCents / 100;
+                }
+            }
+        }
+        $amount = $this->safe_number_2($fill, 'count_fp', 'count');
+        $cost = null;
+        if (($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
+        $isTaker = $this->safe_bool($fill, 'is_taker', true);
+        $takerOrMaker = ($isTaker) ? 'taker' : 'maker';
+        $feeCost = $this->safe_number($fill, 'fee_cost');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => 'USD',
+            );
+        }
+        return $this->safe_prediction_trade(array(
+            'id' => $id,
+            'info' => $fill,
+            'timestamp' => $ts,
+            'datetime' => $this->iso8601($ts),
+            'outcome' => $this->safe_string($mkt, 'outcome', $outcomeKey),
+            'outcomeId' => $this->safe_string_2($mkt, 'outcomeId', 'id'),
+            'label' => $this->safe_string($mkt, 'label'),
+            'market' => $this->safe_string_2($mkt, 'market', 'outcome'),
+            'order' => $orderId,
+            'type' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         ), $market);
     }
 
