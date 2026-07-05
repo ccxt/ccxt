@@ -7,36 +7,60 @@
         "markets": [
             {
                 "id": "172",
+                "lowercaseId": null,
                 "symbol": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
                 "base": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
                 "quote": "USDH",
+                "settle": null,
                 "baseId": "172",
                 "quoteId": "USDH",
+                "settleId": null,
                 "type": "prediction",
                 "spot": false,
+                "margin": null,
                 "swap": false,
                 "future": false,
                 "option": false,
+                "index": null,
                 "active": true,
                 "contract": false,
+                "linear": null,
+                "inverse": null,
+                "subType": null,
                 "taker": 0.0005,
                 "maker": 0.0002,
+                "contractSize": null,
+                "expiry": null,
+                "expiryDatetime": null,
+                "strike": null,
+                "optionType": null,
                 "precision": {
                     "amount": 0.0001,
                     "price": 0.0001
                 },
                 "limits": {
-                    "leverage": {},
-                    "amount": {},
+                    "leverage": {
+                        "min": null,
+                        "max": null
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "price": {
                         "min": 0.0001,
                         "max": 0.9999
                     },
                     "cost": {
-                        "min": 1
+                        "min": 1,
+                        "max": null
                     }
                 },
-                "marginModes": {},
+                "marginModes": {
+                    "cross": null,
+                    "isolated": null
+                },
+                "created": null,
                 "info": {
                     "outcome": "172",
                     "name": "Algeria",
@@ -110,43 +134,79 @@
                 ]
             }
         ],
+        "underlying": null,
+        "targetPrice": null,
+        "class": null,
+        "period": null,
+        "url": null,
+        "image": null,
+        "created": null,
+        "createdDatetime": null,
+        "end": null,
+        "endDatetime": null,
         "category": "crypto",
+        "lastUpdatedAt": null,
         "resolutionSource": "Hyperliquid mark price",
+        "resolved": null,
         "info": {
             "parentSymbol": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
             "markets": [
                 {
                     "id": "172",
+                    "lowercaseId": null,
                     "symbol": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
                     "base": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
                     "quote": "USDH",
+                    "settle": null,
                     "baseId": "172",
                     "quoteId": "USDH",
+                    "settleId": null,
                     "type": "prediction",
                     "spot": false,
+                    "margin": null,
                     "swap": false,
                     "future": false,
                     "option": false,
+                    "index": null,
                     "active": true,
                     "contract": false,
+                    "linear": null,
+                    "inverse": null,
+                    "subType": null,
                     "taker": 0.0005,
                     "maker": 0.0002,
+                    "contractSize": null,
+                    "expiry": null,
+                    "expiryDatetime": null,
+                    "strike": null,
+                    "optionType": null,
                     "precision": {
                         "amount": 0.0001,
                         "price": 0.0001
                     },
                     "limits": {
-                        "leverage": {},
-                        "amount": {},
+                        "leverage": {
+                            "min": null,
+                            "max": null
+                        },
+                        "amount": {
+                            "min": null,
+                            "max": null
+                        },
                         "price": {
                             "min": 0.0001,
                             "max": 0.9999
                         },
                         "cost": {
-                            "min": 1
+                            "min": 1,
+                            "max": null
                         }
                     },
-                    "marginModes": {},
+                    "marginModes": {
+                        "cross": null,
+                        "isolated": null
+                    },
+                    "created": null,
                     "info": {
                         "outcome": "172",
                         "name": "Algeria",
