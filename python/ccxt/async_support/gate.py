@@ -5824,7 +5824,6 @@ class gate(Exchange, ImplicitAPI):
                 side = 'long'
             elif Precise.string_lt(size, '0'):
                 side = 'short'
-        maintenanceRate = self.safe_string(position, 'maintenance_rate')
         notional = self.safe_string(position, 'value')
         leverage = self.safe_string(position, 'leverage')
         marginMode = None
@@ -5833,15 +5832,19 @@ class gate(Exchange, ImplicitAPI):
                 marginMode = 'cross'
             else:
                 marginMode = 'isolated'
-        # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
-        # *The default leverage under the full position is the highest leverage in the market.
-        # *Trading fee is charged Fee Rate(0.075%).
-        feePaid = self.safe_string(position, 'pnl_fee')
-        initialMarginString = None
-        if feePaid is None:
-            takerFee = '0.00075'
-            feePaid = Precise.string_mul(takerFee, notional)
-            initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
+        # gate returns the initial margin requirement in the initial_margin field(= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
+        marginBalance = self.safe_string(position, 'margin')
+        initialMarginString = self.omit_zero(self.safe_string(position, 'initial_margin'))
+        # gate returns the actual maintenance margin requirement in the maintenance_margin field(= value * (average_maintenance_rate + taker fee))
+        # it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
+        maintenanceMarginString = self.omit_zero(self.safe_string(position, 'maintenance_margin'))
+        # the margin field is the position margin balance, which excludes the unrealized pnl,
+        # the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
+        # so the unified collateral(the amount that can be lost, affected by pnl) includes it
+        unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
+        collateral = marginBalance
+        if (marginBalance is not None) and (unrealisedPnl is not None):
+            collateral = Precise.string_add(marginBalance, unrealisedPnl)
         timestamp = self.safe_timestamp_2(position, 'open_time', 'first_open_time')
         if timestamp == 0:
             timestamp = None
@@ -5854,12 +5857,12 @@ class gate(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_timestamp_2(position, 'update_time', 'time'),
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
-            'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notional)),
-            'maintenanceMarginPercentage': self.parse_number(maintenanceRate),
+            'maintenanceMargin': self.parse_number(maintenanceMarginString),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_div(maintenanceMarginString, notional)),
             'entryPrice': self.safe_number(position, 'entry_price'),
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
-            'unrealizedPnl': self.safe_number(position, 'unrealised_pnl'),
+            'unrealizedPnl': self.parse_number(unrealisedPnl),
             'realizedPnl': self.safe_number_2(position, 'realised_pnl', 'pnl'),
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_number(market, 'contractSize'),
@@ -5867,7 +5870,7 @@ class gate(Exchange, ImplicitAPI):
             'liquidationPrice': self.safe_number(position, 'liq_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
             'lastPrice': None,
-            'collateral': self.safe_number(position, 'margin'),
+            'collateral': self.parse_number(collateral),
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
