@@ -8,7 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -151,7 +151,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # public
         #    {
@@ -375,8 +375,8 @@ class apex(ccxt.async_support.apex):
         messageHashes = []
         url = self.get_ws_public_url()
         topics = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len((symbols))):
+            symbol = (symbols)[i]
             market = self.market(symbol)
             topic = 'instrumentInfo' + '.H.' + market['id2']
             topics.append(topic)
@@ -415,7 +415,7 @@ class apex(ccxt.async_support.apex):
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_dict(message, 'data', {})
         symbol = None
-        parsed = None
+        parsed = self.parse_ticker(data)
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
             symbol = parsed['symbol']
@@ -597,7 +597,7 @@ class apex(ccxt.async_support.apex):
         messageHash = ''
         if not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
-            messageHash = '::' + ','.join(symbols)
+            messageHash = '::' + ','.join((symbols))
         url = self.get_ws_private_url()
         messageHash = 'positions' + messageHash
         client = self.client(url)
@@ -663,7 +663,6 @@ class apex(ccxt.async_support.apex):
         symbols = {}
         for i in range(0, len(lists)):
             rawTrade = lists[i]
-            parsed = None
             parsed = self.parse_ws_trade(rawTrade)
             symbol = parsed['symbol']
             symbols[symbol] = True
@@ -712,7 +711,6 @@ class apex(ccxt.async_support.apex):
         orders = self.orders
         symbols = {}
         for i in range(0, len(lists)):
-            parsed = None
             parsed = self.parse_order(lists[i])
             symbol = parsed['symbol']
             symbols[symbol] = True
