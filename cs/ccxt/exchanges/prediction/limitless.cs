@@ -433,11 +433,24 @@ public partial class limitless : PredictionExchange
             object tokenData = getValue(tokens, outcomeLabel);
             object tokenId = tokenData;
             object outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
+            // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
+            // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
+            // languages (Go randomizes map iteration), so map the leg to its canonical index by
+            // label rather than by loop position — otherwise Go/Java flag the wrong winner
+            object labelLower = ((string)outcomeLabel).ToLower();
+            object legIndex = i;
+            if (isTrue(isEqual(labelLower, "yes")))
+            {
+                legIndex = 0;
+            } else if (isTrue(isEqual(labelLower, "no")))
+            {
+                legIndex = 1;
+            }
             object winner = null;
             object settleFraction = null;
             if (isTrue(marketResolved))
             {
-                winner = (isEqual(i, winningOutcomeIndex));
+                winner = (isEqual(legIndex, winningOutcomeIndex));
                 settleFraction = ((bool) isTrue(winner)) ? 1 : 0;
                 if (isTrue(winner))
                 {

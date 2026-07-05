@@ -2293,23 +2293,31 @@ func (this *KalshiCore) EditOrder(id any, outcome any, typeVar any, side any, op
 		defer close(ch)
 		defer ccxt.ReturnPanicError(ch)
 		// kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
-		// so edit = cancel the resting order then place a fresh one with the new terms
+		// so edit = cancel the resting order then place a fresh one with the new terms. validate the
+		// new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
+		// order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
 		amount := ccxt.GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := ccxt.GetArg(optionalArgs, 1, nil)
 		_ = price
 		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if ccxt.IsTrue(ccxt.IsEqual(price, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " editOrder() requires a price - kalshi has only limit orders")))
+		}
+		if ccxt.IsTrue(ccxt.IsEqual(amount, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " editOrder() requires an amount")))
+		}
 
-		retRes19178 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes19178)
+		retRes19258 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes19258)
 
-		retRes19188 := (<-this.CancelOrder(id, outcome))
-		ccxt.PanicOnError(retRes19188)
+		retRes19268 := (<-this.CancelOrder(id, outcome))
+		ccxt.PanicOnError(retRes19268)
 
-		retRes191915 := (<-this.CreateOrder(outcome, typeVar, side, amount, price, params))
-		ccxt.PanicOnError(retRes191915)
-		ch <- retRes191915
+		retRes192715 := (<-this.CreateOrder(outcome, typeVar, side, amount, price, params))
+		ccxt.PanicOnError(retRes192715)
+		ch <- retRes192715
 		return nil
 
 	}()
@@ -2337,8 +2345,8 @@ func (this *KalshiCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes193412 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes193412)
+			retRes194212 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes194212)
 		}
 		// v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
 		// and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -2383,8 +2391,8 @@ func (this *KalshiCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes196112 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes196112)
+			retRes196912 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes196912)
 		}
 		// kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
 		// and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

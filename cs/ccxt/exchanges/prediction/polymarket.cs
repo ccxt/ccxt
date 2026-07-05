@@ -746,12 +746,19 @@ public partial class polymarket : PredictionExchange
                 object settleFraction = null;
                 if (isTrue(isTrue(marketResolved) && isTrue((!isEqual(outcomePrice, null)))))
                 {
-                    // a resolved polymarket outcome settles to 1 (won) or 0 (lost)
-                    winner = (isGreaterThanOrEqual(outcomePrice, 0.99));
-                    settleFraction = outcomePrice;
-                    if (isTrue(winner))
+                    // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
+                    // that is only closed-for-trading (not yet UMA-resolved) still has fractional
+                    // prices — don't report a fractional mid as a final settleFraction; leave the
+                    // outcome-level fields undefined until a decisive price exists
+                    if (isTrue(isGreaterThanOrEqual(outcomePrice, 0.99)))
                     {
+                        winner = true;
+                        settleFraction = 1;
                         resolvedOutcome = outcomeHandle;
+                    } else if (isTrue(isLessThanOrEqual(outcomePrice, 0.01)))
+                    {
+                        winner = false;
+                        settleFraction = 0;
                     }
                 }
                 ((IList<object>)outcomes).Add(new Dictionary<string, object>() {

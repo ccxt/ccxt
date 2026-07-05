@@ -707,11 +707,17 @@ export default class polymarket extends Exchange {
                 let winner = undefined;
                 let settleFraction = undefined;
                 if (marketResolved && (outcomePrice !== undefined)) {
-                    // a resolved polymarket outcome settles to 1 (won) or 0 (lost)
-                    winner = (outcomePrice >= 0.99);
-                    settleFraction = outcomePrice;
-                    if (winner) {
+                    // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
+                    // that is only closed-for-trading (not yet UMA-resolved) still has fractional
+                    // prices — don't report a fractional mid as a final settleFraction; leave the
+                    // outcome-level fields undefined until a decisive price exists
+                    if (outcomePrice >= 0.99) {
+                        winner = true;
+                        settleFraction = 1;
                         resolvedOutcome = outcomeHandle;
+                    } else if (outcomePrice <= 0.01) {
+                        winner = false;
+                        settleFraction = 0;
                     }
                 }
                 outcomes.push ({

@@ -1922,7 +1922,15 @@ class kalshi extends Exchange {
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
             // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
-            // so edit = cancel the resting order then place a fresh one with the new terms
+            // so edit = cancel the resting order then place a fresh one with the new terms. validate the
+            // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
+            // order cancelled and nothing to replace it (kalshi is limit-only, so $price . $amount are required)
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires a $price - kalshi has only limit orders');
+            }
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an amount');
+            }
             Async\await($this->load_outcome($outcome));
             Async\await($this->cancel_order($id, $outcome));
             return Async\await($this->create_order($outcome, $type, $side, $amount, $price, $params));

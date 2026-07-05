@@ -1914,7 +1914,15 @@ export default class kalshi extends Exchange {
      */
     async editOrder (id: string, outcome: string, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
-        // so edit = cancel the resting order then place a fresh one with the new terms
+        // so edit = cancel the resting order then place a fresh one with the new terms. validate the
+        // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
+        // order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price - kalshi has only limit orders');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount');
+        }
         await this.loadOutcome (outcome);
         await this.cancelOrder (id, outcome);
         return await this.createOrder (outcome, type, side, amount, price, params);

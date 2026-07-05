@@ -417,10 +417,21 @@ class limitless extends Exchange {
             $tokenData = $tokens[$outcomeLabel];
             $tokenId = $tokenData;
             $outcomeHandle = $this->slug_to_outcome_symbol($groupId, $slug, $outcomeLabel);
+            // $winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
+            // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
+            // languages (Go randomizes map iteration), so map the leg to its canonical index by
+            // label rather than by loop position — otherwise Go/Java flag the wrong $winner
+            $labelLower = strtolower($outcomeLabel);
+            $legIndex = $i;
+            if ($labelLower === 'yes') {
+                $legIndex = 0;
+            } elseif ($labelLower === 'no') {
+                $legIndex = 1;
+            }
             $winner = null;
             $settleFraction = null;
             if ($marketResolved) {
-                $winner = ($i === $winningOutcomeIndex);
+                $winner = ($legIndex === $winningOutcomeIndex);
                 $settleFraction = $winner ? 1 : 0;
                 if ($winner) {
                     $resolvedOutcome = $outcomeHandle;

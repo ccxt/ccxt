@@ -399,10 +399,20 @@ class limitless(PredictionExchange, ImplicitAPI):
             tokenData = tokens[outcomeLabel]
             tokenId = tokenData
             outcomeHandle = self.slug_to_outcome_symbol(groupId, slug, outcomeLabel)
+            # winningOutcomeIndex indexes the API's canonical outcome order(yes=0, no=1 for
+            # limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
+            # languages(Go randomizes map iteration), so map the leg to its canonical index by
+            # label rather than by loop position — otherwise Go/Java flag the wrong winner
+            labelLower = outcomeLabel.lower()
+            legIndex = i
+            if labelLower == 'yes':
+                legIndex = 0
+            elif labelLower == 'no':
+                legIndex = 1
             winner = None
             settleFraction = None
             if marketResolved:
-                winner = (i == winningOutcomeIndex)
+                winner = (legIndex == winningOutcomeIndex)
                 settleFraction = 1 if winner else 0
                 if winner:
                     resolvedOutcome = outcomeHandle

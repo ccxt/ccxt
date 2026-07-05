@@ -435,10 +435,21 @@ export default class limitless extends Exchange {
             const tokenData = tokens[outcomeLabel];
             const tokenId = tokenData;
             const outcomeHandle = this.slugToOutcomeSymbol (groupId, slug, outcomeLabel);
+            // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
+            // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
+            // languages (Go randomizes map iteration), so map the leg to its canonical index by
+            // label rather than by loop position — otherwise Go/Java flag the wrong winner
+            const labelLower = outcomeLabel.toLowerCase ();
+            let legIndex = i;
+            if (labelLower === 'yes') {
+                legIndex = 0;
+            } else if (labelLower === 'no') {
+                legIndex = 1;
+            }
             let winner = undefined;
             let settleFraction = undefined;
             if (marketResolved) {
-                winner = (i === winningOutcomeIndex);
+                winner = (legIndex === winningOutcomeIndex);
                 settleFraction = winner ? 1 : 0;
                 if (winner) {
                     resolvedOutcome = outcomeHandle;

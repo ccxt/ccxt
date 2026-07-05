@@ -392,7 +392,7 @@ public struct PredictionTickers
 public struct PredictionSettlement
 {
     public string? id;
-    public double? timestamp;
+    public Int64? timestamp;
     public string? datetime;
     public string? outcome;
     public string? outcomeId;

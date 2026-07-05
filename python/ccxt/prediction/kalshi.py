@@ -1745,7 +1745,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
         # kalshi has no live amend endpoint(the V1 /amend path is 410 Gone with no V2 replacement),
-        # so edit = cancel the resting order then place a fresh one with the new terms
+        # so edit = cancel the resting order then place a fresh one with the new terms. validate the
+        # new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
+        # order cancelled and nothing to replace it(kalshi is limit-only, so price + amount are required)
+        if price is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a price - kalshi has only limit orders')
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires an amount')
         await self.load_outcome(outcome)
         await self.cancel_order(id, outcome)
         return await self.create_order(outcome, type, side, amount, price, params)

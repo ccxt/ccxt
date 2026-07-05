@@ -713,11 +713,17 @@ class polymarket extends Exchange {
                 $winner = null;
                 $settleFraction = null;
                 if ($marketResolved && ($outcomePrice !== null)) {
-                    // a resolved polymarket outcome settles to 1 (won) or 0 (lost)
-                    $winner = ($outcomePrice >= 0.99);
-                    $settleFraction = $outcomePrice;
-                    if ($winner) {
+                    // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a $market
+                    // that is only $closed-for-trading (not yet UMA-resolved) still has fractional
+                    // prices — don't report a fractional mid final $settleFraction; leave the
+                    // outcome-level fields null until a decisive price exists
+                    if ($outcomePrice >= 0.99) {
+                        $winner = true;
+                        $settleFraction = 1;
                         $resolvedOutcome = $outcomeHandle;
+                    } elseif ($outcomePrice <= 0.01) {
+                        $winner = false;
+                        $settleFraction = 0;
                     }
                 }
                 $outcomes[] = array(

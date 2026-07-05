@@ -2101,8 +2101,18 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
-        // so edit = cancel the resting order then place a fresh one with the new terms
+        // so edit = cancel the resting order then place a fresh one with the new terms. validate the
+        // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
+        // order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(price, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a price - kalshi has only limit orders")) ;
+        }
+        if (isTrue(isEqual(amount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount")) ;
+        }
         await this.loadOutcome(outcome);
         await this.cancelOrder(id, outcome);
         return await this.createOrder(outcome, type, side, amount, price, parameters);
