@@ -915,6 +915,8 @@ export default class bithumb extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market);
         const close = this.safeString2 (ticker, 'closing_price', 'trade_price');
+        const change = this.safeString2 (ticker, 'signed_change_price', 'change_price');
+        const percentage = this.safeString2 (ticker, 'signed_change_rate', 'change_rate');
         let high = this.safeString2 (ticker, 'max_price', 'high_price');
         let low = this.safeString2 (ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -938,9 +940,9 @@ export default class bithumb extends Exchange {
             'open': this.safeString (ticker, 'opening_price'),
             'close': close,
             'last': close,
-            'previousClose': undefined,
-            'change': this.safeString (ticker, 'change_price'),
-            'percentage': this.safeString (ticker, 'change_rate'),
+            'previousClose': this.safeString (ticker, 'prev_closing_price'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'units_traded_24H', 'trade_volume'),
             'quoteVolume': this.safeString2 (ticker, 'acc_trade_value_24H', 'acc_trade_volume_24h'),
@@ -985,7 +987,10 @@ export default class bithumb extends Exchange {
             }
             const responses = await Promise.all (promises);
             for (let i = 0; i < responses.length; i++) {
-                const response = responses[i];
+                let response = responses[i];
+                if (this.isDictionary (response) && ('data' in response) && (response['data'] !== undefined)) {
+                    response = response['data'];
+                }
                 let expectedMarketId = undefined;
                 if (symbols === undefined) {
                     expectedMarketId = marketIds[i];
@@ -2205,65 +2210,170 @@ export default class bithumb extends Exchange {
      * @name bithumb#withdraw
      * @description make a withdrawal
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%80%EC%83%81-%EC%9E%90%EC%82%B0-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EC%9A%94%EC%B2%AD
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} tag the secondary wi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
+     * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
+     * @param {string} [params.exchange_name] withdrawal exchange name
+     * @param {string} [params.receiver_type] either personal or corporation
+     * @param {string} [params.ko_name] *generation 1 only* the receiver name in korean
+     * @param {string} [params.en_name] *generation 1 only* the receiver name in english
+     * @param {string} [params.receiver_ko_name] *generation 2 only* the personal receiver name in korean
+     * @param {string} [params.receiver_en_name] *generation 2 only* the personal receiver name in english
+     * @param {string} [params.receiver_corp_ko_name] *generation 2 only* the corporation receiver name in korean
+     * @param {string} [params.receiver_corp_en_name] *generation 2 only* the corporation receiver name in english
+     * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'withdraw', 'generation', 2);
+        await this.loadMarketsGeneration (generation);
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        const network = this.safeString2 (params, 'network', 'net_type');
+        params = this.omit (params, 'network');
         const currency = this.currency (code);
         const request: Dict = {
-            'units': amount,
             'address': address,
             'currency': currency['id'],
         };
+        let response = undefined;
+        let destinationRequest = undefined;
         if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON') {
-            const destination = this.safeString (params, 'destination');
+            const destination = this.safeString2 (params, 'destination', 'secondary_address');
+            params = this.omit (params, [ 'destination', 'secondary_address' ]);
             if ((tag === undefined) && (destination === undefined)) {
                 throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
             } else if (tag !== undefined) {
-                request['destination'] = tag;
+                destinationRequest = tag;
+            } else {
+                destinationRequest = destination;
             }
         }
-        const response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
-        //
-        // { "status" : "0000"}
-        //
+        const receiverType = this.safeString2 (params, 'receiver_type', 'cust_type_cd');
+        params = this.omit (params, [ 'receiver_type', 'cust_type_cd' ]);
+        if (generation === 2) {
+            if (code === 'KRW') {
+                const twoFactorType = this.safeString (params, 'two_factor_type');
+                if (twoFactorType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a two_factor_type parameter for withdrawing KRW');
+                }
+                const krwRequest: Dict = { 'amount': amount.toString () }; // KRW withdraw only accepts amount and two_factor_type parameters
+                response = await this.privatePostV1WithdrawsKrw (this.extend (krwRequest, params));
+            } else {
+                if (network === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a network parameter');
+                }
+                request['net_type'] = network;
+                request['amount'] = amount.toString ();
+                if (destinationRequest !== undefined) {
+                    request['secondary_address'] = destinationRequest;
+                }
+                if (receiverType !== undefined) {
+                    request['receiver_type'] = receiverType;
+                }
+                response = await this.privatePostV1WithdrawsCoin (this.extend (request, params));
+            }
+            //
+            //     {
+            //         "type": "withdraw",
+            //         "uuid": "200377211",
+            //         "currency": "BTC",
+            //         "net_type": "BTC",
+            //         "state": "processing",
+            //         "created_at": "2024-07-14T14:54:24+09:00",
+            //         "done_at": null,
+            //         "amount": "0.00010000",
+            //         "fee": "0",
+            //         "krw_amount": "8400",
+            //         "transaction_type": null,
+            //         "txid": null
+            //     }
+            //
+        } else {
+            request['units'] = amount;
+            if (network !== undefined) {
+                request['net_type'] = network;
+            }
+            if (destinationRequest !== undefined) {
+                request['destination'] = destinationRequest;
+            }
+            if (receiverType !== undefined) {
+                if (receiverType === 'corporation') {
+                    request['cust_type_cd'] = 'Corporation 02';
+                } else if (receiverType === 'personal') {
+                    request['cust_type_cd'] = 'Individual 01';
+                } else {
+                    request['cust_type_cd'] = receiverType;
+                }
+            }
+            response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
+            //
+            //     {
+            //         "status": "0000"
+            //     }
+            //
+        }
         return this.parseTransaction (response, currency);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
-        // withdraw
+        // generation 1: withdraw
         //
         //     { "status" : "0000"}
         //
-        currency = this.safeCurrency (undefined, currency);
+        // generation 2: withdraw
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "krw_amount": "8400",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        const datetime = this.safeString (transaction, 'created_at');
         return {
-            'id': undefined,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'network': undefined,
+            'id': this.safeString (transaction, 'uuid'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'network': this.safeString (transaction, 'net_type'),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': undefined,
-            'amount': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
             'type': undefined,
             'currency': currency['code'],
-            'status': undefined,
+            'status': this.safeString (transaction, 'state'),
             'updated': undefined,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
             'internal': undefined,
-            'fee': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': this.safeNumber (transaction, 'fee'),
+                'rate': undefined,
+            },
             'info': transaction,
         } as Transaction;
     }
