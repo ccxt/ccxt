@@ -52,6 +52,7 @@ export default class limitless extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'redeem': true,
                 'fetchAccounts': true,
                 'fetchBalance': false,
                 'fetchClosedOrders': true,
@@ -401,6 +402,8 @@ export default class limitless extends Exchange {
         const slug = this.safeString(raw, 'slug');
         const address = this.safeString(raw, 'address', slug);
         const groupId = this.safeString(raw, 'groupId', slug);
+        // CTF condition id — needed to redeem a resolved winning position
+        const conditionId = this.safeString(raw, 'conditionId');
         const tokens = this.safeValue(raw, 'tokens', {});
         const active = this.safeBool(raw, 'active', true);
         const endDate = this.safeString(raw, 'deadline', this.safeString(raw, 'expiresAt'));
@@ -446,6 +449,7 @@ export default class limitless extends Exchange {
                 'info': {
                     'slug': slug,
                     'address': address,
+                    'conditionId': conditionId,
                     'outcomeLabel': outcomeLabel,
                     'tokenId': tokenId,
                     'volume24h': volume24h,
@@ -2229,6 +2233,40 @@ export default class limitless extends Exchange {
             order['status'] = 'canceled';
         }
         return order;
+    }
+    /**
+     * @method
+     * @name limitless#redeem
+     * @description redeem a resolved winning position back to collateral (gasless — the operator settles on-chain)
+     * @see https://docs.limitless.exchange/api-reference/portfolio/redeem
+     * @param {string} [outcome] a unified outcome on the resolved market to redeem (used to resolve the market conditionId)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
+     * @returns {object} the raw redemption response
+     */
+    async redeem(outcome = undefined, params = {}) {
+        let conditionId = this.safeString2(params, 'conditionId', 'condition_id');
+        if (conditionId === undefined) {
+            if (outcome === undefined) {
+                throw new ArgumentsRequired(this.id + ' redeem() requires an outcome or a params.conditionId');
+            }
+            await this.loadOutcome(outcome);
+            const outcomeObj = this.outcome(outcome);
+            conditionId = this.safeString(this.safeDict(outcomeObj, 'info', {}), 'conditionId');
+        }
+        if (conditionId === undefined) {
+            throw new ArgumentsRequired(this.id + ' redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)');
+        }
+        const request = {
+            'conditionId': conditionId,
+        };
+        const rest = this.omit(params, ['conditionId', 'condition_id']);
+        const response = await this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest));
+        return {
+            'info': response,
+            'id': conditionId,
+            'conditionId': conditionId,
+        };
     }
     /**
      * @method

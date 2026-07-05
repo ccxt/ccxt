@@ -46,6 +46,7 @@ public partial class limitless : PredictionExchange
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "prediction", true },
+                { "redeem", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
                 { "1h", "1h" },
@@ -405,6 +406,8 @@ public partial class limitless : PredictionExchange
         object slug = this.safeString(raw, "slug");
         object address = this.safeString(raw, "address", slug);
         object groupId = this.safeString(raw, "groupId", slug);
+        // CTF condition id — needed to redeem a resolved winning position
+        object conditionId = this.safeString(raw, "conditionId");
         object tokens = this.safeValue(raw, "tokens", new Dictionary<string, object>() {});
         object active = this.safeBool(raw, "active", true);
         object endDate = this.safeString(raw, "deadline", this.safeString(raw, "expiresAt"));
@@ -453,6 +456,7 @@ public partial class limitless : PredictionExchange
                 { "info", new Dictionary<string, object>() {
                     { "slug", slug },
                     { "address", address },
+                    { "conditionId", conditionId },
                     { "outcomeLabel", outcomeLabel },
                     { "tokenId", tokenId },
                     { "volume24h", volume24h },
@@ -2441,6 +2445,46 @@ public partial class limitless : PredictionExchange
             ((IDictionary<string,object>)order)["status"] = "canceled";
         }
         return order;
+    }
+
+    /**
+     * @method
+     * @name limitless#redeem
+     * @description redeem a resolved winning position back to collateral (gasless — the operator settles on-chain)
+     * @see https://docs.limitless.exchange/api-reference/portfolio/redeem
+     * @param {string} [outcome] a unified outcome on the resolved market to redeem (used to resolve the market conditionId)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
+     * @returns {object} the raw redemption response
+     */
+    public async virtual Task<object> redeem(object outcome = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object conditionId = this.safeString2(parameters, "conditionId", "condition_id");
+        if (isTrue(isEqual(conditionId, null)))
+        {
+            if (isTrue(isEqual(outcome, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " redeem() requires an outcome or a params.conditionId")) ;
+            }
+            await this.loadOutcome(outcome);
+            object outcomeObj = this.outcome(outcome);
+            conditionId = this.safeString(this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {}), "conditionId");
+        }
+        if (isTrue(isEqual(conditionId, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "conditionId", conditionId },
+        };
+        object rest = this.omit(parameters, new List<object>() {"conditionId", "condition_id"});
+        object response = await this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest));
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "id", conditionId },
+            { "conditionId", conditionId },
+        };
     }
 
     /**

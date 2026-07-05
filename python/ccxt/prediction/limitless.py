@@ -59,6 +59,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'prediction': True,
+                'redeem': True,
             },
             'timeframes': {
                 '1h': '1h',
@@ -371,6 +372,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         slug = self.safe_string(raw, 'slug')
         address = self.safe_string(raw, 'address', slug)
         groupId = self.safe_string(raw, 'groupId', slug)
+        # CTF condition id — needed to redeem a resolved winning position
+        conditionId = self.safe_string(raw, 'conditionId')
         tokens = self.safe_value(raw, 'tokens', {})
         active = self.safe_bool(raw, 'active', True)
         endDate = self.safe_string(raw, 'deadline', self.safe_string(raw, 'expiresAt'))
@@ -414,6 +417,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'info': {
                     'slug': slug,
                     'address': address,
+                    'conditionId': conditionId,
                     'outcomeLabel': outcomeLabel,
                     'tokenId': tokenId,
                     'volume24h': volume24h,
@@ -2090,6 +2094,37 @@ class limitless(PredictionExchange, ImplicitAPI):
         if order['status'] is None:
             order['status'] = 'canceled'
         return order
+
+    async def redeem(self, outcome: Str = None, params={}) -> Any:
+        """
+        redeem a resolved winning position back to collateral(gasless — the operator settles on-chain)
+
+        https://docs.limitless.exchange/api-reference/portfolio/redeem
+
+        :param str [outcome]: a unified outcome on the resolved market to redeem(used to resolve the market conditionId)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.conditionId]: the CTF condition id(bytes32 hex) to redeem directly, instead of resolving it from an outcome
+        :returns dict: the raw redemption response
+        """
+        conditionId = self.safe_string_2(params, 'conditionId', 'condition_id')
+        if conditionId is None:
+            if outcome is None:
+                raise ArgumentsRequired(self.id + ' redeem() requires an outcome or a params.conditionId')
+            await self.load_outcome(outcome)
+            outcomeObj = self.outcome(outcome)
+            conditionId = self.safe_string(self.safe_dict(outcomeObj, 'info', {}), 'conditionId')
+        if conditionId is None:
+            raise ArgumentsRequired(self.id + ' redeem() could not resolve the market conditionId - pass params.conditionId(a bytes32 hex string)')
+        request = {
+            'conditionId': conditionId,
+        }
+        rest = self.omit(params, ['conditionId', 'condition_id'])
+        response = await self.limitlessPrivatePostPortfolioRedeem(self.extend(request, rest))
+        return {
+            'info': response,
+            'id': conditionId,
+            'conditionId': conditionId,
+        }
 
     async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}) -> List[PredictionOrder]:
         """

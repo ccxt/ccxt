@@ -250,6 +250,17 @@ export default class limitless extends Exchange {
     cancelOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
+     * @name limitless#redeem
+     * @description redeem a resolved winning position back to collateral (gasless — the operator settles on-chain)
+     * @see https://docs.limitless.exchange/api-reference/portfolio/redeem
+     * @param {string} [outcome] a unified outcome on the resolved market to redeem (used to resolve the market conditionId)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
+     * @returns {object} the raw redemption response
+     */
+    redeem(outcome?: Str, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name limitless#cancelOrders
      * @description cancel multiple orders at the same time
      * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch

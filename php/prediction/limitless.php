@@ -57,6 +57,7 @@ class limitless extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'prediction' => true,
+                'redeem' => true,
             ),
             'timeframes' => array(
                 '1h' => '1h',
@@ -389,6 +390,8 @@ class limitless extends Exchange {
         $slug = $this->safe_string($raw, 'slug');
         $address = $this->safe_string($raw, 'address', $slug);
         $groupId = $this->safe_string($raw, 'groupId', $slug);
+        // CTF condition id — needed to redeem a resolved winning position
+        $conditionId = $this->safe_string($raw, 'conditionId');
         $tokens = $this->safe_value($raw, 'tokens', array());
         $active = $this->safe_bool($raw, 'active', true);
         $endDate = $this->safe_string($raw, 'deadline', $this->safe_string($raw, 'expiresAt'));
@@ -434,6 +437,7 @@ class limitless extends Exchange {
                 'info' => array(
                     'slug' => $slug,
                     'address' => $address,
+                    'conditionId' => $conditionId,
                     'outcomeLabel' => $outcomeLabel,
                     'tokenId' => $tokenId,
                     'volume24h' => $volume24h,
@@ -2247,6 +2251,43 @@ class limitless extends Exchange {
                 $order['status'] = 'canceled';
             }
             return $order;
+        })();
+    }
+
+    public function redeem(?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
+            /**
+             * redeem a resolved winning position back to collateral (gasless — the operator settles on-chain)
+             *
+             * @see https://docs.limitless.exchange/api-reference/portfolio/redeem
+             *
+             * @param {string} [$outcome] a unified $outcome on the resolved market to redeem (used to resolve the market $conditionId)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an $outcome
+             * @return {array} the raw redemption $response
+             */
+            $conditionId = $this->safe_string_2($params, 'conditionId', 'condition_id');
+            if ($conditionId === null) {
+                if ($outcome === null) {
+                    throw new ArgumentsRequired($this->id . ' redeem() requires an $outcome or a $params->conditionId');
+                }
+                Async\await($this->load_outcome($outcome));
+                $outcomeObj = $this->outcome($outcome);
+                $conditionId = $this->safe_string($this->safe_dict($outcomeObj, 'info', array()), 'conditionId');
+            }
+            if ($conditionId === null) {
+                throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId(a bytes32 hex string)');
+            }
+            $request = array(
+                'conditionId' => $conditionId,
+            );
+            $rest = $this->omit($params, array( 'conditionId', 'condition_id' ));
+            $response = Async\await($this->limitlessPrivatePostPortfolioRedeem($this->extend($request, $rest)));
+            return array(
+                'info' => $response,
+                'id' => $conditionId,
+                'conditionId' => $conditionId,
+            );
         })();
     }
 
