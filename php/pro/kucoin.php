@@ -25,6 +25,8 @@ class kucoin extends \ccxt\async\kucoin {
                 'cancelOrdersWs' => false,
                 'cancelAllOrdersWs' => false,
                 'watchBidsAsks' => true,
+                'watchFundingRate' => true,
+                'watchMarkPrice' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchPosition' => true,
@@ -37,6 +39,8 @@ class kucoin extends \ccxt\async\kucoin {
                 'watchOrderBookForSymbols' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
+                'unWatchFundingRate' => true,
+                'unWatchMarkPrice' => true,
                 'unWatchTicker' => true,
                 'unWatchOHLCV' => true,
                 'unWatchOrderBook' => true,
@@ -683,6 +687,7 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function handle_uta_ticker(Client $client, $message) {
         //
+        // watchTicker
         //     {
         //         "T" => "ticker.SPOT",
         //         "P" => "1774100940787520626",
@@ -700,6 +705,19 @@ class kucoin extends \ccxt\async\kucoin {
         //         }
         //     }
         //
+        // watchMarkPrice
+        //     {
+        //         "T" => "mark-price",
+        //         "P" => "1782834987171570181",
+        //         "d" => {
+        //             "s" => "ETHUSDTM",
+        //             "mp" => "1569.15",
+        //             "ip" => "1569.87",
+        //             "oi" => "50541824",
+        //             "ts" => 1782834987000
+        //         }
+        //     }
+        //
         $data = $this->safe_dict($message, 'd', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId);
@@ -712,7 +730,10 @@ class kucoin extends \ccxt\async\kucoin {
     public function parse_ws_uta_ticker($ticker, ?array $market = null) {
         $symbol = $this->safe_string($market, 'symbol');
         $market = $this->safe_market($symbol, $market);
-        $timestamp = $this->safe_integer_product($ticker, 'M', 0.000001);
+        $timestamp = $this->safe_integer($ticker, 'ts');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer_product($ticker, 'M', 0.000001);
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -733,7 +754,8 @@ class kucoin extends \ccxt\async\kucoin {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,
-            'markPrice' => null,
+            'markPrice' => $this->safe_string($ticker, 'mp'),
+            'indexPrice' => $this->safe_string($ticker, 'ip'),
             'info' => $ticker,
         ), $market);
     }
@@ -1885,7 +1907,19 @@ class kucoin extends \ccxt\async\kucoin {
                 $subHash = $subMessageHashes[$i];
                 $this->clean_unsubscription($client, $subHash, $messageHash);
             }
-            $this->clean_cache($subscription);
+            $topic = $this->safe_string($subscription, 'topic');
+            if ($topic === 'fundingRate') {
+                // todo => add fundingRate $topic to cleanCache
+                $symbols = $this->safe_list($subscription, 'symbols', array());
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    if (is_array($this->fundingRates) && array_key_exists($symbol, $this->fundingRates)) {
+                        unset($this->fundingRates[$symbol]);
+                    }
+                }
+            } else {
+                $this->clean_cache($subscription);
+            }
         }
     }
 
@@ -3169,6 +3203,160 @@ class kucoin extends \ccxt\async\kucoin {
         ));
     }
 
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             *
+             * @see https://www.kucoin.com/docs-new/3470270w0
+             *
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->safe_symbol($symbol);
+            $channel = 'funding-fee';
+            $messageHash = 'fundingRate:' . $symbol;
+            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params));
+        })();
+    }
+
+    public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches the current funding rate for a $symbol
+             *
+             * @see https://www.kucoin.com/docs-new/3470270w0
+             *
+             * @param {string} $symbol unified $symbol of the market
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->safe_symbol($symbol);
+            $channel = 'funding-fee';
+            $subMessageHash = 'fundingRate:' . $symbol;
+            $unSubMessageHash = 'unsubscribe:' . $subMessageHash;
+            $subscription = array(
+                'symbols' => array( $symbol ),
+                'topic' => 'fundingRate',
+                'unsubscribe' => true,
+                'subMessageHashes' => array( $subMessageHash ),
+                'messageHashes' => array( $unSubMessageHash ),
+            );
+            return Async\await($this->subscribe_public_uta($unSubMessageHash, $channel, $symbol, $params, $subscription));
+        })();
+    }
+
+    public function handle_uta_funding_rate(Client $client, $message) {
+        //
+        //     {
+        //         "T" => "funding-fee",
+        //         "P" => "1782831961172694254",
+        //         "d" => {
+        //             "s" => "ETHUSDTM",
+        //             "fr" => "0.000035",
+        //             "ft" => 1782806400000,
+        //             "nt" => 1782835200000,
+        //             "gl" => 28800000,
+        //             "fc" => "0.00375",
+        //             "ff" => "-0.00375"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($message, 'd', array());
+        $fundingRate = $this->parse_ws_funding_rate($data);
+        $symbol = $fundingRate['symbol'];
+        $this->fundingRates[$symbol] = $fundingRate;
+        $messageHash = 'fundingRate:' . $symbol;
+        $client->resolve($fundingRate, $messageHash);
+    }
+
+    public function parse_ws_funding_rate($data, ?array $market = null): array {
+        //
+        //     {
+        //         "s" => "ETHUSDTM",
+        //         "fr" => "0.000035",
+        //         "ft" => 1782806400000,
+        //         "nt" => 1782835200000,
+        //         "gl" => 28800000,
+        //         "fc" => "0.00375",
+        //         "ff" => "-0.00375"
+        //     }
+        //
+        $fundingTimestamp = $this->safe_integer($data, 'ft');
+        $nextFundingTimestamp = $this->safe_integer($data, 'nt');
+        $marketId = $this->safe_string($data, 's');
+        $granularity = $this->safe_string($data, 'gl');
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($data, 'fr'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => $this->parseFundingInterval($granularity),
+        );
+    }
+
+    public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a mark price for a specific market
+             *
+             * @see https://www.kucoin.com/docs-new/3470272w0
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->safe_symbol($symbol);
+            $channel = 'mark-price';
+            $messageHash = 'uta:ticker:' . $symbol;
+            return Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params));
+        })();
+    }
+
+    public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches a mark price for a specific market
+             *
+             * @see https://www.kucoin.com/docs-new/3470272w0
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->safe_symbol($symbol);
+            $channel = 'mark-price';
+            $subMessageHash = 'uta:ticker:' . $symbol;
+            $unSubMessageHash = 'unsubscribe:' . $subMessageHash;
+            $subscription = array(
+                'symbols' => array( $symbol ),
+                'topic' => 'ticker',
+                'unsubscribe' => true,
+                'subMessageHashes' => array( $subMessageHash ),
+                'messageHashes' => array( $unSubMessageHash ),
+            );
+            return Async\await($this->subscribe_public_uta($unSubMessageHash, $channel, $symbol, $params, $subscription));
+        })();
+    }
+
     public function handle_subject(Client $client, $message) {
         //
         //     {
@@ -3250,6 +3438,8 @@ class kucoin extends \ccxt\async\kucoin {
             'positionAll.UNIFIED' => array($this, 'handle_uta_position'),
             'positionAll.FUTURES' => array($this, 'handle_uta_position'),
             'balance.UNIFIED' => array($this, 'handle_uta_balance'),
+            'funding-fee' => array($this, 'handle_uta_funding_rate'),
+            'mark-price' => array($this, 'handle_uta_ticker'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method !== null) {

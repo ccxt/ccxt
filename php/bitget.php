@@ -1470,7 +1470,7 @@ class bitget extends Exchange {
                 'TONCOIN' => 'TON',
             ),
             'options' => array(
-                'uta' => false,
+                'uta' => null,
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'timeframes' => array(
@@ -1909,6 +1909,27 @@ class bitget extends Exchange {
         return array( $productType, $params );
     }
 
+    public function handle_uta_and_params($params, ?string $methodName, bool $defaultValue = false) {
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, $methodName, 'uta');
+        if ($uta !== null) {
+            return array( $uta, $params );
+        }
+        if ($this->check_required_credentials(false)) {
+            // use the api to determine if the account is $uta or not
+            $accountIsUTa = false;
+            try {
+                $this->privateUtaGetV3AccountSettings($params);
+                $accountIsUTa = true;
+            } catch (Exception $e) {
+                $accountIsUTa = false;
+            }
+            $this->options['uta'] = $accountIsUTa;
+            return array( $accountIsUTa, $params );
+        }
+        return array( $defaultValue, $params );
+    }
+
     public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1950,7 +1971,7 @@ class bitget extends Exchange {
             $this->load_time_difference();
         }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchMarkets', false);
         if ($uta) {
             return $this->fetch_uta_markets($params);
         }
@@ -2609,7 +2630,7 @@ class bitget extends Exchange {
         $uta = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params, 'isolated');
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchMarketLeverageTiers', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchMarketLeverageTiers', false);
         if ($uta) {
             if ($productType === 'SPOT') {
                 if ($marginMode !== null) {
@@ -3168,7 +3189,7 @@ class bitget extends Exchange {
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOrderBook', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketOrderbook($this->extend($request, $params));
@@ -3377,7 +3398,7 @@ class bitget extends Exchange {
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchTicker', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketTickers($this->extend($request, $params));
@@ -3575,7 +3596,7 @@ class bitget extends Exchange {
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         // only if $passedSubType && $productType is null, then use spot
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchTickers', false);
         if ($uta) {
             if ($symbols !== null) {
                 $symbolsLength = count($symbols);
@@ -3895,7 +3916,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchTrades', false);
         if ($limit !== null) {
             if ($uta) {
                 $request['limit'] = min($limit, 100);
@@ -4249,7 +4270,7 @@ class bitget extends Exchange {
         $marketType = null;
         $timeframes = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOHLCV', false);
         if ($uta) {
             $timeframes = $this->options['timeframes']['uta'];
             $request['interval'] = $this->safe_string($timeframes, $timeframe, $timeframe);
@@ -4415,7 +4436,7 @@ class bitget extends Exchange {
         $marginMode = null;
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchBalance', false);
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         if ($uta) {
@@ -5117,7 +5138,7 @@ class bitget extends Exchange {
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'createOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'createOrder', false);
         if ($uta) {
             $request = $this->create_uta_order_request($symbol, $type, $side, $amount, $price, $params);
             if ($isStopLossOrTakeProfitTrigger) {
@@ -5569,7 +5590,7 @@ class bitget extends Exchange {
          */
         $this->load_markets();
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'createOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'createOrders', false);
         if ($uta) {
             return $this->create_uta_orders($orders, $params);
         }
@@ -5735,7 +5756,7 @@ class bitget extends Exchange {
         $productType = null;
         $uta = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'editOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'editOrder', false);
         if ($uta) {
             if ($amount !== null) {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
@@ -5924,7 +5945,7 @@ class bitget extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'cancelOrder', false);
         $isPlanOrder = $trigger || $trailing;
         $isContract = $market['swap'] || $market['future'];
         $isContractTriggerEndpoint = $isContract && $isPlanOrder && !$uta;
@@ -6110,7 +6131,7 @@ class bitget extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'cancelOrders', false);
         if ($uta) {
             return $this->cancel_uta_orders($ids, $symbol, $params);
         }
@@ -6209,7 +6230,7 @@ class bitget extends Exchange {
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'cancelAllOrders', false);
         if ($uta) {
             if ($productType === 'SPOT') {
                 if ($marginMode !== null) {
@@ -6333,7 +6354,7 @@ class bitget extends Exchange {
         }
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOrder', false);
         if ($uta) {
             $response = $this->privateUtaGetV3TradeOrderInfo($this->extend($request, $params));
         } elseif ($market['spot']) {
@@ -6510,7 +6531,7 @@ class bitget extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOpenOrders', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -6964,7 +6985,7 @@ class bitget extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchCanceledAndClosedOrders', false);
         if ($uta) {
             return $this->fetch_uta_canceled_and_closed_orders($symbol, $since, $limit, $params);
         }
@@ -7615,7 +7636,7 @@ class bitget extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchMyTrades', false);
         if (!$uta && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
@@ -7842,7 +7863,7 @@ class bitget extends Exchange {
         $response = null;
         $uta = null;
         $result = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchPosition', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchPosition', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaGetV3PositionCurrentPosition($this->extend($request, $params));
@@ -7971,7 +7992,7 @@ class bitget extends Exchange {
         $response = null;
         $isHistory = false;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchPositions', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaGetV3PositionCurrentPosition($this->extend($request, $params));
@@ -8371,7 +8392,7 @@ class bitget extends Exchange {
         $response = null;
         $result = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingRateHistory', false);
         if ($uta) {
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -8467,7 +8488,7 @@ class bitget extends Exchange {
         );
         $uta = null;
         $response = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingRate', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingRate', false);
         if ($uta) {
             $response = $this->publicUtaGetV3MarketCurrentFundRate($this->extend($request, $params));
             //
@@ -8742,7 +8763,7 @@ class bitget extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
         }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingHistory', false);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
         if ($paginate) {
@@ -9076,7 +9097,7 @@ class bitget extends Exchange {
         );
         $uta = null;
         $response = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'setLeverage', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'setLeverage', false);
         if ($uta) {
             if ($productType === 'SPOT') {
                 $marginMode = null;
@@ -9193,7 +9214,7 @@ class bitget extends Exchange {
         $uta = null;
         $response = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'setPositionMode', false);
         if ($uta) {
             $request['holdMode'] = $posMode;
             $response = $this->privateUtaPostV3AccountSetHoldMode($this->extend($request, $params));
@@ -9247,7 +9268,7 @@ class bitget extends Exchange {
         );
         $uta = null;
         $response = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOpenInterest', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOpenInterest', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketOpenInterest($this->extend($request, $params));
@@ -10090,7 +10111,7 @@ class bitget extends Exchange {
         $uta = null;
         $response = null;
         $result = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchCrossBorrowRate', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchCrossBorrowRate', false);
         if ($uta) {
             $response = $this->publicUtaGetV3MarketMarginLoans($this->extend($request, $params));
             //
@@ -10359,7 +10380,7 @@ class bitget extends Exchange {
         $uta = null;
         $response = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'closePosition', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'closePosition', false);
         if ($uta) {
             if ($side !== null) {
                 $request['posSide'] = $side;
@@ -10428,7 +10449,7 @@ class bitget extends Exchange {
         $uta = null;
         $response = null;
         list($productType, $params) = $this->handle_product_type_and_params(null, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'closeAllPositions', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'closeAllPositions', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaPostV3TradeClosePositions($this->extend($request, $params));
@@ -10572,7 +10593,7 @@ class bitget extends Exchange {
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchPositionsHistory', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchPositionsHistory', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaGetV3PositionHistoryPosition($this->extend($request, $params));
@@ -10941,7 +10962,7 @@ class bitget extends Exchange {
         );
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingInterval', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingInterval', false);
         if ($uta) {
             $response = $this->publicUtaGetV3MarketCurrentFundRate($this->extend($request, $params));
             //
