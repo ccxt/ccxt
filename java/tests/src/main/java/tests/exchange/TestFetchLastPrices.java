@@ -17,7 +17,7 @@ public class TestFetchLastPrices extends BaseTest {
 
         Object method = "fetchLastprices";
         // log ('fetching all tickers at once...')
-        Object response = null;
+        Object response = new java.util.HashMap<String, Object>() {{}};
         Object checkedSymbol = null;
         try
         {
@@ -34,7 +34,7 @@ public class TestFetchLastPrices extends BaseTest {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
         {
             // todo: symbol check here
-            TestLastPrice.testLastPrice(exchange, skippedProperties, method, Helpers.GetValue(values, i), checkedSymbol);
+            TestLastPrice.testLastPrice(exchange, skippedProperties, method, Helpers.GetValue(values, i), ((String)checkedSymbol));
             atLeastOnePassed = Helpers.isTrue(atLeastOnePassed) || Helpers.isTrue((Helpers.isGreaterThan(exchange.safeNumber(Helpers.GetValue(values, i), "price"), 0)));
         }
         Assert(atLeastOnePassed, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
