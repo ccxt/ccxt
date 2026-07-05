@@ -918,8 +918,8 @@ export default class bithumb extends Exchange {
         let change = this.safeString2 (ticker, 'signed_change_price', 'change_price');
         let percentage = this.safeString2 (ticker, 'signed_change_rate', 'change_rate');
         const open = this.safeString (ticker, 'opening_price');
-        const isGeneration2Ticker = (('trade_price' in ticker) || ('trade_timestamp' in ticker) || ('signed_change_price' in ticker));
-        if (isGeneration2Ticker && (open !== undefined) && (close !== undefined)) {
+        const nonZeroOpen = this.omitZero (open);
+        if ((marketId !== undefined) && (nonZeroOpen !== undefined) && (close !== undefined)) {
             const computedChange = Precise.stringSub (close, open);
             // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
             if ((change !== undefined) && Precise.stringEq (change, '0') && !Precise.stringEq (computedChange, '0')) {
