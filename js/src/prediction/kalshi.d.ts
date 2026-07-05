@@ -320,6 +320,21 @@ export default class kalshi extends Exchange {
     createOrder(outcome: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
+     * @name kalshi#editOrder
+     * @description edits a resting order by cancelling it and placing a new one with the updated terms
+     * @see https://trading-api.readme.io/reference/createorder
+     * @param {string} id the id of the order to edit
+     * @param {string} outcome unified outcome
+     * @param {string} type 'limit' (kalshi has only limit orders)
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] the new number of contracts
+     * @param {float} [price] the new price (0..1)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    editOrder(id: string, outcome: string, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    /**
+     * @method
      * @name kalshi#cancelOrder
      * @description cancels a single open order by id on kalshi
      * @see https://trading-api.readme.io/reference/cancelorder

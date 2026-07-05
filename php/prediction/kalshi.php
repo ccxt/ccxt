@@ -33,6 +33,7 @@ class kalshi extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
@@ -1894,6 +1895,30 @@ class kalshi extends Exchange {
                 $order['status'] = $resolvedStatus;
             }
             return $order;
+        })();
+    }
+
+    public function edit_order(string $id, string $outcome, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $type, $side, $amount, $price, $params) {
+            /**
+             * edits a resting order by cancelling it and placing a new one with the updated terms
+             *
+             * @see https://trading-api.readme.io/reference/createorder
+             *
+             * @param {string} $id the $id of the order to edit
+             * @param {string} $outcome unified $outcome
+             * @param {string} $type 'limit' (kalshi has only limit orders)
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} [$amount] the new number of contracts
+             * @param {float} [$price] the new $price(0..1)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             */
+            // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
+            // so edit = cancel the resting order then place a fresh one with the new terms
+            Async\await($this->load_outcome($outcome));
+            Async\await($this->cancel_order($id, $outcome));
+            return Async\await($this->create_order($outcome, $type, $side, $amount, $price, $params));
         })();
     }
 

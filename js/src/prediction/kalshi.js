@@ -33,19 +33,20 @@ export default class kalshi extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchEvent': true,
                 'fetchEvents': true,
-                'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
-                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchSettlements': true,
                 'fetchStatus': true,
@@ -1866,6 +1867,27 @@ export default class kalshi extends Exchange {
             order['status'] = resolvedStatus;
         }
         return order;
+    }
+    /**
+     * @method
+     * @name kalshi#editOrder
+     * @description edits a resting order by cancelling it and placing a new one with the updated terms
+     * @see https://trading-api.readme.io/reference/createorder
+     * @param {string} id the id of the order to edit
+     * @param {string} outcome unified outcome
+     * @param {string} type 'limit' (kalshi has only limit orders)
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] the new number of contracts
+     * @param {float} [price] the new price (0..1)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async editOrder(id, outcome, type, side, amount = undefined, price = undefined, params = {}) {
+        // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
+        // so edit = cancel the resting order then place a fresh one with the new terms
+        await this.loadOutcome(outcome);
+        await this.cancelOrder(id, outcome);
+        return await this.createOrder(outcome, type, side, amount, price, params);
     }
     /**
      * @method

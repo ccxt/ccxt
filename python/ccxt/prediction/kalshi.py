@@ -33,6 +33,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
@@ -1721,6 +1722,27 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 resolvedStatus = 'closed'
             order['status'] = resolvedStatus
         return order
+
+    async def edit_order(self, id: str, outcome: str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}) -> PredictionOrder:
+        """
+        edits a resting order by cancelling it and placing a new one with the updated terms
+
+        https://trading-api.readme.io/reference/createorder
+
+        :param str id: the id of the order to edit
+        :param str outcome: unified outcome
+        :param str type: 'limit'(kalshi has only limit orders)
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: the new number of contracts
+        :param float [price]: the new price(0..1)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        """
+        # kalshi has no live amend endpoint(the V1 /amend path is 410 Gone with no V2 replacement),
+        # so edit = cancel the resting order then place a fresh one with the new terms
+        await self.load_outcome(outcome)
+        await self.cancel_order(id, outcome)
+        return await self.create_order(outcome, type, side, amount, price, params)
 
     async def cancel_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
         """

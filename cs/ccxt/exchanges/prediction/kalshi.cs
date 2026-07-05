@@ -25,6 +25,7 @@ public partial class kalshi : PredictionExchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "createOrder", true },
+                { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", false },
@@ -2074,6 +2075,30 @@ public partial class kalshi : PredictionExchange
             ((IDictionary<string,object>)order)["status"] = resolvedStatus;
         }
         return order;
+    }
+
+    /**
+     * @method
+     * @name kalshi#editOrder
+     * @description edits a resting order by cancelling it and placing a new one with the updated terms
+     * @see https://trading-api.readme.io/reference/createorder
+     * @param {string} id the id of the order to edit
+     * @param {string} outcome unified outcome
+     * @param {string} type 'limit' (kalshi has only limit orders)
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] the new number of contracts
+     * @param {float} [price] the new price (0..1)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
+        // so edit = cancel the resting order then place a fresh one with the new terms
+        parameters ??= new Dictionary<string, object>();
+        await this.loadOutcome(outcome);
+        await this.cancelOrder(id, outcome);
+        return await this.createOrder(outcome, type, side, amount, price, parameters);
     }
 
     /**

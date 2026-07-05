@@ -520,6 +520,40 @@ public partial class kalshi
         return new PredictionOrder(res);
     }
     /// <summary>
+    /// edits a resting order by cancelling it and placing a new one with the updated terms
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/createorder"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : the new number of contracts
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the new price (0..1)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
+    public async Task<PredictionOrder> EditOrder(string id, string outcome, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrder(id, outcome, type, side, amount, price, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
     /// cancels a single open order by id on kalshi
     /// </summary>
     /// <remarks>

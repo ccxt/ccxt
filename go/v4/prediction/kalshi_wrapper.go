@@ -618,6 +618,48 @@ func (this *Kalshi) CreateOrder(outcome string, typeVar string, side string, amo
 }
 /**
  * @method
+ * @name kalshi#editOrder
+ * @description edits a resting order by cancelling it and placing a new one with the updated terms
+ * @see https://trading-api.readme.io/reference/createorder
+ * @param {string} id the id of the order to edit
+ * @param {string} outcome unified outcome
+ * @param {string} type 'limit' (kalshi has only limit orders)
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] the new number of contracts
+ * @param {float} [price] the new price (0..1)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func (this *Kalshi) EditOrder(id string, outcome string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.PredictionOrder, error) {
+
+    opts := ccxt.EditOrderOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var amount any = nil
+    if opts.Amount != nil {
+        amount = *opts.Amount
+    }
+
+    var price any = nil
+    if opts.Price != nil {
+        price = *opts.Price
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrder(id, outcome, typeVar, side, amount, price, params)
+    if ccxt.IsError(res) {
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPredictionOrder(res), nil
+}
+/**
+ * @method
  * @name kalshi#cancelOrder
  * @description cancels a single open order by id on kalshi
  * @see https://trading-api.readme.io/reference/cancelorder
@@ -921,7 +963,6 @@ func (this *Kalshi) CreateTriggerOrder(symbol string, typeVar string, side strin
 func (this *Kalshi) EditLimitBuyOrder(id string, symbol string, amount float64, options ...ccxt.EditLimitBuyOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)}
 func (this *Kalshi) EditLimitOrder(id string, symbol string, side string, amount float64, options ...ccxt.EditLimitOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
 func (this *Kalshi) EditLimitSellOrder(id string, symbol string, amount float64, options ...ccxt.EditLimitSellOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
-func (this *Kalshi) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
 func (this *Kalshi) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Kalshi) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
 func (this *Kalshi) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
