@@ -126,4 +126,17 @@ func TestSafeTicker() {
 	Assert(PreciseEqualStr(exchange, result8, "indexPrice", "5.8"))
 	Assert(PreciseEqualStr(exchange, result8, "markPrice", "5.9"))
 	Assert(!ccxt.IsEqual(ccxt.GetValue(result8, "info"), nil))
+	// CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
+	var ticker9 map[string]any = map[string]any{
+		"open":       6,
+		"close":      6,
+		"last":       6,
+		"change":     0,
+		"percentage": 0,
+	}
+	var result9 any = exchange.SafeTicker(ticker9)
+	Assert(PreciseEqualStr(exchange, result9, "change", "0"))
+	Assert(PreciseEqualStr(exchange, result9, "percentage", "0"))
+	Assert(PreciseEqualStr(exchange, result9, "open", "6.0"))
+	Assert(PreciseEqualStr(exchange, result9, "last", "6.0"))
 }

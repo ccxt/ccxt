@@ -267,7 +267,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             'OrderBookSnapshot': self.handle_order_book,
             'OrderBookChange': self.handle_order_book,
         }
-        handler = self.safe_value(handlers, event)
+        handler = None if (event is None) else self.safe_value(handlers, event)
         if handler is not None:
             handler(client, message)
             return

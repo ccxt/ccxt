@@ -1643,7 +1643,7 @@
                     "entryPrice": null,
                     "unrealizedPnl": -0.01022,
                     "realizedPnl": null,
-                    "percentage": null,
+                    "percentage": -0.67,
                     "contracts": 10,
                     "contractSize": null,
                     "markPrice": null,

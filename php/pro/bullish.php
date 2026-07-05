@@ -266,10 +266,8 @@ class bullish extends \ccxt\async\bullish {
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $parsed = null;
-        if (($updateType === 'snapshot')) {
-            $parsed = $this->parse_ticker($data, $market);
-        } elseif ($updateType === 'update') {
+        $parsed = $this->parse_ticker($data, $market);
+        if ($updateType === 'update') {
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = $this->extend($rawTicker, $data);
@@ -472,7 +470,9 @@ class bullish extends \ccxt\async\bullish {
                 $parsedOrder = $this->parse_order($rawOrder);
                 $orders->append($parsedOrder);
                 $symbol = $this->safe_string($parsedOrder, 'symbol');
-                $symbols[$symbol] = true;
+                if ($symbol !== null) {
+                    $symbols[$symbol] = true;
+                }
             }
             $messageHash = 'orders';
             $client->resolve($orders, $messageHash);
@@ -580,7 +580,9 @@ class bullish extends \ccxt\async\bullish {
                 $parsedTrade = $this->parse_trade($rawTrade);
                 $trades->append($parsedTrade);
                 $symbol = $this->safe_string($parsedTrade, 'symbol');
-                $symbols[$symbol] = true;
+                if ($symbol !== null) {
+                    $symbols[$symbol] = true;
+                }
             }
             $messageHash = 'myTrades';
             $client->resolve($trades, $messageHash);
@@ -662,6 +664,9 @@ class bullish extends \ccxt\async\bullish {
         //     }
         //
         $tradingAccountId = $this->safe_string($message, 'tradingAccountId');
+        if ($tradingAccountId === null) {
+            return;
+        }
         if (!(is_array($this->balance) && array_key_exists($tradingAccountId, $this->balance))) {
             $this->balance[$tradingAccountId] = array();
         }
@@ -702,7 +707,7 @@ class bullish extends \ccxt\async\bullish {
             Async\await($this->load_markets());
             $subscribeHash = 'positions';
             $messageHash = $subscribeHash;
-            if (!$this->is_empty($symbols)) {
+            if (($symbols !== null) && !$this->is_empty($symbols)) {
                 $symbols = $this->market_symbols($symbols);
                 $messageHash .= '::' . implode(',', $symbols);
             }

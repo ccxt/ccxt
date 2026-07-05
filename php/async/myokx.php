@@ -50,6 +50,9 @@ class myokx extends okx {
                     'inverse' => null,
                 ),
             ),
+            'options' => array(
+                'mica' => true,
+            ),
         ));
     }
 }

@@ -3228,11 +3228,14 @@ class bingx extends bingx$1["default"] {
                 positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
-            let amountReq = amount;
-            if (!market['inverse']) {
-                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            const closePosition = this.safeBool(params, 'closePosition', false);
+            if (!closePosition) {
+                let amountReq = amount;
+                if (!market['inverse']) {
+                    amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
+                request['quantity'] = amountReq; // precision not available for inverse contracts
             }
-            request['quantity'] = amountReq; // precision not available for inverse contracts
         }
         params = this.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         return this.extend(request, params);
@@ -3268,6 +3271,7 @@ class bingx extends bingx$1["default"] {
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -3377,6 +3381,15 @@ class bingx extends bingx$1["default"] {
         }
         else {
             result = data;
+        }
+        // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        const stopLoss = this.safeString(result, 'stopLoss');
+        if ((stopLoss !== undefined) && (stopLoss.indexOf('{') === 0)) {
+            result['stopLoss'] = this.parseJson(stopLoss);
+        }
+        const takeProfit = this.safeString(result, 'takeProfit');
+        if ((takeProfit !== undefined) && (takeProfit.indexOf('{') === 0)) {
+            result['takeProfit'] = this.parseJson(takeProfit);
         }
         return this.parseOrder(result, market);
     }

@@ -59,7 +59,7 @@ dydx.fetchTime (params?)
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ### fetchMarkets{docsify-ignore}
-retrieves data on all markets for hyperliquid
+retrieves data on all markets for dydx
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -84,7 +84,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://developer.woox.io/api-reference/endpoint/public_data/marketTrades  
+**See**: https://docs.dydx.xyz/indexer-client/http#get-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

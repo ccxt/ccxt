@@ -564,13 +564,10 @@ class lbank extends lbank$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         const symbol = this.safeSymbol(marketId, undefined, '_');
-        let myOrders = undefined;
+        let myOrders = this.orders;
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             myOrders = new Cache.ArrayCacheBySymbolById(limit);
-        }
-        else {
-            myOrders = this.orders;
         }
         const order = this.parseWsOrder(message);
         myOrders.append(order);

@@ -1121,7 +1121,7 @@ class hitbtc(Exchange, ImplicitAPI):
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        account = self.safe_string(accountsByType, type, type)
+        account = None if (type is None) else self.safe_string(accountsByType, type, type)
         response: dict
         if account == 'wallet':
             response = self.privateGetWalletBalance(params)
@@ -1281,15 +1281,12 @@ class hitbtc(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 1000)
         if since is not None:
             request['from'] = since
-        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-            response = self.publicGetPublicTradesSymbol(self.extend(request, params))
-        else:
-            response = self.publicGetPublicTrades(self.extend(request, params))
-        if symbol is not None:
-            return self.parse_trades(response, market)
+            responseInner = self.publicGetPublicTradesSymbol(self.extend(request, params))
+            return self.parse_trades(responseInner, market)
+        response = self.publicGetPublicTrades(self.extend(request, params))
         trades = []
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
@@ -1328,7 +1325,7 @@ class hitbtc(Exchange, ImplicitAPI):
             request['from'] = since
         marketType = None
         marginMode = None
-        response = None
+        response = []
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
         params = self.omit(params, ['marginMode', 'margin'])
@@ -1494,6 +1491,8 @@ class hitbtc(Exchange, ImplicitAPI):
             'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
@@ -1764,7 +1763,8 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
-            result[symbol] = fee
+            if symbol is not None:
+                result[symbol] = fee
         return result
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1802,7 +1802,7 @@ class hitbtc(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 1000)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        response = None
+        response = []
         if price == 'mark':
             response = self.publicGetPublicFuturesCandlesMarkPriceSymbol(self.extend(request, params))
         elif price == 'index':
@@ -1977,7 +1977,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        order = self.safe_dict(response, 0)
+        order = self.safe_dict(response, 0, {})
         return self.parse_order(order, market)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2009,7 +2009,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('fetchOrderTrades', market, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchOrderTrades', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response = []
         if marginMode is not None:
             response = self.privateGetMarginHistoryTrade(self.extend(request, params))
         else:
@@ -2377,6 +2377,8 @@ class hitbtc(Exchange, ImplicitAPI):
             'canceled': 'canceled',
             'expired': 'failed',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -2736,6 +2738,8 @@ class hitbtc(Exchange, ImplicitAPI):
         fundingRates = {}
         for i in range(0, len(marketIds)):
             marketId = self.safe_string(marketIds, i)
+            if marketId is None:
+                continue
             rawFundingRate = self.safe_value(response, marketId)
             marketInner = self.market(marketId)
             symbol = marketInner['symbol']
@@ -3529,13 +3533,14 @@ class hitbtc(Exchange, ImplicitAPI):
             }
             if isDefault is True:
                 result['withdraw'] = withdrawResult
-            result['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': {
-                    'fee': None,
-                    'percentage': None,
-                },
-            }
+            if networkCode is not None:
+                result['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
         return result
 
     def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
@@ -3577,7 +3582,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue: Any = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3644,7 +3649,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 if getRequest is not None:
                     payload.append(getRequest)
             else:
-                payload.append(body)
+                if body is not None:
+                    payload.append(body)
             payload.append(timestamp)
             payloadString = ''.join(payload)
             signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256, 'hex')

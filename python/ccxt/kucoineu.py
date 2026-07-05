@@ -28,4 +28,7 @@ class kucoineu(kucoin, ImplicitAPI):
                     'https://www.kucoin.com/en-eu/docs-new',
                 ],
             },
+            'options': {
+                'mica': True,
+            },
         })

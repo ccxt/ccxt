@@ -835,7 +835,7 @@ public class GeminiCore extends GeminiApi
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            Object marketIdUpper = ((String)marketId).toUpperCase();
+            Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Object isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
             Object marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
@@ -1169,8 +1169,8 @@ public class GeminiCore extends GeminiApi
         Object last = this.safeString2(ticker, "last", "close", price);
         Object percentage = this.safeString(ticker, "percentChange24h");
         Object open = this.safeString(ticker, "open");
-        Object baseVolume = this.safeString(volume, baseId);
-        Object quoteVolume = this.safeString(volume, quoteId);
+        Object baseVolume = this.safeString(volume, ((String)baseId));
+        Object quoteVolume = this.safeString(volume, ((String)quoteId));
         final Object finalSymbol = symbol;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
@@ -2134,7 +2134,7 @@ public class GeminiCore extends GeminiApi
             put( "Advanced", "ok" );
             put( "Complete", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
@@ -2180,7 +2180,7 @@ public class GeminiCore extends GeminiApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
+            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, ((String)networkCode)), "currency");
             return this.safeValue(networkGroup, code);
         });
 

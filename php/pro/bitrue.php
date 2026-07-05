@@ -549,7 +549,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'ts');
         $sideLower = $this->safe_string_lower($trade, 'side');
@@ -668,7 +668,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($tick, $market = null): array {
+    public function parse_ws_ohlcv($tick, ?array $market = null): array {
         $symbol = $market['symbol'];
         $idSeconds = $this->safe_integer($tick, 'id');
         $timestamp = ($idSeconds === null) ? null : $idSeconds * 1000;

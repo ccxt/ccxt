@@ -229,9 +229,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "apex":
 		itf := NewApex(options)
 		return itf
-	case "ascendex":
-		itf := NewAscendex(options)
-		return itf
 	case "aster":
 		itf := NewAster(options)
 		return itf
@@ -355,9 +352,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "coinmate":
 		itf := NewCoinmate(options)
 		return itf
-	case "coinmetro":
-		itf := NewCoinmetro(options)
-		return itf
 	case "coinone":
 		itf := NewCoinone(options)
 		return itf
@@ -475,14 +469,14 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "modetrade":
 		itf := NewModetrade(options)
 		return itf
+	case "mudrex":
+		itf := NewMudrex(options)
+		return itf
 	case "myokx":
 		itf := NewMyokx(options)
 		return itf
 	case "ndax":
 		itf := NewNdax(options)
-		return itf
-	case "novadax":
-		itf := NewNovadax(options)
 		return itf
 	case "okx":
 		itf := NewOkx(options)

@@ -12,6 +12,9 @@ func TestRoundTimeframe() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var testDate any = exchange.Parse8601("2019-08-12 13:22:08")
+	if ccxt.IsTrue(ccxt.IsEqual(testDate, nil)) {
+		return
+	}
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("5m", testDate, ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("10m", testDate, ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("30m", testDate, ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:00:00")))

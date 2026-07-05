@@ -31,7 +31,7 @@ class bullish extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
@@ -1521,7 +1521,7 @@ class bullish extends Exchange {
             }
             $method = 'privateGetV2HistoryOrders';
             list($method, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'method', $method);
-            $response = null;
+            $response = array();
             if ($method === 'privateGetV2Orders') {
                 //
                 //     array(

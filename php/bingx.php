@@ -3194,11 +3194,14 @@ class bingx extends Exchange {
                 $positionSide = 'BOTH';
             }
             $request['positionSide'] = $positionSide;
-            $amountReq = $amount;
-            if (!$market['inverse']) {
-                $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+            $closePosition = $this->safe_bool($params, 'closePosition', false);
+            if (!$closePosition) {
+                $amountReq = $amount;
+                if (!$market['inverse']) {
+                    $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                }
+                $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
-            $request['quantity'] = $amountReq; // precision not available for inverse contracts
         }
         $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
@@ -3229,13 +3232,14 @@ class bingx extends Exchange {
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
-         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
          * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
+         * @param {bool} [$params->closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -3338,6 +3342,15 @@ class bingx extends Exchange {
             }
         } else {
             $result = $data;
+        }
+        // when the $response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        $stopLoss = $this->safe_string($result, 'stopLoss');
+        if (($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
+            $result['stopLoss'] = $this->parse_json($stopLoss);
+        }
+        $takeProfit = $this->safe_string($result, 'takeProfit');
+        if (($takeProfit !== null) && (mb_strpos($takeProfit, '{') === 0)) {
+            $result['takeProfit'] = $this->parse_json($takeProfit);
         }
         return $this->parse_order($result, $market);
     }

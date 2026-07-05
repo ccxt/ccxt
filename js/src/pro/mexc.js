@@ -1344,6 +1344,10 @@ export default class mexc extends mexcRest {
         let parsed;
         if (market['spot']) {
             parsed = this.parseWsOrder(data, market);
+            const sendTime = this.safeInteger(message, 'sendTime');
+            if (sendTime !== undefined) {
+                parsed['lastTradeTimestamp'] = sendTime;
+            }
         }
         else {
             parsed = this.parseOrder(data, market);

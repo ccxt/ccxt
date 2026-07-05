@@ -2920,7 +2920,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "amount": 13.456
         #     }
         #
-        timestamp = self.safe_timestamp(transfer, 'created_timestamp')
+        timestamp = self.safe_integer(transfer, 'created_timestamp')
         status = self.safe_string(transfer, 'state')
         account = self.safe_string(transfer, 'other_side')
         direction = self.safe_string(transfer, 'direction')

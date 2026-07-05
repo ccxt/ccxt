@@ -3436,7 +3436,7 @@ public class DeribitCore extends DeribitApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(transfer, "created_timestamp");
+        Object timestamp = this.safeInteger(transfer, "created_timestamp");
         Object status = this.safeString(transfer, "state");
         Object account = this.safeString(transfer, "other_side");
         Object direction = this.safeString(transfer, "direction");

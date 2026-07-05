@@ -26,7 +26,7 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
         while ($now < $ends) {
-            $response = null;
+            $response = array();
             $success = true;
             $should_return = false;
             try {

@@ -318,7 +318,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: 'webData2' or 'allMids', default is 'webData2'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         market = self.market(symbol)
@@ -338,7 +337,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: 'webData2' or 'allMids', default is 'webData2'
         :param str [params.dex]: for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
@@ -346,13 +344,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbols = self.market_symbols(symbols, None, True)
         messageHash = 'tickers'
         url = self.urls['api']['ws']['public']
-        channel = 'webData2'
-        channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', channel)
         request = {
             'method': 'subscribe',
             'subscription': {
-                'type': channel,  # webData2 or allMids
-                'user': '0x0000000000000000000000000000000000000000',
+                'type': 'allMids',
             },
         }
         defaultDex = self.safe_string(params, 'dex')
@@ -380,21 +375,17 @@ class hyperliquid(ccxt.async_support.hyperliquid):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: 'webData2' or 'allMids', default is 'webData2'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         subMessageHash = 'tickers'
-        channel = 'webData2'
-        channel, params = self.handle_option_and_params(params, 'unWatchTickers', 'channel', channel)
         messageHash = 'unsubscribe:' + subMessageHash
         url = self.urls['api']['ws']['public']
         request = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': channel,  # allMids
-                'user': '0x0000000000000000000000000000000000000000',
+                'type': 'allMids',
             },
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
@@ -480,104 +471,25 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #     }
         # }
         #
-        #     {
-        #         "channel": "webData2",
-        #         "data": {
-        #             "meta": {
-        #                 "universe": [
-        #                     {
-        #                         "szDecimals": 5,
-        #                         "name": "BTC",
-        #                         "maxLeverage": 50,
-        #                         "onlyIsolated": False
-        #                     },
-        #                     ...
-        #                 ],
-        #             },
-        #             "assetCtxs": [
-        #                 {
-        #                     "funding": "0.00003005",
-        #                     "openInterest": "2311.50778",
-        #                     "prevDayPx": "63475.0",
-        #                     "dayNtlVlm": "468043329.64289033",
-        #                     "premium": "0.00094264",
-        #                     "oraclePx": "64712.0",
-        #                     "markPx": "64774.0",
-        #                     "midPx": "64773.5",
-        #                     "impactPxs": [
-        #                         "64773.0",
-        #                         "64774.0"
-        #                     ]
-        #                 },
-        #                 ...
-        #             ],
-        #             "spotAssetCtxs": [
-        #                 {
-        #                     "prevDayPx": "0.20937",
-        #                     "dayNtlVlm": "11188888.61984999",
-        #                     "markPx": "0.19722",
-        #                     "midPx": "0.197145",
-        #                     "circulatingSupply": "598760557.12072003",
-        #                     "coin": "PURR/USDC"
-        #                 },
-        #                 ...
-        #             ],
-        #         }
-        #     }
-        #
         # handle hip3 mids
-        channel = self.safe_string(message, 'channel')
-        if channel == 'allMids':
-            data = self.safe_dict(message, 'data', {})
-            mids = self.safe_dict(data, 'mids', {})
-            if mids is not None:
-                keys = list(mids.keys())
-                for i in range(0, len(keys)):
-                    name = keys[i]
-                    marketId = self.coinToMarketId(name)
-                    market = self.safe_market(marketId, None, None, 'swap')
-                    symbol = market['symbol']
-                    ticker = self.parse_ws_ticker({
-                        'price': self.safe_number(mids, name),
-                    }, market)
-                    self.tickers[symbol] = ticker
-                messageHash = 'tickers'
-                dexMessage = self.safe_string(data, 'dex')
-                if dexMessage is not None:
-                    messageHash += ':' + dexMessage
-                client.resolve(self.tickers, messageHash)
-                return True
-        # spot
-        rawData = self.safe_dict(message, 'data', {})
-        spotAssets = self.safe_list(rawData, 'spotAssetCtxs', [])
-        parsedTickers = []
-        for i in range(0, len(spotAssets)):
-            assetObject = spotAssets[i]
-            coin = self.safe_string(assetObject, 'coin')
-            marketId = self.coinToMarketId(coin)
-            market = self.safe_market(marketId, None, None, 'spot')
-            symbol = market['symbol']
-            ticker = self.parse_ws_ticker(assetObject, market)
-            parsedTickers.append(ticker)
-            self.tickers[symbol] = ticker
-        # perpetuals
-        meta = self.safe_dict(rawData, 'meta', {})
-        universe = self.safe_list(meta, 'universe', [])
-        assetCtxs = self.safe_list(rawData, 'assetCtxs', [])
-        for i in range(0, len(universe)):
-            data = self.extend(
-                self.safe_dict(universe, i, {}),
-                self.safe_dict(assetCtxs, i, {})
-            )
-            coin = self.safe_string(data, 'name')
-            marketId = self.coinToMarketId(coin)
-            market = self.safe_market(marketId, None, None, 'swap')
-            symbol = market['symbol']
-            ticker = self.parse_ws_ticker(data, market)
-            self.tickers[symbol] = ticker
-            parsedTickers.append(ticker)
-        tickers = self.index_by(parsedTickers, 'symbol')
-        client.resolve(tickers, 'tickers')
+        data = self.safe_dict(message, 'data', {})
+        mids = self.safe_dict(data, 'mids', {})
+        if mids is not None:
+            keys = list(mids.keys())
+            for i in range(0, len(keys)):
+                name = keys[i]
+                marketId = self.coinToMarketId(name)
+                market = self.safe_market(marketId, None, None, 'swap')
+                symbol = market['symbol']
+                ticker = self.parse_ws_ticker({
+                    'price': self.safe_number(mids, name),
+                }, market)
+                self.tickers[symbol] = ticker
+            messageHash = 'tickers'
+            dexMessage = self.safe_string(data, 'dex')
+            if dexMessage is not None:
+                messageHash += ':' + dexMessage
+            client.resolve(self.tickers, messageHash)
         return True
 
     def parse_ws_ticker(self, rawTicker, market: Market = None) -> Ticker:
@@ -1513,8 +1425,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 self.handle_order_book_unsubscription(client, subscription)
             elif type == 'trades':
                 self.handle_trades_unsubscription(client, subscription)
-            elif type == 'webData2':
-                self.handle_tickers_unsubscription(client, subscription)
             elif type == 'candle':
                 self.handle_ohlcv_unsubscription(client, subscription)
             elif type == 'orderUpdates':
@@ -1551,7 +1461,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'candle': self.handle_ohlcv,
             'orderUpdates': self.handle_order,
             'userFills': self.handle_my_trades,
-            'webData2': self.handle_ws_tickers,
             'allMids': self.handle_ws_tickers,
             'post': self.handle_ws_post,
             'subscriptionResponse': self.handle_subscription_response,

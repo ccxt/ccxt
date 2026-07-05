@@ -1384,7 +1384,6 @@ public partial class Exchange
 public class  Aftermath: aftermath { public Aftermath(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
-public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
 public class  Aster: aster { public Aster(object args = null) : base(args) { } }
 public class  Backpack: backpack { public Backpack(object args = null) : base(args) { } }
 public class  Bequant: bequant { public Bequant(object args = null) : base(args) { } }
@@ -1426,7 +1425,6 @@ public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinte
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
 public class  Coinex: coinex { public Coinex(object args = null) : base(args) { } }
 public class  Coinmate: coinmate { public Coinmate(object args = null) : base(args) { } }
-public class  Coinmetro: coinmetro { public Coinmetro(object args = null) : base(args) { } }
 public class  Coinone: coinone { public Coinone(object args = null) : base(args) { } }
 public class  Coinsph: coinsph { public Coinsph(object args = null) : base(args) { } }
 public class  Coinspot: coinspot { public Coinspot(object args = null) : base(args) { } }
@@ -1466,9 +1464,9 @@ public class  Luno: luno { public Luno(object args = null) : base(args) { } }
 public class  Mercado: mercado { public Mercado(object args = null) : base(args) { } }
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
 public class  Modetrade: modetrade { public Modetrade(object args = null) : base(args) { } }
+public class  Mudrex: mudrex { public Mudrex(object args = null) : base(args) { } }
 public class  Myokx: myokx { public Myokx(object args = null) : base(args) { } }
 public class  Ndax: ndax { public Ndax(object args = null) : base(args) { } }
-public class  Novadax: novadax { public Novadax(object args = null) : base(args) { } }
 public class  Okx: okx { public Okx(object args = null) : base(args) { } }
 public class  Okxus: okxus { public Okxus(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }

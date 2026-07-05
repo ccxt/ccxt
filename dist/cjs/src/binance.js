@@ -1402,7 +1402,6 @@ class binance extends binance$1["default"] {
                     'XRP': 'XRP',
                     'EOS': 'EOS',
                     'DOGE': 'DOGE',
-                    'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
                     'SONIC': 'SONIC',
                     // 'FIAT': 'FIAT_MONEY', // not unified atm

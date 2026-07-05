@@ -220,6 +220,7 @@ public partial class kraken : Exchange
                 { "ZUSD", "USD" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "marketsByAltname", new Dictionary<string, object>() {} },

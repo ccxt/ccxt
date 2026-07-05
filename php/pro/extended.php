@@ -144,7 +144,7 @@ class extended extends \ccxt\async\extended {
         }
     }
 
-    public function watch_private(string $messageHash, $subscription = null) {
+    public function watch_private(string $messageHash, ?array $subscription = null) {
         return Async\async(function () use ($messageHash, $subscription) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'] . '/account';
@@ -502,8 +502,8 @@ class extended extends \ccxt\async\extended {
         if ($first === null) {
             return;
         }
-        for ($i = 0; $i < count($rawOrders); $i++) {
-            $order = $this->parse_order($rawOrders[$i]);
+        for ($i = 0; $i < count(($rawOrders)); $i++) {
+            $order = $this->parse_order(($rawOrders)[$i]);
             $symbol = $this->safe_string($order, 'symbol');
             $symbols[$symbol] = true;
             $orders->append($order);
@@ -570,7 +570,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate($fundingRate, $market = null, $message = null): array {
+    public function parse_ws_funding_rate($fundingRate, ?array $market = null, $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');

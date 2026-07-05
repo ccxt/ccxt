@@ -330,7 +330,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $stored = $this->orders;
-        $subscription = $this->safe_value($client->subscriptions, $channel);
+        $subscription = ($channel === null) ? null : $this->safe_value($client->subscriptions, $channel);
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $order['event'] = $this->safe_string($message, 'event');

@@ -2829,7 +2829,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 Object code = this.safeString(entry, "code");
-                Object message = this.safeString(entry, "message");
+                Object message = this.safeString(entry, "message", "");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
                 {
                     Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
@@ -3335,7 +3335,7 @@ public class CoinexCore extends CoinexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object coinAddress = this.safeString(depositAddress, "address");
+        Object coinAddress = this.safeString(depositAddress, "address", "");
         Object parts = Helpers.split(coinAddress, ":");
         Object address = null;
         Object tag = null;
@@ -5896,7 +5896,7 @@ final Object finalI = i;
         }
         Object code = this.safeString(response, "code");
         Object data = this.safeValue(response, "data");
-        Object message = this.safeString(response, "message");
+        Object message = this.safeString(response, "message", "");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);

@@ -207,12 +207,12 @@ public partial class lbank : ccxt.lbank
             object timeframeId = this.safeString(message, "kbar");
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
             }
             callDynamically(stored, "append", new object[] {parsed});
             object messageHash = add(add(add("fetchOHLCV:", symbol), ":"), timeframeId);
@@ -225,12 +225,12 @@ public partial class lbank : ccxt.lbank
             object parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
             }
             callDynamically(stored, "append", new object[] {parsed});
             object messageHash = add(add(add("ohlcv:", symbol), ":"), timeframeId);
@@ -510,7 +510,7 @@ public partial class lbank : ccxt.lbank
             timestamp = this.parse8601(datetime);
         }
         object rawSide = this.safeString2(trade, "direction", 3);
-        object parts = ((string)rawSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)rawSide)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object firstPart = this.safeString(parts, 0);
         object secondPart = this.safeString(parts, 1);
         object side = firstPart;
@@ -563,7 +563,7 @@ public partial class lbank : ccxt.lbank
             object market = this.market(symbol);
             symbol = this.symbol(symbol);
             messageHash = add("orders:", getValue(market, "symbol"));
-            pair = getValue(market, "id");
+            pair = ((string)getValue(market, "id"));
         }
         object message = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -598,14 +598,11 @@ public partial class lbank : ccxt.lbank
         //
         object marketId = this.safeString(message, "pair");
         object symbol = this.safeSymbol(marketId, null, "_");
-        object myOrders = null;
+        object myOrders = this.orders;
         if (isTrue(isEqual(this.orders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCacheBySymbolById(limit);
-        } else
-        {
-            myOrders = this.orders;
         }
         object order = this.parseWsOrder(message);
         callDynamically(myOrders, "append", new object[] {order});
@@ -969,7 +966,7 @@ public partial class lbank : ccxt.lbank
             { "orderUpdate", this.handleOrders },
             { "assetUpdate", this.handleBalance },
         };
-        object handler = this.safeValue(handlers, type);
+        object handler = this.safeValue(handlers, ((string)type));
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

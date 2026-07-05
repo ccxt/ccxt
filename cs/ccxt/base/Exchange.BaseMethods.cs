@@ -3136,7 +3136,7 @@ public partial class Exchange
     {
         object open = this.omitZero(this.safeString(ticker, "open"));
         object close = this.omitZero(this.safeString2(ticker, "close", "last"));
-        object change = this.omitZero(this.safeString(ticker, "change"));
+        object change = this.safeString(ticker, "change"); // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         object average = this.omitZero(this.safeString(ticker, "average"));
         object vwap = this.safeString(ticker, "vwap");
@@ -3934,7 +3934,7 @@ public partial class Exchange
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object item = getValue(response, i);
-                object id = this.safeString(item, marketIdKey);
+                object id = ((bool) isTrue((isEqual(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 object market = this.safeMarket(id, null, null, "swap");
                 object symbol = getValue(market, "symbol");
                 object contract = this.safeBool(market, "contract", false);
@@ -3985,7 +3985,7 @@ public partial class Exchange
     public virtual object safePosition(object position)
     {
         // simplified version of: /pull/12765/
-        object unrealizedPnlString = this.safeString(position, "unrealisedPnl");
+        object unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         object initialMarginString = this.safeString(position, "initialMargin");
         //
         // PERCENTAGE
@@ -6321,7 +6321,7 @@ public partial class Exchange
             } else
             {
                 object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
-                object key = this.safeString(keys, 0);
+                object key = getValue(keys, 0);
                 return this.safeDict(addressStructures, key);
             }
         } else
@@ -7582,7 +7582,11 @@ public partial class Exchange
         {
             object entry = getValue(responseKeys, i);
             object dictionary = ((bool) isTrue(isArray)) ? entry : getValue(response, entry);
-            object currencyId = ((bool) isTrue(isArray)) ? this.safeString(dictionary, currencyIdKey) : entry;
+            object currencyId = entry;
+            if (isTrue(isArray))
+            {
+                currencyId = ((bool) isTrue((isEqual(currencyIdKey, null)))) ? null : this.safeString(dictionary, currencyIdKey);
+            }
             object currency = this.safeCurrency(currencyId);
             object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
@@ -8054,7 +8058,7 @@ public partial class Exchange
                     object index = subtract(subtract(responseLength, j), 1);
                     object entry = this.safeDict(response, index);
                     object info = this.safeDict(entry, "info");
-                    object cursor = this.safeValue(info, cursorReceived);
+                    object cursor = ((bool) isTrue((isEqual(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
                     if (isTrue(!isEqual(cursor, null)))
                     {
                         cursorValue = cursor;
@@ -8323,9 +8327,9 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object currencyId = this.safeString(info, currencyKey);
+            object currencyId = ((bool) isTrue((isEqual(currencyKey, null)))) ? null : this.safeString(info, currencyKey);
             object currency = this.safeCurrency(currencyId);
-            object marketId = this.safeString(info, symbolKey);
+            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, "option");
             ((IDictionary<string,object>)optionStructures)[(string)getValue(market, "symbol")] = this.parseOption(info, currency, market);
         }
@@ -8342,7 +8346,7 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object marketId = this.safeString(info, symbolKey);
+            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, marketType);
             if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
             {
@@ -8367,7 +8371,7 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object marketId = this.safeString(info, symbolKey);
+            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, marketType);
             if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
             {
@@ -8392,8 +8396,8 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(conversions)); postFixIncrement(ref i))
         {
             object entry = getValue(conversions, i);
-            object fromId = this.safeString(entry, fromCurrencyKey);
-            object toId = this.safeString(entry, toCurrencyKey);
+            object fromId = ((bool) isTrue((isEqual(fromCurrencyKey, null)))) ? null : this.safeString(entry, fromCurrencyKey);
+            object toId = ((bool) isTrue((isEqual(toCurrencyKey, null)))) ? null : this.safeString(entry, toCurrencyKey);
             if (isTrue(!isEqual(fromId, null)))
             {
                 fromCurrency = this.safeCurrency(fromId);
@@ -8560,7 +8564,7 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object marketId = this.safeString(info, symbolKey);
+            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, marketType);
             if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
             {

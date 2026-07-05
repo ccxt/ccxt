@@ -27,7 +27,7 @@ export default class bullish extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -1486,7 +1486,7 @@ export default class bullish extends Exchange {
         }
         let method = 'privateGetV2HistoryOrders';
         [method, params] = this.handleOptionAndParams(params, 'fetchOrders', 'method', method);
-        let response = undefined;
+        let response = [];
         if (method === 'privateGetV2Orders') {
             //
             //     [

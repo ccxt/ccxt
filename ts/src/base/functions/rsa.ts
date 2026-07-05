@@ -6,6 +6,7 @@ import { eddsa, hmac } from './crypto.js';
 import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
 import { Dictionary } from "../types.js";
+import { Str } from "../types.js";
 import { ed25519 } from "@noble/curves/ed25519.js";
 
 // RSASSA-PKCS1-v1_5 signing via Node's built-in `crypto` module. This is synchronous
@@ -44,7 +45,7 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
     const encodedData = urlencodeBase64 (JSON.stringify (request));
     let token = [ encodedHeader, encodedData ].join ('.');
     const algoType = alg.slice (0, 2);
-    let signature = undefined;
+    let signature: Str = undefined;
     if (algoType === 'HS') {
         signature = urlencodeBase64 (hmac (token, secret, hash, 'binary'));
     } else if (isRSA || algoType === 'RS') {

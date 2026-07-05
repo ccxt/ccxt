@@ -1049,7 +1049,7 @@ class bitopro extends Exchange {
             '4' => 'canceled',
             '6' => 'canceled',
         );
-        return $this->safe_string($statuses, $status);
+        return ($status === null) ? null : $this->safe_string($statuses, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1813,7 +1813,7 @@ class bitopro extends Exchange {
                 $networks = $this->safe_dict($this->options, 'networks', array());
                 $requestedNetwork = $this->safe_string_upper($params, 'network');
                 $params = $this->omit($params, array( 'network' ));
-                $networkId = $this->safe_string($networks, $requestedNetwork);
+                $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $requestedNetwork);
                 if ($networkId === null) {
                     throw new ExchangeError($this->id . ' invalid network ' . $requestedNetwork);
                 }

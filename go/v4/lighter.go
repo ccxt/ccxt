@@ -26,7 +26,7 @@ func (this *LighterCore) Describe() any {
 		"quoteJsonNumbers": false,
 		"has": map[string]any{
 			"CORS":                          nil,
-			"spot":                          false,
+			"spot":                          true,
 			"margin":                        false,
 			"swap":                          true,
 			"future":                        false,

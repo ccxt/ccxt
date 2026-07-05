@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.63'
+__version__ = '4.5.64'
 
 # ----------------------------------------------------------------------------
 
@@ -60,7 +60,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.pro.aftermath import aftermath                                  # noqa: F401
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
-from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
@@ -119,6 +118,7 @@ from ccxt.pro.lighter import lighter                                      # noqa
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
+from ccxt.pro.mudrex import mudrex                                        # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
@@ -141,7 +141,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -200,6 +199,7 @@ exchanges = [
     'luno',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
     'ndax',
     'okx',

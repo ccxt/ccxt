@@ -840,7 +840,7 @@ public partial class bitmart : Exchange
         {
             type = "contract";
         }
-        object service = this.safeDict(servicesByType, type);
+        object service = this.safeDict(servicesByType, ((string)type));
         object status = null;
         object eta = null;
         if (isTrue(!isEqual(service, null)))
@@ -1159,10 +1159,10 @@ public partial class bitmart : Exchange
             object fullId = this.safeString(currency, "currency");
             object currencyId = fullId;
             object networkId = this.safeString(currency, "network");
-            object isNtf = (isGreaterThanOrEqual(getIndexOf(fullId, "NFT"), 0));
+            object isNtf = (isGreaterThanOrEqual(getIndexOf(((string)fullId), "NFT"), 0));
             if (!isTrue(isNtf))
             {
-                object parts = ((string)fullId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                object parts = ((string)((string)fullId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 currencyId = this.safeString(parts, 0);
                 object second = this.safeString(parts, 1);
                 if (isTrue(!isEqual(second, null)))
@@ -1225,9 +1225,9 @@ public partial class bitmart : Exchange
     {
         if (isTrue(isEqual(networkCode, null)))
         {
-            networkCode = this.defaultNetworkCode(currencyCode); // use default network code if not provided
+            networkCode = this.defaultNetworkCode(((string)currencyCode)); // use default network code if not provided
         }
-        object currency = this.currency(currencyCode);
+        object currency = this.currency(((string)currencyCode));
         object id = getValue(currency, "id");
         object idFromNetwork = null;
         object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
@@ -1235,7 +1235,7 @@ public partial class bitmart : Exchange
         if (isTrue(isEqual(networkCode, null)))
         {
             // network code is not provided and there is no default network code
-            object network = this.safeDict(networks, currencyCode); // trying to find network that has the same code as currency
+            object network = this.safeDict(networks, ((string)currencyCode)); // trying to find network that has the same code as currency
             if (isTrue(isEqual(network, null)))
             {
                 // use the first network in the networks list if there is no network code with the same code as currency
@@ -1604,7 +1604,7 @@ public partial class bitmart : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = this.safeString(symbols, 0);
-            market = this.market(symbol);
+            market = this.market(((string)symbol));
         }
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -2618,9 +2618,9 @@ public partial class bitmart : Exchange
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
-            { "price", this.omitZero(priceString) },
+            { "price", this.omitZero(((string)priceString)) },
             { "triggerPrice", trailingActivationPrice },
-            { "amount", this.omitZero(this.safeString(order, "size")) },
+            { "amount", this.omitZero(((string)this.safeString(order, "size"))) },
             { "cost", this.safeString2(order, "filled_notional", "filledNotional") },
             { "average", this.safeStringN(order, new List<object>() {"price_avg", "priceAvg", "deal_avg_price"}) },
             { "filled", this.safeStringN(order, new List<object>() {"filled_size", "filledSize", "deal_size"}) },
@@ -2817,7 +2817,7 @@ public partial class bitmart : Exchange
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            market = this.market(marketId);
+            market = this.market(((string)marketId));
             if (!isTrue(getValue(market, "spot")))
             {
                 throw new NotSupported ((string)add(this.id, " createOrders() supports spot orders only")) ;
@@ -2837,7 +2837,7 @@ public partial class bitmart : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            object orderRequest = this.createSpotOrderRequest(((string)marketId), ((string)type), side, amount, price, orderParams);
             orderRequest = this.omit(orderRequest, new List<object>() {"symbol"}); // not needed because it goes in the outter object
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -2927,7 +2927,7 @@ public partial class bitmart : Exchange
         };
         if (isTrue(!isEqual(amount, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+            ((IDictionary<string,object>)request)["size"] = parseInt(((string)this.amountToPrecision(symbol, amount)));
         }
         object timeInForce = this.safeString(parameters, "timeInForce");
         object mode = this.safeInteger(parameters, "mode"); // only for swap
@@ -3174,7 +3174,7 @@ public partial class bitmart : Exchange
                 {
                     notional = ((bool) isTrue((isEqual(notional, null)))) ? this.numberToString(amount) : notional;
                 }
-                ((IDictionary<string,object>)request)["notional"] = this.decimalToPrecision(notional, TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode);
+                ((IDictionary<string,object>)request)["notional"] = this.decimalToPrecision(((string)notional), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode);
             } else if (isTrue(isEqual(side, "sell")))
             {
                 ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
@@ -4021,9 +4021,9 @@ public partial class bitmart : Exchange
         //
         object currencyId = this.safeString(depositAddress, "currency");
         object network = this.safeString2(depositAddress, "chain", "network");
-        if (isTrue(isLessThan(getIndexOf(currencyId, "NFT"), 0)))
+        if (isTrue(isLessThan(getIndexOf(((string)currencyId), "NFT"), 0)))
         {
-            object parts = ((string)currencyId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)((string)currencyId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             currencyId = this.safeString(parts, 0);
             object secondPart = this.safeString(parts, 1);
             if (isTrue(!isEqual(secondPart, null)))
@@ -4292,7 +4292,7 @@ public partial class bitmart : Exchange
             { "4", "canceled" },
             { "5", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -4736,7 +4736,7 @@ public partial class bitmart : Exchange
             { "OK", "ok" },
             { "FINISHED", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseTransferToAccount(object type)
@@ -5289,7 +5289,7 @@ public partial class bitmart : Exchange
         {
             symbolsLength = getArrayLength(symbols);
             object first = this.safeString(symbols, 0);
-            market = this.market(first);
+            market = this.market(((string)first));
         }
         object request = new Dictionary<string, object>() {};
         if (isTrue(isEqual(symbolsLength, 1)))
@@ -6052,7 +6052,7 @@ public partial class bitmart : Exchange
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
         object message = this.safeString(response, "message");
-        object messageLower = ((string)message).ToLower();
+        object messageLower = ((string)((string)message)).ToLower();
         object isErrorMessage = isTrue(isTrue((!isEqual(message, null))) && isTrue((!isEqual(messageLower, "ok")))) && isTrue((!isEqual(messageLower, "success")));
         object errorCode = this.safeString(response, "code");
         object isErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "1000")));

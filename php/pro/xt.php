@@ -121,13 +121,13 @@ class xt extends \ccxt\async\xt {
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
         $firstDeltaNonce = $this->safe_integer_2($firstDelta, 'i', 'u');
-        if ($nonce < $firstDeltaNonce - 1) {
+        if (($nonce !== null) && ($firstDeltaNonce !== null) && ($nonce < $firstDeltaNonce - 1)) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
             $deltaNonce = $this->safe_integer_2($delta, 'i', 'u');
-            if ($deltaNonce >= $nonce) {
+            if (($deltaNonce !== null) && ($nonce !== null) && ($deltaNonce >= $nonce)) {
                 return $i;
             }
         }
@@ -665,7 +665,7 @@ class xt extends \ccxt\async\xt {
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
                 $contracts = $this->safe_number($position, 'contracts', 0);
-                if ($contracts > 0) {
+                if (($contracts !== null) && ($contracts > 0)) {
                     $cache->append($position);
                 }
             }
@@ -798,7 +798,9 @@ class xt extends \ccxt\async\xt {
             $isSpot = $cv !== null;
             $ticker = $this->parse_ticker($data);
             $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $event = $this->safe_string($message, 'event');
             $messageHashTail = $isSpot ? 'spot' : 'contract';
             $messageHash = $event . '::' . $messageHashTail;
@@ -884,7 +886,9 @@ class xt extends \ccxt\async\xt {
             $tickerData = $data[$i];
             $ticker = $this->parse_ticker($tickerData);
             $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $newTickers[] = $ticker;
         }
         $messageHashStart = $this->safe_string($message, 'topic') . '::' . $tradeType;
@@ -946,7 +950,7 @@ class xt extends \ccxt\async\xt {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
-            $timeframe = $this->safe_string($data, 'i');
+            $timeframe = $this->safe_string($data, 'i', '');
             $tradeType = (is_array($data) && array_key_exists('q', $data)) ? 'spot' : 'contract';
             $market = $this->safe_market($marketId, null, null, $tradeType);
             $symbol = $market['symbol'];
@@ -1082,10 +1086,13 @@ class xt extends \ccxt\async\xt {
         $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
-            $event = $this->safe_string($message, 'event');
+            $event = $this->safe_string($message, 'event', '');
             $splitEvent = explode(',', $event);
-            $event = $this->safe_string($splitEvent, 0);
-            $tradeType = (is_array($data) && array_key_exists('fu', $data)) ? 'contract' : 'spot';
+            $event = $this->safe_string($splitEvent, 0, '');
+            $tradeType = 'spot';
+            if (($data !== null) && (is_array($data) && array_key_exists('fu', $data))) {
+                $tradeType = 'contract';
+            }
             $market = $this->safe_market($marketId, null, null, $tradeType);
             $symbol = $market['symbol'];
             $obAsks = $this->safe_list($data, 'a');
@@ -1421,7 +1428,11 @@ class xt extends \ccxt\async\xt {
             $this->myTrades = $stored;
         }
         $parsedTrade = $this->parse_trade($data);
-        $market = $this->market($parsedTrade['symbol']);
+        $tradeSymbol = $parsedTrade['symbol'];
+        if ($tradeSymbol === null) {
+            return;
+        }
+        $market = $this->market($tradeSymbol);
         $stored->append($parsedTrade);
         $tradeType = $market['contract'] ? 'contract' : 'spot';
         $client->resolve($stored, 'trade::' . $tradeType);
@@ -1445,10 +1456,10 @@ class xt extends \ccxt\async\xt {
                 'order' => array($this, 'handle_order'),
                 'position' => array($this, 'handle_position'),
             );
-            $method = $this->safe_value($methods, $topic);
+            $method = ($topic === null) ? null : $this->safe_value($methods, $topic);
             if ($topic === 'trade') {
                 $data = $this->safe_dict($message, 'data');
-                if ((is_array($data) && array_key_exists('oi', $data)) || (is_array($data) && array_key_exists('orderId', $data))) {
+                if (($data !== null) && ((is_array($data) && array_key_exists('oi', $data)) || (is_array($data) && array_key_exists('orderId', $data)))) {
                     $method = array($this, 'handle_my_trades');
                 } else {
                     $method = array($this, 'handle_trade');

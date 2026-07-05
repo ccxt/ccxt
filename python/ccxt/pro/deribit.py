@@ -214,8 +214,8 @@ class deribit(ccxt.async_support.deribit):
         if interval == 'raw':
             await self.authenticate()
         channels = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len((symbols))):
+            market = self.market((symbols)[i])
             channels.append('ticker.' + market['id'] + '.' + interval)
         message = {
             'jsonrpc': '2.0',
@@ -286,8 +286,8 @@ class deribit(ccxt.async_support.deribit):
         symbols = self.market_symbols(symbols, None, False)
         url = self.urls['api']['ws']
         channels = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len((symbols))):
+            market = self.market((symbols)[i])
             channels.append('quote.' + market['id'])
         message = {
             'jsonrpc': '2.0',

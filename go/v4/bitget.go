@@ -12504,8 +12504,10 @@ func (this *BitgetCore) Sign(path any, optionalArgs ...any) any {
 				}
 				url = Add(url, queryInner)
 				// bitget signs the raw (non-percent-encoded) query string, so the
-				// signature must use the decoded values (e.g. non-ascii market ids)
-				auth = Add(auth, Add("?", this.Rawencode(sortedParams)))
+				// signature must use the decoded values (e.g. non-ascii market ids).
+				// sort explicitly (true) so the signed order matches the url order in Go,
+				// where map iteration is not ordered (keysort's order is otherwise lost)
+				auth = Add(auth, Add("?", this.Rawencode(sortedParams, true)))
 			}
 		}
 		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")

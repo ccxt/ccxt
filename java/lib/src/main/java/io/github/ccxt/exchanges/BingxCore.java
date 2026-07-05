@@ -3402,12 +3402,16 @@ public class BingxCore extends BingxApi
                 positionSide = "BOTH";
             }
             Helpers.addElementToObject(request, "positionSide", positionSide);
-            Object amountReq = amount;
-            if (!Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            Object closePosition = this.safeBool(parameters, "closePosition", false);
+            if (!Helpers.isTrue(closePosition))
             {
-                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                Object amountReq = amount;
+                if (!Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                {
+                    amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
+                Helpers.addElementToObject(request, "quantity", amountReq); // precision not available for inverse contracts
             }
-            Helpers.addElementToObject(request, "quantity", amountReq); // precision not available for inverse contracts
         }
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId")));
         return this.extend(request, parameters);
@@ -3444,6 +3448,7 @@ public class BingxCore extends BingxApi
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
@@ -3564,6 +3569,17 @@ public class BingxCore extends BingxApi
             } else
             {
                 result = data;
+            }
+            // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+            Object stopLoss = this.safeString(result, "stopLoss");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLoss, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(stopLoss, "{"), 0)))))
+            {
+                Helpers.addElementToObject(result, "stopLoss", this.parseJson(stopLoss));
+            }
+            Object takeProfit = this.safeString(result, "takeProfit");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfit, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(takeProfit, "{"), 0)))))
+            {
+                Helpers.addElementToObject(result, "takeProfit", this.parseJson(takeProfit));
             }
             return this.parseOrder(result, market);
         });

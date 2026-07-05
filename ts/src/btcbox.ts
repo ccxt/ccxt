@@ -252,8 +252,8 @@ export default class btcbox extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbolParts = marketId.split ('_');
-            const baseCurr = this.safeString (symbolParts, 0);
-            const quote = this.safeString (symbolParts, 1);
+            const baseCurr = this.safeString (symbolParts, 0, '');
+            const quote = this.safeString (symbolParts, 1, '');
             const quoteId = quote.toLowerCase ();
             const id = baseCurr.toLowerCase ();
             const res = response1[marketId];
@@ -422,7 +422,7 @@ export default class btcbox extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = this.symbols.length;
+        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -470,7 +470,7 @@ export default class btcbox extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = this.symbols.length;
+        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -543,7 +543,7 @@ export default class btcbox extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = this.symbols.length;
+        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -588,7 +588,7 @@ export default class btcbox extends Exchange {
         //
         //     {
         //         "result":true,
-        //         "id":"11"
+        //         "id":"12"
         //     }
         //
         return this.parseOrder (response, market);
@@ -631,6 +631,9 @@ export default class btcbox extends Exchange {
             'closed': 'closed', // never encountered, seems to be bug in the doc
             'no': 'closed', // not clarified in the docs...
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -732,6 +735,9 @@ export default class btcbox extends Exchange {
     async fetchOrdersByType (type, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'type': type, // 'open' or 'all'
