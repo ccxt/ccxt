@@ -42,7 +42,8 @@ async function main() {
         let worldCupEvent = undefined;
         for (const ev of events) {
             for (const market of (ev.markets || [])) {
-                const title = (market.title || market.market || '').toLowerCase();
+                const marketAny = market;
+                const title = (marketAny.title || marketAny.market || marketAny.symbol || '').toLowerCase();
                 if (title.indexOf('spain') !== -1) {
                     worldCupEvent = ev;
                     spainMarket = market;
