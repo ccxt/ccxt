@@ -77,7 +77,7 @@ export default class kucoin extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true, // uta only
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': true,
@@ -88,7 +88,7 @@ export default class kucoin extends Exchange {
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true, // uta only
                 'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
                 'fetchMyTrades': true,
@@ -109,7 +109,7 @@ export default class kucoin extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': true,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPremiumIndexOHLCV': true, // uta only
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -553,6 +553,8 @@ export default class kucoin extends Exchange {
                         'market/open-interest': 20,
                         'server/status': 6,
                         'market/borrowable-currency': 30,
+                        'user/my-ip': 20,
+                        'market/fiat-price': 6,
                     },
                 },
                 'utaPrivate': {
@@ -2661,27 +2663,52 @@ export default class kucoin extends Exchange {
         //         "time": 1634641777363
         //     }
         //
-        // uta
+        // uta spot
+        //     {
+        //         "symbol": "ETH-USDT",
+        //         "name": "ETH-USDT",
+        //         "bestBidSize": "2.8893176",
+        //         "bestBidPrice": "1566.24",
+        //         "bestAskSize": "2.4373857",
+        //         "bestAskPrice": "1566.25",
+        //         "lastPrice": "1565.87",
+        //         "size": "0.0384399",
+        //         "open": "1572.96",
+        //         "high": "1637.4",
+        //         "low": "1550.41",
+        //         "baseVolume": "101560.01156957747448132256",
+        //         "quoteVolume": "161467045.65271628672329459176",
+        //         "priceChange": "-7.09",
+        //         "priceChangePercent": "-0.0045"
+        //     }
+        //
+        // uta swap
         //
         //     {
-        //         "symbol": "BTC-USDT",
-        //         "name": "BTC-USDT",
-        //         "bestBidSize": "0.69207954",
-        //         "bestBidPrice": "110417.5",
-        //         "bestAskSize": "0.08836606",
-        //         "bestAskPrice": "110417.6",
-        //         "lastPrice": "110417.5",
-        //         "size": "0.00016",
-        //         "open": "110105.1",
-        //         "high": "110838.9",
-        //         "low": "109705.5",
-        //         "baseVolume": "1882.10069442",
-        //         "quoteVolume": "207325626.822922498"
+        //         "symbol": "ETHUSDTM",
+        //         "bestBidSize": "4",
+        //         "bestBidPrice": "1573.45",
+        //         "bestAskSize": "43",
+        //         "bestAskPrice": "1573.46",
+        //         "lastPrice": "1573.63",
+        //         "size": "1",
+        //         "open": "1570.09",
+        //         "high": "1637.08",
+        //         "low": "1549.63",
+        //         "baseVolume": "282920.90",
+        //         "quoteVolume": "449940743.674",
+        //         "priceChange": "3.54",
+        //         "priceChangePercent": "0.2255",
+        //         "indexPrice": "1572.67",
+        //         "markPrice": "1572.68"
         //     }
         //
         let percentage = this.safeString(ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = Precise.stringMul(percentage, '100');
+        }
+        else {
+            percentage = this.safeString(ticker, 'priceChangePercent');
         }
         let last = this.safeStringN(ticker, ['last', 'lastTradedPrice', 'lastPrice']);
         last = this.safeString(ticker, 'price', last);
@@ -2706,12 +2733,13 @@ export default class kucoin extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'changePrice'),
+            'change': this.safeString2(ticker, 'changePrice', 'priceChange'),
             'percentage': percentage,
             'average': this.safeString(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'markPrice': this.safeString(ticker, 'value'),
+            'markPrice': this.safeString2(ticker, 'markPrice', 'value'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -3081,23 +3109,26 @@ export default class kucoin extends Exchange {
             //     {
             //         "code": "200000",
             //         "data": {
-            //             "tradeType": "SPOT",
-            //             "ts": 1762061290067,
+            //             "tradeType": "FUTURES",
+            //             "ts": 1782828116206000000,
             //             "list": [
             //                 {
-            //                     "symbol": "BTC-USDT",
-            //                     "name": "BTC-USDT",
-            //                     "bestBidSize": "0.69207954",
-            //                     "bestBidPrice": "110417.5",
-            //                     "bestAskSize": "0.08836606",
-            //                     "bestAskPrice": "110417.6",
-            //                     "lastPrice": "110417.5",
-            //                     "size": "0.00016",
-            //                     "open": "110105.1",
-            //                     "high": "110838.9",
-            //                     "low": "109705.5",
-            //                     "baseVolume": "1882.10069442",
-            //                     "quoteVolume": "207325626.822922498"
+            //                     "symbol": "ETHUSDTM",
+            //                     "bestBidSize": "4",
+            //                     "bestBidPrice": "1573.45",
+            //                     "bestAskSize": "43",
+            //                     "bestAskPrice": "1573.46",
+            //                     "lastPrice": "1573.63",
+            //                     "size": "1",
+            //                     "open": "1570.09",
+            //                     "high": "1637.08",
+            //                     "low": "1549.63",
+            //                     "baseVolume": "282920.90",
+            //                     "quoteVolume": "449940743.674",
+            //                     "priceChange": "3.54",
+            //                     "priceChangePercent": "0.2255",
+            //                     "indexPrice": "1572.67",
+            //                     "markPrice": "1572.68"
             //                 }
             //             ]
             //         }
@@ -3244,6 +3275,10 @@ export default class kucoin extends Exchange {
         const market = this.market(symbol);
         let uta = false;
         [uta, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'uta', uta);
+        const priceType = this.safeString(params, 'price');
+        if ((priceType !== undefined) && (!uta)) {
+            uta = true; // mark, index, premiumIndex price types are only available for UTA
+        }
         if (uta) {
             return await this.fetchUTAOHLCV(symbol, timeframe, since, limit, params);
         }
@@ -3304,6 +3339,20 @@ export default class kucoin extends Exchange {
         }
         else {
             request['tradeType'] = 'FUTURES';
+        }
+        let priceType = undefined;
+        [priceType, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'price', priceType);
+        if (priceType !== undefined) {
+            const priceTypes = {
+                'mark': 'mark-price',
+                'index': 'index-price',
+                'premiumIndex': 'premium-index',
+            };
+            const suffix = this.safeString(priceTypes, priceType);
+            if (suffix === undefined) {
+                throw new NotSupported(this.id + ' fetchOHLCV() price parameter must be one of "mark", "index", or "premiumIndex"');
+            }
+            request['symbol'] = market['id'] + '-' + suffix;
         }
         const response = await this.utaGetMarketKline(this.extend(request, params));
         //
