@@ -1589,6 +1589,16 @@ public class KucoineuApi extends KucoinCore
         return this.callAsync ("utaGetMarketBorrowableCurrency", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  utaGetUserMyIp (Object... optionalArgs)
+    {
+        return this.callAsync ("utaGetUserMyIp", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  utaGetMarketFiatPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("utaGetMarketFiatPrice", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  utaPrivateGetMarketOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("utaPrivateGetMarketOrderbook", optionalArgs);
