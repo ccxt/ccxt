@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -189,11 +189,11 @@ export default class blockchaincom extends blockchaincomRest {
             const timeframe = this.findTimeframe (timeframeId);
             const ohlcv = this.safeValue (message, 'price', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (ohlcv);
             client.resolve (stored, messageHash);
@@ -269,7 +269,7 @@ export default class blockchaincom extends blockchaincomRest {
             ticker = this.parseWsUpdatedTicker (message, lastTicker, market);
         }
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
+        this.tickers[symbol] = ticker as Ticker;
         client.resolve (ticker, messageHash);
     }
 
@@ -581,7 +581,7 @@ export default class blockchaincom extends blockchaincomRest {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'tradeId');
-        const trades = [];
+        const trades: List = [];
         if (tradeId !== '0') {
             trades.push ({ 'id': tradeId });
         }
@@ -743,7 +743,7 @@ export default class blockchaincom extends blockchaincomRest {
             'balances': this.handleBalance,
             'trading': this.handleOrders,
         };
-        const handler = this.safeValue (handlers, channel);
+        const handler = this.safeValue (handlers, channel as string);
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;
