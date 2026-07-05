@@ -1485,7 +1485,7 @@ class bullish extends bullish$1["default"] {
         }
         let method = 'privateGetV2HistoryOrders';
         [method, params] = this.handleOptionAndParams(params, 'fetchOrders', 'method', method);
-        let response = undefined;
+        let response = [];
         if (method === 'privateGetV2Orders') {
             //
             //     [

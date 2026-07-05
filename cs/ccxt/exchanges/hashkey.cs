@@ -989,7 +989,7 @@ public partial class hashkey : Exchange
         object isSpot = true;
         object isSwap = false;
         object suffix = "";
-        object parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object secondPart = this.safeString(parts, 1);
         if (isTrue(isEqual(secondPart, "PERPETUAL")))
         {
@@ -1023,7 +1023,7 @@ public partial class hashkey : Exchange
         object priceFilter = this.safeDict(filters, "PRICE_FILTER", new Dictionary<string, object>() {});
         object amountFilter = this.safeDict(filters, "LOT_SIZE", new Dictionary<string, object>() {});
         object costFilter = this.safeDict(filters, "MIN_NOTIONAL", new Dictionary<string, object>() {});
-        object minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
+        object minCostString = this.omitZero(((string)this.safeString(costFilter, "min_notional")));
         object contractSizeString = this.safeString(market, "contractMultiplier");
         object amountPrecisionString = this.safeString(amountFilter, "stepSize");
         object amountMinLimitString = this.safeString(amountFilter, "minQty");
@@ -1165,14 +1165,14 @@ public partial class hashkey : Exchange
         {
             object network = getValue(networks, j);
             object networkId = this.safeString(network, "chainType");
-            object networkCode = this.networkCodeToId(networkId, code);
+            object networkCode = this.networkCodeToId(((string)networkId), code);
             ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(network, "minWithdrawQuantity") },
-                        { "max", this.parseNumber(this.omitZero(this.safeString(network, "maxWithdrawQuantity"))) },
+                        { "max", this.parseNumber(this.omitZero(((string)this.safeString(network, "maxWithdrawQuantity")))) },
                     } },
                     { "deposit", new Dictionary<string, object>() {
                         { "min", this.safeNumber(network, "minDepositQuantity") },
@@ -1879,7 +1879,7 @@ public partial class hashkey : Exchange
         {
             networkCode = this.defaultNetworkCode(code);
         }
-        ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, code);
+        ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(((string)networkCode), code);
         object response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, parameters));
         //
         //     {
@@ -1921,7 +1921,7 @@ public partial class hashkey : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", getValue(currency, "code") },
+            { "currency", this.safeString(currency, "code") },
             { "network", null },
             { "address", address },
             { "tag", tag },
@@ -2397,7 +2397,7 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires an until argument")) ;
         }
         await this.loadMarkets();
-        object currency = this.currency(code);
+        object currency = this.currency(((string)code));
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)["startTime"] = since;
         if (isTrue(!isEqual(limit, null)))
@@ -2482,7 +2482,7 @@ public partial class hashkey : Exchange
         object amountString = this.safeString(item, "change");
         object amount = this.parseNumber(amountString);
         object direction = "in";
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(amountString, "-"), 0)))
+        if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)amountString), "-"), 0)))
         {
             direction = "out";
         }
@@ -2663,7 +2663,7 @@ public partial class hashkey : Exchange
         type = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
             { "type", type },
         };
         if (isTrue(!isEqual(amount, null)))
@@ -2748,7 +2748,7 @@ public partial class hashkey : Exchange
         {
             suffix = "_CLOSE";
         }
-        ((IDictionary<string,object>)request)["side"] = add(((string)side).ToUpper(), suffix);
+        ((IDictionary<string,object>)request)["side"] = add(((string)((string)side)).ToUpper(), suffix);
         object timeInForce = null;
         var timeInForceparametersVariable = this.handleParamString(parameters, "timeInForce");
         timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
@@ -2853,7 +2853,7 @@ public partial class hashkey : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(((string)symbol), ((string)type), side, amount, price, orderParams);
             object clientOrderId = this.safeString(orderRequest, "clientOrderId");
             if (isTrue(isEqual(clientOrderId, null)))
             {
@@ -2863,7 +2863,7 @@ public partial class hashkey : Exchange
         }
         object firstOrder = getValue(ordersRequests, 0);
         object firstSymbol = this.safeString(firstOrder, "symbol");
-        object market = this.market(firstSymbol);
+        object market = this.market(((string)firstSymbol));
         object request = new Dictionary<string, object>() {
             { "orders", ordersRequests },
         };
@@ -4396,7 +4396,7 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(this.safeList(parameters, "orders"));
-                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(((string)this.customUrlencode(additionalParams))), this.encode(((string)this.secret)), sha256);
                 query = this.customUrlencode(this.extend(additionalParams, new Dictionary<string, object>() {
                     { "signature", signature },
                 }));
@@ -4404,7 +4404,7 @@ public partial class hashkey : Exchange
             } else
             {
                 object totalParams = this.extend(additionalParams, parameters);
-                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(((string)this.customUrlencode(totalParams))), this.encode(((string)this.secret)), sha256);
                 ((IDictionary<string,object>)totalParams)["signature"] = signature;
                 query = this.customUrlencode(totalParams);
                 if (isTrue(isEqual(method, "GET")))

@@ -2,7 +2,7 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Balances, Bool, Dict, FundingRate, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -141,7 +141,7 @@ export default class extended extends extendedRest {
         }
     }
 
-    async watchPrivate (messageHash: string, subscription = undefined) {
+    async watchPrivate (messageHash: string, subscription: NullableDict = undefined) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'] + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
@@ -347,7 +347,7 @@ export default class extended extends extendedRest {
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseTrade (rawTrades[i]);
             const symbol = this.safeString (trade, 'symbol');
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             stored.append (trade);
         }
         const keys = Object.keys (symbols);
@@ -497,10 +497,10 @@ export default class extended extends extendedRest {
         if (first === undefined) {
             return;
         }
-        for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder (rawOrders[i]);
+        for (let i = 0; i < (rawOrders as any[]).length; i++) {
+            const order = this.parseOrder ((rawOrders as any[])[i]);
             const symbol = this.safeString (order, 'symbol');
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             orders.append (order);
         }
         const keys = Object.keys (symbols);
@@ -560,12 +560,12 @@ export default class extended extends extendedRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseWsFundingRate (data, undefined, message);
         const symbol = this.safeString (fundingRate, 'symbol');
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[symbol as string] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (fundingRate, market = undefined, message = undefined): FundingRate {
+    parseWsFundingRate (fundingRate, market: Market = undefined, message = undefined): FundingRate {
         const marketId = this.safeString (fundingRate, 'm');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (message, 'ts');
@@ -810,13 +810,13 @@ export default class extended extends extendedRest {
         const candleType = this.safeString (subscription, 'candleType');
         const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
         const messageHash = this.safeString (subscription, 'messageHash');
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], cacheKey);
+        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol as string, {});
+        let stored = this.safeValue (this.ohlcvs[symbol as string], cacheKey as string);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][cacheKey] = stored;
+            this.ohlcvs[symbol as string][cacheKey as string] = stored;
         }
         const previousNonce = this.safeInteger (subscription, 'nonce');
         const nonce = this.safeInteger (message, 'seq');

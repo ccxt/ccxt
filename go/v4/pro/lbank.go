@@ -694,12 +694,10 @@ func  (this *LbankCore) HandleOrders(client any, message any)  {
     //
     var marketId any = this.SafeString(message, "pair")
     var symbol any = this.SafeSymbol(marketId, nil, "_")
-    var myOrders any = nil
+    var myOrders any = this.Orders
     if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
         var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
         myOrders = ccxt.NewArrayCacheBySymbolById(limit)
-    } else {
-        myOrders = this.Orders
     }
     var order any = this.ParseWsOrder(message)
     myOrders.(ccxt.Appender).Append(order)
@@ -819,8 +817,8 @@ func  (this *LbankCore) WatchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes6988 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6988)
+            retRes6968 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6968)
         
             key:= (<-this.Authenticate(params))
             ccxt.PanicOnError(key)
@@ -833,9 +831,9 @@ func  (this *LbankCore) WatchBalance(optionalArgs ...any) <- chan any {
             }
             var request any = this.DeepExtend(message, params)
         
-                retRes70815 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes70815)
-                ch <- retRes70815
+                retRes70615 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes70615)
+                ch <- retRes70615
                 return nil
         
             }()
@@ -893,8 +891,8 @@ func  (this *LbankCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <- cha
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes7558 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7558)
+            retRes7538 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7538)
             var market any = this.Market(symbol)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash any = ccxt.Add("fetchOrderbook:", ccxt.GetValue(market, "symbol"))
@@ -938,8 +936,8 @@ func  (this *LbankCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan 
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes7848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7848)
+            retRes7828 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7828)
             var market any = this.Market(symbol)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
@@ -1077,11 +1075,11 @@ func  (this *LbankCore) HandlePing(client any, message any) <- chan any {
                         }()
             		    // try block:
                         
-                    retRes89812 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                    retRes89612 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
                         "action": "pong",
                         "pong": pingId,
                     }))
-                    ccxt.PanicOnError(retRes89812)
+                    ccxt.PanicOnError(retRes89612)
             		    return nil
             	    }(this)
                 

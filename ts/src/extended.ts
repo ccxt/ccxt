@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -517,7 +517,7 @@ export default class extended extends Exchange {
         //
         const tradingConfig = this.safeDict (market, 'tradingConfig', {});
         const marketId = this.safeString (market, 'name');
-        let baseId = this.safeString (market, 'assetName');
+        let baseId = this.safeString (market, 'assetName', '');
         if (baseId.indexOf ('SPOT') >= 0) {
             baseId = baseId.replace ('SPOT', '');
         }
@@ -678,7 +678,7 @@ export default class extended extends Exchange {
             code = 'USDC';
         }
         const name = this.safeString (currency, 'name');
-        const precision = this.safeInteger (currency, 'precision');
+        const precision = this.safeInteger (currency, 'precision', 0);
         const isActive = this.safeBool (currency, 'isActive');
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -769,7 +769,7 @@ export default class extended extends Exchange {
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (symbols !== undefined) {
-            const marketIds = [];
+            const marketIds: List = [];
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
                 marketIds.push (market['id']);
@@ -803,7 +803,9 @@ export default class extended extends Exchange {
             const stats = this.safeDict (marketData, 'marketStats', {});
             const ticker = this.parseTicker (stats, market);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
@@ -1021,7 +1023,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1094,7 +1096,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1138,7 +1140,7 @@ export default class extended extends Exchange {
     }
 
     parseFundingHistories (histories, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < histories.length; i++) {
             result.push (this.parseFundingHistory (histories[i], market));
         }
@@ -1359,7 +1361,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1645,7 +1647,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1680,7 +1682,7 @@ export default class extended extends Exchange {
         if (amountString !== undefined) {
             direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -1762,7 +1764,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1836,7 +1838,7 @@ export default class extended extends Exchange {
         const account = await this.fetchExtendedAccount ();
         const amountString = this.currencyToPrecision (code, amount);
         const accountId = this.safeString (account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData (address, amountString, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData (address, amountString as string, currency, account, params);
         const request: Dict = {
             'accountId': accountId,
             'amount': amountString,
@@ -1912,7 +1914,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1946,7 +1948,7 @@ export default class extended extends Exchange {
         }
         const currency = this.currency (code);
         const account = await this.fetchExtendedAccount ();
-        const currentAccountId = this.safeString (account, 'accountId');
+        const currentAccountId = this.safeString (account, 'accountId', '');
         if (fromAccount === undefined) {
             fromAccount = currentAccountId;
         } else if (fromAccount !== currentAccountId) {
@@ -1958,7 +1960,7 @@ export default class extended extends Exchange {
             throw new ArgumentsRequired (this.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]');
         }
         const amountString = this.currencyToPrecision (code, amount);
-        const settlement = this.createTransferSettlementData (amountString, currency, account, toVault, toL2Key, params);
+        const settlement = this.createTransferSettlementData (amountString as string, currency, account, toVault, toL2Key, params);
         const request: Dict = {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -2057,7 +2059,7 @@ export default class extended extends Exchange {
             'COMPLETED': 'ok',
             'REJECTED': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransactionType (type: Str): Str {
@@ -2067,7 +2069,7 @@ export default class extended extends Exchange {
             'TRANSFER': 'transfer',
             'CLAIM': 'claim',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, type as string, type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2194,7 +2196,9 @@ export default class extended extends Exchange {
             const fee = this.safeDict (data, i, {});
             const parsed = this.parseTradingFee (fee);
             const symbol = this.safeString (parsed, 'symbol');
-            result[symbol] = parsed;
+            if (symbol !== undefined) {
+                result[symbol] = parsed;
+            }
         }
         return result;
     }
@@ -2431,7 +2435,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -2512,9 +2516,9 @@ export default class extended extends Exchange {
     getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
         const resolutionString = this.numberToString (resolution);
         const precise = Precise.stringMul (amount, resolutionString);
-        let result = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        let result = this.decimalToPrecision (precise as string, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (roundUp && Precise.stringGt (precise, result)) {
-            result = Precise.stringAdd (result, '1');
+            result = Precise.stringAdd (result, '1') as string;
         }
         return result;
     }
@@ -2544,13 +2548,13 @@ export default class extended extends Exchange {
         const baseRoundUp = isBuy;
         const quoteRoundUp = isBuy;
         let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, baseRoundUp);
-        let collateralAmount = this.getExtendedStarkAmount (quoteAmount, collateralResolution, quoteRoundUp);
+        let collateralAmount = this.getExtendedStarkAmount (quoteAmount as string, collateralResolution, quoteRoundUp);
         if (isBuy) {
-            collateralAmount = Precise.stringNeg (collateralAmount);
+            collateralAmount = Precise.stringNeg (collateralAmount) as string;
         } else {
-            baseAmount = Precise.stringNeg (baseAmount);
+            baseAmount = Precise.stringNeg (baseAmount) as string;
         }
-        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount), collateralResolution, true);
+        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount) as string, collateralResolution, true);
         const settlement = {
             'starkKey': starkKey,
             'collateralPosition': collateralPosition,
@@ -2643,7 +2647,7 @@ export default class extended extends Exchange {
         }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const uppercaseSide = side.toUpperCase ();
+        const uppercaseSide = (side as string).toUpperCase ();
         if (market['spot'] && uppercaseType !== 'LIMIT') {
             throw new BadRequest (this.id + ' createOrder() supports limit orders for spot markets only');
         }
@@ -2674,7 +2678,7 @@ export default class extended extends Exchange {
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {
-            totalFee = Precise.stringAdd (fee, builderFeeRate);
+            totalFee = Precise.stringAdd (fee, builderFeeRate) as string;
         }
         const now = this.milliseconds ();
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
@@ -2730,7 +2734,7 @@ export default class extended extends Exchange {
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
-        const settlement = this.createOrderSettlementData (isBuy, amountString, priceString, settlementParams);
+        const settlement = this.createOrderSettlementData (isBuy, amountString as string, priceString as string, settlementParams);
         request['settlement'] = {
             'signature': { 'r': settlement['r'], 's': settlement['s'] },
             'starkKey': starkKey,
@@ -2752,7 +2756,7 @@ export default class extended extends Exchange {
                 const stopLossTriggerPriceType = this.safeString (stopLoss, 'triggerPriceType');
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
-                const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString, stopLossExecutionPrice, settlementParams);
+                const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString as string, stopLossExecutionPrice as string, settlementParams);
                 const requestStopLoss = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
@@ -2775,7 +2779,7 @@ export default class extended extends Exchange {
                 const takeProfitTriggerPriceType = this.safeString (takeProfit, 'triggerPriceType');
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
-                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString, takeProfitExecutionPrice, settlementParams);
+                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString as string, takeProfitExecutionPrice as string, settlementParams);
                 const requestTakeProfit = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
@@ -2981,7 +2985,7 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3111,7 +3115,7 @@ export default class extended extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'countdownTime': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+            'countdownTime': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
         return await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
     }
@@ -3136,8 +3140,8 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response: Dict = undefined;
-        let order: Dict = undefined;
+        let response: NullableDict = undefined;
+        let order: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3279,7 +3283,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -3339,7 +3343,7 @@ export default class extended extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order, market: Market = undefined): Order {
@@ -3448,14 +3452,14 @@ export default class extended extends Exchange {
         if (typeof value === 'string') {
             decimalString = value;
         } else {
-            decimalString = this.numberToString (value);
+            decimalString = this.numberToString (value) as string;
         }
         const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
         let result = '';
         while (Precise.stringGt (decimalString, '0')) {
             const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
             result = hexChars[remainder] + result;
-            decimalString = Precise.stringDiv (decimalString, '16', 0);
+            decimalString = Precise.stringDiv (decimalString, '16', 0) as string;
         }
         if (result === '') {
             return '0';
@@ -3470,7 +3474,7 @@ export default class extended extends Exchange {
             }
             return '0x' + this.getExtendedDecimalToBase16 (signature);
         }
-        const signatureString = this.numberToString (signature);
+        const signatureString = this.numberToString (signature) as string;
         if (signatureString.indexOf ('0x') === 0) {
             return signatureString;
         }
@@ -3499,16 +3503,16 @@ export default class extended extends Exchange {
         ));
         const domainHash = this.getExtendedDomainHash ();
         // Order fields
-        const positionId = this.convertToBigInt (this.safeString (settlement, 'collateralPosition'));
-        const baseAssetId = this.safeString (settlement, 'baseAssetId');
-        const baseAmount = this.convertToBigInt (this.safeString (settlement, 'baseAmount'));
-        const quoteAssetId = this.safeString (settlement, 'quoteAssetId');
-        const quoteAmount = this.convertToBigInt (this.safeString (settlement, 'quoteAmount'));
-        const feeAssetId = this.safeString (settlement, 'feeAssetId');
-        const feeAmount = this.convertToBigInt (this.safeString (settlement, 'feeAmount'));
-        const expiration = this.convertToBigInt (this.safeString2 (settlement, 'expiration', 'expirationTimestamp'));
-        const salt = this.convertToBigInt (this.safeString2 (settlement, 'salt', 'nonce'));
-        const starkKey = this.convertToBigInt (this.safeString (settlement, 'starkKey'));
+        const positionId = this.convertToBigInt (this.safeString (settlement, 'collateralPosition', '0'));
+        const baseAssetId = this.safeString (settlement, 'baseAssetId', '0');
+        const baseAmount = this.convertToBigInt (this.safeString (settlement, 'baseAmount', '0'));
+        const quoteAssetId = this.safeString (settlement, 'quoteAssetId', '0');
+        const quoteAmount = this.convertToBigInt (this.safeString (settlement, 'quoteAmount', '0'));
+        const feeAssetId = this.safeString (settlement, 'feeAssetId', '0');
+        const feeAmount = this.convertToBigInt (this.safeString (settlement, 'feeAmount', '0'));
+        const expiration = this.convertToBigInt (this.safeString2 (settlement, 'expiration', 'expirationTimestamp', '0'));
+        const salt = this.convertToBigInt (this.safeString2 (settlement, 'salt', 'nonce', '0'));
+        const starkKey = this.convertToBigInt (this.safeString (settlement, 'starkKey', '0'));
         // Order struct hash
         const orderHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             orderTypeHash,
@@ -3539,12 +3543,12 @@ export default class extended extends Exchange {
         const expiration = this.safeDict (settlement, 'expiration', {});
         const withdrawalHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             withdrawalTypeHash,
-            this.convertToBigInt (this.safeString (settlement, 'recipient')),
-            this.convertToBigInt (this.safeString (settlement, 'positionId')),
-            this.convertToBigInt (this.safeString (settlement, 'collateralId')),
-            this.convertToBigInt (this.safeString (settlement, 'amount')),
-            this.convertToBigInt (this.safeString (expiration, 'seconds')),
-            this.convertToBigInt (this.safeString (settlement, 'salt')),
+            this.convertToBigInt (this.safeString (settlement, 'recipient', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'positionId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'collateralId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'amount', '0')),
+            this.convertToBigInt (this.safeString (expiration, 'seconds', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'salt', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),
@@ -3559,15 +3563,15 @@ export default class extended extends Exchange {
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         const domainHash = this.getExtendedDomainHash ();
-        const senderPublicKey = this.convertToBigInt (this.safeString (settlement, 'senderPublicKey'));
+        const senderPublicKey = this.convertToBigInt (this.safeString (settlement, 'senderPublicKey', '0'));
         const transferHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             transferTypeHash,
-            this.convertToBigInt (this.safeString (settlement, 'senderPositionId')),
-            this.convertToBigInt (this.safeString (settlement, 'receiverPositionId')),
-            this.convertToBigInt (this.safeString (settlement, 'assetId')),
-            this.convertToBigInt (this.safeString (settlement, 'amount')),
-            this.convertToBigInt (this.safeString (settlement, 'expirationTimestamp')),
-            this.convertToBigInt (this.safeString (settlement, 'nonce')),
+            this.convertToBigInt (this.safeString (settlement, 'senderPositionId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'receiverPositionId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'assetId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'amount', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'expirationTimestamp', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'nonce', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),

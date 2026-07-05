@@ -79,7 +79,6 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 put( "watchTrades", new java.util.HashMap<String, Object>() {{
                     put( "ignoreDuplicates", true );
                 }} );
-                put( "uta", false );
             }} );
             put( "streaming", new java.util.HashMap<String, Object>() {{
                 put( "ping", "ping");

@@ -425,7 +425,7 @@ class apex extends apex$1["default"] {
         const updateType = this.safeString(message, 'type', '');
         const data = this.safeDict(message, 'data', {});
         let symbol = undefined;
-        let parsed = undefined;
+        let parsed = this.parseTicker(data);
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker(data);
             symbol = parsed['symbol'];
@@ -688,8 +688,7 @@ class apex extends apex$1["default"] {
         const symbols = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            let parsed = undefined;
-            parsed = this.parseWsTrade(rawTrade);
+            const parsed = this.parseWsTrade(rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append(parsed);
@@ -740,8 +739,7 @@ class apex extends apex$1["default"] {
         const orders = this.orders;
         const symbols = {};
         for (let i = 0; i < lists.length; i++) {
-            let parsed = undefined;
-            parsed = this.parseOrder(lists[i]);
+            const parsed = this.parseOrder(lists[i]);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append(parsed);

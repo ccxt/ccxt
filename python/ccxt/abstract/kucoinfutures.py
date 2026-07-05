@@ -316,6 +316,8 @@ class ImplicitAPI:
     uta_get_market_open_interest = utaGetMarketOpenInterest = Entry('market/open-interest', 'uta', 'GET', {'cost': 20})
     uta_get_server_status = utaGetServerStatus = Entry('server/status', 'uta', 'GET', {'cost': 6})
     uta_get_market_borrowable_currency = utaGetMarketBorrowableCurrency = Entry('market/borrowable-currency', 'uta', 'GET', {'cost': 30})
+    uta_get_user_my_ip = utaGetUserMyIp = Entry('user/my-ip', 'uta', 'GET', {'cost': 20})
+    uta_get_market_fiat_price = utaGetMarketFiatPrice = Entry('market/fiat-price', 'uta', 'GET', {'cost': 6})
     utaprivate_get_market_orderbook = utaPrivateGetMarketOrderbook = Entry('market/orderbook', 'utaPrivate', 'GET', {'cost': 6})
     utaprivate_get_account_balance = utaPrivateGetAccountBalance = Entry('account/balance', 'utaPrivate', 'GET', {'cost': 10})
     utaprivate_get_account_transfer_quota = utaPrivateGetAccountTransferQuota = Entry('account/transfer-quota', 'utaPrivate', 'GET', {'cost': 40})

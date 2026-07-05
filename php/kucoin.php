@@ -70,7 +70,7 @@ class kucoin extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true, // uta only
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => true,
@@ -81,7 +81,7 @@ class kucoin extends Exchange {
                 'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
+                'fetchMarkOHLCV' => true, // uta only
                 'fetchMarkPrice' => true,
                 'fetchMarkPrices' => true,
                 'fetchMyTrades' => true,
@@ -102,7 +102,7 @@ class kucoin extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => true,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPremiumIndexOHLCV' => true, // uta only
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -546,6 +546,8 @@ class kucoin extends Exchange {
                         'market/open-interest' => 20,
                         'server/status' => 6,
                         'market/borrowable-currency' => 30,
+                        'user/my-ip' => 20,
+                        'market/fiat-price' => 6,
                     ),
                 ),
                 'utaPrivate' => array(
@@ -2661,27 +2663,51 @@ class kucoin extends Exchange {
         //         "time" => 1634641777363
         //     }
         //
-        // uta
+        // uta spot
+        //     {
+        //         "symbol" => "ETH-USDT",
+        //         "name" => "ETH-USDT",
+        //         "bestBidSize" => "2.8893176",
+        //         "bestBidPrice" => "1566.24",
+        //         "bestAskSize" => "2.4373857",
+        //         "bestAskPrice" => "1566.25",
+        //         "lastPrice" => "1565.87",
+        //         "size" => "0.0384399",
+        //         "open" => "1572.96",
+        //         "high" => "1637.4",
+        //         "low" => "1550.41",
+        //         "baseVolume" => "101560.01156957747448132256",
+        //         "quoteVolume" => "161467045.65271628672329459176",
+        //         "priceChange" => "-7.09",
+        //         "priceChangePercent" => "-0.0045"
+        //     }
+        //
+        // uta swap
         //
         //     {
-        //         "symbol" => "BTC-USDT",
-        //         "name" => "BTC-USDT",
-        //         "bestBidSize" => "0.69207954",
-        //         "bestBidPrice" => "110417.5",
-        //         "bestAskSize" => "0.08836606",
-        //         "bestAskPrice" => "110417.6",
-        //         "lastPrice" => "110417.5",
-        //         "size" => "0.00016",
-        //         "open" => "110105.1",
-        //         "high" => "110838.9",
-        //         "low" => "109705.5",
-        //         "baseVolume" => "1882.10069442",
-        //         "quoteVolume" => "207325626.822922498"
+        //         "symbol" => "ETHUSDTM",
+        //         "bestBidSize" => "4",
+        //         "bestBidPrice" => "1573.45",
+        //         "bestAskSize" => "43",
+        //         "bestAskPrice" => "1573.46",
+        //         "lastPrice" => "1573.63",
+        //         "size" => "1",
+        //         "open" => "1570.09",
+        //         "high" => "1637.08",
+        //         "low" => "1549.63",
+        //         "baseVolume" => "282920.90",
+        //         "quoteVolume" => "449940743.674",
+        //         "priceChange" => "3.54",
+        //         "priceChangePercent" => "0.2255",
+        //         "indexPrice" => "1572.67",
+        //         "markPrice" => "1572.68"
         //     }
         //
         $percentage = $this->safe_string($ticker, 'changeRate');
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
+        } else {
+            $percentage = $this->safe_string($ticker, 'priceChangePercent');
         }
         $last = $this->safe_string_n($ticker, array( 'last', 'lastTradedPrice', 'lastPrice' ));
         $last = $this->safe_string($ticker, 'price', $last);
@@ -2706,12 +2732,13 @@ class kucoin extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, 'changePrice'),
+            'change' => $this->safe_string_2($ticker, 'changePrice', 'priceChange'),
             'percentage' => $percentage,
             'average' => $this->safe_string($ticker, 'averagePrice'),
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
-            'markPrice' => $this->safe_string($ticker, 'value'),
+            'markPrice' => $this->safe_string_2($ticker, 'markPrice', 'value'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -3085,23 +3112,26 @@ class kucoin extends Exchange {
             //     {
             //         "code" => "200000",
             //         "data" => {
-            //             "tradeType" => "SPOT",
-            //             "ts" => 1762061290067,
+            //             "tradeType" => "FUTURES",
+            //             "ts" => 1782828116206000000,
             //             "list" => array(
             //                 {
-            //                     "symbol" => "BTC-USDT",
-            //                     "name" => "BTC-USDT",
-            //                     "bestBidSize" => "0.69207954",
-            //                     "bestBidPrice" => "110417.5",
-            //                     "bestAskSize" => "0.08836606",
-            //                     "bestAskPrice" => "110417.6",
-            //                     "lastPrice" => "110417.5",
-            //                     "size" => "0.00016",
-            //                     "open" => "110105.1",
-            //                     "high" => "110838.9",
-            //                     "low" => "109705.5",
-            //                     "baseVolume" => "1882.10069442",
-            //                     "quoteVolume" => "207325626.822922498"
+            //                     "symbol" => "ETHUSDTM",
+            //                     "bestBidSize" => "4",
+            //                     "bestBidPrice" => "1573.45",
+            //                     "bestAskSize" => "43",
+            //                     "bestAskPrice" => "1573.46",
+            //                     "lastPrice" => "1573.63",
+            //                     "size" => "1",
+            //                     "open" => "1570.09",
+            //                     "high" => "1637.08",
+            //                     "low" => "1549.63",
+            //                     "baseVolume" => "282920.90",
+            //                     "quoteVolume" => "449940743.674",
+            //                     "priceChange" => "3.54",
+            //                     "priceChangePercent" => "0.2255",
+            //                     "indexPrice" => "1572.67",
+            //                     "markPrice" => "1572.68"
             //                 }
             //             )
             //         }
@@ -3247,6 +3277,10 @@ class kucoin extends Exchange {
         $market = $this->market($symbol);
         $uta = false;
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'uta', $uta);
+        $priceType = $this->safe_string($params, 'price');
+        if (($priceType !== null) && (!$uta)) {
+            $uta = true; // mark, index, premiumIndex price types are only available for UTA
+        }
         if ($uta) {
             return $this->fetch_utaohlcv($symbol, $timeframe, $since, $limit, $params);
         } elseif ($market['contract']) {
@@ -3304,6 +3338,20 @@ class kucoin extends Exchange {
             $request['tradeType'] = 'SPOT';
         } else {
             $request['tradeType'] = 'FUTURES';
+        }
+        $priceType = null;
+        list($priceType, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price', $priceType);
+        if ($priceType !== null) {
+            $priceTypes = array(
+                'mark' => 'mark-price',
+                'index' => 'index-price',
+                'premiumIndex' => 'premium-index',
+            );
+            $suffix = $this->safe_string($priceTypes, $priceType);
+            if ($suffix === null) {
+                throw new NotSupported($this->id . ' fetchOHLCV() price parameter must be one of "mark", "index", or "premiumIndex"');
+            }
+            $request['symbol'] = $market['id'] . '-' . $suffix;
         }
         $response = $this->utaGetMarketKline($this->extend($request, $params));
         //

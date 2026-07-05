@@ -755,7 +755,7 @@ class bydfi(ccxt.async_support.bydfi):
         client.resolve([parsedPosition], messageHash)
         client.resolve([parsedPosition], symbolMessageHash)
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         "S": "1",

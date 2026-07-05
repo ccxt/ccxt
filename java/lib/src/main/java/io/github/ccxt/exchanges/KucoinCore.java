@@ -79,7 +79,7 @@ public class KucoinCore extends KucoinApi
                 put( "fetchFundingRate", true );
                 put( "fetchFundingRateHistory", true );
                 put( "fetchFundingRates", false );
-                put( "fetchIndexOHLCV", false );
+                put( "fetchIndexOHLCV", true );
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchL3OrderBook", true );
@@ -90,7 +90,7 @@ public class KucoinCore extends KucoinApi
                 put( "fetchMarginMode", true );
                 put( "fetchMarketLeverageTiers", true );
                 put( "fetchMarkets", true );
-                put( "fetchMarkOHLCV", false );
+                put( "fetchMarkOHLCV", true );
                 put( "fetchMarkPrice", true );
                 put( "fetchMarkPrices", true );
                 put( "fetchMyTrades", true );
@@ -111,7 +111,7 @@ public class KucoinCore extends KucoinApi
                 put( "fetchPositions", true );
                 put( "fetchPositionsADLRank", true );
                 put( "fetchPositionsHistory", true );
-                put( "fetchPremiumIndexOHLCV", false );
+                put( "fetchPremiumIndexOHLCV", true );
                 put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
@@ -518,6 +518,8 @@ public class KucoinCore extends KucoinApi
                         put( "market/open-interest", 20 );
                         put( "server/status", 6 );
                         put( "market/borrowable-currency", 30 );
+                        put( "user/my-ip", 20 );
+                        put( "market/fiat-price", 6 );
                     }} );
                 }} );
                 put( "utaPrivate", new java.util.HashMap<String, Object>() {{
@@ -2532,22 +2534,44 @@ public class KucoinCore extends KucoinApi
         //         "time": 1634641777363
         //     }
         //
-        // uta
+        // uta spot
+        //     {
+        //         "symbol": "ETH-USDT",
+        //         "name": "ETH-USDT",
+        //         "bestBidSize": "2.8893176",
+        //         "bestBidPrice": "1566.24",
+        //         "bestAskSize": "2.4373857",
+        //         "bestAskPrice": "1566.25",
+        //         "lastPrice": "1565.87",
+        //         "size": "0.0384399",
+        //         "open": "1572.96",
+        //         "high": "1637.4",
+        //         "low": "1550.41",
+        //         "baseVolume": "101560.01156957747448132256",
+        //         "quoteVolume": "161467045.65271628672329459176",
+        //         "priceChange": "-7.09",
+        //         "priceChangePercent": "-0.0045"
+        //     }
+        //
+        // uta swap
         //
         //     {
-        //         "symbol": "BTC-USDT",
-        //         "name": "BTC-USDT",
-        //         "bestBidSize": "0.69207954",
-        //         "bestBidPrice": "110417.5",
-        //         "bestAskSize": "0.08836606",
-        //         "bestAskPrice": "110417.6",
-        //         "lastPrice": "110417.5",
-        //         "size": "0.00016",
-        //         "open": "110105.1",
-        //         "high": "110838.9",
-        //         "low": "109705.5",
-        //         "baseVolume": "1882.10069442",
-        //         "quoteVolume": "207325626.822922498"
+        //         "symbol": "ETHUSDTM",
+        //         "bestBidSize": "4",
+        //         "bestBidPrice": "1573.45",
+        //         "bestAskSize": "43",
+        //         "bestAskPrice": "1573.46",
+        //         "lastPrice": "1573.63",
+        //         "size": "1",
+        //         "open": "1570.09",
+        //         "high": "1637.08",
+        //         "low": "1549.63",
+        //         "baseVolume": "282920.90",
+        //         "quoteVolume": "449940743.674",
+        //         "priceChange": "3.54",
+        //         "priceChangePercent": "0.2255",
+        //         "indexPrice": "1572.67",
+        //         "markPrice": "1572.68"
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
@@ -2555,6 +2579,9 @@ public class KucoinCore extends KucoinApi
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
             percentage = Precise.stringMul(percentage, "100");
+        } else
+        {
+            percentage = this.safeString(ticker, "priceChangePercent");
         }
         Object last = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("last", "lastTradedPrice", "lastPrice")));
         last = this.safeString(ticker, "price", last);
@@ -2581,12 +2608,13 @@ public class KucoinCore extends KucoinApi
             put( "close", finalLast );
             put( "last", finalLast );
             put( "previousClose", null );
-            put( "change", KucoinCore.this.safeString(ticker, "changePrice") );
+            put( "change", KucoinCore.this.safeString2(ticker, "changePrice", "priceChange") );
             put( "percentage", finalPercentage );
             put( "average", KucoinCore.this.safeString(ticker, "averagePrice") );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", KucoinCore.this.safeString(ticker, "value") );
+            put( "markPrice", KucoinCore.this.safeString2(ticker, "markPrice", "value") );
+            put( "indexPrice", KucoinCore.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -2963,23 +2991,26 @@ public class KucoinCore extends KucoinApi
                 //     {
                 //         "code": "200000",
                 //         "data": {
-                //             "tradeType": "SPOT",
-                //             "ts": 1762061290067,
+                //             "tradeType": "FUTURES",
+                //             "ts": 1782828116206000000,
                 //             "list": [
                 //                 {
-                //                     "symbol": "BTC-USDT",
-                //                     "name": "BTC-USDT",
-                //                     "bestBidSize": "0.69207954",
-                //                     "bestBidPrice": "110417.5",
-                //                     "bestAskSize": "0.08836606",
-                //                     "bestAskPrice": "110417.6",
-                //                     "lastPrice": "110417.5",
-                //                     "size": "0.00016",
-                //                     "open": "110105.1",
-                //                     "high": "110838.9",
-                //                     "low": "109705.5",
-                //                     "baseVolume": "1882.10069442",
-                //                     "quoteVolume": "207325626.822922498"
+                //                     "symbol": "ETHUSDTM",
+                //                     "bestBidSize": "4",
+                //                     "bestBidPrice": "1573.45",
+                //                     "bestAskSize": "43",
+                //                     "bestAskPrice": "1573.46",
+                //                     "lastPrice": "1573.63",
+                //                     "size": "1",
+                //                     "open": "1570.09",
+                //                     "high": "1637.08",
+                //                     "low": "1549.63",
+                //                     "baseVolume": "282920.90",
+                //                     "quoteVolume": "449940743.674",
+                //                     "priceChange": "3.54",
+                //                     "priceChangePercent": "0.2255",
+                //                     "indexPrice": "1572.67",
+                //                     "markPrice": "1572.68"
                 //                 }
                 //             ]
                 //         }
@@ -3138,6 +3169,11 @@ public class KucoinCore extends KucoinApi
             var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
+            Object priceType = this.safeString(parameters, "price");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(priceType, null))) && Helpers.isTrue((!Helpers.isTrue(uta)))))
+            {
+                uta = true; // mark, index, premiumIndex price types are only available for UTA
+            }
             if (Helpers.isTrue(uta))
             {
                 return (this.fetchUTAOHLCV(symbol, timeframe, since, limit, parameters)).join();
@@ -3218,6 +3254,24 @@ public class KucoinCore extends KucoinApi
             } else
             {
                 Helpers.addElementToObject(request, "tradeType", "FUTURES");
+            }
+            Object priceType = null;
+            var priceTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "price", priceType);
+            priceType = ((java.util.List<Object>) priceTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) priceTypeparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(priceType, null)))
+            {
+                Object priceTypes = new java.util.HashMap<String, Object>() {{
+                    put( "mark", "mark-price" );
+                    put( "index", "index-price" );
+                    put( "premiumIndex", "premium-index" );
+                }};
+                Object suffix = this.safeString(priceTypes, priceType);
+                if (Helpers.isTrue(Helpers.isEqual(suffix, null)))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
+                }
+                Helpers.addElementToObject(request, "symbol", Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "-"), suffix));
             }
             Object response = (this.utaGetMarketKline(this.extend(request, parameters))).join();
             //

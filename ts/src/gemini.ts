@@ -6,7 +6,7 @@ import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -514,7 +514,7 @@ export default class gemini extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
-            const promises = [];
+            const promises: List = [];
             promises.push (this.fetchMarketsFromWeb (params)); // get usd markets
             promises.push (this.fetchUSDTMarkets (params)); // get usdt markets
             const promisesResult = await Promise.all (promises);
@@ -536,7 +536,7 @@ export default class gemini extends Exchange {
         if (numRows < 2) {
             throw new NotSupported (error);
         }
-        const result = [];
+        const result: List = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
             const row = rows[i];
@@ -642,7 +642,7 @@ export default class gemini extends Exchange {
             return []; // sandbox does not have usdt markets
         }
         const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
             const request: Dict = {
@@ -664,17 +664,17 @@ export default class gemini extends Exchange {
         //         ...
         //     ]
         //
-        const result = [];
+        const result: List = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
-        const marketIds = [];
+        const marketIds: List = [];
         for (let i = 0; i < marketIdsRaw.length; i++) {
             if (!this.inArray (marketIdsRaw[i], brokenPairs)) {
                 marketIds.push (marketIdsRaw[i]);
             }
         }
         if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
-            const promises = [];
+            const promises: List = [];
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const request: Dict = {
@@ -787,7 +787,7 @@ export default class gemini extends Exchange {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber (response, 3); // quantityMinimum
             }
-            const marketIdUpper = marketId.toUpperCase ();
+            const marketIdUpper = (marketId as string).toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
             const conflictingMarkets = this.safeDict (this.options, 'conflictingMarkets', {});
@@ -1059,8 +1059,8 @@ export default class gemini extends Exchange {
         const last = this.safeString2 (ticker, 'last', 'close', price);
         const percentage = this.safeString (ticker, 'percentChange24h');
         const open = this.safeString (ticker, 'open');
-        const baseVolume = this.safeString (volume, baseId);
-        const quoteVolume = this.safeString (volume, quoteId);
+        const baseVolume = this.safeString (volume, baseId as string);
+        const quoteVolume = this.safeString (volume, quoteId as string);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1900,7 +1900,7 @@ export default class gemini extends Exchange {
             'Advanced': 'ok',
             'Complete': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
@@ -1939,7 +1939,7 @@ export default class gemini extends Exchange {
         const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
+        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode as string), 'currency');
         return this.safeValue (networkGroup, code) as DepositAddress;
     }
 

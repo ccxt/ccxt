@@ -958,7 +958,7 @@ func (this *testMainClass) TestProxies(exchange ccxt.ICoreExchange) <-chan any {
 		}
 		// try proxy several times
 		var maxRetries any = 3
-		var exception any = nil
+		var exceptionMessageString any = nil
 		for j := 0; IsLessThan(j, maxRetries); j++ {
 
 			{
@@ -970,7 +970,7 @@ func (this *testMainClass) TestProxies(exchange ccxt.ICoreExchange) <-chan any {
 							}
 							ret_ = func(this *testMainClass) any {
 								// catch block:
-								exception = e
+								exceptionMessageString = ExceptionMessage(e)
 
 								retRes89716 := (<-exchange.Sleep(Multiply(j, 1000)))
 								PanicOnError(retRes89716)
@@ -991,8 +991,8 @@ func (this *testMainClass) TestProxies(exchange ccxt.ICoreExchange) <-chan any {
 			}
 		}
 		// if exception was set, then throw it
-		if IsTrue(!IsEqual(exception, nil)) {
-			var errorMessage any = Add(Add(Add("[TEST_FAILURE] Failed ", proxyTestName), " : "), ExceptionMessage(exception))
+		if IsTrue(!IsEqual(exceptionMessageString, nil)) {
+			var errorMessage any = Add(Add(Add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessageString)
 			// temporary comment the below, because c# transpilation failure
 			// throw new Exchange Error (errorMessage.toString ());
 			Dump(Add("[TEST_WARNING]", errorMessage))
@@ -2066,7 +2066,7 @@ func (this *testMainClass) TestBinance() <-chan any {
 		var spotId any = "x-TKT5PX2F"
 		var swapId any = "x-cvBPrNm9"
 		var inverseSwapId any = "x-xcKtGhcu"
-		var spotOrderRequest any = nil
+		var spotOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2093,7 +2093,7 @@ func (this *testMainClass) TestBinance() <-chan any {
 		var clientOrderId any = GetValue(spotOrderRequest, "newClientOrderId")
 		var spotIdString any = ToString(spotId)
 		Assert(StartsWith(clientOrderId, spotIdString), Add(Add(Add("binance - spot clientOrderId: ", clientOrderId), " does not start with spotId"), spotIdString))
-		var swapOrderRequest any = nil
+		var swapOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2117,7 +2117,7 @@ func (this *testMainClass) TestBinance() <-chan any {
 			}(this)
 
 		}
-		var swapInverseOrderRequest any = nil
+		var swapInverseOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2149,7 +2149,7 @@ func (this *testMainClass) TestBinance() <-chan any {
 		var clientOrderIdInverse any = GetValue(swapInverseOrderRequest, "newClientOrderId")
 		Assert(StartsWith(clientOrderIdInverse, inverseSwapId), Add(Add(Add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId))
 		// linear swap conditional order
-		var swapAlgoOrderRequest any = nil
+		var swapAlgoOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2181,7 +2181,7 @@ func (this *testMainClass) TestBinance() <-chan any {
 			}(this)
 
 		}
-		var createOrdersRequest any = nil
+		var createOrdersRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2242,7 +2242,7 @@ func (this *testMainClass) TestOkx() <-chan any {
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("okx")
 		var id any = "6b9ad766b55dBCDE"
-		var spotOrderRequest any = nil
+		var spotOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2271,7 +2271,7 @@ func (this *testMainClass) TestOkx() <-chan any {
 		Assert(StartsWith(clientOrderId, idString), Add(Add(Add("okx - spot clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 		var spotTag any = GetValue(GetValue(spotOrderRequest, 0), "tag")
 		Assert(IsEqual(spotTag, id), Add(Add(Add("okx - id: ", id), " different from spot tag: "), spotTag))
-		var swapOrderRequest any = nil
+		var swapOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2321,7 +2321,7 @@ func (this *testMainClass) TestCryptocom() <-chan any {
 
 		retRes18628 := (<-exchange.LoadMarkets())
 		PanicOnError(retRes18628)
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2365,7 +2365,7 @@ func (this *testMainClass) TestBybit() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bybit")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "CCXT"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
 
@@ -2412,7 +2412,7 @@ func (this *testMainClass) TestKucoin() <-chan any {
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("kucoin")
 		AddElementToObject(exchange.GetOptions(), "uta", false) // prevents fetching account mode inside createOrder
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var spotId any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "spot"), "id")
 		var spotKey any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "spot"), "key")
 		Assert(IsEqual(spotId, "ccxt"), Add(Add("kucoin - id: ", spotId), " not in options"))
@@ -2542,7 +2542,7 @@ func (this *testMainClass) TestKucoinfutures() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("kucoinfutures")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "ccxtfutures"
 		var futureId any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "future"), "id")
 		var futureKey any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "future"), "key")
@@ -2616,7 +2616,7 @@ func (this *testMainClass) TestBitget() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bitget")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "p4sve"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("bitget - id: ", id), " not in options"))
 
@@ -2661,7 +2661,7 @@ func (this *testMainClass) TestMexc() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("mexc")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "CCXT"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("mexc - id: ", id), " not in options"))
 
@@ -2711,7 +2711,7 @@ func (this *testMainClass) TestHtx() <-chan any {
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("htx")
 		// spot test
 		var id any = "AA03022abc"
-		var spotOrderRequest any = nil
+		var spotOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2739,7 +2739,7 @@ func (this *testMainClass) TestHtx() <-chan any {
 		var idString any = ToString(id)
 		Assert(StartsWith(clientOrderId, idString), Add(Add(Add("htx - spot clientOrderId ", clientOrderId), " does not start with id: "), idString))
 		// swap test
-		var swapOrderRequest any = nil
+		var swapOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2763,7 +2763,7 @@ func (this *testMainClass) TestHtx() <-chan any {
 			}(this)
 
 		}
-		var swapInverseOrderRequest any = nil
+		var swapInverseOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2811,7 +2811,7 @@ func (this *testMainClass) TestWoo() <-chan any {
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("woo")
 		// spot test
 		var id any = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
-		var spotOrderRequest any = nil
+		var spotOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2839,7 +2839,7 @@ func (this *testMainClass) TestWoo() <-chan any {
 		var idString any = ToString(id)
 		Assert(StartsWith(brokerId, idString), Add(Add(Add("woo - broker_id: ", brokerId), " does not start with id: "), idString))
 		// swap test
-		var stopOrderRequest any = nil
+		var stopOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2885,7 +2885,7 @@ func (this *testMainClass) TestBitmart() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bitmart")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "CCXTxBitmart000"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), Add(Add("bitmart - id: ", id), " not in options"))
 
@@ -2935,7 +2935,7 @@ func (this *testMainClass) TestCoinex() <-chan any {
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinex")
 		var id any = "x-167673045"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), Add(Add("coinex - id: ", id), " not in options"))
-		var spotOrderRequest any = nil
+		var spotOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -2980,7 +2980,7 @@ func (this *testMainClass) TestBingx() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bingx")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "CCXT"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("bingx - id: ", id), " not in options"))
 
@@ -3027,7 +3027,7 @@ func (this *testMainClass) TestPhemex() <-chan any {
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("phemex")
 		var id any = "CCXT123456"
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3073,7 +3073,7 @@ func (this *testMainClass) TestBlofin() <-chan any {
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("blofin")
 		var id any = "ec6dd3a7dd982d0b"
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3138,7 +3138,7 @@ func (this *testMainClass) TestCoinbaseinternational() <-chan any {
 		AddElementToObject(exchange.GetOptions(), "portfolio", "random")
 		var id any = "nfqkvdjp"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3184,7 +3184,7 @@ func (this *testMainClass) TestCoinbaseAdvanced() <-chan any {
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinbase")
 		var id any = "ccxt"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3238,7 +3238,7 @@ func (this *testMainClass) TestWoofiPro() <-chan any {
 
 		retRes22198 := (<-exchange.LoadMarkets())
 		PanicOnError(retRes22198)
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3283,7 +3283,7 @@ func (this *testMainClass) TestXT() <-chan any {
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("xt")
 		var id any = "CCXT"
-		var spotOrderRequest any = nil
+		var spotOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3309,7 +3309,7 @@ func (this *testMainClass) TestXT() <-chan any {
 		}
 		var spotMedia any = GetValue(spotOrderRequest, "media")
 		Assert(IsEqual(spotMedia, id), Add(Add(Add("xt - id: ", id), " different from swap tag: "), spotMedia))
-		var swapOrderRequest any = nil
+		var swapOrderRequest any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3385,7 +3385,7 @@ func (this *testMainClass) TestParadex() <-chan any {
 			"l1_chain_id":              "11155111",
 			"liquidation_fee":          "0.2",
 		})
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "CCXT"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("paradex - id: ", id), " not in options"))
 
@@ -3433,7 +3433,7 @@ func (this *testMainClass) TestHashkey() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("hashkey")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "10000700011"
 
 		{
@@ -3478,7 +3478,7 @@ func (this *testMainClass) TestCryptomus() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("cryptomus")
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3529,7 +3529,7 @@ func (this *testMainClass) TestDerive() <-chan any {
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("derive")
 		var id any = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "id"), id), Add(Add("derive - id: ", id), " not in options"))
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3589,7 +3589,7 @@ func (this *testMainClass) TestModeTrade() <-chan any {
 
 		retRes23528 := (<-exchange.LoadMarkets())
 		PanicOnError(retRes23528)
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -3635,7 +3635,7 @@ func (this *testMainClass) TestBackpack() <-chan any {
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("backpack")
 		exchange.SetApiKey("Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=")
 		exchange.SetSecret("sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "1400"
 
 		{
@@ -3680,7 +3680,7 @@ func (this *testMainClass) TestToobit() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("toobit")
-		var reqHeaders any = nil
+		var reqHeaders any = map[string]any{}
 		var id any = "177321641268789"
 
 		{
@@ -3727,7 +3727,7 @@ func (this *testMainClass) TestWeex() <-chan any {
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("weex")
 		var id any = "b-WEEX111125"
 		Assert(IsEqual(GetValue(exchange.GetOptions(), "partner"), id), Add(Add("weex - id: ", id), " not in options"))
-		var request any = nil
+		var request any = map[string]any{}
 
 		{
 			func(this *testMainClass) (ret_ any) {

@@ -1924,7 +1924,7 @@ class hashkey extends Exchange {
         }
         return array(
             'info' => $depositAddress,
-            'currency' => $currency['code'],
+            'currency' => $this->safe_string($currency, 'code'),
             'network' => null,
             'address' => $address,
             'tag' => $tag,
@@ -3529,7 +3529,7 @@ class hashkey extends Exchange {
         }
     }
 
-    public function handle_trigger_option_and_params(array $params, string $methodName, $defaultValue = null) {
+    public function handle_trigger_option_and_params(array $params, string $methodName, ?bool $defaultValue = null): array {
         $isTrigger = $defaultValue;
         list($isTrigger, $params) = $this->handle_option_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
         return array( $isTrigger, $params );

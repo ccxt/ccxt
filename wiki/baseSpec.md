@@ -7537,6 +7537,7 @@ unWatches the current funding rate for a symbol
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#unwatchfundingrate)
 * [mexc](/exchanges/mexc.md#unwatchfundingrate)
 
 ---
@@ -7559,6 +7560,7 @@ unWatches a mark price for a specific market
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#unwatchmarkprice)
 * [binance](/exchanges/binance.md#unwatchmarkprice)
+* [kucoin](/exchanges/kucoin.md#unwatchmarkprice)
 * [lighter](/exchanges/lighter.md#unwatchmarkprice)
 
 ---
@@ -8079,6 +8081,7 @@ watch the current funding rate
 * [bitmart](/exchanges/bitmart.md#watchfundingrate)
 * [blofin](/exchanges/blofin.md#watchfundingrate)
 * [extended](/exchanges/extended.md#watchfundingrate)
+* [kucoin](/exchanges/kucoin.md#watchfundingrate)
 * [mexc](/exchanges/mexc.md#watchfundingrate)
 * [okx](/exchanges/okx.md#watchfundingrate)
 * [woo](/exchanges/woo.md#watchfundingrate)
@@ -8171,6 +8174,7 @@ watches a mark price for a specific market
 * [aster](/exchanges/aster.md#watchmarkprice)
 * [binance](/exchanges/binance.md#watchmarkprice)
 * [extended](/exchanges/extended.md#watchmarkprice)
+* [kucoin](/exchanges/kucoin.md#watchmarkprice)
 * [lighter](/exchanges/lighter.md#watchmarkprice)
 * [okx](/exchanges/okx.md#watchmarkprice)
 

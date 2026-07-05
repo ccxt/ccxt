@@ -123,6 +123,10 @@
 * [watchBalance](#watchbalance)
 * [watchPosition](#watchposition)
 * [watchPositions](#watchpositions)
+* [watchFundingRate](#watchfundingrate)
+* [unWatchFundingRate](#unwatchfundingrate)
+* [watchMarkPrice](#watchmarkprice)
+* [unWatchMarkPrice](#unwatchmarkprice)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -3393,5 +3397,89 @@ watch all open positions
 
 ```javascript
 kucoin.watchPositions (symbols?, since?, limit?, params)
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470270w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.watchFundingRate (symbol, params?)
+```
+
+
+<a name="unWatchFundingRate" id="unwatchfundingrate"></a>
+
+### unWatchFundingRate{docsify-ignore}
+unWatches the current funding rate for a symbol
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470270w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.unWatchFundingRate (symbol, params?)
+```
+
+
+<a name="watchMarkPrice" id="watchmarkprice"></a>
+
+### watchMarkPrice{docsify-ignore}
+watches a mark price for a specific market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470272w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.watchMarkPrice (symbol, params?)
+```
+
+
+<a name="unWatchMarkPrice" id="unwatchmarkprice"></a>
+
+### unWatchMarkPrice{docsify-ignore}
+unWatches a mark price for a specific market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470272w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.unWatchMarkPrice (symbol, params?)
 ```
 

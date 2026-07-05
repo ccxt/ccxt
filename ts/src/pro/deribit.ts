@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool, Market } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ export default class deribit extends deribitRest {
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
         const currencies = this.safeValue (this.options, 'currencies', []);
-        const channels = [];
+        const channels: List = [];
         for (let i = 0; i < currencies.length; i++) {
             const currencyCode = currencies[i];
             channels.push ('user.portfolio.' + currencyCode);
@@ -223,9 +223,9 @@ export default class deribit extends deribitRest {
         if (interval === 'raw') {
             await this.authenticate ();
         }
-        const channels = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        const channels: List = [];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const market = this.market ((symbols as string[])[i]);
             channels.push ('ticker.' + market['id'] + '.' + interval);
         }
         const message: Dict = {
@@ -301,9 +301,9 @@ export default class deribit extends deribitRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false);
         const url = this.urls['api']['ws'];
-        const channels = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        const channels: List = [];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const market = this.market ((symbols as string[])[i]);
             channels.push ('quote.' + market['id']);
         }
         const message: Dict = {
@@ -346,7 +346,7 @@ export default class deribit extends deribitRest {
         const data = this.safeDict (params, 'data', {});
         const ticker = this.parseWsBidAsk (data);
         const symbol = ticker['symbol'];
-        this.bidsasks[symbol] = ticker;
+        this.bidsasks[symbol as string] = ticker;
         const messageHash = this.safeString (params, 'channel');
         client.resolve (ticker, messageHash);
     }
@@ -538,7 +538,7 @@ export default class deribit extends deribitRest {
             const trade = parsed[i];
             cachedTrades.append (trade);
             const symbol = trade['symbol'];
-            marketIds[symbol] = true;
+            marketIds[symbol as string] = true;
         }
         client.resolve (cachedTrades, channel);
     }
@@ -585,7 +585,7 @@ export default class deribit extends deribitRest {
             [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
         } else {
-            descriptor = interval;
+            descriptor = interval as string;
         }
         const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
@@ -640,7 +640,7 @@ export default class deribit extends deribitRest {
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', {});
         const channel = this.safeString (params, 'channel');
-        const parts = channel.split ('.');
+        const parts = (channel as string).split ('.');
         let descriptor = '';
         const partsLength = parts.length;
         const isDetailed = partsLength === 5;
@@ -651,7 +651,7 @@ export default class deribit extends deribitRest {
             descriptor = group + '.' + depth + '.' + interval;
         } else {
             const interval = this.safeString (parts, 2);
-            descriptor = interval;
+            descriptor = interval as string;
         }
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
@@ -676,11 +676,11 @@ export default class deribit extends deribitRest {
     cleanOrderBook (data) {
         const bids = this.safeList (data, 'bids', []);
         const asks = this.safeList (data, 'asks', []);
-        const cleanedBids = [];
+        const cleanedBids: List = [];
         for (let i = 0; i < bids.length; i++) {
             cleanedBids.push ([ bids[i][1], bids[i][2] ]);
         }
-        const cleanedAsks = [];
+        const cleanedAsks: List = [];
         for (let i = 0; i < asks.length; i++) {
             cleanedAsks.push ([ asks[i][1], asks[i][2] ]);
         }
@@ -788,12 +788,12 @@ export default class deribit extends deribitRest {
         const params = this.safeValue (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
-        let orders = [];
+        let orders: Order[] = [];
         if (Array.isArray (data)) {
-            orders = this.parseOrders (data);
+            orders = this.parseOrders (data) as Order[];
         } else {
             const order = this.parseOrder (data);
-            orders = [ order ];
+            orders = [ order ] as Order[];
         }
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
@@ -877,16 +877,16 @@ export default class deribit extends deribitRest {
         const timeframes = this.safeDict (wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe as string) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][unifiedTimeframe];
+        const stored = this.ohlcvs[symbol][unifiedTimeframe as string];
         const ohlcv = this.safeDict (params, 'data', {});
         // data contains a single OHLCV candle
         const parsed = this.parseWsOHLCV (ohlcv, market);
         stored.append (parsed);
-        this.ohlcvs[symbol][unifiedTimeframe] = stored;
+        this.ohlcvs[symbol][unifiedTimeframe as string] = stored;
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
         client.resolve (resolveData, messageHash);
@@ -919,8 +919,8 @@ export default class deribit extends deribitRest {
             await this.loadMarkets ();
         }
         const url = this.urls['api']['ws'];
-        const rawSubscriptions = [];
-        const messageHashes = [];
+        const rawSubscriptions: List = [];
+        const messageHashes: List = [];
         const isOHLCV = (channelName === 'chart.trades');
         const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         this.marketSymbols (symbols, undefined, false);
@@ -1036,9 +1036,9 @@ export default class deribit extends deribitRest {
                 'book': this.handleOrderBook,
                 'trades': this.handleTrades,
                 'chart': this.handleOHLCV,
-                'user': this.safeValue (userHandlers, this.safeString (parts, 1)),
+                'user': this.safeValue (userHandlers, this.safeString (parts, 1) as string),
             };
-            const handler = this.safeValue (handlers, channelId);
+            const handler = this.safeValue (handlers, channelId as string);
             if (handler !== undefined) {
                 handler.call (this, client, message);
                 return;

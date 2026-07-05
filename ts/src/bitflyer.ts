@@ -300,7 +300,7 @@ export default class bitflyer extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'product_code');
-            const currencies = id.split ('_');
+            const currencies = (id as string).split ('_');
             const marketType = this.safeString (market, 'market_type');
             const swap = (marketType === 'FX');
             const future = (marketType === 'Futures');
@@ -323,17 +323,17 @@ export default class bitflyer extends Exchange {
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = id.slice (0, 3);
-                    quoteId = id.slice (3, 6);
+                    baseId = (id as string).slice (0, 3);
+                    quoteId = (id as string).slice (3, 6);
                     // last 9 chars are expiry date
-                    const expiryDate = id.slice (-9);
+                    const expiryDate = (id as string).slice (-9);
                     expiry = this.parseExpiryDate (expiryDate);
                 } else {
                     const splitAlias = alias.split ('_');
                     const currencyIds = this.safeString (splitAlias, 0);
-                    baseId = currencyIds.slice (0, -3);
-                    quoteId = currencyIds.slice (-3);
-                    const splitId = id.split (currencyIds);
+                    baseId = (currencyIds as string).slice (0, -3);
+                    quoteId = (currencyIds as string).slice (-3);
+                    const splitId = (id as string).split (currencyIds as string);
                     const expiryDate = this.safeString (splitId, 1);
                     expiry = this.parseExpiryDate (expiryDate);
                 }
@@ -687,7 +687,7 @@ export default class bitflyer extends Exchange {
         const request: Dict = {
             'product_code': this.marketId (symbol),
             'child_order_type': type.toUpperCase (),
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
             'price': price,
             'size': amount,
         };
@@ -738,7 +738,7 @@ export default class bitflyer extends Exchange {
             'EXPIRED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

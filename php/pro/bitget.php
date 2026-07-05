@@ -77,7 +77,6 @@ class bitget extends \ccxt\async\bitget {
                 'watchTrades' => array(
                     'ignoreDuplicates' => true,
                 ),
-                'uta' => false,
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
