@@ -469,18 +469,8 @@ public partial class Exchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<object> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<object> loadMarketsHelper(dict parameters = null)
     {
-        if (!reload && this.markets != null)
-        {
-            if (this.markets_by_id == null)
-            {
-                return this.setMarkets(this.markets);
-            }
-            // return Task.FromResult(this.markets);
-            return this.markets;
-        }
-
         object currencies = null;
         var has = this.has as dict;
         if (has["fetchCurrencies"] != null)
@@ -493,16 +483,14 @@ public partial class Exchange
         return this.setMarkets(markets, currencies);
     }
 
-    public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<object> loadMarkets(object parameters2 = null)
     {
-        reload2 ??= false;
-        var reload = (bool)reload2;
         parameters2 ??= new dict();
         var parameters = (dict)parameters2;
-        if ((reload && !this.reloadingMarkets) || this.marketsLoading == null)
+        if (!this.reloadingMarkets)
         {
             this.reloadingMarkets = true;
-            this.marketsLoading = (this.loadMarketsHelper(reload, parameters).ContinueWith((t) =>
+            this.marketsLoading = (this.loadMarketsHelper(parameters).ContinueWith((t) =>
             {
                 this.reloadingMarkets = false;
                 return t.Result;

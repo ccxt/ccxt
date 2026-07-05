@@ -1510,14 +1510,7 @@ public class Exchange {
         return Helpers.parseJson(input);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper(boolean reload) throws ExecutionException, InterruptedException {
-
-        if (!reload && this.markets != null) {
-            if (this.markets_by_id == null) {
-                return java.util.concurrent.CompletableFuture.completedFuture(this.setMarkets(this.markets));
-            }
-            return java.util.concurrent.CompletableFuture.completedFuture(this.markets);
-        }
+    public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper() throws ExecutionException, InterruptedException {
 
         // Chain: fetchCurrencies (if supported) → fetchMarkets → setMarkets
         // No thread blocked at any point
@@ -1557,25 +1550,15 @@ public class Exchange {
 
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
 
-        var reload = (Boolean) Helpers.getArg(args, 0, false);
-        if (this.marketsLoaded && !reload) {
-            return this.marketsLoading;
-        }
         synchronized (marketsLock) {
-            // Re-check under the lock to collapse concurrent first-callers onto the same future.
-            if (this.marketsLoaded && !reload) {
-                return this.marketsLoading;
-            }
-            // Collapse concurrent callers onto the same in-flight reload regardless
-            // of the reload flag. The previous `|| reload` short-circuit caused 20
-            // concurrent loadMarkets(true) callers to spawn 20 sequential fetches.
-            // The cache-vs-fetch decision still respects `reload` via the early
-            // `marketsLoaded && !reload` guard above; this branch only decides
-            // whether to start a *new* fetch when none is in-flight.
+            // Collapse concurrent callers onto the same in-flight load. The markets
+            // are always reloaded from the exchange when this method is called and
+            // no load is already in flight — callers that only want to load once
+            // should check `this.markets` first before calling loadMarkets().
             if (!this.reloadingMarkets) {
                 this.reloadingMarkets = true;
                 try {
-                    this.marketsLoading = this.loadMarketsHelper(reload)
+                    this.marketsLoading = this.loadMarketsHelper()
                             .thenApply(res -> {
                                 synchronized (marketsLock) {
                                     this.reloadingMarkets = false;

@@ -1802,12 +1802,11 @@ class Exchange(object):
     def safe_map_to_map(self, dictionary):
         return dictionary  # wrapper for go
 
-    def load_markets(self, reload=False, params={}):
+    def load_markets(self, params={}):
         """
         Loads and prepares the markets for trading.
 
         Args:
-            reload (bool): If True, the markets will be reloaded from the exchange.
             params (dict): Additional exchange-specific parameters for the request.
 
         Returns:
@@ -1817,16 +1816,10 @@ class Exchange(object):
             Exception: If the markets cannot be loaded or prepared.
 
         Notes:
-            It ensures that the markets are only loaded once, even if called multiple times.
-            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
-            If a reload is in progress, it waits for completion before returning.
+            The markets are always reloaded from the exchange when this method is called.
+            Callers should check `self.markets` first if they only want to load once.
             If an error occurs during loading or preparation, an exception is raised.
         """
-        if not reload:
-            if self.markets:
-                if not self.markets_by_id:
-                    return self.set_markets(self.markets)
-                return self.markets
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
