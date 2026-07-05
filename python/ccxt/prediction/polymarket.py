@@ -18,6 +18,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFillable
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -286,6 +287,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     'invalid amount': InvalidOrder,
                     'invalid price': InvalidOrder,
                     'minimum tick size': InvalidOrder,
+                    # a FAK/FOK order that finds no match is killed(a normal order outcome, not a
+                    # transport outage) — map it to OrderNotFillable so callers don't retry down
+                    'no orders found to match': OrderNotFillable,
+                    'could not be fully filled': OrderNotFillable,
                     'geoblocked': PermissionDenied,
                     'restricted jurisdiction': PermissionDenied,
                     'Unauthorized': AuthenticationError,

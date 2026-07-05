@@ -11,6 +11,7 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
+use ccxt\OrderNotFillable;
 use ccxt\Precise;
 use const ccxt\ROUND;
 use const ccxt\TRUNCATE;
@@ -282,6 +283,10 @@ class polymarket extends Exchange {
                     'invalid amount' => '\\ccxt\\InvalidOrder',
                     'invalid price' => '\\ccxt\\InvalidOrder',
                     'minimum tick size' => '\\ccxt\\InvalidOrder',
+                    // a FAK/FOK order that finds no match is killed (a normal order outcome, not a
+                    // transport outage) — map it to OrderNotFillable so callers don't retry down
+                    'no orders found to match' => '\\ccxt\\OrderNotFillable',
+                    'could not be fully filled' => '\\ccxt\\OrderNotFillable',
                     'geoblocked' => '\\ccxt\\PermissionDenied',
                     'restricted jurisdiction' => '\\ccxt\\PermissionDenied',
                     'Unauthorized' => '\\ccxt\\AuthenticationError',

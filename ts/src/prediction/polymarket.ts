@@ -14,7 +14,7 @@ import type {
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
     fetchEventsParams,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -283,6 +283,10 @@ export default class polymarket extends Exchange {
                     'invalid amount': InvalidOrder,
                     'invalid price': InvalidOrder,
                     'minimum tick size': InvalidOrder,
+                    // a FAK/FOK order that finds no match is killed (a normal order outcome, not a
+                    // transport outage) — map it to OrderNotFillable so callers don't retry as if down
+                    'no orders found to match': OrderNotFillable,
+                    'could not be fully filled': OrderNotFillable,
                     'geoblocked': PermissionDenied,
                     'restricted jurisdiction': PermissionDenied,
                     'Unauthorized': AuthenticationError,

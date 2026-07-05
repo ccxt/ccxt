@@ -265,6 +265,8 @@ public partial class polymarket : PredictionExchange
                     { "invalid amount", typeof(InvalidOrder) },
                     { "invalid price", typeof(InvalidOrder) },
                     { "minimum tick size", typeof(InvalidOrder) },
+                    { "no orders found to match", typeof(OrderNotFillable) },
+                    { "could not be fully filled", typeof(OrderNotFillable) },
                     { "geoblocked", typeof(PermissionDenied) },
                     { "restricted jurisdiction", typeof(PermissionDenied) },
                     { "Unauthorized", typeof(AuthenticationError) },
