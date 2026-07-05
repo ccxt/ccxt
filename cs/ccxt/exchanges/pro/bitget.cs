@@ -68,7 +68,6 @@ public partial class bitget : ccxt.bitget
                 { "watchTrades", new Dictionary<string, object>() {
                     { "ignoreDuplicates", true },
                 } },
-                { "uta", false },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
