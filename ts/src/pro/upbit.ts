@@ -38,7 +38,9 @@ export default class upbit extends upbitRest {
     }
 
     async watchPublicMultiple (symbols: Strings, channel, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -91,8 +93,8 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        return await this.watchPublicMultiple ([ symbol ], 'ticker');
+    watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        return this.watchPublicMultiple ([ symbol ], 'ticker');
     }
 
     /**
@@ -125,8 +127,8 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -426,7 +428,9 @@ export default class upbit extends upbitRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const channel = 'myOrder';
         const messageHash = 'myOrder';
         const orders = await this.watchPrivate (symbol, channel, messageHash);
@@ -448,7 +452,9 @@ export default class upbit extends upbitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const channel = 'myOrder';
         const messageHash = 'myTrades';
         const trades = await this.watchPrivate (symbol, channel, messageHash);
@@ -642,7 +648,9 @@ export default class upbit extends upbitRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const channel = 'myAsset';
         const messageHash = 'myAsset';
         return await this.watchPrivate (undefined, channel, messageHash);

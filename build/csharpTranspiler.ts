@@ -5,6 +5,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { writeReAsyncedTranspileCopy, removeReAsyncedTranspileCopy } from './reAsyncDelegators.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -619,13 +620,15 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
+        // the wrapper transforms the result, so it must await any Task-returning
+        // method - including non-async Promise pass-through delegators
+        const isAsync = methodWrapper.async || String(returnType).startsWith('Task');
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -974,7 +977,10 @@ class NewTranspiler {
         const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
+        // non-async Promise-returning delegators must be transpiled in their async form (see reAsyncDelegators.ts)
+        const transpilePaths = allFilesPath.map ((file: string) => writeReAsyncedTranspileCopy (file));
+        const transpiledFiles =  transpilePaths.map((file: string) => this.transpiler.transpileCSharpByPath(file));
+        transpilePaths.forEach ((tmpPath: string, i: number) => removeReAsyncedTranspileCopy (tmpPath, allFilesPath[i]));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {

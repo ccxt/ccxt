@@ -136,7 +136,9 @@ export default class bitget extends bitgetRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
@@ -164,9 +166,8 @@ export default class bitget extends bitgetRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
-        return await this.unWatchChannel (symbol, 'ticker', 'ticker', 'watchTicker', params);
+    unWatchTicker (symbol: string, params = {}): Promise<any> {
+        return this.unWatchChannel (symbol, 'ticker', 'ticker', 'watchTicker', params);
     }
 
     /**
@@ -182,7 +183,9 @@ export default class bitget extends bitgetRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         if (symbols === undefined) {
             symbols = [];
@@ -426,7 +429,9 @@ export default class bitget extends bitgetRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         if (symbols === undefined) {
             symbols = [];
@@ -509,7 +514,9 @@ export default class bitget extends bitgetRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const timeframes = this.safeValue (this.options, 'timeframes');
@@ -554,7 +561,9 @@ export default class bitget extends bitgetRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const timeframes = this.safeDict (this.options, 'timeframes');
         const interval = this.safeString (timeframes, timeframe);
         let channel: Str = undefined;
@@ -735,8 +744,8 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -753,7 +762,9 @@ export default class bitget extends bitgetRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let channel = 'books';
         const limit = this.safeInteger (params, 'limit');
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -764,7 +775,9 @@ export default class bitget extends bitgetRest {
     }
 
     async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, methodName: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
         let instType: Str = undefined;
@@ -801,7 +814,9 @@ export default class bitget extends bitgetRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         let channel = 'books';
         let incrementalFeed = true;
@@ -997,8 +1012,8 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -1020,7 +1035,9 @@ export default class bitget extends bitgetRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'uta', false);
@@ -1289,7 +1306,9 @@ export default class bitget extends bitgetRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         let messageHash = '';
         const subscriptionHash = 'positions';
@@ -1554,7 +1573,9 @@ export default class bitget extends bitgetRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         let marketId: Str = undefined;
         let isTrigger: Bool = undefined;
@@ -2061,7 +2082,9 @@ export default class bitget extends bitgetRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         let messageHash = 'myTrades';
         if (symbol !== undefined) {

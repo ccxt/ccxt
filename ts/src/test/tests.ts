@@ -293,7 +293,7 @@ class testMainClass {
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isLoadMarkets) {
-            await exchange.loadMarkets (true);
+            await exchange.loadMarkets ();
         }
         const name = exchange.id;
         if (skipMessage) {
@@ -1434,8 +1434,29 @@ class testMainClass {
             options['secret'] = "";
         }
         const exchange = initExchange (exchangeName, options);
-        exchange.currencies = currencies;
-        // not working in python if assigned  in the config dict
+        let sanitizedCurrencies = undefined;
+        if (currencies !== undefined && currencies !== null) {
+            // some currency fixtures contain null entries which break setMarkets indexing
+            sanitizedCurrencies = {};
+            const codes = Object.keys (currencies);
+            for (let i = 0; i < codes.length; i++) {
+                const code = codes[i];
+                const value = currencies[code];
+                if (value !== undefined && value !== null) {
+                    sanitizedCurrencies[code] = value;
+                }
+            }
+            exchange.currencies = sanitizedCurrencies;
+            // not working in python if assigned  in the config dict
+        }
+        if (markets !== undefined && markets !== null) {
+            // rebuild exchange-specific market/currency indexes from the static fixtures
+            if (sanitizedCurrencies === undefined) {
+                exchange.setMarkets (markets);
+            } else {
+                exchange.setMarkets (markets, sanitizedCurrencies);
+            }
+        }
         return exchange;
     }
 
@@ -1860,7 +1881,9 @@ class testMainClass {
     async testCryptocom () {
         const exchange = this.initOfflineExchange ('cryptocom');
         const id = 'CCXT';
-        await exchange.loadMarkets ();
+        if (exchange.markets === undefined) {
+            await exchange.loadMarkets ();
+        }
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1988,7 +2011,9 @@ class testMainClass {
         let reqHeaders = undefined;
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options');
-        await exchange.loadMarkets ();
+        if (exchange.markets === undefined) {
+            await exchange.loadMarkets ();
+        }
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2070,7 +2095,9 @@ class testMainClass {
         let reqHeaders = undefined;
         const id = 'CCXTxBitmart000';
         assert (exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
-        await exchange.loadMarkets ();
+        if (exchange.markets === undefined) {
+            await exchange.loadMarkets ();
+        }
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2217,7 +2244,9 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('woofipro');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXT';
-        await exchange.loadMarkets ();
+        if (exchange.markets === undefined) {
+            await exchange.loadMarkets ();
+        }
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
@@ -2270,7 +2299,9 @@ class testMainClass {
         let reqHeaders = undefined;
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'paradex - id: ' + id + ' not in options');
-        await exchange.loadMarkets ();
+        if (exchange.markets === undefined) {
+            await exchange.loadMarkets ();
+        }
         try {
             await exchange.createOrder ('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2350,7 +2381,9 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('modetrade');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXTMODE';
-        await exchange.loadMarkets ();
+        if (exchange.markets === undefined) {
+            await exchange.loadMarkets ();
+        }
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);

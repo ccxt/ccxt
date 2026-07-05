@@ -76,7 +76,9 @@ export default class lbank extends lbankRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
@@ -113,7 +115,9 @@ export default class lbank extends lbankRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
@@ -249,7 +253,9 @@ export default class lbank extends lbankRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTicker:' + market['symbol'];
@@ -273,7 +279,9 @@ export default class lbank extends lbankRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
@@ -381,7 +389,9 @@ export default class lbank extends lbankRest {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
@@ -411,7 +421,9 @@ export default class lbank extends lbankRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
@@ -532,7 +544,9 @@ export default class lbank extends lbankRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const key = await this.authenticate (params);
         const url = this.urls['api']['ws'];
         let messageHash: Str = undefined;
@@ -696,7 +710,9 @@ export default class lbank extends lbankRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const key = await this.authenticate (params);
         const url = this.urls['api']['ws'];
         const messageHash = 'balance';
@@ -753,7 +769,9 @@ export default class lbank extends lbankRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
@@ -782,7 +800,9 @@ export default class lbank extends lbankRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];

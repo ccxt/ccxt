@@ -66,8 +66,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -82,7 +82,9 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -201,8 +203,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -216,7 +218,9 @@ export default class apex extends apexRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -372,7 +376,9 @@ export default class apex extends apexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.getWsPublicUrl ();
@@ -392,7 +398,9 @@ export default class apex extends apexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
@@ -493,7 +501,9 @@ export default class apex extends apexRest {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.getWsPublicUrl ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -606,7 +616,9 @@ export default class apex extends apexRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let messageHash = 'myTrades';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
@@ -632,7 +644,9 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
@@ -668,7 +682,9 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);

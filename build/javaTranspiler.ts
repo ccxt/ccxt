@@ -5,6 +5,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { writeReAsyncedTranspileCopy, removeReAsyncedTranspileCopy } from './reAsyncDelegators.js'
 import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
@@ -1113,7 +1114,10 @@ class NewTranspiler {
         const allFilesPath = exchanges.map((file: string) => jsFolder + file);
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[java] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles = allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
+        // non-async Promise-returning delegators must be transpiled in their async form (see reAsyncDelegators.ts)
+        const transpilePaths = allFilesPath.map((file: string) => writeReAsyncedTranspileCopy(file));
+        const transpiledFiles = transpilePaths.map((file: string) => this.transpiler.transpileJavaByPath(file));
+        transpilePaths.forEach((tmpPath: string, i: number) => removeReAsyncedTranspileCopy(tmpPath, allFilesPath[i]));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
