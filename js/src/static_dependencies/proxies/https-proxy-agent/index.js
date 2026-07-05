@@ -22,6 +22,7 @@ import { parseProxyResponse } from './parse-proxy-response.js';
  * the connection to the proxy server has been established.
  */
 export class HttpsProxyAgent extends Agent {
+    static { this.protocols = ['http', 'https']; }
     get secureProxy() {
         return isHTTPS(this.proxy.protocol);
     }
@@ -131,7 +132,6 @@ export class HttpsProxyAgent extends Agent {
         return fakeSocket;
     }
 }
-HttpsProxyAgent.protocols = ['http', 'https'];
 function resume(socket) {
     socket.resume();
 }

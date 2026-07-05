@@ -16,6 +16,8 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_market(exchange, skipped_properties, method, market):
+    if market is None:
+        return
     format = {
         'id': 'btcusd',
         'symbol': 'BTC/USD',
@@ -243,7 +245,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')
     # margin modes
     if not ('marginModes' in skipped_properties):
-        margin_modes = exchange.safe_dict(market, 'marginModes')  # in future, remove safeDict
+        margin_modes = exchange.safe_dict(market, 'marginModes', {})  # in future, remove safeDict
         assert 'cross' in margin_modes, 'marginModes should have "cross" key' + log_text
         assert 'isolated' in margin_modes, 'marginModes should have "isolated" key' + log_text
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, margin_modes, 'cross', [True, False, None])

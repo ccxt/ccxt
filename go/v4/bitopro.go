@@ -645,7 +645,7 @@ func (this *BitoproCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitoproCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1145,7 +1145,7 @@ func (this *BitoproCore) ParseOrderStatus(status any) any {
 		"4":  "canceled",
 		"6":  "canceled",
 	}
-	return this.SafeString(statuses, status)
+	return Ternary(IsTrue((IsEqual(status, nil))), nil, this.SafeString(statuses, status))
 }
 func (this *BitoproCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -2116,7 +2116,7 @@ func (this *BitoproCore) Withdraw(code any, amount any, address any, optionalArg
 			var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
 			var requestedNetwork any = this.SafeStringUpper(params, "network")
 			params = this.Omit(params, []any{"network"})
-			var networkId any = this.SafeString(networks, requestedNetwork)
+			var networkId any = Ternary(IsTrue((IsEqual(requestedNetwork, nil))), nil, this.SafeString(networks, requestedNetwork))
 			if IsTrue(IsEqual(networkId, nil)) {
 				panic(ExchangeError(Add(Add(this.Id, " invalid network "), requestedNetwork)))
 			}

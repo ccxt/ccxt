@@ -245,7 +245,7 @@ public partial class htx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -483,7 +483,6 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969"/>  <br/>
@@ -495,15 +494,15 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.subType</term>
+    /// <term>params.type</term>
     /// <description>
-    /// string : linear or future
+    /// string : spot, margin, future or swap
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.uta</term>
+    /// <term>params.subType</term>
     /// <description>
-    /// bool : provide this parameter if you have a recent account with unified cross+isolated margin account
+    /// string : linear or inverse
     /// </description>
     /// </item>
     /// <item>
@@ -1473,6 +1472,70 @@ public partial class htx
         return new TransferEntry(res);
     }
     /// <summary>
+    /// fetch a history of internal transfers made on an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.huobi.com/en-us/opend/newApiPages/"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency transferred
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch transfers for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of transfer structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.status</term>
+    /// <description>
+    /// string : transfer status: 'success', 'pending', 'failed'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.from</term>
+    /// <description>
+    /// int : the starting ID for pagination
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.direct</term>
+    /// <description>
+    /// string : pagination direction: 'prev' or 'next', default 'next'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch transfers for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransfers(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
+    }
+    /// <summary>
     /// fetch the borrow interest rates of all currencies
     /// </summary>
     /// <remarks>
@@ -1614,7 +1677,7 @@ public partial class htx
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new"/>  <br/>
     /// <list type="table">
@@ -1634,6 +1697,12 @@ public partial class htx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
     /// </description>
     /// </item>
     /// </list>
@@ -1904,7 +1973,7 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1976,7 +2045,7 @@ public partial class htx
     /// retrieves the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new"/>  <br/>
     /// <list type="table">
@@ -2007,7 +2076,7 @@ public partial class htx
     /// <item>
     /// <term>params.tradeType</term>
     /// <description>
-    /// int : default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+    /// int : *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
     /// </description>
     /// </item>
     /// </list>

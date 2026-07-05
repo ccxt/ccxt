@@ -1261,7 +1261,7 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         await this.loadMarkets();
@@ -3121,7 +3121,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const code = this.safeString(entry, 'code');
-            const message = this.safeString(entry, 'message');
+            const message = this.safeString(entry, 'message', '');
             if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
                 const feedback = this.id + ' ' + message;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
@@ -4019,7 +4019,7 @@ export default class coinex extends Exchange {
         //         "memo": ""
         //     }
         //
-        const coinAddress = this.safeString(depositAddress, 'address');
+        const coinAddress = this.safeString(depositAddress, 'address', '');
         const parts = coinAddress.split(':');
         let address = undefined;
         let tag = undefined;
@@ -6185,7 +6185,7 @@ export default class coinex extends Exchange {
         }
         const code = this.safeString(response, 'code');
         const data = this.safeValue(response, 'data');
-        const message = this.safeString(response, 'message');
+        const message = this.safeString(response, 'message', '');
         if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

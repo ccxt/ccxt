@@ -25,7 +25,7 @@ declare function fetchBestBidAsk(exchange: any, method: any, symbol: any): Promi
 declare function fetchOrder(exchange: any, symbol: any, orderId: any, skippedProperties: any): Promise<Order>;
 declare function assertOrderState(exchange: any, skippedProperties: any, method: any, order: any, assertedStatus: any, strictCheck: any): void;
 declare function getActiveMarkets(exchange: any, includeUnknown?: boolean): any;
-declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): any[];
+declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): string[];
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string): void;
 declare function concat(a?: any[], b?: any[]): any[];
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;

@@ -43,6 +43,9 @@ export default class upbit extends upbitRest {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const marketIds = this.marketIds (symbols);
         const url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
@@ -53,7 +56,7 @@ export default class upbit extends upbitRest {
             client.subscriptions[subscriptionsKey] = {};
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const marketId = marketIds[i];
             const symbol = symbols[i];
@@ -155,7 +158,7 @@ export default class upbit extends upbitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const orderbook = await this.watchPublicMultiple ([ symbol ], 'orderbook');
@@ -222,7 +225,9 @@ export default class upbit extends upbitRest {
         //   "stream_type": "SNAPSHOT" }
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
         const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
     }
@@ -299,6 +304,9 @@ export default class upbit extends upbitRest {
         //   "stream_type": "REALTIME" }
         const trade = this.parseTrade (message);
         const symbol = trade['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -390,12 +398,12 @@ export default class upbit extends upbitRest {
         }
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        const requests = [];
+        const requests: Dict[] = [];
         const channelKeys = Object.keys (subscriptions);
         for (let i = 0; i < channelKeys.length; i++) {
             requests.push (subscriptions[channelKeys[i]]);
         }
-        const message = [
+        const message: Dict[] = [
             {
                 'ticket': this.uuid (),
             },
@@ -458,6 +466,9 @@ export default class upbit extends upbitRest {
             'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -600,8 +611,8 @@ export default class upbit extends upbitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = this.orders;
-        const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-        const order = this.safeValue (orders, orderId);
+        const orders = (symbol === undefined) ? {} : this.safeValue (cachedOrders.hashmap, symbol, {});
+        const order = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
         if (order !== undefined) {
             const fee = this.safeValue (order, 'fee');
             if (fee !== undefined) {
@@ -684,7 +695,7 @@ export default class upbit extends upbitRest {
             'candle.1s': this.handleOHLCV,
         };
         const methodName = this.safeString (message, 'type');
-        const method = this.safeValue (methods, methodName);
+        const method = (methodName === undefined) ? undefined : this.safeValue (methods, methodName);
         if (method !== undefined) {
             method.call (this, client, message);
         }

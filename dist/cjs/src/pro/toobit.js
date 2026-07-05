@@ -137,7 +137,7 @@ class toobit extends toobit$1["default"] {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = this.safeValue(methods, topic);
+        const method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);
         }
@@ -146,7 +146,7 @@ class toobit extends toobit$1["default"] {
             for (let i = 0; i < message.length; i++) {
                 const item = message[i];
                 const event = this.safeString(item, 'e');
-                const method2 = this.safeValue(methods, event);
+                const method2 = (event === undefined) ? undefined : this.safeValue(methods, event);
                 if (method2 !== undefined) {
                     method2.call(this, client, item);
                 }
@@ -490,7 +490,7 @@ class toobit extends toobit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -503,7 +503,7 @@ class toobit extends toobit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         await this.loadMarkets();

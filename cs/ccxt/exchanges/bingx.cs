@@ -1578,7 +1578,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -3374,6 +3374,17 @@ public partial class bingx : Exchange
         } else
         {
             result = data;
+        }
+        // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        object stopLoss = this.safeString(result, "stopLoss");
+        if (isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
+        {
+            ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
+        }
+        object takeProfit = this.safeString(result, "takeProfit");
+        if (isTrue(isTrue((!isEqual(takeProfit, null))) && isTrue((isEqual(getIndexOf(takeProfit, "{"), 0)))))
+        {
+            ((IDictionary<string,object>)result)["takeProfit"] = this.parseJson(takeProfit);
         }
         return this.parseOrder(result, market);
     }
@@ -6196,7 +6207,6 @@ public partial class bingx : Exchange
         };
         object response = null;
         object commission = new Dictionary<string, object>() {};
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         if (isTrue(getValue(market, "spot")))
         {
             response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, parameters));
@@ -6211,7 +6221,7 @@ public partial class bingx : Exchange
             //         }
             //     }
             //
-            commission = data;
+            commission = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else
         {
             if (isTrue(getValue(market, "inverse")))
@@ -6228,7 +6238,7 @@ public partial class bingx : Exchange
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = this.safeDict(response, "data", new Dictionary<string, object>() {});
             } else
             {
                 response = await this.swapV2PrivateGetUserCommissionRate(parameters);
@@ -6244,6 +6254,7 @@ public partial class bingx : Exchange
                 //         }
                 //     }
                 //
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 commission = this.safeDict(data, "commission", new Dictionary<string, object>() {});
             }
         }

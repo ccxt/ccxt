@@ -67,6 +67,16 @@ func (this *Hashkey) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions
     }
     return ccxt.NewOHLCVArray(res), nil
 }
+/**
+ * @method
+ * @name hashkey#watchTicker
+ * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.binary] true or false - default false
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
 func (this *Hashkey) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
 
     opts := ccxt.WatchTickerOptionsStruct{}
@@ -133,7 +143,7 @@ func (this *Hashkey) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hashkey) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 

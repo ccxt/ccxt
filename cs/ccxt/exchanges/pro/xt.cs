@@ -121,7 +121,7 @@ public partial class xt : ccxt.xt
         object nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
         object firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
-        if (isTrue(isLessThan(nonce, subtract(firstDeltaNonce, 1))))
+        if (isTrue(isTrue(isTrue((!isEqual(nonce, null))) && isTrue((!isEqual(firstDeltaNonce, null)))) && isTrue((isLessThan(nonce, subtract(firstDeltaNonce, 1))))))
         {
             return -1;
         }
@@ -129,7 +129,7 @@ public partial class xt : ccxt.xt
         {
             object delta = getValue(cache, i);
             object deltaNonce = this.safeInteger2(delta, "i", "u");
-            if (isTrue(isGreaterThanOrEqual(deltaNonce, nonce)))
+            if (isTrue(isTrue(isTrue((!isEqual(deltaNonce, null))) && isTrue((!isEqual(nonce, null)))) && isTrue((isGreaterThanOrEqual(deltaNonce, nonce)))))
             {
                 return i;
             }
@@ -707,7 +707,7 @@ public partial class xt : ccxt.xt
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
-            if (isTrue(isGreaterThan(contracts, 0)))
+            if (isTrue(isTrue((!isEqual(contracts, null))) && isTrue((isGreaterThan(contracts, 0)))))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -847,7 +847,10 @@ public partial class xt : ccxt.xt
             object isSpot = !isEqual(cv, null);
             object ticker = this.parseTicker(data);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            }
             object eventVar = this.safeString(message, "event");
             object messageHashTail = ((bool) isTrue(isSpot)) ? "spot" : "contract";
             object messageHash = add(add(eventVar, "::"), messageHashTail);
@@ -935,7 +938,10 @@ public partial class xt : ccxt.xt
             object tickerData = getValue(data, i);
             object ticker = this.parseTicker(tickerData);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            }
             ((IList<object>)newTickers).Add(ticker);
         }
         object messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
@@ -1001,7 +1007,7 @@ public partial class xt : ccxt.xt
         object marketId = this.safeString(data, "s");
         if (isTrue(!isEqual(marketId, null)))
         {
-            object timeframe = this.safeString(data, "i");
+            object timeframe = this.safeString(data, "i", "");
             object tradeType = ((bool) isTrue((inOp(data, "q")))) ? "spot" : "contract";
             object market = this.safeMarket(marketId, null, null, tradeType);
             object symbol = getValue(market, "symbol");
@@ -1143,10 +1149,14 @@ public partial class xt : ccxt.xt
         object marketId = this.safeString(data, "s");
         if (isTrue(!isEqual(marketId, null)))
         {
-            object eventVar = this.safeString(message, "event");
+            object eventVar = this.safeString(message, "event", "");
             object splitEvent = ((string)eventVar).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            eventVar = this.safeString(splitEvent, 0);
-            object tradeType = ((bool) isTrue((inOp(data, "fu")))) ? "contract" : "spot";
+            eventVar = this.safeString(splitEvent, 0, "");
+            object tradeType = "spot";
+            if (isTrue(isTrue((!isEqual(data, null))) && isTrue((inOp(data, "fu")))))
+            {
+                tradeType = "contract";
+            }
             object market = this.safeMarket(marketId, null, null, tradeType);
             object symbol = getValue(market, "symbol");
             object obAsks = this.safeList(data, "a");
@@ -1497,7 +1507,12 @@ public partial class xt : ccxt.xt
             this.myTrades = stored;
         }
         object parsedTrade = this.parseTrade(data);
-        object market = this.market(getValue(parsedTrade, "symbol"));
+        object tradeSymbol = getValue(parsedTrade, "symbol");
+        if (isTrue(isEqual(tradeSymbol, null)))
+        {
+            return;
+        }
+        object market = this.market(tradeSymbol);
         callDynamically(stored, "append", new object[] {parsedTrade});
         object tradeType = ((bool) isTrue(getValue(market, "contract"))) ? "contract" : "spot";
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("trade::", tradeType)});
@@ -1524,11 +1539,11 @@ public partial class xt : ccxt.xt
                 { "order", this.handleOrder },
                 { "position", this.handlePosition },
             };
-            object method = this.safeValue(methods, topic);
+            object method = ((bool) isTrue((isEqual(topic, null)))) ? null : this.safeValue(methods, topic);
             if (isTrue(isEqual(topic, "trade")))
             {
                 object data = this.safeDict(message, "data");
-                if (isTrue(isTrue((inOp(data, "oi"))) || isTrue((inOp(data, "orderId")))))
+                if (isTrue(isTrue((!isEqual(data, null))) && isTrue((isTrue((inOp(data, "oi"))) || isTrue((inOp(data, "orderId")))))))
                 {
                     method = this.handleMyTrades;
                 } else

@@ -365,7 +365,7 @@ class coinspot extends coinspot$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -424,7 +424,7 @@ class coinspot extends coinspot$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.publicGetLatest(params);
-        let id = market['id'];
+        let id = this.safeString(market, 'id', '');
         id = id.toLowerCase();
         const prices = this.safeDict(response, 'prices', {});
         //
@@ -439,7 +439,7 @@ class coinspot extends coinspot$1["default"] {
         //         }
         //     }
         //
-        const ticker = this.safeDict(prices, id);
+        const ticker = this.safeDict(prices, id, {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -658,6 +658,9 @@ class coinspot extends coinspot$1["default"] {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');

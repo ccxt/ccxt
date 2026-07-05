@@ -1758,7 +1758,7 @@ func (this *CoinbaseinternationalCore) FetchCurrencies(optionalArgs ...any) <-ch
 		//    [
 		//        {
 		//           "asset_id":"1",
-		//           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+		//           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
 		//           "asset_name":"USDC",
 		//           "status":"ACTIVE",
 		//           "collateral_weight":1.0,

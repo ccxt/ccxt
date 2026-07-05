@@ -105,7 +105,7 @@ export default class grvt extends grvtRest {
             return;
         }
         const channel = this.safeString (message, 'stream');
-        const method = this.safeValue (methods, channel);
+        const method = this.safeValue (methods, (channel as string));
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -150,7 +150,7 @@ export default class grvt extends grvtRest {
      * @method
      * @name grvt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -171,7 +171,7 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            rawHashes.push (marketId + '@' + interval.toString ());
+            rawHashes.push (marketId + '@' + (interval as string).toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
         const request = {
@@ -265,7 +265,7 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
@@ -357,7 +357,7 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
@@ -415,7 +415,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString);
+            const market = this.market ((symbolString as string));
             const marketId = market['id'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -456,21 +456,21 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
-        const secondPart = this.safeString (parts, 1);
+        const secondPart = this.safeString (parts, 1, '');
         const timeframeId = secondPart.replace ('-TRADE', '');
         const timeframe = this.findTimeframe (timeframeId);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         const parsed = this.parseWsOHLCV (data, market);
         stored.append (parsed);
         const resolveData = [ symbol, timeframe, stored ];
@@ -491,7 +491,7 @@ export default class grvt extends grvtRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -508,7 +508,7 @@ export default class grvt extends grvtRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -525,7 +525,7 @@ export default class grvt extends grvtRest {
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
         symbols = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
+        const extraPart = isSnapshot ? ((interval as string).toString () + '-' + (limit as number).toString ()) : (interval as string).toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -571,7 +571,7 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
@@ -581,7 +581,7 @@ export default class grvt extends grvtRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
-        const sequenceNumber = this.safeInteger (message, 'sequence_number');
+        const sequenceNumber = this.safeInteger (message, 'sequence_number', 0);
         const stream = this.safeString (message, 'stream');
         const isSnapshotChannel = stream === 'v1.book.s';
         const isSnapshotMessage = sequenceNumber <= 0;

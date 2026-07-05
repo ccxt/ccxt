@@ -1545,7 +1545,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -3222,11 +3222,14 @@ export default class bingx extends Exchange {
                 positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
-            let amountReq = amount;
-            if (!market['inverse']) {
-                amountReq = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            const closePosition = this.safeBool (params, 'closePosition', false);
+            if (!closePosition) {
+                let amountReq = amount;
+                if (!market['inverse']) {
+                    amountReq = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+                }
+                request['quantity'] = amountReq; // precision not available for inverse contracts
             }
-            request['quantity'] = amountReq; // precision not available for inverse contracts
         }
         params = this.omit (params, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);
@@ -3263,6 +3266,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -3366,6 +3370,15 @@ export default class bingx extends Exchange {
             }
         } else {
             result = data as Dict;
+        }
+        // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        const stopLoss = this.safeString (result, 'stopLoss');
+        if ((stopLoss !== undefined) && (stopLoss.indexOf ('{') === 0)) {
+            result['stopLoss'] = this.parseJson (stopLoss);
+        }
+        const takeProfit = this.safeString (result, 'takeProfit');
+        if ((takeProfit !== undefined) && (takeProfit.indexOf ('{') === 0)) {
+            result['takeProfit'] = this.parseJson (takeProfit);
         }
         return this.parseOrder (result, market);
     }
@@ -6648,7 +6661,6 @@ export default class bingx extends Exchange {
         };
         let response: NullableDict = undefined;
         let commission: Dict = {};
-        const data = this.safeDict (response, 'data', {});
         if (market['spot']) {
             response = await this.spotV1PrivateGetUserCommissionRate (this.extend (request, params));
             //
@@ -6662,7 +6674,7 @@ export default class bingx extends Exchange {
             //         }
             //     }
             //
-            commission = data as Dict;
+            commission = this.safeDict (response, 'data', {}) as Dict;
         } else {
             if (market['inverse']) {
                 response = await this.cswapV1PrivateGetUserCommissionRate (params);
@@ -6677,7 +6689,7 @@ export default class bingx extends Exchange {
                 //         }
                 //     }
                 //
-                commission = data as Dict;
+                commission = this.safeDict (response, 'data', {}) as Dict;
             } else {
                 response = await this.swapV2PrivateGetUserCommissionRate (params);
                 //
@@ -6692,6 +6704,7 @@ export default class bingx extends Exchange {
                 //         }
                 //     }
                 //
+                const data = this.safeDict (response, 'data', {});
                 commission = this.safeDict (data, 'commission', {}) as Dict;
             }
         }

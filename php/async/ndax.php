@@ -10,11 +10,10 @@ use ccxt\async\abstract\ndax as Exchange;
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class ndax extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'ndax',
@@ -393,7 +392,7 @@ class ndax extends Exchange {
         ));
     }
 
-    public function sign_in($params = array ()) {
+    public function sign_in($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * sign in, must be called prior to using other authenticated methods
@@ -410,7 +409,7 @@ class ndax extends Exchange {
             $request = array(
                 'grant_type' => 'client_credentials', // the only supported value
             );
-            $response = Async\await($this->publicGetAuthenticate ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAuthenticate($this->extend($request, $params)));
             //
             //     {
             //         "Authenticated":true,
@@ -434,7 +433,7 @@ class ndax extends Exchange {
                 $request = array(
                     'Code' => $this->totp($this->twofa),
                 );
-                $responseInner = Async\await($this->publicGetAuthenticate2FA ($this->extend($request, $params)));
+                $responseInner = Async\await($this->publicGetAuthenticate2FA($this->extend($request, $params)));
                 //
                 //     {
                 //         "Authenticated" => true,
@@ -447,10 +446,10 @@ class ndax extends Exchange {
                 return $responseInner;
             }
             return $response;
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -464,7 +463,7 @@ class ndax extends Exchange {
             $request = array(
                 'omsId' => $omsId,
             );
-            $response = Async\await($this->publicGetGetProducts ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetProducts($this->extend($request, $params)));
             //
             //    [
             //        array(
@@ -485,7 +484,7 @@ class ndax extends Exchange {
             //        ...
             //
             return $this->parse_currencies($response);
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -523,7 +522,7 @@ class ndax extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for ndax
@@ -537,7 +536,7 @@ class ndax extends Exchange {
             $request = array(
                 'omsId' => $omsId,
             );
-            $response = Async\await($this->publicGetGetInstruments ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetInstruments($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -585,7 +584,7 @@ class ndax extends Exchange {
             //     )
             //
             return $this->parse_markets($response);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -649,7 +648,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
+    public function parse_order_book($orderbook, $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
         $nonce = null;
         $result = array(
             'symbol' => $symbol,
@@ -665,13 +664,17 @@ class ndax extends Exchange {
                 $timestamp = $this->safe_integer($level, 2);
             } else {
                 $newTimestamp = $this->safe_integer($level, 2);
-                $timestamp = max ($timestamp, $newTimestamp);
+                if ($newTimestamp !== null) {
+                    $timestamp = max($timestamp, $newTimestamp);
+                }
             }
             if ($nonce === null) {
                 $nonce = $this->safe_integer($level, 0);
             } else {
                 $newNonce = $this->safe_integer($level, 0);
-                $nonce = max ($nonce, $newNonce);
+                if ($newNonce !== null) {
+                    $nonce = max($nonce, $newNonce);
+                }
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
@@ -687,7 +690,7 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -697,7 +700,7 @@ class ndax extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -708,10 +711,10 @@ class ndax extends Exchange {
                 'InstrumentId' => $market['id'],
                 'Depth' => $limit, // default 100
             );
-            $response = Async\await($this->publicGetGetL2Snapshot ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetL2Snapshot($this->extend($request, $params)));
             //
             //     array(
-            //         [
+            //         array(
             //             0,   // 0 MDUpdateId
             //             1,   // 1 Number of Unique Accounts
             //             123, // 2 ActionDateTime in Posix format X 1000
@@ -729,10 +732,10 @@ class ndax extends Exchange {
             //         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
             //         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
             //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
-            //     ]
+            //     )
             //
             return $this->parse_order_book($response, $symbol);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -802,7 +805,7 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -820,7 +823,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'InstrumentId' => $market['id'],
             );
-            $response = Async\await($this->publicGetGetLevel1 ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetLevel1($this->extend($request, $params)));
             //
             //     {
             //         "OMSId":1,
@@ -852,7 +855,7 @@ class ndax extends Exchange {
             //     }
             //
             return $this->parse_ticker($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -879,7 +882,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -916,16 +919,16 @@ class ndax extends Exchange {
                     $request['ToDate'] = $this->ymdhms($this->sum($since, $duration * $limit * 1000));
                 }
             }
-            $response = Async\await($this->publicGetGetTickerHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetTickerHistory($this->extend($request, $params)));
             //
-            //     [
+            //     array(
             //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
             //         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
             //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
-            //     ]
+            //     )
             //
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1046,7 +1049,7 @@ class ndax extends Exchange {
         $side = null;
         $orderId = null;
         $takerOrMaker = null;
-        $fee = null;
+        $fee = array();
         $type = null;
         if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
             $priceString = $this->safe_string($trade, 3);
@@ -1096,7 +1099,7 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1116,19 +1119,19 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Count'] = $limit;
             }
-            $response = Async\await($this->publicGetGetLastTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetLastTrades($this->extend($request, $params)));
             //
-            //     [
+            //     array(
             //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
             //         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
             //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
-            //     ]
+            //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -1148,7 +1151,7 @@ class ndax extends Exchange {
                 'UserId' => $this->uid,
                 'UserName' => $this->login,
             );
-            $response = Async\await($this->privateGetGetUserAccounts ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetUserAccounts($this->extend($request, $params)));
             //
             //     array( 449 ) // comma-separated list of account ids
             //
@@ -1163,7 +1166,7 @@ class ndax extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1175,7 +1178,7 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+            if (($currencyId !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'Amount');
@@ -1186,7 +1189,7 @@ class ndax extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1202,14 +1205,14 @@ class ndax extends Exchange {
             $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId');
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             if ($accountId === null) {
-                $accountId = intval($this->accounts[0]['id']);
+                $accountId = $this->parse_to_int($this->accounts[0]['id']);
             }
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $request = array(
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetAccountPositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetAccountPositions($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1242,7 +1245,7 @@ class ndax extends Exchange {
             //     )
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry_type($type) {
@@ -1321,7 +1324,7 @@ class ndax extends Exchange {
         ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1337,7 +1340,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $request = array(
@@ -1347,7 +1350,7 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Depth'] = $limit;
             }
-            $response = Async\await($this->privateGetGetAccountTransactions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetAccountTransactions($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1371,7 +1374,7 @@ class ndax extends Exchange {
                 $currency = $this->currency($code);
             }
             return $this->parse_ledger($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -1383,6 +1386,9 @@ class ndax extends Exchange {
             'Expired' => 'expired',
             'FullyExecuted' => 'closed',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1481,7 +1487,7 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1501,7 +1507,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
             $orderType = $this->safe_integer($this->options['orderTypes'], $this->capitalize($type));
@@ -1516,8 +1522,9 @@ class ndax extends Exchange {
             $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ));
             $market = $this->market($symbol);
             $orderSide = ($side === 'buy') ? 0 : 1;
+            $amountString = $this->amount_to_precision($symbol, $amount);
             $request = array(
-                'InstrumentId' => intval($market['id']),
+                'InstrumentId' => $this->parse_to_int($market['id']),
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
                 'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1529,7 +1536,7 @@ class ndax extends Exchange {
                 // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
                 // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
                 'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-                'Quantity' => floatval($this->amount_to_precision($symbol, $amount)),
+                'Quantity' => ($amountString === null) ? null : floatval($amountString),
                 'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
                 // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
                 // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
@@ -1544,7 +1551,7 @@ class ndax extends Exchange {
             if ($triggerPrice !== null) {
                 $request['StopPrice'] = $triggerPrice;
             }
-            $response = Async\await($this->privatePostSendOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostSendOrder($this->extend($request, $params)));
             //
             //     {
             //         "status":"Accepted",
@@ -1553,23 +1560,24 @@ class ndax extends Exchange {
             //     }
             //
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
             $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
             $market = $this->market($symbol);
             $orderSide = ($side === 'buy') ? 0 : 1;
+            $amountString = $this->amount_to_precision($symbol, $amount);
             $request = array(
                 'OrderIdToReplace' => intval($id),
-                'InstrumentId' => intval($market['id']),
+                'InstrumentId' => $this->parse_to_int($market['id']),
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
                 'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1581,7 +1589,7 @@ class ndax extends Exchange {
                 // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
                 // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
                 'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-                'Quantity' => floatval($this->amount_to_precision($symbol, $amount)),
+                'Quantity' => ($amountString === null) ? null : floatval($amountString),
                 'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
                 // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
                 // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
@@ -1593,7 +1601,7 @@ class ndax extends Exchange {
             if ($clientOrderId !== null) {
                 $request['ClientOrderId'] = $clientOrderId;
             }
-            $response = Async\await($this->privatePostCancelReplaceOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelReplaceOrder($this->extend($request, $params)));
             //
             //     {
             //         "replacementOrderId" => 1234,
@@ -1603,10 +1611,10 @@ class ndax extends Exchange {
             //     }
             //
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -1622,7 +1630,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $request = array(
@@ -1649,7 +1657,7 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Depth'] = $limit;
             }
-            $response = Async\await($this->privateGetGetTradesHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetTradesHistory($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1694,10 +1702,10 @@ class ndax extends Exchange {
             //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -1711,7 +1719,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $request = array(
@@ -1722,7 +1730,7 @@ class ndax extends Exchange {
                 $market = $this->market($symbol);
                 $request['IntrumentId'] = $market['id'];
             }
-            $response = Async\await($this->privatePostCancelAllOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelAllOrders($this->extend($request, $params)));
             //
             //     {
             //         "result":true,
@@ -1736,10 +1744,10 @@ class ndax extends Exchange {
                     'info' => $response,
                 )),
             );
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -1755,7 +1763,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $market = null;
@@ -1773,16 +1781,16 @@ class ndax extends Exchange {
                 $request['OrderId'] = intval($id);
             }
             $params = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
-            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
             $order = $this->parse_order($response, $market);
             return $this->extend($order, array(
                 'id' => $id,
                 'clientOrderId' => $clientOrderId,
             ));
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1798,7 +1806,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $market = null;
@@ -1809,7 +1817,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetOpenOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetOpenOrders($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1861,10 +1869,10 @@ class ndax extends Exchange {
             //     )
             //
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1880,7 +1888,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $request = array(
@@ -1907,7 +1915,7 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Depth'] = $limit;
             }
-            $response = Async\await($this->privateGetGetOrdersHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetOrdersHistory($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1959,10 +1967,10 @@ class ndax extends Exchange {
             //     )
             //
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1977,7 +1985,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $market = null;
@@ -1989,7 +1997,7 @@ class ndax extends Exchange {
                 'AccountId' => $accountId,
                 'OrderId' => intval($id),
             );
-            $response = Async\await($this->privateGetGetOrderStatus ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetOrderStatus($this->extend($request, $params)));
             //
             //     {
             //         "Side":"Sell",
@@ -2039,10 +2047,10 @@ class ndax extends Exchange {
             //     }
             //
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -2059,7 +2067,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $market = null;
@@ -2071,7 +2079,7 @@ class ndax extends Exchange {
                 // 'AccountId' => $accountId,
                 'OrderId' => intval($id),
             );
-            $response = Async\await($this->privatePostGetOrderHistoryByOrderId ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetOrderHistoryByOrderId($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -2125,10 +2133,10 @@ class ndax extends Exchange {
             $grouped = $this->group_by($response, 'ChangeReason');
             $trades = $this->safe_list($grouped, 'Trade', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2139,7 +2147,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $currency = $this->currency($code);
@@ -2149,7 +2157,7 @@ class ndax extends Exchange {
                 'ProductId' => $currency['id'],
                 'GenerateNewKey' => false,
             );
-            $response = Async\await($this->privateGetGetDepositInfo ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetDepositInfo($this->extend($request, $params)));
             //
             //     {
             //         "result":true,
@@ -2163,7 +2171,7 @@ class ndax extends Exchange {
             //     }
             //
             return $this->parse_deposit_address($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -2181,10 +2189,10 @@ class ndax extends Exchange {
         //         "DepositInfo":"[\"r3e95RwVsLH7yCbnMfyh7SA8FdwUJCB4S2?memo=241452010\"]"
         //     }
         //
-        $depositInfoString = $this->safe_string($depositAddress, 'DepositInfo');
+        $depositInfoString = $this->safe_string($depositAddress, 'DepositInfo', '[]');
         $depositInfo = json_decode($depositInfoString, $as_associative_array = true);
         $depositInfoLength = count($depositInfo);
-        $lastString = $this->safe_string($depositInfo, $depositInfoLength - 1);
+        $lastString = $this->safe_string($depositInfo, $depositInfoLength - 1, '');
         $parts = explode('?memo=', $lastString);
         $address = $this->safe_string($parts, 0);
         $tag = $this->safe_string($parts, 1);
@@ -2202,7 +2210,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function create_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
@@ -2214,10 +2222,10 @@ class ndax extends Exchange {
                 'GenerateNewKey' => true,
             );
             return Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2233,7 +2241,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $currency = null;
@@ -2244,7 +2252,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetDeposits ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetDeposits($this->extend($request, $params)));
             //
             //    "array(
             //        array(
@@ -2277,10 +2285,10 @@ class ndax extends Exchange {
                 return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
             }
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2296,7 +2304,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $currency = null;
@@ -2307,7 +2315,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetWithdraws ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetWithdraws($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -2333,10 +2341,10 @@ class ndax extends Exchange {
             //     )
             //
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function parse_transaction_status_by_type($status, $type = null) {
+    public function parse_transaction_status_by_type(?string $status = null, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 'New' => 'pending', // new ticket awaiting operator review
@@ -2381,7 +2389,10 @@ class ndax extends Exchange {
                 'Confirmed2Fa' => 'pending', // user has confirmed withdraw via 2-factor authentication.
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = ($type === null) ? array() : $this->safe_value($statusesByType, $type, array());
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2456,7 +2467,7 @@ class ndax extends Exchange {
         $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
         $feeCost = $this->safe_number($transaction, 'FeeAmount');
         $transactionStatus = $this->safe_string($transaction, 'TicketStatus');
-        $fee = null;
+        $fee = array();
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
@@ -2484,7 +2495,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2508,7 +2519,7 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $currency = $this->currency($code);
@@ -2517,7 +2528,7 @@ class ndax extends Exchange {
                 'AccountId' => $accountId,
                 'ProductId' => $currency['id'],
             );
-            $withdrawTemplateTypesResponse = Async\await($this->privateGetGetWithdrawTemplateTypes ($withdrawTemplateTypesRequest));
+            $withdrawTemplateTypesResponse = Async\await($this->privateGetGetWithdrawTemplateTypes($withdrawTemplateTypesRequest));
             //
             //     {
             //         "result" => true,
@@ -2543,7 +2554,7 @@ class ndax extends Exchange {
                 'TemplateType' => $templateName,
                 'AccountProviderId' => $firstTemplateType['AccountProviderId'],
             );
-            $withdrawTemplateResponse = Async\await($this->privateGetGetWithdrawTemplate ($withdrawTemplateRequest));
+            $withdrawTemplateResponse = Async\await($this->privateGetGetWithdrawTemplate($withdrawTemplateRequest));
             //
             //     {
             //         "result" => true,
@@ -2575,16 +2586,16 @@ class ndax extends Exchange {
                 'TFaCode' => $this->totp($this->twofa),
                 'Payload' => $this->json($withdrawPayload),
             );
-            $response = Async\await($this->privatePostCreateWithdrawTicket ($this->deep_extend($withdrawRequest, $params)));
+            $response = Async\await($this->privatePostCreateWithdrawTicket($this->deep_extend($withdrawRequest, $params)));
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
     public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

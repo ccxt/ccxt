@@ -158,7 +158,7 @@ func  (this *IndependentreserveCore) ParseWsTrade(trade any, optionalArgs ...any
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *IndependentreserveCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -323,7 +323,7 @@ func  (this *IndependentreserveCore) HandleMessage(client any, message any)  {
         "OrderBookSnapshot": this.HandleOrderBook,
         "OrderBookChange": this.HandleOrderBook,
     }
-    var handler any = this.SafeValue(handlers, event)
+    var handler any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(event, nil))), nil, this.SafeValue(handlers, event))
     if ccxt.IsTrue(!ccxt.IsEqual(handler, nil)) {
         ccxt.CallDynamically(handler, client, message)
         return

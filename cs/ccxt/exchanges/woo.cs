@@ -606,7 +606,7 @@ public partial class woo : Exchange
 
     public override object parseMarket(object market)
     {
-        object marketId = this.safeString(market, "symbol");
+        object marketId = this.safeString(market, "symbol", "");
         object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object first = this.safeString(parts, 0);
         object marketType = null;
@@ -794,7 +794,7 @@ public partial class woo : Exchange
         object order_id = this.safeString2(trade, "order_id", "orderId");
         object fee = this.parseTokenAndFeeTemp(trade, new List<object>() {"fee_asset", "feeAsset"}, new List<object>() {"fee"});
         object feeCost = this.safeString(fee, "cost");
-        if (isTrue(!isEqual(feeCost, null)))
+        if (isTrue(isTrue((!isEqual(fee, null))) && isTrue((!isEqual(feeCost, null)))))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
@@ -937,9 +937,14 @@ public partial class woo : Exchange
         object maker = this.safeString(data, "makerFeeRate");
         object taker = this.safeString(data, "takerFeeRate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        if (isTrue(isEqual(symbols, null)))
         {
-            object symbol = getValue(this.symbols, i);
+            return result;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1056,7 +1061,7 @@ public partial class woo : Exchange
                 { "_networks_by_id", getValue(networksById, id) },
             };
             object parsed = this.parseCurrency(customCurrency);
-            object code = getValue(parsed, "code");
+            object code = this.safeString(parsed, "code");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
         return result;
@@ -1267,7 +1272,7 @@ public partial class woo : Exchange
         object orderType = ((string)type).ToUpper();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object orderSide = ((string)side).ToUpper();
+        object orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", orderSide },
@@ -1869,7 +1874,7 @@ public partial class woo : Exchange
             { "fok", "FOK" },
             { "post_only", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce);
+        return this.safeString(timeInForces, ((string)timeInForce));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1972,7 +1977,7 @@ public partial class woo : Exchange
             timestamp = this.safeInteger(order, "timestamp");
         }
         object orderId = this.safeString2(order, "orderId", "algoOrderId");
-        object clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
+        object clientOrderId = this.omitZero(((string)this.safeString2(order, "clientOrderId", "clientAlgoOrderId"))); // Somehow, this always returns 0 for limit order
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -1983,7 +1988,7 @@ public partial class woo : Exchange
         object status = this.safeValue2(order, "status", "algoStatus");
         object side = this.safeStringLower(order, "side");
         object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
-        object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
+        object average = this.omitZero(((string)this.safeString(order, "averageExecutedPrice")));
         // const remaining = Precise.stringSub (cost, filled);
         object fee = this.safeNumber(order, "totalFee");
         object feeCurrency = this.safeString(order, "feeAsset");
@@ -2060,7 +2065,7 @@ public partial class woo : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2488,7 +2493,7 @@ public partial class woo : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "token", getValue(currency, "id") },
-            { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
+            { "network", this.networkCodeToId(((string)networkCode), getValue(currency, "code")) },
         };
         object response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, parameters));
         //
@@ -2552,7 +2557,7 @@ public partial class woo : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -2767,7 +2772,7 @@ public partial class woo : Exchange
         };
         object currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
         object currency = this.safeValue(currencyRows, 0);
-        object rows = this.safeList(currencyRows, 1);
+        object rows = this.safeList(currencyRows, 1, new List<object>() {});
         return this.parseTransactions(rows, currency, since, limit, parameters);
     }
 
@@ -2840,7 +2845,7 @@ public partial class woo : Exchange
             { "COMPLETED", "ok" },
             { "CANCELED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -3036,7 +3041,7 @@ public partial class woo : Exchange
             { "COMPLETED", "ok" },
             { "CANCELED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -3416,7 +3421,7 @@ public partial class woo : Exchange
         //     }
         //
         object symbol = this.safeString(fundingRate, "symbol");
-        market = this.market(symbol);
+        market = this.market(((string)symbol));
         object nextFundingTimestamp = this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
         object estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         object lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
@@ -3848,7 +3853,7 @@ public partial class woo : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };

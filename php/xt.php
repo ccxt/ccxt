@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\xt as Exchange;
 
 class xt extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'xt',
@@ -124,7 +123,7 @@ class xt extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7',
                 'api' => array(
                     'spot' => 'https://sapi.xt.com',
                     'linear' => 'https://fapi.xt.com',
@@ -806,7 +805,7 @@ class xt extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the xt server
          *
@@ -815,7 +814,7 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {int} the current integer timestamp in milliseconds from the xt server
          */
-        $response = $this->publicSpotGetTime ($params);
+        $response = $this->publicSpotGetTime($params);
         //
         //     {
         //         "rc" => 0,
@@ -830,7 +829,7 @@ class xt extends Exchange {
         return $this->safe_integer($data, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -839,7 +838,7 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $promisesRaw = array( $this->publicSpotGetWalletSupportCurrency ($params), $this->publicSpotGetCurrencies ($params) );
+        $promisesRaw = array( $this->publicSpotGetWalletSupportCurrency($params), $this->publicSpotGetCurrencies($params) );
         list($chainsResponse, $currenciesResponse) = $promisesRaw;
         //
         // currencies
@@ -847,7 +846,7 @@ class xt extends Exchange {
         //    {
         //        "time" => "1686626116145",
         //        "version" => "5dbbb2f2527c22b2b2e3b47187ef13d1",
-        //        "currencies" => [
+        //        "currencies" => array(
         //            array(
         //                "id" => "2",
         //                "currency" => "btc",
@@ -863,7 +862,7 @@ class xt extends Exchange {
         //                "isChainExist" => "1",
         //                "plates" => [152]
         //            ),
-        //        ],
+        //        ),
         //    }
         //
         //
@@ -972,7 +971,7 @@ class xt extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for xt
          *
@@ -995,8 +994,8 @@ class xt extends Exchange {
         return $this->array_concat($spotMarkets, $swapAndFutureMarkets);
     }
 
-    public function fetch_spot_markets($params = array ()) {
-        $response = $this->publicSpotGetSymbol ($params);
+    public function fetch_spot_markets($params = array()) {
+        $response = $this->publicSpotGetSymbol($params);
         //
         //     {
         //         "rc" => 0,
@@ -1005,7 +1004,7 @@ class xt extends Exchange {
         //         "result" => {
         //             "time" => 1677881368812,
         //             "version" => "abb101d1543e54bee40687b135411ba0",
-        //             "symbols" => [
+        //             "symbols" => array(
         //                 {
         //                     "id" => 640,
         //                     "symbol" => "xt_usdt",
@@ -1045,7 +1044,7 @@ class xt extends Exchange {
         //                         }
         //                     )
         //                 ),
-        //             ]
+        //             )
         //         }
         //     }
         //
@@ -1054,14 +1053,14 @@ class xt extends Exchange {
         return $this->parse_markets($symbols);
     }
 
-    public function fetch_swap_and_future_markets($params = array ()) {
-        $markets = array( $this->publicLinearGetFutureMarketV1PublicSymbolList ($params), $this->publicInverseGetFutureMarketV1PublicSymbolList ($params) );
+    public function fetch_swap_and_future_markets($params = array()) {
+        $markets = array( $this->publicLinearGetFutureMarketV1PublicSymbolList($params), $this->publicInverseGetFutureMarketV1PublicSymbolList($params) );
         //
         //     {
         //         "returnCode" => 0,
         //         "msgInfo" => "success",
         //         "error" => null,
-        //         "result" => [
+        //         "result" => array(
         //             array(
         //                 "id" => 52,
         //                 "symbolGroupId" => 71,
@@ -1115,7 +1114,7 @@ class xt extends Exchange {
         //                 "cnDesc" => null,
         //                 "enDesc" => null
         //             ),
-        //         ]
+        //         )
         //     }
         //
         $swapAndFutureMarkets = $this->array_concat($this->safe_value($markets[0], 'result', array()), $this->safe_value($markets[1], 'result', array()));
@@ -1386,7 +1385,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1418,9 +1417,9 @@ class xt extends Exchange {
         }
         if ($limit !== null) {
             if ($market['spot']) {
-                $limit = min ($limit, 1000); // spot max $limit
+                $limit = min($limit, 1000); // spot max $limit
             } else {
-                $limit = min ($limit, 1500); // derivatives max $limit
+                $limit = min($limit, 1500); // derivatives max $limit
             }
             $request['limit'] = $limit;
         } else {
@@ -1433,11 +1432,11 @@ class xt extends Exchange {
         }
         $response = null;
         if ($market['linear']) {
-            $response = $this->publicLinearGetFutureMarketV1PublicQKline ($this->extend($request, $params));
+            $response = $this->publicLinearGetFutureMarketV1PublicQKline($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->publicInverseGetFutureMarketV1PublicQKline ($this->extend($request, $params));
+            $response = $this->publicInverseGetFutureMarketV1PublicQKline($this->extend($request, $params));
         } else {
-            $response = $this->publicSpotGetKline ($this->extend($request, $params));
+            $response = $this->publicSpotGetKline($this->extend($request, $params));
         }
         //
         // spot
@@ -1524,7 +1523,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          *
          * @see https://doc.xt.com/#market3depth
@@ -1544,19 +1543,19 @@ class xt extends Exchange {
         $response = null;
         if ($market['spot']) {
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 500);
+                $request['limit'] = min($limit, 500);
             }
-            $response = $this->publicSpotGetDepth ($this->extend($request, $params));
+            $response = $this->publicSpotGetDepth($this->extend($request, $params));
         } else {
             if ($limit !== null) {
-                $request['level'] = min ($limit, 50);
+                $request['level'] = min($limit, 50);
             } else {
                 $request['level'] = 50;
             }
             if ($market['linear']) {
-                $response = $this->publicLinearGetFutureMarketV1PublicQDepth ($this->extend($request, $params));
+                $response = $this->publicLinearGetFutureMarketV1PublicQDepth($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->publicInverseGetFutureMarketV1PublicQDepth ($this->extend($request, $params));
+                $response = $this->publicInverseGetFutureMarketV1PublicQDepth($this->extend($request, $params));
             }
         }
         //
@@ -1569,16 +1568,16 @@ class xt extends Exchange {
         //         "result" => {
         //             "timestamp" => 1678169975184,
         //             "lastUpdateId" => 1675333221812,
-        //             "bids" => [
+        //             "bids" => array(
         //                 ["22444.51", "0.129887"],
         //                 ["22444.49", "0.114245"],
         //                 ["22444.30", "0.225956"]
-        //             ],
-        //             "asks" => [
+        //             ),
+        //             "asks" => array(
         //                 ["22446.19", "0.095330"],
         //                 ["22446.24", "0.224413"],
         //                 ["22446.28", "0.329095"]
-        //             ]
+        //             )
         //         }
         //     }
         //
@@ -1592,16 +1591,16 @@ class xt extends Exchange {
         //             "t" => 1678170311005,
         //             "s" => "btc_usdt",
         //             "u" => 471694545627,
-        //             "b" => [
+        //             "b" => array(
         //                 ["22426", "198623"],
         //                 ["22423.5", "80295"],
         //                 ["22423", "163580"]
-        //             ],
-        //             "a" => [
+        //             ),
+        //             "a" => array(
         //                 ["22427", "3417"],
         //                 ["22428.5", "43532"],
         //                 ["22429", "119"]
-        //             ]
+        //             )
         //         }
         //     }
         //
@@ -1617,7 +1616,7 @@ class xt extends Exchange {
         return $swapOb;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1635,11 +1634,11 @@ class xt extends Exchange {
         );
         $response = null;
         if ($market['linear']) {
-            $response = $this->publicLinearGetFutureMarketV1PublicQAggTicker ($this->extend($request, $params));
+            $response = $this->publicLinearGetFutureMarketV1PublicQAggTicker($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->publicInverseGetFutureMarketV1PublicQAggTicker ($this->extend($request, $params));
+            $response = $this->publicInverseGetFutureMarketV1PublicQAggTicker($this->extend($request, $params));
         } else {
-            $response = $this->publicSpotGetTicker24h ($this->extend($request, $params));
+            $response = $this->publicSpotGetTicker24h($this->extend($request, $params));
         }
         //
         // spot
@@ -1694,7 +1693,7 @@ class xt extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          *
@@ -1718,11 +1717,11 @@ class xt extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
         if ($subType === 'inverse') {
-            $response = $this->publicInverseGetFutureMarketV1PublicQAggTickers ($this->extend($request, $params));
+            $response = $this->publicInverseGetFutureMarketV1PublicQAggTickers($this->extend($request, $params));
         } elseif (($subType === 'linear') || ($type === 'swap') || ($type === 'future')) {
-            $response = $this->publicLinearGetFutureMarketV1PublicQAggTickers ($this->extend($request, $params));
+            $response = $this->publicLinearGetFutureMarketV1PublicQAggTickers($this->extend($request, $params));
         } else {
-            $response = $this->publicSpotGetTicker24h ($this->extend($request, $params));
+            $response = $this->publicSpotGetTicker24h($this->extend($request, $params));
         }
         //
         // spot
@@ -1782,7 +1781,7 @@ class xt extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1804,7 +1803,7 @@ class xt extends Exchange {
         if ($subType !== null) {
             throw new NotSupported($this->id . ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
         }
-        $response = $this->publicSpotGetTickerBook ($this->extend($request, $params));
+        $response = $this->publicSpotGetTickerBook($this->extend($request, $params));
         //
         //     {
         //         "rc" => 0,
@@ -1909,7 +1908,7 @@ class xt extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -1930,17 +1929,17 @@ class xt extends Exchange {
         $response = null;
         if ($market['spot']) {
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000);
+                $request['limit'] = min($limit, 1000);
             }
-            $response = $this->publicSpotGetTradeRecent ($this->extend($request, $params));
+            $response = $this->publicSpotGetTradeRecent($this->extend($request, $params));
         } else {
             if ($limit !== null) {
-                $request['num'] = min ($limit, 1000);
+                $request['num'] = min($limit, 1000);
             }
             if ($market['linear']) {
-                $response = $this->publicLinearGetFutureMarketV1PublicQDeal ($this->extend($request, $params));
+                $response = $this->publicLinearGetFutureMarketV1PublicQDeal($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->publicInverseGetFutureMarketV1PublicQDeal ($this->extend($request, $params));
+                $response = $this->publicInverseGetFutureMarketV1PublicQDeal($this->extend($request, $params));
             }
         }
         //
@@ -1983,7 +1982,7 @@ class xt extends Exchange {
         return $this->parse_trades($trades, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -2016,9 +2015,9 @@ class xt extends Exchange {
                 $request['size'] = $limit;
             }
             if ($subType === 'inverse') {
-                $response = $this->privateInverseGetFutureTradeV1OrderTradeList ($this->extend($request, $params));
+                $response = $this->privateInverseGetFutureTradeV1OrderTradeList($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearGetFutureTradeV1OrderTradeList ($this->extend($request, $params));
+                $response = $this->privateLinearGetFutureTradeV1OrderTradeList($this->extend($request, $params));
             }
         } else {
             $marginMode = null;
@@ -2028,7 +2027,7 @@ class xt extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->privateSpotGetTrade ($this->extend($request, $params));
+            $response = $this->privateSpotGetTrade($this->extend($request, $params));
         }
         //
         // spot and margin
@@ -2266,7 +2265,7 @@ class xt extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2284,11 +2283,11 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
         $isContractWallet = (($type === 'swap') || ($type === 'future'));
         if ($subType === 'inverse') {
-            $response = $this->privateInverseGetFutureUserV1BalanceList ($params);
+            $response = $this->privateInverseGetFutureUserV1BalanceList($params);
         } elseif (($subType === 'linear') || $isContractWallet) {
-            $response = $this->privateLinearGetFutureUserV1BalanceList ($params);
+            $response = $this->privateLinearGetFutureUserV1BalanceList($params);
         } else {
-            $response = $this->privateSpotGetBalances ($params);
+            $response = $this->privateSpotGetBalances($params);
         }
         //
         // spot
@@ -2392,7 +2391,7 @@ class xt extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          *
          * @see https://doc.xt.com/#orderorderPost
@@ -2411,7 +2410,7 @@ class xt extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -2445,7 +2444,7 @@ class xt extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2491,7 +2490,7 @@ class xt extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
         $request['timeInForce'] = $timeInForce;
-        $response = $this->privateSpotPostOrder ($this->extend($request, $params));
+        $response = $this->privateSpotPostOrder($this->extend($request, $params));
         //
         //     {
         //         "rc" => 0,
@@ -2506,7 +2505,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2546,9 +2545,9 @@ class xt extends Exchange {
             $request['entrustType'] = $entrustType;
             $params = $this->omit($params, 'triggerPrice');
             if ($market['linear']) {
-                $response = $this->privateLinearPostFutureTradeV1EntrustCreatePlan ($this->extend($request, $params));
+                $response = $this->privateLinearPostFutureTradeV1EntrustCreatePlan($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->privateInversePostFutureTradeV1EntrustCreatePlan ($this->extend($request, $params));
+                $response = $this->privateInversePostFutureTradeV1EntrustCreatePlan($this->extend($request, $params));
             }
         } elseif ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
@@ -2558,17 +2557,17 @@ class xt extends Exchange {
             }
             $params = $this->omit($params, array( 'stopLoss', 'takeProfit' ));
             if ($market['linear']) {
-                $response = $this->privateLinearPostFutureTradeV1EntrustCreateProfit ($this->extend($request, $params));
+                $response = $this->privateLinearPostFutureTradeV1EntrustCreateProfit($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->privateInversePostFutureTradeV1EntrustCreateProfit ($this->extend($request, $params));
+                $response = $this->privateInversePostFutureTradeV1EntrustCreateProfit($this->extend($request, $params));
             }
         } else {
             $request['orderSide'] = strtoupper($side);
             $request['orderType'] = strtoupper($type);
             if ($market['linear']) {
-                $response = $this->privateLinearPostFutureTradeV1OrderCreate ($this->extend($request, $params));
+                $response = $this->privateLinearPostFutureTradeV1OrderCreate($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->privateInversePostFutureTradeV1OrderCreate ($this->extend($request, $params));
+                $response = $this->privateInversePostFutureTradeV1OrderCreate($this->extend($request, $params));
             }
         }
         //
@@ -2582,7 +2581,7 @@ class xt extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an $order made by the user
          *
@@ -2621,23 +2620,23 @@ class xt extends Exchange {
         if ($trigger) {
             $params = $this->omit($params, 'stop');
             if ($subType === 'inverse') {
-                $response = $this->privateInverseGetFutureTradeV1EntrustPlanDetail ($this->extend($request, $params));
+                $response = $this->privateInverseGetFutureTradeV1EntrustPlanDetail($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearGetFutureTradeV1EntrustPlanDetail ($this->extend($request, $params));
+                $response = $this->privateLinearGetFutureTradeV1EntrustPlanDetail($this->extend($request, $params));
             }
         } elseif ($stopLossTakeProfit) {
             $params = $this->omit($params, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
-                $response = $this->privateInverseGetFutureTradeV1EntrustProfitDetail ($this->extend($request, $params));
+                $response = $this->privateInverseGetFutureTradeV1EntrustProfitDetail($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearGetFutureTradeV1EntrustProfitDetail ($this->extend($request, $params));
+                $response = $this->privateLinearGetFutureTradeV1EntrustProfitDetail($this->extend($request, $params));
             }
         } elseif ($subType === 'inverse') {
-            $response = $this->privateInverseGetFutureTradeV1OrderDetail ($this->extend($request, $params));
+            $response = $this->privateInverseGetFutureTradeV1OrderDetail($this->extend($request, $params));
         } elseif (($subType === 'linear') || ($type === 'swap') || ($type === 'future')) {
-            $response = $this->privateLinearGetFutureTradeV1OrderDetail ($this->extend($request, $params));
+            $response = $this->privateLinearGetFutureTradeV1OrderDetail($this->extend($request, $params));
         } else {
-            $response = $this->privateSpotGetOrderOrderId ($this->extend($request, $params));
+            $response = $this->privateSpotGetOrderOrderId($this->extend($request, $params));
         }
         //
         // spot
@@ -2760,7 +2759,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -2797,20 +2796,20 @@ class xt extends Exchange {
         if ($trigger) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
-                $response = $this->privateInverseGetFutureTradeV1EntrustPlanListHistory ($this->extend($request, $params));
+                $response = $this->privateInverseGetFutureTradeV1EntrustPlanListHistory($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearGetFutureTradeV1EntrustPlanListHistory ($this->extend($request, $params));
+                $response = $this->privateLinearGetFutureTradeV1EntrustPlanListHistory($this->extend($request, $params));
             }
         } elseif ($subType === 'inverse') {
-            $response = $this->privateInverseGetFutureTradeV1OrderListHistory ($this->extend($request, $params));
+            $response = $this->privateInverseGetFutureTradeV1OrderListHistory($this->extend($request, $params));
         } elseif (($subType === 'linear') || ($type === 'swap') || ($type === 'future')) {
-            $response = $this->privateLinearGetFutureTradeV1OrderListHistory ($this->extend($request, $params));
+            $response = $this->privateLinearGetFutureTradeV1OrderListHistory($this->extend($request, $params));
         } else {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
             $marginOrSpotRequest = ($marginMode !== null) ? 'LEVER' : 'SPOT';
             $request['bizType'] = $marginOrSpotRequest;
-            $response = $this->privateSpotGetHistoryOrder ($this->extend($request, $params));
+            $response = $this->privateSpotGetHistoryOrder($this->extend($request, $params));
         }
         //
         //  spot and margin
@@ -2927,7 +2926,7 @@ class xt extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -2980,22 +2979,22 @@ class xt extends Exchange {
         if ($trigger) {
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($subType === 'inverse') {
-                $response = $this->privateInverseGetFutureTradeV1EntrustPlanList ($this->extend($request, $params));
+                $response = $this->privateInverseGetFutureTradeV1EntrustPlanList($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearGetFutureTradeV1EntrustPlanList ($this->extend($request, $params));
+                $response = $this->privateLinearGetFutureTradeV1EntrustPlanList($this->extend($request, $params));
             }
         } elseif ($stopLossTakeProfit) {
             $params = $this->omit($params, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
-                $response = $this->privateInverseGetFutureTradeV1EntrustProfitList ($this->extend($request, $params));
+                $response = $this->privateInverseGetFutureTradeV1EntrustProfitList($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearGetFutureTradeV1EntrustProfitList ($this->extend($request, $params));
+                $response = $this->privateLinearGetFutureTradeV1EntrustProfitList($this->extend($request, $params));
             }
         } elseif (($subType !== null) || ($type === 'swap') || ($type === 'future')) {
             if ($subType === 'inverse') {
-                $response = $this->privateInverseGetFutureTradeV1OrderList ($this->extend($request, $params));
+                $response = $this->privateInverseGetFutureTradeV1OrderList($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearGetFutureTradeV1OrderList ($this->extend($request, $params));
+                $response = $this->privateLinearGetFutureTradeV1OrderList($this->extend($request, $params));
             }
         } else {
             $marginMode = null;
@@ -3010,9 +3009,9 @@ class xt extends Exchange {
                     $request = $this->omit($request, 'size');
                     $request['limit'] = $limit;
                 }
-                $response = $this->privateSpotGetHistoryOrder ($this->extend($request, $params));
+                $response = $this->privateSpotGetHistoryOrder($this->extend($request, $params));
             } else {
-                $response = $this->privateSpotGetOpenOrder ($this->extend($request, $params));
+                $response = $this->privateSpotGetOpenOrder($this->extend($request, $params));
             }
         }
         //
@@ -3203,7 +3202,7 @@ class xt extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all unfilled currently open orders
          *
@@ -3223,7 +3222,7 @@ class xt extends Exchange {
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -3243,7 +3242,7 @@ class xt extends Exchange {
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -3263,7 +3262,7 @@ class xt extends Exchange {
         return $this->fetch_orders_by_status('canceled', $symbol, $since, $limit, $params);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open $order
          *
@@ -3302,23 +3301,23 @@ class xt extends Exchange {
         if ($trigger) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
-                $response = $this->privateInversePostFutureTradeV1EntrustCancelPlan ($this->extend($request, $params));
+                $response = $this->privateInversePostFutureTradeV1EntrustCancelPlan($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearPostFutureTradeV1EntrustCancelPlan ($this->extend($request, $params));
+                $response = $this->privateLinearPostFutureTradeV1EntrustCancelPlan($this->extend($request, $params));
             }
         } elseif ($stopLossTakeProfit) {
             $params = $this->omit($params, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
-                $response = $this->privateInversePostFutureTradeV1EntrustCancelProfitStop ($this->extend($request, $params));
+                $response = $this->privateInversePostFutureTradeV1EntrustCancelProfitStop($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearPostFutureTradeV1EntrustCancelProfitStop ($this->extend($request, $params));
+                $response = $this->privateLinearPostFutureTradeV1EntrustCancelProfitStop($this->extend($request, $params));
             }
         } elseif ($subType === 'inverse') {
-            $response = $this->privateInversePostFutureTradeV1OrderCancel ($this->extend($request, $params));
+            $response = $this->privateInversePostFutureTradeV1OrderCancel($this->extend($request, $params));
         } elseif (($subType === 'linear') || ($type === 'swap') || ($type === 'future')) {
-            $response = $this->privateLinearPostFutureTradeV1OrderCancel ($this->extend($request, $params));
+            $response = $this->privateLinearPostFutureTradeV1OrderCancel($this->extend($request, $params));
         } else {
-            $response = $this->privateSpotDeleteOrderOrderId ($this->extend($request, $params));
+            $response = $this->privateSpotDeleteOrderOrderId($this->extend($request, $params));
         }
         //
         // spot
@@ -3346,7 +3345,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -3378,27 +3377,27 @@ class xt extends Exchange {
         if ($trigger) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
-                $response = $this->privateInversePostFutureTradeV1EntrustCancelAllPlan ($this->extend($request, $params));
+                $response = $this->privateInversePostFutureTradeV1EntrustCancelAllPlan($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearPostFutureTradeV1EntrustCancelAllPlan ($this->extend($request, $params));
+                $response = $this->privateLinearPostFutureTradeV1EntrustCancelAllPlan($this->extend($request, $params));
             }
         } elseif ($stopLossTakeProfit) {
             $params = $this->omit($params, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
-                $response = $this->privateInversePostFutureTradeV1EntrustCancelAllProfitStop ($this->extend($request, $params));
+                $response = $this->privateInversePostFutureTradeV1EntrustCancelAllProfitStop($this->extend($request, $params));
             } else {
-                $response = $this->privateLinearPostFutureTradeV1EntrustCancelAllProfitStop ($this->extend($request, $params));
+                $response = $this->privateLinearPostFutureTradeV1EntrustCancelAllProfitStop($this->extend($request, $params));
             }
         } elseif ($subType === 'inverse') {
-            $response = $this->privateInversePostFutureTradeV1OrderCancelAll ($this->extend($request, $params));
+            $response = $this->privateInversePostFutureTradeV1OrderCancelAll($this->extend($request, $params));
         } elseif (($subType === 'linear') || ($type === 'swap') || ($type === 'future')) {
-            $response = $this->privateLinearPostFutureTradeV1OrderCancelAll ($this->extend($request, $params));
+            $response = $this->privateLinearPostFutureTradeV1OrderCancelAll($this->extend($request, $params));
         } else {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             $marginOrSpotRequest = ($marginMode !== null) ? 'LEVER' : 'SPOT';
             $request['bizType'] = $marginOrSpotRequest;
-            $response = $this->privateSpotDeleteOpenOrder ($this->extend($request, $params));
+            $response = $this->privateSpotDeleteOpenOrder($this->extend($request, $params));
         }
         //
         // spot and margin
@@ -3424,7 +3423,7 @@ class xt extends Exchange {
         );
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -3448,7 +3447,7 @@ class xt extends Exchange {
         if ($subType !== null) {
             throw new NotSupported($this->id . ' cancelOrders() does not support swap and future orders, only spot orders are accepted');
         }
-        $response = $this->privateSpotDeleteBatchOrder ($this->extend($request, $params));
+        $response = $this->privateSpotDeleteBatchOrder($this->extend($request, $params));
         //
         // spot
         //
@@ -3651,7 +3650,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -3681,9 +3680,9 @@ class xt extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
         if ($subType === 'inverse') {
-            $response = $this->privateInverseGetFutureUserV1BalanceBills ($this->extend($request, $params));
+            $response = $this->privateInverseGetFutureUserV1BalanceBills($this->extend($request, $params));
         } elseif (($subType === 'linear') || ($type === 'swap') || ($type === 'future')) {
-            $response = $this->privateLinearGetFutureUserV1BalanceBills ($this->extend($request, $params));
+            $response = $this->privateLinearGetFutureUserV1BalanceBills($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported');
         }
@@ -3769,7 +3768,7 @@ class xt extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
@@ -3790,7 +3789,7 @@ class xt extends Exchange {
             'currency' => $currency['id'],
             'chain' => $networkId,
         );
-        $response = $this->privateSpotGetDepositAddress ($this->extend($request, $params));
+        $response = $this->privateSpotGetDepositAddress($this->extend($request, $params));
         //
         //     {
         //         "rc" => 0,
@@ -3824,7 +3823,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $deposits made to an account
          *
@@ -3849,7 +3848,7 @@ class xt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 200
         }
-        $response = $this->privateSpotGetDepositHistory ($this->extend($request, $params));
+        $response = $this->privateSpotGetDepositHistory($this->extend($request, $params));
         //
         //     {
         //         "rc" => 0,
@@ -3881,7 +3880,7 @@ class xt extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $withdrawals made from an account
          *
@@ -3906,7 +3905,7 @@ class xt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 200
         }
-        $response = $this->privateSpotGetWithdrawHistory ($this->extend($request, $params));
+        $response = $this->privateSpotGetWithdrawHistory($this->extend($request, $params));
         //
         //     {
         //         "rc" => 0,
@@ -3938,7 +3937,7 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -3968,7 +3967,7 @@ class xt extends Exchange {
         if ($tag !== null) {
             $request['memo'] = $tag;
         }
-        $response = $this->privateSpotPostWithdraw ($this->extend($request, $params));
+        $response = $this->privateSpotPostWithdraw($this->extend($request, $params));
         //
         //     {
         //         "rc" => 0,
@@ -4072,7 +4071,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -4105,9 +4104,9 @@ class xt extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('setLeverage', $market, $params);
         if ($subType === 'inverse') {
-            $response = $this->privateInversePostFutureUserV1PositionAdjustLeverage ($this->extend($request, $params));
+            $response = $this->privateInversePostFutureUserV1PositionAdjustLeverage($this->extend($request, $params));
         } else {
-            $response = $this->privateLinearPostFutureUserV1PositionAdjustLeverage ($this->extend($request, $params));
+            $response = $this->privateLinearPostFutureUserV1PositionAdjustLeverage($this->extend($request, $params));
         }
         //
         //     {
@@ -4120,7 +4119,7 @@ class xt extends Exchange {
         return $response;
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()) {
+    public function add_margin(string $symbol, float $amount, $params = array()) {
         /**
          * add margin to a position
          *
@@ -4135,7 +4134,7 @@ class xt extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, float $amount, $params = array()) {
         /**
          * remove margin from a position
          *
@@ -4150,7 +4149,7 @@ class xt extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array ()): array {
+    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array()): array {
         $positionSide = $this->safe_string($params, 'positionSide');
         $this->check_required_argument('setLeverage', $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
         $this->load_markets();
@@ -4165,9 +4164,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('modifyMarginHelper', $market, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->privateInversePostFutureUserV1PositionMargin ($this->extend($request, $params));
+            $response = $this->privateInversePostFutureUserV1PositionMargin($this->extend($request, $params));
         } else {
-            $response = $this->privateLinearPostFutureUserV1PositionMargin ($this->extend($request, $params));
+            $response = $this->privateLinearPostFutureUserV1PositionMargin($this->extend($request, $params));
         }
         //
         //     {
@@ -4195,7 +4194,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array()): array {
         /**
          * retrieve information on the maximum leverage for different trade sizes
          *
@@ -4210,9 +4209,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->publicInverseGetFutureMarketV1PublicLeverageBracketList ($params);
+            $response = $this->publicInverseGetFutureMarketV1PublicLeverageBracketList($params);
         } else {
-            $response = $this->publicLinearGetFutureMarketV1PublicLeverageBracketList ($params);
+            $response = $this->publicLinearGetFutureMarketV1PublicLeverageBracketList($params);
         }
         //
         //     {
@@ -4278,7 +4277,7 @@ class xt extends Exchange {
         return $result;
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array()): array {
         /**
          * retrieve information on the maximum leverage for different trade sizes of a single $market
          *
@@ -4297,9 +4296,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarketLeverageTiers', $market, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->publicInverseGetFutureMarketV1PublicLeverageBracketDetail ($this->extend($request, $params));
+            $response = $this->publicInverseGetFutureMarketV1PublicLeverageBracketDetail($this->extend($request, $params));
         } else {
-            $response = $this->publicLinearGetFutureMarketV1PublicLeverageBracketDetail ($this->extend($request, $params));
+            $response = $this->publicLinearGetFutureMarketV1PublicLeverageBracketDetail($this->extend($request, $params));
         }
         //
         //     {
@@ -4366,7 +4365,7 @@ class xt extends Exchange {
         return $tiers;
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding $rates
          *
@@ -4404,9 +4403,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRateHistory', $market, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->publicInverseGetFutureMarketV1PublicQFundingRateRecord ($this->extend($request, $params));
+            $response = $this->publicInverseGetFutureMarketV1PublicQFundingRateRecord($this->extend($request, $params));
         } else {
-            $response = $this->publicLinearGetFutureMarketV1PublicQFundingRateRecord ($this->extend($request, $params));
+            $response = $this->publicLinearGetFutureMarketV1PublicQFundingRateRecord($this->extend($request, $params));
         }
         //
         //     {
@@ -4448,7 +4447,7 @@ class xt extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_funding_interval(string $symbol, $params = array ()): array {
+    public function fetch_funding_interval(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate interval
          *
@@ -4461,7 +4460,7 @@ class xt extends Exchange {
         return $this->fetch_funding_rate($symbol, $params);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -4483,9 +4482,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRate', $market, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->publicInverseGetFutureMarketV1PublicQFundingRate ($this->extend($request, $params));
+            $response = $this->publicInverseGetFutureMarketV1PublicQFundingRate($this->extend($request, $params));
         } else {
-            $response = $this->publicLinearGetFutureMarketV1PublicQFundingRate ($this->extend($request, $params));
+            $response = $this->publicLinearGetFutureMarketV1PublicQFundingRate($this->extend($request, $params));
         }
         //
         //     {
@@ -4542,7 +4541,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch the funding history
          *
@@ -4572,9 +4571,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingHistory', $market, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->privateInverseGetFutureUserV1BalanceFundingRateList ($this->extend($request, $params));
+            $response = $this->privateInverseGetFutureUserV1BalanceFundingRateList($this->extend($request, $params));
         } else {
-            $response = $this->privateLinearGetFutureUserV1BalanceFundingRateList ($this->extend($request, $params));
+            $response = $this->privateLinearGetFutureUserV1BalanceFundingRateList($this->extend($request, $params));
         }
         //
         //     {
@@ -4635,7 +4634,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on a single open contract trade position
          *
@@ -4654,9 +4653,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPosition', $market, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->privateInverseGetFutureUserV1PositionList ($this->extend($request, $params));
+            $response = $this->privateInverseGetFutureUserV1PositionList($this->extend($request, $params));
         } else {
-            $response = $this->privateLinearGetFutureUserV1PositionList ($this->extend($request, $params));
+            $response = $this->privateLinearGetFutureUserV1PositionList($this->extend($request, $params));
         }
         //
         //     {
@@ -4696,7 +4695,7 @@ class xt extends Exchange {
         return null;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open $positions
          *
@@ -4711,9 +4710,9 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->privateInverseGetFutureUserV1PositionList ($params);
+            $response = $this->privateInverseGetFutureUserV1PositionList($params);
         } else {
-            $response = $this->privateLinearGetFutureUserV1PositionList ($params);
+            $response = $this->privateLinearGetFutureUserV1PositionList($params);
         }
         //
         //     {
@@ -4803,7 +4802,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
@@ -4829,7 +4828,7 @@ class xt extends Exchange {
             'from' => $fromAccountId,
             'to' => $toAccountId,
         );
-        $response = $this->privateSpotPostBalanceTransfer ($this->extend($request, $params));
+        $response = $this->privateSpotPostBalanceTransfer($this->extend($request, $params));
         //
         //   {
         //       info => array( rc => '0', mc => 'SUCCESS', ma => array(), result => '226971333791398656' ),
@@ -4860,7 +4859,7 @@ class xt extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -4898,7 +4897,7 @@ class xt extends Exchange {
             'positionSide' => $posSide,
             'symbol' => $market['id'],
         );
-        $response = $this->privateLinearPostFutureUserV1PositionChangeType ($this->extend($request, $params));
+        $response = $this->privateLinearPostFutureUserV1PositionChangeType($this->extend($request, $params));
         //
         // {
         //     "error" => array(
@@ -4913,7 +4912,7 @@ class xt extends Exchange {
         return $response; // unify return type
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * cancels an order and places a new order
          *
@@ -4962,9 +4961,9 @@ class xt extends Exchange {
             list($subType, $params) = $this->handle_sub_type_and_params('editOrder', $market, $params);
             if ($subType === 'inverse') {
                 if ($isStopLoss || $isTakeProfit) {
-                    $response = $this->privateInversePostFutureTradeV1EntrustUpdateProfitStop ($this->extend($request, $params));
+                    $response = $this->privateInversePostFutureTradeV1EntrustUpdateProfitStop($this->extend($request, $params));
                 } else {
-                    $response = $this->privateInversePostFutureTradeV1OrderUpdate ($this->extend($request, $params));
+                    $response = $this->privateInversePostFutureTradeV1OrderUpdate($this->extend($request, $params));
                     //
                     //     {
                     //         "returnCode" => 0,
@@ -4976,9 +4975,9 @@ class xt extends Exchange {
                 }
             } else {
                 if ($isStopLoss || $isTakeProfit) {
-                    $response = $this->privateLinearPostFutureTradeV1EntrustUpdateProfitStop ($this->extend($request, $params));
+                    $response = $this->privateLinearPostFutureTradeV1EntrustUpdateProfitStop($this->extend($request, $params));
                 } else {
-                    $response = $this->privateLinearPostFutureTradeV1OrderUpdate ($this->extend($request, $params));
+                    $response = $this->privateLinearPostFutureTradeV1OrderUpdate($this->extend($request, $params));
                     //
                     //     {
                     //         "returnCode" => 0,
@@ -4991,7 +4990,7 @@ class xt extends Exchange {
             }
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            $response = $this->privateSpotPutOrderOrderId ($this->extend($request, $params));
+            $response = $this->privateSpotPutOrderOrderId($this->extend($request, $params));
             //
             //     {
             //         "rc" => 0,
@@ -5077,7 +5076,7 @@ class xt extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);

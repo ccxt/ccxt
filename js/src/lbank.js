@@ -381,7 +381,7 @@ export default class lbank extends Exchange {
     async fetchTime(params = {}) {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
-        let response = undefined;
+        let response;
         if (type === 'swap') {
             response = await this.contractPublicGetCfdOpenApiV1PubGetTime(params);
         }
@@ -836,7 +836,7 @@ export default class lbank extends Exchange {
         const request = {};
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        let response = undefined;
+        let response;
         if (type === 'swap') {
             request['productGroup'] = 'SwapU';
             response = await this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, params));
@@ -902,7 +902,7 @@ export default class lbank extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -915,7 +915,7 @@ export default class lbank extends Exchange {
         };
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrderBook', market, params);
-        let response = undefined;
+        let response;
         if (type === 'swap') {
             request['depth'] = limit;
             response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend(request, params));
@@ -1114,7 +1114,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString(options, 'method', 'spotPublicGetTrades');
         const method = this.safeString(params, 'method', defaultMethod);
         params = this.omit(params, 'method');
-        let response = undefined;
+        let response;
         if (method === 'spotPublicGetSupplementTrades') {
             response = await this.spotPublicGetSupplementTrades(this.extend(request, params));
         }
@@ -1469,7 +1469,7 @@ export default class lbank extends Exchange {
         const options = this.safeValue(this.options, 'fetchBalance', {});
         const defaultMethod = this.safeString(options, 'method', 'spotPrivatePostSupplementUserInfo');
         const method = this.safeString(params, 'method', defaultMethod);
-        let response = undefined;
+        let response;
         if (method === 'spotPrivatePostSupplementUserInfoAccount') {
             response = await this.spotPrivatePostSupplementUserInfoAccount();
         }
@@ -1669,7 +1669,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString(options, 'method', 'spotPrivatePostSupplementCreateOrder');
         const method = this.safeString(params, 'method', defaultMethod);
         params = this.omit(params, 'method');
-        let response = undefined;
+        let response;
         if (method === 'spotPrivatePostCreateOrder') {
             response = await this.spotPrivatePostCreateOrder(this.extend(request, params));
         }
@@ -2235,7 +2235,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString(options, 'method', 'fetchDepositAddressDefault');
         const method = this.safeString(params, 'method', defaultMethod);
         params = this.omit(params, 'method');
-        let response = undefined;
+        let response;
         if (method === 'fetchDepositAddressSupplement') {
             response = await this.fetchDepositAddressSupplement(code, params);
         }
@@ -2604,7 +2604,7 @@ export default class lbank extends Exchange {
         // private only returns information for currencies with non-zero balance
         await this.loadMarkets();
         const isAuthorized = this.checkRequiredCredentials(false);
-        let result = undefined;
+        let result;
         if (isAuthorized === true) {
             const options = this.safeValue(this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTransactionFees');
@@ -2751,7 +2751,7 @@ export default class lbank extends Exchange {
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         await this.loadMarkets();
         const isAuthorized = this.checkRequiredCredentials(false);
-        let response = undefined;
+        let response;
         if (isAuthorized === true) {
             const options = this.safeValue(this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateDepositWithdrawFees');

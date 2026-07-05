@@ -209,7 +209,7 @@ public partial class lighter : ccxt.lighter
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -231,7 +231,7 @@ public partial class lighter : ccxt.lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -693,21 +693,31 @@ public partial class lighter : ccxt.lighter
         object amountString = this.safeString(trade, "size");
         object costString = this.safeString(trade, "usd_amount");
         object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        object side = ((bool) isTrue(isMakerAsk)) ? "buy" : "sell";
         object accountIndex = this.safeInteger(trade, "accountIndex");
+        object bidAccountId = this.safeInteger(trade, "bid_account_id");
+        object askAccountId = this.safeInteger(trade, "ask_account_id");
+        object side = null;
         object order = null;
         object takerOrMaker = null;
         if (isTrue(!isEqual(accountIndex, null)))
         {
-            if (isTrue(isEqual(this.safeInteger(trade, "bid_account_id"), accountIndex)))
+            if (isTrue(isEqual(bidAccountId, accountIndex)))
             {
+                // Own trades should use the account's order side
+                side = "buy";
                 order = this.safeString(trade, "bid_id");
                 takerOrMaker = ((bool) isTrue(isMakerAsk)) ? "taker" : "maker";
-            } else if (isTrue(isEqual(this.safeInteger(trade, "ask_account_id"), accountIndex)))
+            } else if (isTrue(isEqual(askAccountId, accountIndex)))
             {
+                side = "sell";
                 order = this.safeString(trade, "ask_id");
                 takerOrMaker = ((bool) isTrue(isMakerAsk)) ? "maker" : "taker";
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (isTrue(isEqual(side, null)))
+        {
+            side = ((bool) isTrue(isMakerAsk)) ? "buy" : "sell";
         }
         object fee = null;
         if (isTrue(!isEqual(takerOrMaker, null)))

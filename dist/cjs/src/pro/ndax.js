@@ -168,7 +168,7 @@ class ndax extends ndax$1["default"] {
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade(payload[i]);
             const symbol = trade['symbol'];
-            let tradesArray = this.safeValue(this.trades, symbol);
+            let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
             if (tradesArray === undefined) {
                 const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
                 tradesArray = new Cache.ArrayCache(limit);
@@ -327,7 +327,7 @@ class ndax extends ndax$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -489,7 +489,7 @@ class ndax extends ndax$1["default"] {
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const id = this.safeInteger(message, 'i');
-        const subscription = this.safeValue(subscriptionsById, id);
+        const subscription = (id === undefined) ? undefined : this.safeValue(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
@@ -536,7 +536,7 @@ class ndax extends ndax$1["default"] {
             'TickerDataUpdateEvent': this.handleOHLCV,
         };
         const event = this.safeString(message, 'n');
-        const method = this.safeValue(methods, event);
+        const method = (event === undefined) ? undefined : this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
         }

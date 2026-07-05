@@ -410,7 +410,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'tickers', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
             const id = this.safeString (entry, 'id');
@@ -514,7 +514,7 @@ export default class coinone extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -574,7 +574,7 @@ export default class coinone extends Exchange {
         let response: NullableDict = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            market = this.market (first);
+            market = this.market ((first as string));
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
@@ -865,7 +865,7 @@ export default class coinone extends Exchange {
             'currency': market['id'],
             'qty': amount,
         };
-        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
+        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize ((side as string));
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -929,7 +929,7 @@ export default class coinone extends Exchange {
             'filled': 'closed',
             'canceled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

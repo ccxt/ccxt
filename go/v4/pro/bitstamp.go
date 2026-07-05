@@ -60,7 +60,7 @@ func  (this *BitstampCore) Describe() any  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BitstampCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -385,7 +385,7 @@ func  (this *BitstampCore) HandleOrders(client any, message any)  {
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
     var stored any = this.Orders
-    var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
+    var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(channel, nil))), nil, this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel))
     var symbol any = this.SafeString(subscription, "symbol")
     var market any = this.Market(symbol)
     ccxt.AddElementToObject(order, "event", this.SafeString(message, "event"))

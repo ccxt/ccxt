@@ -100,7 +100,7 @@ export default class bitvavo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -218,7 +218,7 @@ export default class bitvavo extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Dict;
+    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: Num, price?: Num, params?: {}): Dict;
     /**
      * @method
      * @name bitvavo#editOrder
@@ -338,7 +338,7 @@ export default class bitvavo extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: Str): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    withdrawRequest(code: Str, amount: any, address: any, tag?: any, params?: {}): any;
+    withdrawRequest(code: Str, amount: any, address: any, tag?: Str, params?: {}): any;
     /**
      * @method
      * @name bitvavo#withdraw

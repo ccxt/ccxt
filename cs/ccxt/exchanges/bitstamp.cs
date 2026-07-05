@@ -19,7 +19,7 @@ public partial class bitstamp : Exchange
                 { "CORS", true },
                 { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
@@ -453,6 +453,7 @@ public partial class bitstamp : Exchange
                 { "UST", "USTC" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "networksById", new Dictionary<string, object>() {
                     { "bitcoin-cash", "BCH" },
                     { "bitcoin", "BTC" },
@@ -858,7 +859,7 @@ public partial class bitstamp : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

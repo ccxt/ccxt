@@ -54,7 +54,7 @@ class bithumb(ccxt.async_support.bithumb):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'ticker',
             'symbols': [market['base'] + '_' + market['quote']],
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -76,12 +76,14 @@ class bithumb(ccxt.async_support.bithumb):
         marketIds = []
         messageHashes = []
         symbols = self.market_symbols(symbols, None, False, True, True)
+        if symbols is None:
+            symbols = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
             marketIds.append(market['base'] + '_' + market['quote'])
             messageHashes.append('ticker:' + market['symbol'])
-        request: dict = {
+        request = {
             'type': 'ticker',
             'symbols': marketIds,
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -89,7 +91,7 @@ class bithumb(ccxt.async_support.bithumb):
         message = self.extend(request, params)
         newTicker = await self.watch_multiple(url, messageHashes, message, messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -190,7 +192,7 @@ class bithumb(ccxt.async_support.bithumb):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook' + ':' + symbol
-        request: dict = {
+        request = {
             'type': 'orderbookdepth',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -276,7 +278,7 @@ class bithumb(ccxt.async_support.bithumb):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
-        request: dict = {
+        request = {
             'type': 'transaction',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -429,10 +431,10 @@ class bithumb(ccxt.async_support.bithumb):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
-            payload: dict = {
+            payload = {
                 'access_key': self.apiKey,
                 'nonce': self.uuid(),
                 'timestamp': self.milliseconds(),
@@ -549,7 +551,7 @@ class bithumb(ccxt.async_support.bithumb):
         sideId = self.safe_string(order, 'ask_bid')
         side = ('buy') if (sideId == 'BID') else ('sell')
         typeId = self.safe_string(order, 'order_type')
-        type: Str = None
+        type = None
         if typeId == 'limit':
             type = 'limit'
         elif typeId == 'price':
@@ -557,7 +559,7 @@ class bithumb(ccxt.async_support.bithumb):
         elif typeId == 'market':
             type = 'market'
         stateId = self.safe_string(order, 'state')
-        status: Str = None
+        status = None
         if stateId == 'wait':
             status = 'open'
         elif stateId == 'trade':
@@ -572,7 +574,7 @@ class bithumb(ccxt.async_support.bithumb):
         filled = self.safe_string(order, 'executed_volume')
         cost = self.safe_string(order, 'executed_funds')
         feeCost = self.safe_string(order, 'paid_fee')
-        fee: NullableDict = None
+        fee = None
         if feeCost is not None:
             marketForFee = self.safe_market(marketId, market)
             feeCurrency = self.safe_string(marketForFee, 'quote')
@@ -610,7 +612,7 @@ class bithumb(ccxt.async_support.bithumb):
             return
         topic = self.safe_string(message, 'type')
         if topic is not None:
-            methods: dict = {
+            methods = {
                 'ticker': self.handle_ticker,
                 'orderbookdepth': self.handle_order_book,
                 'transaction': self.handle_trades,

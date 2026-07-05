@@ -5,6 +5,10 @@ import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, L
 import { eddsa } from './base/functions/crypto.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
+/**
+ * @class aftermath
+ * @augments Exchange
+ */
 export default class aftermath extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
@@ -74,7 +78,8 @@ export default class aftermath extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807',
+                'www': 'https://aftermath.finance',
+                'logo': 'https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7',
                 'api': {
                     'rest': 'https://aftermath.finance/api/ccxt',
                 },
@@ -473,7 +478,7 @@ export default class aftermath extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -700,7 +705,7 @@ export default class aftermath extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         let accountNumber: Int = undefined;
         [ accountNumber, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'accountNumber');
         if (accountNumber === undefined) {
@@ -862,7 +867,7 @@ export default class aftermath extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = this.clone (orders[i]);
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol);
+            const market = this.market (symbol as string);
             const price = this.safeString (order, 'price');
             const amount = this.safeString (order, 'amount');
             const orderParams = this.safeDict (order, 'params', {});
@@ -874,9 +879,9 @@ export default class aftermath extends Exchange {
             delete order['params'];
             order['chId'] = market['id'];
             if (price !== undefined) {
-                order['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
+                order['price'] = this.parseToNumeric (this.priceToPrecision (symbol as string, price));
             }
-            order['amount'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            order['amount'] = this.parseToNumeric (this.amountToPrecision (symbol as string, amount));
             ordersRequest.push (order);
         }
         let account: Str = undefined;
@@ -946,7 +951,7 @@ export default class aftermath extends Exchange {
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'account');
         const txRequest = {
@@ -1311,7 +1316,7 @@ export default class aftermath extends Exchange {
             throw new NotSupported (this.id + ' only support hex encoding private key, please transform bech32 encoding private key');
         }
         const signingDigest = this.safeString (tx, 'signingDigest');
-        const digest = this.base64ToBinary (signingDigest);
+        const digest = this.base64ToBinary (signingDigest as string);
         const privateKey = this.base16ToBinary (this.privateKey);
         const signature = eddsa (digest, privateKey, ed25519);
         const hexPublicKey = this.safeString (this.options, 'publicKey');

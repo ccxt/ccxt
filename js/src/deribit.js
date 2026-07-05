@@ -1776,7 +1776,7 @@ export default class deribit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3026,7 +3026,7 @@ export default class deribit extends Exchange {
         //         "amount": 13.456
         //     }
         //
-        const timestamp = this.safeTimestamp(transfer, 'created_timestamp');
+        const timestamp = this.safeInteger(transfer, 'created_timestamp');
         const status = this.safeString(transfer, 'state');
         const account = this.safeString(transfer, 'other_side');
         const direction = this.safeString(transfer, 'direction');

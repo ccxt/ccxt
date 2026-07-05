@@ -1,13 +1,10 @@
 {
   "name": "ccxt",
-  "version": "4.5.59",
+  "version": "4.5.64",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
-  "sideEffects": [
-    "./js/ccxt.js",
-    "./dist/ccxt.cjs"
-  ],
+  "sideEffects": false,
   "exports": {
     ".": {
       "import": {
@@ -61,18 +58,16 @@
     "go": "npm run transpileGO && npm run buildGO",
     "force-build//WithoutGo": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run go && npm run force-transpile-fast && npm run csharp && npm run java && npm run post-transpile && npm run update-badges",
-    "//TMPCommentforce-build": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run go && npm run post-transpile && npm run update-badges",
-    "build-docs": "node jsdoc2md.js && node examples2md.js",
-    "serve-docs": "docsify serve ./wiki",
+    "build-docs": "node jsdoc2md.js && node examples2md.js && tsx build/exchange-implicit-api.ts",
     "fumadocs-content": "tsx build/wiki-to-fumadocs.ts",
     "fumadocs-regen": "npm run build-docs && tsx build/wiki-to-fumadocs.ts",
     "fumadocs-build": "npm run fumadocs-content && cd website && npm run build",
     "fumadocs-dev": "npm run fumadocs-content && cd website && npm run dev",
     "fumadocs-linkcheck": "tsx build/check-fumadocs-links.ts",
-    "tsBuildFile": "tsc --skipLibCheck --strictNullChecks false --strict --noImplicitAny false --esModuleInterop --isolatedModules false --forceConsistentCasingInFileNames --removeComments false --target ES2021 --declaration --allowJs --checkJs false --moduleResolution Node --module ES2022 --outDir ./js/src --lib ES2020.BigInt,dom,ES2021 ",
+    "tsBuildFile": "tsc --outDir ./js/src ",
     "addJsHeaders": "tsx build/transpile.ts --js-headers",
     "tsBuild": "tsc && npm run addJsHeaders || echo \"\"",
-    "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
+    "tsBuildExamples": "tsx examples/clean-js-dir.ts && tsc -p ./examples/tsconfig.json",
     "emitAPI": "tsx build/generateImplicitAPI.ts",
     "emitAPITs": "tsx build/generateImplicitAPI.ts -- --ts",
     "emitAPIPy": "tsx build/generateImplicitAPI.ts -- --python",
@@ -82,14 +77,14 @@
     "emitAPIJava": "tsx build/generateImplicitAPI.ts -- --java",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
-    "pre-transpile-js": "npm run export-exchanges && npm run vss && npm run emitAPITs && npm run tsBuild && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
-    "pre-transpile-py": "npm run export-exchanges && npm run emitAPIPy",
-    "pre-transpile-php": "npm run export-exchanges && npm run emitAPIPhp",
-    "pre-transpile-go": "npm run export-exchanges && npm run emitAPIGo",
-    "pre-transpile-js-simple": "npm run export-exchanges && npm run emitAPITs && tsc && npm run validate-types",
-    "pre-transpile-cs": "npm run export-exchanges && npm run emitAPICs",
-    "pre-transpile-java": "npm run export-exchanges && npm run emitAPIJava",
-    "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
+    "pre-transpile-js": "npm run export-exchanges-js && npm run vss && npm run emitAPITs && npm run tsBuild && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
+    "pre-transpile-py": "npm run export-exchanges-py && npm run emitAPIPy",
+    "pre-transpile-php": "npm run export-exchanges-php && npm run emitAPIPhp",
+    "pre-transpile-go": "npm run export-exchanges-go && npm run emitAPIGo",
+    "pre-transpile-js-simple": "npm run export-exchanges-js && npm run emitAPITs && tsc && npm run validate-types",
+    "pre-transpile-cs": "npm run export-exchanges-cs && npm run emitAPICs",
+    "pre-transpile-java": "npm run export-exchanges-java && npm run emitAPIJava",
+    "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "cli.ts": "tsx ./cli/ts/cli.ts",
@@ -99,7 +94,13 @@
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run -C go ./cli/main.go",
     "cli.java": "./utils/java-cli.sh",
-    "export-exchanges": "node build/export-exchanges",
+    "export-exchanges": "tsx build/export-exchanges.ts",
+    "export-exchanges-js": "tsx build/export-exchanges.ts --js",
+    "export-exchanges-py": "tsx build/export-exchanges.ts --py",
+    "export-exchanges-php": "tsx build/export-exchanges.ts --php",
+    "export-exchanges-cs": "tsx build/export-exchanges.ts --cs",
+    "export-exchanges-go": "tsx build/export-exchanges.ts --go",
+    "export-exchanges-java": "tsx build/export-exchanges.ts --java",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",
     "git-unignore-generated-files": "node build/git-ignore-generated-files.cjs --unignore",
@@ -127,11 +128,12 @@
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && npm run lint",
     "eslint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
-    "check-python-ruff": "ruff check ./python/ccxt",
+    "check-python-style": "ruff check ./python/ccxt",
     "check-python-types": "cd python && tox -e type && cd ..",
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
     "check-ws-php-syntax": "php -f php/pro/test/custom/syntax.php",
+    "check-php-style": "php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run",
     "bundle": "npm run bundle-cjs && npm run bundle-browser",
     "bundle-cjs": "rollup -c rollup.config.js",
     "bundle-browser": "rspack build -c rspack.config.js && CCXT_MINIMIZE=true CCXT_OUTPUT_FILENAME=ccxt.browser.min.js rspack build -c rspack.config.js",
@@ -239,7 +241,7 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "0.0.86",
+    "ast-transpiler": "0.0.90",
     "blessed": "^0.1.81",
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",
@@ -367,7 +369,19 @@
     "@scure/starknet": "2.2.0",
     "ws": "8.21.0"
   },
+  "overrides": {
+    "marked": "^4.0.10",
+    "piscina": "^4.9.3"
+  },
   "optionalDependencies": {
     "bufferutil": "4.1.0"
+  },
+  "peerDependencies": {
+    "protobufjs": "^7.5.3"
+  },
+  "peerDependenciesMeta": {
+    "protobufjs": {
+      "optional": true
+    }
   }
 }

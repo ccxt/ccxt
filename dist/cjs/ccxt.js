@@ -11,7 +11,6 @@ var errors = require('./src/base/errors.js');
 var aftermath = require('./src/aftermath.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
-var ascendex = require('./src/ascendex.js');
 var aster = require('./src/aster.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
@@ -53,7 +52,6 @@ var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinmate = require('./src/coinmate.js');
-var coinmetro = require('./src/coinmetro.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
@@ -70,6 +68,7 @@ var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
+var gateeu = require('./src/gateeu.js');
 var gemini = require('./src/gemini.js');
 var grvt = require('./src/grvt.js');
 var hashkey = require('./src/hashkey.js');
@@ -83,6 +82,7 @@ var indodax = require('./src/indodax.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
+var kucoineu = require('./src/kucoineu.js');
 var kucoinfutures = require('./src/kucoinfutures.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
@@ -91,9 +91,9 @@ var luno = require('./src/luno.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
+var mudrex = require('./src/mudrex.js');
 var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
-var novadax = require('./src/novadax.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -116,7 +116,6 @@ var zebpay = require('./src/zebpay.js');
 var aftermath$1 = require('./src/pro/aftermath.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
-var ascendex$1 = require('./src/pro/ascendex.js');
 var aster$1 = require('./src/pro/aster.js');
 var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -156,6 +155,7 @@ var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
+var gateeu$1 = require('./src/pro/gateeu.js');
 var gemini$1 = require('./src/pro/gemini.js');
 var grvt$1 = require('./src/pro/grvt.js');
 var hashkey$1 = require('./src/pro/hashkey.js');
@@ -167,12 +167,14 @@ var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
+var kucoineu$1 = require('./src/pro/kucoineu.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
 var lighter$1 = require('./src/pro/lighter.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
+var mudrex$1 = require('./src/pro/mudrex.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okx$1 = require('./src/pro/okx.js');
@@ -193,13 +195,11 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.59';
-Exchange["default"].ccxtVersion = version;
+const version = '4.5.64';
 const exchanges = {
     'aftermath': aftermath["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
-    'ascendex': ascendex["default"],
     'aster': aster["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
@@ -241,7 +241,6 @@ const exchanges = {
     'coincheck': coincheck["default"],
     'coinex': coinex["default"],
     'coinmate': coinmate["default"],
-    'coinmetro': coinmetro["default"],
     'coinone': coinone["default"],
     'coinsph': coinsph["default"],
     'coinspot': coinspot["default"],
@@ -258,6 +257,7 @@ const exchanges = {
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
     'gate': gate["default"],
+    'gateeu': gateeu["default"],
     'gemini': gemini["default"],
     'grvt': grvt["default"],
     'hashkey': hashkey["default"],
@@ -271,6 +271,7 @@ const exchanges = {
     'kraken': kraken["default"],
     'krakenfutures': krakenfutures["default"],
     'kucoin': kucoin["default"],
+    'kucoineu': kucoineu["default"],
     'kucoinfutures': kucoinfutures["default"],
     'latoken': latoken["default"],
     'lbank': lbank["default"],
@@ -279,9 +280,9 @@ const exchanges = {
     'mercado': mercado["default"],
     'mexc': mexc["default"],
     'modetrade': modetrade["default"],
+    'mudrex': mudrex["default"],
     'myokx': myokx["default"],
     'ndax': ndax["default"],
-    'novadax': novadax["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -306,7 +307,6 @@ const pro = {
     'aftermath': aftermath$1["default"],
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
-    'ascendex': ascendex$1["default"],
     'aster': aster$1["default"],
     'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
@@ -346,6 +346,7 @@ const pro = {
     'exmo': exmo$1["default"],
     'extended': extended$1["default"],
     'gate': gate$1["default"],
+    'gateeu': gateeu$1["default"],
     'gemini': gemini$1["default"],
     'grvt': grvt$1["default"],
     'hashkey': hashkey$1["default"],
@@ -357,12 +358,14 @@ const pro = {
     'kraken': kraken$1["default"],
     'krakenfutures': krakenfutures$1["default"],
     'kucoin': kucoin$1["default"],
+    'kucoineu': kucoineu$1["default"],
     'kucoinfutures': kucoinfutures$1["default"],
     'lbank': lbank$1["default"],
     'lighter': lighter$1["default"],
     'luno': luno$1["default"],
     'mexc': mexc$1["default"],
     'modetrade': modetrade$1["default"],
+    'mudrex': mudrex$1["default"],
     'myokx': myokx$1["default"],
     'ndax': ndax$1["default"],
     'okx': okx$1["default"],
@@ -435,7 +438,6 @@ exports.errors = errors;
 exports.aftermath = aftermath["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
-exports.ascendex = ascendex["default"];
 exports.aster = aster["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
@@ -477,7 +479,6 @@ exports.coinbaseinternational = coinbaseinternational["default"];
 exports.coincheck = coincheck["default"];
 exports.coinex = coinex["default"];
 exports.coinmate = coinmate["default"];
-exports.coinmetro = coinmetro["default"];
 exports.coinone = coinone["default"];
 exports.coinsph = coinsph["default"];
 exports.coinspot = coinspot["default"];
@@ -494,6 +495,7 @@ exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
 exports.gate = gate["default"];
+exports.gateeu = gateeu["default"];
 exports.gemini = gemini["default"];
 exports.grvt = grvt["default"];
 exports.hashkey = hashkey["default"];
@@ -507,6 +509,7 @@ exports.indodax = indodax["default"];
 exports.kraken = kraken["default"];
 exports.krakenfutures = krakenfutures["default"];
 exports.kucoin = kucoin["default"];
+exports.kucoineu = kucoineu["default"];
 exports.kucoinfutures = kucoinfutures["default"];
 exports.latoken = latoken["default"];
 exports.lbank = lbank["default"];
@@ -515,9 +518,9 @@ exports.luno = luno["default"];
 exports.mercado = mercado["default"];
 exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
+exports.mudrex = mudrex["default"];
 exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
-exports.novadax = novadax["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];

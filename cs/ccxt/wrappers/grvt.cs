@@ -281,7 +281,7 @@ public partial class grvt
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals"/>  <br/>
+    /// See <see href="https://api-docs.grvt.io/trading_api/#withdrawal-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>

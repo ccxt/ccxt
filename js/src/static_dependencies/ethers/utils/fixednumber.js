@@ -4,18 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _FixedNumber_instances, _a, _FixedNumber_format, _FixedNumber_val, _FixedNumber_tens, _FixedNumber_checkFormat, _FixedNumber_checkValue, _FixedNumber_add, _FixedNumber_sub, _FixedNumber_mul, _FixedNumber_div;
+var _a;
 /**
  *  The **FixedNumber** class permits using values with decimal places,
  *  using fixed-pont math.
@@ -177,6 +166,11 @@ function toString(val, decimals) {
  *  will thow a [[NumericFaultError]] on underflow.
  */
 export class FixedNumber {
+    #format;
+    // The actual value (accounting for decimals)
+    #val;
+    // A base-10 value to multiple values by to maintain the magnitude
+    #tens;
     // Use this when changing this file to get some typing info,
     // but then switch to any to mask the internal type
     //constructor(guard: any, value: bigint, format: _FixedFormat) {
@@ -184,110 +178,152 @@ export class FixedNumber {
      *  @private
      */
     constructor(guard, value, format) {
-        _FixedNumber_instances.add(this);
-        _FixedNumber_format.set(this, void 0);
-        // The actual value (accounting for decimals)
-        _FixedNumber_val.set(this, void 0);
-        // A base-10 value to multiple values by to maintain the magnitude
-        _FixedNumber_tens.set(this, void 0);
         assertPrivate(guard, _guard, "FixedNumber");
-        __classPrivateFieldSet(this, _FixedNumber_val, value, "f");
-        __classPrivateFieldSet(this, _FixedNumber_format, format, "f");
+        this.#val = value;
+        this.#format = format;
         const _value = toString(value, format.decimals);
         defineProperties(this, { format: format.name, _value });
-        __classPrivateFieldSet(this, _FixedNumber_tens, getTens(format.decimals), "f");
+        this.#tens = getTens(format.decimals);
     }
     /**
      *  If true, negative values are permitted, otherwise only
      *  positive values and zero are allowed.
      */
-    get signed() { return __classPrivateFieldGet(this, _FixedNumber_format, "f").signed; }
+    get signed() { return this.#format.signed; }
     /**
      *  The number of bits available to store the value.
      */
-    get width() { return __classPrivateFieldGet(this, _FixedNumber_format, "f").width; }
+    get width() { return this.#format.width; }
     /**
      *  The number of decimal places in the fixed-point arithment field.
      */
-    get decimals() { return __classPrivateFieldGet(this, _FixedNumber_format, "f").decimals; }
+    get decimals() { return this.#format.decimals; }
     /**
      *  The value as an integer, based on the smallest unit the
      *  [[decimals]] allow.
      */
-    get value() { return __classPrivateFieldGet(this, _FixedNumber_val, "f"); }
+    get value() { return this.#val; }
+    #checkFormat(other) {
+        assertArgument(this.format === other.format, "incompatible format; use fixedNumber.toFormat", "other", other);
+    }
+    #checkValue(val, safeOp) {
+        /*
+                const width = BigInt(this.width);
+                if (this.signed) {
+                    const limit = (BN_1 << (width - BN_1));
+                    assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
+                        operation: <string>safeOp, fault: "overflow", value: val
+                    });
+        
+                    if (val > BN_0) {
+                        val = fromTwos(mask(val, width), width);
+                    } else {
+                        val = -fromTwos(mask(-val, width), width);
+                    }
+        
+                } else {
+                    const masked = mask(val, width);
+                    assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
+                        operation: <string>safeOp, fault: "overflow", value: val
+                    });
+                    val = masked;
+                }
+        */
+        val = checkValue(val, this.#format, safeOp);
+        return new _a(_guard, val, this.#format);
+    }
+    #add(o, safeOp) {
+        this.#checkFormat(o);
+        return this.#checkValue(this.#val + o.#val, safeOp);
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% added
      *  to %%other%%, ignoring overflow.
      */
-    addUnsafe(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_add).call(this, other); }
+    addUnsafe(other) { return this.#add(other); }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% added
      *  to %%other%%. A [[NumericFaultError]] is thrown if overflow
      *  occurs.
      */
-    add(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_add).call(this, other, "add"); }
+    add(other) { return this.#add(other, "add"); }
+    #sub(o, safeOp) {
+        this.#checkFormat(o);
+        return this.#checkValue(this.#val - o.#val, safeOp);
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%other%% subtracted
      *  from %%this%%, ignoring overflow.
      */
-    subUnsafe(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_sub).call(this, other); }
+    subUnsafe(other) { return this.#sub(other); }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%other%% subtracted
      *  from %%this%%. A [[NumericFaultError]] is thrown if overflow
      *  occurs.
      */
-    sub(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_sub).call(this, other, "sub"); }
+    sub(other) { return this.#sub(other, "sub"); }
+    #mul(o, safeOp) {
+        this.#checkFormat(o);
+        return this.#checkValue((this.#val * o.#val) / this.#tens, safeOp);
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
      *  by %%other%%, ignoring overflow and underflow (precision loss).
      */
-    mulUnsafe(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_mul).call(this, other); }
+    mulUnsafe(other) { return this.#mul(other); }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
      *  by %%other%%. A [[NumericFaultError]] is thrown if overflow
      *  occurs.
      */
-    mul(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_mul).call(this, other, "mul"); }
+    mul(other) { return this.#mul(other, "mul"); }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
      *  by %%other%%. A [[NumericFaultError]] is thrown if overflow
      *  occurs or if underflow (precision loss) occurs.
      */
     mulSignal(other) {
-        __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkFormat).call(this, other);
-        const value = __classPrivateFieldGet(this, _FixedNumber_val, "f") * __classPrivateFieldGet(other, _FixedNumber_val, "f");
-        assert((value % __classPrivateFieldGet(this, _FixedNumber_tens, "f")) === BN_0, "precision lost during signalling mul", "NUMERIC_FAULT", {
+        this.#checkFormat(other);
+        const value = this.#val * other.#val;
+        assert((value % this.#tens) === BN_0, "precision lost during signalling mul", "NUMERIC_FAULT", {
             operation: "mulSignal", fault: "underflow", value: this
         });
-        return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, value / __classPrivateFieldGet(this, _FixedNumber_tens, "f"), "mulSignal");
+        return this.#checkValue(value / this.#tens, "mulSignal");
+    }
+    #div(o, safeOp) {
+        assert(o.#val !== BN_0, "division by zero", "NUMERIC_FAULT", {
+            operation: "div", fault: "divide-by-zero", value: this
+        });
+        this.#checkFormat(o);
+        return this.#checkValue((this.#val * this.#tens) / o.#val, safeOp);
     }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% divided
      *  by %%other%%, ignoring underflow (precision loss). A
      *  [[NumericFaultError]] is thrown if overflow occurs.
      */
-    divUnsafe(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_div).call(this, other); }
+    divUnsafe(other) { return this.#div(other); }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% divided
      *  by %%other%%, ignoring underflow (precision loss). A
      *  [[NumericFaultError]] is thrown if overflow occurs.
      */
-    div(other) { return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_div).call(this, other, "div"); }
+    div(other) { return this.#div(other, "div"); }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% divided
      *  by %%other%%. A [[NumericFaultError]] is thrown if underflow
      *  (precision loss) occurs.
      */
     divSignal(other) {
-        assert(__classPrivateFieldGet(other, _FixedNumber_val, "f") !== BN_0, "division by zero", "NUMERIC_FAULT", {
+        assert(other.#val !== BN_0, "division by zero", "NUMERIC_FAULT", {
             operation: "div", fault: "divide-by-zero", value: this
         });
-        __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkFormat).call(this, other);
-        const value = (__classPrivateFieldGet(this, _FixedNumber_val, "f") * __classPrivateFieldGet(this, _FixedNumber_tens, "f"));
-        assert((value % __classPrivateFieldGet(other, _FixedNumber_val, "f")) === BN_0, "precision lost during signalling div", "NUMERIC_FAULT", {
+        this.#checkFormat(other);
+        const value = (this.#val * this.#tens);
+        assert((value % other.#val) === BN_0, "precision lost during signalling div", "NUMERIC_FAULT", {
             operation: "divSignal", fault: "underflow", value: this
         });
-        return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, value / __classPrivateFieldGet(other, _FixedNumber_val, "f"), "divSignal");
+        return this.#checkValue(value / other.#val, "divSignal");
     }
     /**
      *  Returns a comparison result between %%this%% and %%other%%.
@@ -342,12 +378,12 @@ export class FixedNumber {
      *  The decimal component of the result will always be ``0``.
      */
     floor() {
-        let val = __classPrivateFieldGet(this, _FixedNumber_val, "f");
-        if (__classPrivateFieldGet(this, _FixedNumber_val, "f") < BN_0) {
-            val -= __classPrivateFieldGet(this, _FixedNumber_tens, "f") - BN_1;
+        let val = this.#val;
+        if (this.#val < BN_0) {
+            val -= this.#tens - BN_1;
         }
-        val = (__classPrivateFieldGet(this, _FixedNumber_val, "f") / __classPrivateFieldGet(this, _FixedNumber_tens, "f")) * __classPrivateFieldGet(this, _FixedNumber_tens, "f");
-        return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, val, "floor");
+        val = (this.#val / this.#tens) * this.#tens;
+        return this.#checkValue(val, "floor");
     }
     /**
      *  Returns a new [[FixedNumber]] which is the smallest **integer**
@@ -356,12 +392,12 @@ export class FixedNumber {
      *  The decimal component of the result will always be ``0``.
      */
     ceiling() {
-        let val = __classPrivateFieldGet(this, _FixedNumber_val, "f");
-        if (__classPrivateFieldGet(this, _FixedNumber_val, "f") > BN_0) {
-            val += __classPrivateFieldGet(this, _FixedNumber_tens, "f") - BN_1;
+        let val = this.#val;
+        if (this.#val > BN_0) {
+            val += this.#tens - BN_1;
         }
-        val = (__classPrivateFieldGet(this, _FixedNumber_val, "f") / __classPrivateFieldGet(this, _FixedNumber_tens, "f")) * __classPrivateFieldGet(this, _FixedNumber_tens, "f");
-        return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, val, "ceiling");
+        val = (this.#val / this.#tens) * this.#tens;
+        return this.#checkValue(val, "ceiling");
     }
     /**
      *  Returns a new [[FixedNumber]] with the decimal component
@@ -380,17 +416,17 @@ export class FixedNumber {
         let value = this.value + bump;
         const tens = getTens(delta);
         value = (value / tens) * tens;
-        checkValue(value, __classPrivateFieldGet(this, _FixedNumber_format, "f"), "round");
-        return new _a(_guard, value, __classPrivateFieldGet(this, _FixedNumber_format, "f"));
+        checkValue(value, this.#format, "round");
+        return new _a(_guard, value, this.#format);
     }
     /**
      *  Returns true if %%this%% is equal to ``0``.
      */
-    isZero() { return (__classPrivateFieldGet(this, _FixedNumber_val, "f") === BN_0); }
+    isZero() { return (this.#val === BN_0); }
     /**
      *  Returns true if %%this%% is less than ``0``.
      */
-    isNegative() { return (__classPrivateFieldGet(this, _FixedNumber_val, "f") < BN_0); }
+    isNegative() { return (this.#val < BN_0); }
     /**
      *  Returns the string representation of %%this%%.
      */
@@ -480,49 +516,7 @@ export class FixedNumber {
         return new _a(_guard, value, format);
     }
 }
-_a = FixedNumber, _FixedNumber_format = new WeakMap(), _FixedNumber_val = new WeakMap(), _FixedNumber_tens = new WeakMap(), _FixedNumber_instances = new WeakSet(), _FixedNumber_checkFormat = function _FixedNumber_checkFormat(other) {
-    assertArgument(this.format === other.format, "incompatible format; use fixedNumber.toFormat", "other", other);
-}, _FixedNumber_checkValue = function _FixedNumber_checkValue(val, safeOp) {
-    /*
-            const width = BigInt(this.width);
-            if (this.signed) {
-                const limit = (BN_1 << (width - BN_1));
-                assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
-                    operation: <string>safeOp, fault: "overflow", value: val
-                });
-    
-                if (val > BN_0) {
-                    val = fromTwos(mask(val, width), width);
-                } else {
-                    val = -fromTwos(mask(-val, width), width);
-                }
-    
-            } else {
-                const masked = mask(val, width);
-                assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
-                    operation: <string>safeOp, fault: "overflow", value: val
-                });
-                val = masked;
-            }
-    */
-    val = checkValue(val, __classPrivateFieldGet(this, _FixedNumber_format, "f"), safeOp);
-    return new _a(_guard, val, __classPrivateFieldGet(this, _FixedNumber_format, "f"));
-}, _FixedNumber_add = function _FixedNumber_add(o, safeOp) {
-    __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkFormat).call(this, o);
-    return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, __classPrivateFieldGet(this, _FixedNumber_val, "f") + __classPrivateFieldGet(o, _FixedNumber_val, "f"), safeOp);
-}, _FixedNumber_sub = function _FixedNumber_sub(o, safeOp) {
-    __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkFormat).call(this, o);
-    return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, __classPrivateFieldGet(this, _FixedNumber_val, "f") - __classPrivateFieldGet(o, _FixedNumber_val, "f"), safeOp);
-}, _FixedNumber_mul = function _FixedNumber_mul(o, safeOp) {
-    __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkFormat).call(this, o);
-    return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, (__classPrivateFieldGet(this, _FixedNumber_val, "f") * __classPrivateFieldGet(o, _FixedNumber_val, "f")) / __classPrivateFieldGet(this, _FixedNumber_tens, "f"), safeOp);
-}, _FixedNumber_div = function _FixedNumber_div(o, safeOp) {
-    assert(__classPrivateFieldGet(o, _FixedNumber_val, "f") !== BN_0, "division by zero", "NUMERIC_FAULT", {
-        operation: "div", fault: "divide-by-zero", value: this
-    });
-    __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkFormat).call(this, o);
-    return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, (__classPrivateFieldGet(this, _FixedNumber_val, "f") * __classPrivateFieldGet(this, _FixedNumber_tens, "f")) / __classPrivateFieldGet(o, _FixedNumber_val, "f"), safeOp);
-};
+_a = FixedNumber;
 //const f1 = FixedNumber.fromString("12.56", "fixed16x2");
 //const f2 = FixedNumber.fromString("0.3", "fixed16x2");
 //console.log(f1.divSignal(f2));

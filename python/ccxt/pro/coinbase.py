@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -73,7 +73,7 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: subscription to a websocket channel
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         messageHash = name
         productIds = []
         if isinstance(symbol, list):
@@ -115,7 +115,7 @@ class coinbase(ccxt.async_support.coinbase):
         if self.safe_bool(self.options, 'unSubscriptionPending', False):
             raise ExchangeError(self.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions')
         self.options['unSubscriptionPending'] = True
-        market: Market = None
+        market = None
         watchMessageHash = name
         unWatchMessageHash = 'unsubscribe:' + name
         productIds = []
@@ -236,7 +236,7 @@ class coinbase(ccxt.async_support.coinbase):
         return res
 
     def create_ws_auth(self, name: str, productIds: List[str]):
-        subscribe: dict = {}
+        subscribe = {}
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
         isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
@@ -593,7 +593,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         name = 'level2'
@@ -610,7 +610,7 @@ class coinbase(ccxt.async_support.coinbase):
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -626,7 +626,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         name = 'level2'
@@ -908,7 +908,7 @@ class coinbase(ccxt.async_support.coinbase):
 
     def handle_message(self, client, message):
         channel = self.safe_string(message, 'channel')
-        methods: dict = {
+        methods = {
             'subscriptions': self.handle_subscription_status,
             'ticker': self.handle_tickers,
             'ticker_batch': self.handle_tickers,

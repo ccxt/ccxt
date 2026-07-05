@@ -141,7 +141,7 @@ public partial class toobit : ccxt.toobit
             { "ticketInfo", this.handleMyTrade },
             { "outboundContractPositionInfo", this.handlePositions },
         };
-        object method = this.safeValue(methods, topic);
+        object method = ((bool) isTrue((isEqual(topic, null)))) ? null : this.safeValue(methods, topic);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -152,7 +152,7 @@ public partial class toobit : ccxt.toobit
             {
                 object item = getValue(message, i);
                 object eventVar = this.safeString(item, "e");
-                object method2 = this.safeValue(methods, eventVar);
+                object method2 = ((bool) isTrue((isEqual(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
                 if (isTrue(!isEqual(method2, null)))
                 {
                     DynamicInvoker.InvokeMethod(method2, new object[] { client, item});
@@ -551,7 +551,7 @@ public partial class toobit : ccxt.toobit
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -567,7 +567,7 @@ public partial class toobit : ccxt.toobit
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {

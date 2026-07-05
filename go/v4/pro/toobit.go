@@ -145,7 +145,7 @@ func  (this *ToobitCore) HandleMessage(client any, message any)  {
         "ticketInfo": this.HandleMyTrade,
         "outboundContractPositionInfo": this.HandlePositions,
     }
-    var method any = this.SafeValue(methods, topic)
+    var method any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(topic, nil))), nil, this.SafeValue(methods, topic))
     if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
         ccxt.CallDynamically(method, client, message)
     } else {
@@ -153,7 +153,7 @@ func  (this *ToobitCore) HandleMessage(client any, message any)  {
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
             var item any = ccxt.GetValue(message, i)
             var event any = this.SafeString(item, "e")
-            var method2 any = this.SafeValue(methods, event)
+            var method2 any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(event, nil))), nil, this.SafeValue(methods, event))
             if ccxt.IsTrue(!ccxt.IsEqual(method2, nil)) {
                 ccxt.CallDynamically(method2, client, item)
             }
@@ -615,7 +615,7 @@ func  (this *ToobitCore) ParseWsTicker(ticker any, optionalArgs ...any) any  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *ToobitCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -643,7 +643,7 @@ func  (this *ToobitCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *ToobitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)

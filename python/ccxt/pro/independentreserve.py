@@ -131,7 +131,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -141,7 +141,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         limitString = self.number_to_string(limit)
         url = self.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
         messageHash = 'orderbook:' + symbol + ':' + limitString
-        subscription: dict = {
+        subscription = {
             'receivedSnapshot': False,
         }
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
@@ -260,14 +260,14 @@ class independentreserve(ccxt.async_support.independentreserve):
 
     def handle_message(self, client: Client, message):
         event = self.safe_string(message, 'Event')
-        handlers: dict = {
+        handlers = {
             'Subscriptions': self.handle_subscriptions,
             'Heartbeat': self.handle_heartbeat,
             'Trade': self.handle_trades,
             'OrderBookSnapshot': self.handle_order_book,
             'OrderBookChange': self.handle_order_book,
         }
-        handler = self.safe_value(handlers, event)
+        handler = None if (event is None) else self.safe_value(handlers, event)
         if handler is not None:
             handler(client, message)
             return

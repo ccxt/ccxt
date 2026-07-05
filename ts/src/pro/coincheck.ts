@@ -54,7 +54,7 @@ export default class coincheck extends coincheckRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -91,7 +91,7 @@ export default class coincheck extends coincheckRest {
         //         }
         //     ]
         //
-        const symbol = this.symbol (this.safeString (message, 0));
+        const symbol = this.symbol (this.safeString (message, 0) as string);
         const data = this.safeValue (message, 1, {});
         const timestamp = this.safeTimestamp (data, 'last_update_at');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
@@ -152,7 +152,7 @@ export default class coincheck extends coincheckRest {
         //     ]
         //
         const first = this.safeValue (message, 0, []);
-        const symbol = this.symbol (this.safeString (first, 2));
+        const symbol = this.symbol (this.safeString (first, 2) as string);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -181,7 +181,7 @@ export default class coincheck extends coincheckRest {
         //         "2078767" // ID of the Maker
         //     ]
         //
-        const symbol = this.symbol (this.safeString (trade, 2));
+        const symbol = this.symbol (this.safeString (trade, 2) as string);
         const timestamp = this.safeTimestamp (trade, 0);
         const side = this.safeString (trade, 5);
         const priceString = this.safeString (trade, 3);

@@ -36,7 +36,7 @@ type ClientInterface interface {
 	GetError() error
 	SetError(err error)
 	GetUrl() string
-	GetSubscriptions() map[string]any
+	GetSubscriptions() any
 	GetLastPong() any
 	SetLastPong(lastPong any)
 	GetKeepAlive() any
@@ -57,10 +57,9 @@ type Client struct {
 
 	PongSetMu sync.RWMutex // protects LastPong set
 
-	Subscriptions   map[string]any // map[string]chan any
-	SubscriptionsMu sync.RWMutex
-	ConnectMu       sync.RWMutex // protects Connect calls
-	ReadLoopClosed  chan struct{}
+	Subscriptions  *sync.Map    // map[string]chan any - concurrency-safe, no external mutex required
+	ConnectMu      sync.RWMutex // protects Connect calls
+	ReadLoopClosed chan struct{}
 
 	Error error // last error, nil if connection considered healthy
 
@@ -181,7 +180,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		"Protocols":             nil,
 		"Options":               nil,
 		"Futures":               make(map[string]any),
-		"Subscriptions":         make(map[string]any), // map[string]chan any
+		"Subscriptions":         &sync.Map{}, // map[string]chan any
 		"Rejections":            make(map[string]any),
 		"Connected":             nil,
 		"Error":                 nil,
@@ -215,7 +214,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 	c := &Client{
 		Url:                 url,
 		Futures:             finalConfig["Futures"].(map[string]any),
-		Subscriptions:       finalConfig["Subscriptions"].(map[string]any), // map[string]chan any
+		Subscriptions:       finalConfig["Subscriptions"].(*sync.Map), // map[string]chan any
 		Rejections:          finalConfig["Rejections"].(map[string]any),
 		Verbose:             finalConfig["Verbose"].(bool),
 		KeepAlive:           ParseInt(finalConfig["keepAlive"]),
@@ -577,7 +576,10 @@ func (this *Client) GetUrl() string {
 	return this.Url
 }
 
-func (this *Client) GetSubscriptions() map[string]any {
+// GetSubscriptions returns the live *sync.Map of subscriptions (by reference), so callers
+// (and the *sync.Map-aware helpers like Remove/AddElementToObject/ObjectKeys) mutate the
+// real subscriptions. It is concurrency-safe: sync.Map handles concurrent access internally.
+func (this *Client) GetSubscriptions() any {
 	return this.Subscriptions
 }
 

@@ -31,7 +31,7 @@ public class LighterCore extends LighterApi
             put( "quoteJsonNumbers", false );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
@@ -147,7 +147,7 @@ public class LighterCore extends LighterApi
             }} );
             put( "hostname", "zklighter.elliot.ai" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" );
+                put( "logo", "https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "root", "https://mainnet.{hostname}" );
                     put( "public", "https://mainnet.{hostname}" );
@@ -631,8 +631,8 @@ public class LighterCore extends LighterApi
             accountIndex = this.safeString(res, 0);
         }
         Object auths = this.safeDict(this.options, "auths");
-        Object accountAuths = this.safeDict(auths, accountIndex);
-        Object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
+        Object accountAuths = this.safeDict(auths, ((String)accountIndex));
+        Object cachedAuth = this.safeDict(accountAuths, ((String)apiKeyIndex));
         Object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (Helpers.isTrue(!Helpers.isEqual(cachedDeadline, null)))
         {
@@ -650,9 +650,9 @@ public class LighterCore extends LighterApi
             put( "api_key_index", LighterCore.this.parseToInt(finalApiKeyIndex) );
             put( "account_index", LighterCore.this.parseToInt(finalAccountIndex) );
         }};
-        Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "signer"), request);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "deadline", deadline);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "token", token);
+        Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), ((String)accountIndex)), ((String)apiKeyIndex)), "signer"), request);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), ((String)accountIndex)), ((String)apiKeyIndex)), "deadline", deadline);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), ((String)accountIndex)), ((String)apiKeyIndex)), "token", token);
         return token;
     }
 
@@ -685,7 +685,7 @@ public class LighterCore extends LighterApi
         Object binaryMessageLength = this.binaryLength(binaryMessage);
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((String)this.numberToString(binaryMessageLength))));
         return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
@@ -862,7 +862,7 @@ public class LighterCore extends LighterApi
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         Object orderType = ((String)type).toUpperCase();
         Object market = this.market(symbol);
-        Object orderSide = ((String)side).toUpperCase();
+        Object orderSide = ((String)((String)side)).toUpperCase();
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
         }};
@@ -1242,10 +1242,13 @@ public class LighterCore extends LighterApi
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
-                put( "integrator_account_index", Helpers.GetValue(LighterCore.this.options, "integratorAccountIndex") );
-                put( "integrator_taker_fee", Helpers.GetValue(LighterCore.this.options, "integratorTakerFee") );
-                put( "integrator_maker_fee", Helpers.GetValue(LighterCore.this.options, "integratorMakerFee") );
             }};
+            if (Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+            {
+                Helpers.addElementToObject(signRaw, "integrator_account_index", Helpers.GetValue(this.options, "integratorAccountIndex"));
+                Helpers.addElementToObject(signRaw, "integrator_taker_fee", Helpers.GetValue(this.options, "integratorTakerFee"));
+                Helpers.addElementToObject(signRaw, "integrator_maker_fee", Helpers.GetValue(this.options, "integratorMakerFee"));
+            }
             var txTypetxInfoVariable = this.lighterSignModifyOrder(signer, this.extend(signRaw, parameters));
             var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);
@@ -1600,7 +1603,7 @@ public class LighterCore extends LighterApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -2724,7 +2727,7 @@ public class LighterCore extends LighterApi
             Object typeAsInteger = this.safeInteger(order, "order_type");
             type = this.parseOrderTypeInteger(typeAsInteger);
         }
-        Object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
+        Object triggerPrice = this.parseNumber(this.omitZero(((String)this.safeString(order, "trigger_price"))));
         Object stopLossPrice = null;
         Object takeProfitPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
@@ -2768,7 +2771,7 @@ public class LighterCore extends LighterApi
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", LighterCore.this.safeString(order, "order_id") );
-            put( "clientOrderId", LighterCore.this.omitZero(LighterCore.this.safeString2(order, "client_order_id", "client_order_index")) );
+            put( "clientOrderId", LighterCore.this.omitZero(((String)LighterCore.this.safeString2(order, "client_order_id", "client_order_index"))) );
             put( "timestamp", timestamp );
             put( "datetime", LighterCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
@@ -2814,7 +2817,7 @@ public class LighterCore extends LighterApi
             put( "canceled-child", "canceled" );
             put( "canceled-liquidation", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrderType(Object type)
@@ -3326,7 +3329,7 @@ public class LighterCore extends LighterApi
             put( "completed", "ok" );
             put( "claimable", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -3845,11 +3848,11 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
     {
-        final Object timeout3 = timeout2;
+
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            Object timeout = timeout3;
+
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(timeout, 300000))) || Helpers.isTrue((Helpers.isGreaterThan(timeout, 1296000000)))))
@@ -3868,12 +3871,11 @@ public class LighterCore extends LighterApi
             Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
-            final Object finalTimeout = timeout;
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             Object signRaw = new java.util.HashMap<String, Object>() {{
                 put( "time_in_force", 1 );
-                put( "time", Helpers.add(LighterCore.this.milliseconds(), finalTimeout) );
+                put( "time", Helpers.add(LighterCore.this.milliseconds(), timeout) );
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );

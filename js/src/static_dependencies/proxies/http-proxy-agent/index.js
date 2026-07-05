@@ -17,6 +17,7 @@ function isHTTPS(protocol) {
  * to the specified "HTTP proxy server" in order to proxy HTTP requests.
  */
 export class HttpProxyAgent extends Agent {
+    static { this.protocols = ['http', 'https']; }
     get secureProxy() {
         return isHTTPS(this.proxy.protocol);
     }
@@ -106,7 +107,6 @@ export class HttpProxyAgent extends Agent {
         return socket;
     }
 }
-HttpProxyAgent.protocols = ['http', 'https'];
 function omit(obj, ...keys) {
     const ret = {};
     let key;

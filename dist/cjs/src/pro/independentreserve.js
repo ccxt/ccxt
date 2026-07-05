@@ -128,7 +128,7 @@ class independentreserve extends independentreserve$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -277,7 +277,7 @@ class independentreserve extends independentreserve$1["default"] {
             'OrderBookSnapshot': this.handleOrderBook,
             'OrderBookChange': this.handleOrderBook,
         };
-        const handler = this.safeValue(handlers, event);
+        const handler = (event === undefined) ? undefined : this.safeValue(handlers, event);
         if (handler !== undefined) {
             handler.call(this, client, message);
             return;

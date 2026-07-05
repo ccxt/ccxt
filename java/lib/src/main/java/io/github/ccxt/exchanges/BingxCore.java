@@ -1652,7 +1652,7 @@ public class BingxCore extends BingxApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -3564,6 +3564,17 @@ public class BingxCore extends BingxApi
             } else
             {
                 result = data;
+            }
+            // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+            Object stopLoss = this.safeString(result, "stopLoss");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLoss, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(stopLoss, "{"), 0)))))
+            {
+                Helpers.addElementToObject(result, "stopLoss", this.parseJson(stopLoss));
+            }
+            Object takeProfit = this.safeString(result, "takeProfit");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfit, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(takeProfit, "{"), 0)))))
+            {
+                Helpers.addElementToObject(result, "takeProfit", this.parseJson(takeProfit));
             }
             return this.parseOrder(result, market);
         });
@@ -6631,7 +6642,6 @@ public class BingxCore extends BingxApi
             }};
             Object response = null;
             Object commission = new java.util.HashMap<String, Object>() {{}};
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
                 response = (this.spotV1PrivateGetUserCommissionRate(this.extend(request, parameters))).join();
@@ -6646,7 +6656,7 @@ public class BingxCore extends BingxApi
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             } else
             {
                 if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
@@ -6663,7 +6673,7 @@ public class BingxCore extends BingxApi
                     //         }
                     //     }
                     //
-                    commission = data;
+                    commission = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 } else
                 {
                     response = (this.swapV2PrivateGetUserCommissionRate(parameters)).join();
@@ -6679,6 +6689,7 @@ public class BingxCore extends BingxApi
                     //         }
                     //     }
                     //
+                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                     commission = this.safeDict(data, "commission", new java.util.HashMap<String, Object>() {{}});
                 }
             }

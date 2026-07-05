@@ -322,10 +322,8 @@ func  (this *BullishCore) HandleTicker(client any, message any)  {
     var marketId any = this.SafeString(data, "symbol")
     var market any = this.SafeMarket(marketId)
     var symbol any = ccxt.GetValue(market, "symbol")
-    var parsed any = nil
-    if ccxt.IsTrue((ccxt.IsEqual(updateType, "snapshot"))) {
-        parsed = this.ParseTicker(data, market)
-    } else if ccxt.IsTrue(ccxt.IsEqual(updateType, "update")) {
+    var parsed any = this.ParseTicker(data, market)
+    if ccxt.IsTrue(ccxt.IsEqual(updateType, "update")) {
         var ticker any = this.SafeDict(this.Tickers, symbol, map[string]any {})
         var rawTicker any = this.SafeDict(ticker, "info", map[string]any {})
         var merged any = this.Extend(rawTicker, data)
@@ -343,7 +341,7 @@ func  (this *BullishCore) HandleTicker(client any, message any)  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BullishCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -355,8 +353,8 @@ func  (this *BullishCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes2848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2848)
+            retRes2828 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2828)
             var market any = this.Market(symbol)
             var url any = "/trading-api/v1/market-data/orderbook"
             var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
@@ -463,8 +461,8 @@ func  (this *BullishCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes3748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3748)
+            retRes3728 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3728)
             var subscribeHash any = "orders"
             var messageHash any = subscribeHash
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -557,7 +555,9 @@ func  (this *BullishCore) HandleOrders(client any, message any)  {
             var parsedOrder any = this.ParseOrder(rawOrder)
             orders.(ccxt.Appender).Append(parsedOrder)
             var symbol any = this.SafeString(parsedOrder, "symbol")
-            ccxt.AddElementToObject(symbols, symbol, true)
+            if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+                ccxt.AddElementToObject(symbols, symbol, true)
+            }
         }
         var messageHash any = "orders"
         client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -682,7 +682,9 @@ func  (this *BullishCore) HandleMyTrades(client any, message any)  {
             var parsedTrade any = this.ParseTrade(rawTrade)
             trades.(ccxt.Appender).Append(parsedTrade)
             var symbol any = this.SafeString(parsedTrade, "symbol")
-            ccxt.AddElementToObject(symbols, symbol, true)
+            if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+                ccxt.AddElementToObject(symbols, symbol, true)
+            }
         }
         var messageHash any = "myTrades"
         client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -711,8 +713,8 @@ func  (this *BullishCore) WatchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes5908 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5908)
+            retRes5928 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5928)
             var request any = map[string]any {
                 "topic": "assetAccounts",
             }
@@ -724,9 +726,9 @@ func  (this *BullishCore) WatchBalance(optionalArgs ...any) <- chan any {
                 messageHash = ccxt.Add(messageHash, ccxt.Add("::", tradingAccountId))
             }
         
-                retRes60115 :=  (<-this.WatchPrivate(messageHash, messageHash, request, params))
-                ccxt.PanicOnError(retRes60115)
-                ch <- retRes60115
+                retRes60315 :=  (<-this.WatchPrivate(messageHash, messageHash, request, params))
+                ccxt.PanicOnError(retRes60315)
+                ch <- retRes60315
                 return nil
         
             }()
@@ -775,6 +777,9 @@ func  (this *BullishCore) HandleBalance(client any, message any)  {
     //     }
     //
     var tradingAccountId any = this.SafeString(message, "tradingAccountId")
+    if ccxt.IsTrue(ccxt.IsEqual(tradingAccountId, nil)) {
+        return
+    }
     if !ccxt.IsTrue((ccxt.InOp(this.Balance, tradingAccountId))) {
         ccxt.AddElementToObject(this.Balance, tradingAccountId, map[string]any {})
     }
@@ -823,11 +828,11 @@ func  (this *BullishCore) WatchPositions(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes6838 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6838)
+            retRes6888 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6888)
             var subscribeHash any = "positions"
             var messageHash any = subscribeHash
-            if !ccxt.IsTrue(this.IsEmpty(symbols)) {
+            if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbols, nil))) && !ccxt.IsTrue(this.IsEmpty(symbols))) {
                 symbols = this.MarketSymbols(symbols)
                 messageHash = ccxt.Add(messageHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
             }

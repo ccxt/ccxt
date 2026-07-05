@@ -116,7 +116,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -405,7 +405,11 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             Object ticker = this.parseWsBidAsk(this.extend(Helpers.GetValue(data, i), new java.util.HashMap<String, Object>() {{
                 put( "ts", timestamp );
             }}));
-            Helpers.addElementToObject(this.tickers, Helpers.GetValue(ticker, "symbol"), ticker);
+            Object symbol = Helpers.GetValue(ticker, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(this.tickers, symbol, ticker);
+            }
             ((java.util.List<Object>)result).add(ticker);
         }
         client.resolve(result, topic);
@@ -502,6 +506,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(data, "type");
         Object timeframe = this.findTimeframe(interval);
+        if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
+        {
+            return;
+        }
         Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
@@ -642,7 +650,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         {
             takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
         }
-        Object fee = null;
+        Object fee = new java.util.HashMap<String, Object>() {{}};
         Object feeValue = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
@@ -941,7 +949,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object orderId = this.safeString(order, "orderId");
         Object marketId = this.safeString(order, "symbol");
-        market = this.market(marketId);
+        market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(order, "timestamp");
         Object fee = new java.util.HashMap<String, Object>() {{
@@ -1036,7 +1044,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object order = Helpers.GetValue(data, i);
-                Object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+                Object tradeIdStr = this.safeString(data, "tradeId");
+                Object tradeId = ((Helpers.isTrue((Helpers.isEqual(tradeIdStr, null))))) ? null : this.omitZero(tradeIdStr);
                 if (Helpers.isTrue(!Helpers.isEqual(tradeId, null)))
                 {
                     this.handleMyTrade(client, order);
@@ -1046,7 +1055,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         } else
         {
             // executionreport
-            Object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+            Object tradeIdStr = this.safeString(data, "tradeId");
+            Object tradeId = ((Helpers.isTrue((Helpers.isEqual(tradeIdStr, null))))) ? null : this.omitZero(tradeIdStr);
             if (Helpers.isTrue(!Helpers.isEqual(tradeId, null)))
             {
                 this.handleMyTrade(client, data);
@@ -1069,7 +1079,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             }
             Object cachedOrders = this.orders;
             Object orders = this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
-            Object order = this.safeDict(orders, orderId);
+            Object order = ((Helpers.isTrue((Helpers.isEqual(orderId, null))))) ? null : this.safeDict(orders, orderId);
             if (Helpers.isTrue(!Helpers.isEqual(order, null)))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -1082,7 +1092,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 {
                     Helpers.addElementToObject(parsed, "fees", fees);
                 }
-                Helpers.addElementToObject(parsed, "trades", this.safeList(order, "trades"));
+                Helpers.addElementToObject(parsed, "trades", this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
                 Helpers.addElementToObject(parsed, "timestamp", this.safeInteger(order, "timestamp"));
                 Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
             }
@@ -1164,7 +1174,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             (this.loadMarkets()).join();
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols);
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
@@ -1526,7 +1536,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             put( "bbos", "handleBidAsk");
         }};
         Object eventVar = this.safeString(message, "event");
-        Object method = this.safeValue(methods, eventVar);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
@@ -1546,6 +1556,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             if (Helpers.isTrue(Helpers.isEqual(splitLength, 2)))
             {
                 Object name = this.safeString(splitTopic, 1);
+                if (Helpers.isTrue(Helpers.isEqual(name, null)))
+                {
+                    return;
+                }
                 method = this.safeValue(methods, name);
                 if (Helpers.isTrue(!Helpers.isEqual(method, null)))
                 {
@@ -1556,7 +1570,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 Object splitNameLength = Helpers.getArrayLength(splitTopic);
                 if (Helpers.isTrue(Helpers.isEqual(splitNameLength, 2)))
                 {
-                    method = this.safeValue(methods, this.safeString(splitName, 0));
+                    Object splitNameFirst = this.safeString(splitName, 0);
+                    method = ((Helpers.isTrue((Helpers.isEqual(splitNameFirst, null))))) ? null : this.safeValue(methods, splitNameFirst);
                     if (Helpers.isTrue(!Helpers.isEqual(method, null)))
                     {
                         Helpers.callDynamically(this, method, new Object[] {client, message});

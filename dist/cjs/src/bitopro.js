@@ -601,7 +601,7 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1020,7 +1020,7 @@ class bitopro extends bitopro$1["default"] {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status);
+        return (status === undefined) ? undefined : this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1747,7 +1747,7 @@ class bitopro extends bitopro$1["default"] {
             const networks = this.safeDict(this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper(params, 'network');
             params = this.omit(params, ['network']);
-            const networkId = this.safeString(networks, requestedNetwork);
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, requestedNetwork);
             if (networkId === undefined) {
                 throw new errors.ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }

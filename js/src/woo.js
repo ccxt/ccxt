@@ -612,7 +612,7 @@ export default class woo extends Exchange {
         return this.parseMarkets(rows);
     }
     parseMarket(market) {
-        const marketId = this.safeString(market, 'symbol');
+        const marketId = this.safeString(market, 'symbol', '');
         const parts = marketId.split('_');
         const first = this.safeString(parts, 0);
         let marketType = undefined;
@@ -790,7 +790,7 @@ export default class woo extends Exchange {
         const order_id = this.safeString2(trade, 'order_id', 'orderId');
         const fee = this.parseTokenAndFeeTemp(trade, ['fee_asset', 'feeAsset'], ['fee']);
         const feeCost = this.safeString(fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((fee !== undefined) && (feeCost !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise.stringMul(price, amount);
@@ -920,8 +920,12 @@ export default class woo extends Exchange {
         const maker = this.safeString(data, 'makerFeeRate');
         const taker = this.safeString(data, 'takerFeeRate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1032,7 +1036,7 @@ export default class woo extends Exchange {
                 '_networks_by_id': networksById[id],
             };
             const parsed = this.parseCurrency(customCurrency);
-            const code = parsed['code'];
+            const code = this.safeString(parsed, 'code');
             result[code] = parsed;
         }
         return result;
@@ -2103,7 +2107,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2544,7 +2548,7 @@ export default class woo extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode, currency['code']);
+            request['network'] = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2736,7 +2740,7 @@ export default class woo extends Exchange {
         };
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = this.safeList(currencyRows, 1, []);
         return this.parseTransactions(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -3642,7 +3646,7 @@ export default class woo extends Exchange {
         const marginMode = this.safeStringLower(leverage, 'marginMode');
         let spotLeverage = this.safeInteger(leverage, 'leverage');
         if (spotLeverage === 0) {
-            spotLeverage = null;
+            spotLeverage = undefined;
         }
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;

@@ -3,7 +3,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
+import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -89,7 +89,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbols = this.getActiveSymbols ();
         }
         const symbolsLength = symbols.length;
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbolsLength > 1) {
             const parsedSymbols = this.marketSymbols (symbols);
             const marketIds = this.marketIds (parsedSymbols);
@@ -101,7 +101,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else if (symbolsLength === 1) {
             market = this.market (symbols[0]);
             messageHash = name + '::' + market['symbol'];
-            productIds = [ market['id'] ];
+            productIds = [ (market['id'] as string) ];
         }
         const url = this.urls['api']['ws'];
         if (url === undefined) {
@@ -141,15 +141,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     async subscribeMultiple (name: string, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        if (this.isEmpty (symbols)) {
+        if (this.isEmpty (symbols as string[])) {
             symbols = this.symbols;
         } else {
             symbols = this.marketSymbols (symbols);
         }
-        const messageHashes = [];
-        const productIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.marketId (symbols[i]);
+        const messageHashes: any[] = [];
+        const productIds: any[] = [];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const marketId = this.marketId ((symbols as string[])[i]);
             const symbol = this.symbol (marketId);
             productIds.push (marketId);
             messageHashes.push (name + '::' + symbol);
@@ -205,7 +205,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = this.safeString (fundingRate, 'symbol');
         if (this.newUpdates) {
             const result: Dict = {};
-            result[symbol] = fundingRate;
+            result[(symbol as string)] = fundingRate;
             return result;
         }
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
@@ -223,14 +223,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        let channel = undefined;
+        let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
-        return await this.subscribe (channel, [ symbol ], params);
+        return await this.subscribe ((channel as string), [ symbol ], params);
     }
 
     getActiveSymbols () {
-        const symbols = this.symbols;
-        const output = [];
+        const symbols = this.symbols as any;
+        const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.markets[symbol];
@@ -253,9 +253,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let channel = undefined;
+        let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
-        const ticker = await this.subscribe (channel, symbols, params);
+        const ticker = await this.subscribe ((channel as string), symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -497,11 +497,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = market['symbol'];
         const timeframe = this.findTimeframe (messageHash);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], timeframe) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], (timeframe as string)) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         const data = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
@@ -565,14 +565,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
         const channel = this.safeString (message, 'channel');
-        if (!(symbol in this.trades)) {
+        if (!((symbol as string) in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
-            this.trades[symbol] = tradesArrayCache;
+            this.trades[(symbol as string)] = tradesArrayCache;
         }
-        const tradesArray = this.trades[symbol];
+        const tradesArray = this.trades[(symbol as string)];
         tradesArray.append (trade);
-        this.trades[symbol] = tradesArray;
+        this.trades[(symbol as string)] = tradesArray;
         client.resolve (tradesArray, channel);
         client.resolve (tradesArray, channel + '::' + trade['symbol']);
         return message;
@@ -618,7 +618,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -632,7 +632,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -815,7 +815,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError (errorMessage);
+            throw new ExchangeError ((errorMessage as string));
         }
         if (channel.indexOf ('CANDLES') > -1) {
             this.handleOHLCV (client, message);

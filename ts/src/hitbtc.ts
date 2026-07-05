@@ -804,7 +804,7 @@ export default class hitbtc extends Exchange {
         //         },
         //     }
         //
-        const result = [];
+        const result: Dict[] = [];
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -905,7 +905,7 @@ export default class hitbtc extends Exchange {
                 'info': market,
             });
         }
-        return result;
+        return result as Market[];
     }
 
     /**
@@ -1121,7 +1121,7 @@ export default class hitbtc extends Exchange {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const account = this.safeString (accountsByType, type, type);
+        const account = (type === undefined) ? undefined : this.safeString (accountsByType, type, type);
         let response: Dict;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (params);
@@ -1290,18 +1290,14 @@ export default class hitbtc extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            response = await this.publicGetPublicTradesSymbol (this.extend (request, params));
-        } else {
-            response = await this.publicGetPublicTrades (this.extend (request, params));
+            const responseInner = await this.publicGetPublicTradesSymbol (this.extend (request, params));
+            return this.parseTrades (responseInner, market) as Trade[];
         }
-        if (symbol !== undefined) {
-            return this.parseTrades (response, market) as Trade[];
-        }
-        let trades = [];
+        const response = await this.publicGetPublicTrades (this.extend (request, params));
+        let trades: Dict[] = [];
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1344,7 +1340,7 @@ export default class hitbtc extends Exchange {
         }
         let marketType: Str = undefined;
         let marginMode = undefined;
-        let response = undefined;
+        let response: Dict[] = [];
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -1520,6 +1516,9 @@ export default class hitbtc extends Exchange {
             'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1583,7 +1582,7 @@ export default class hitbtc extends Exchange {
         const subType = this.safeString (transaction, 'subtype');
         const internal = subType === 'OFFCHAIN';
         // https://api.hitbtc.com/#check-if-offchain-is-available
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -1703,7 +1702,7 @@ export default class hitbtc extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -1807,7 +1806,9 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -1850,7 +1851,7 @@ export default class hitbtc extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let response = undefined;
+        let response: Dict[] = [];
         if (price === 'mark') {
             response = await this.publicGetPublicFuturesCandlesMarkPriceSymbol (this.extend (request, params));
         } else if (price === 'index') {
@@ -2037,7 +2038,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     ]
         //
-        const order = this.safeDict (response, 0);
+        const order = this.safeDict (response, 0, {});
         return this.parseOrder (order, market);
     }
 
@@ -2071,7 +2072,7 @@ export default class hitbtc extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
-        let response = undefined;
+        let response: Dict[] = [];
         if (marginMode !== undefined) {
             response = await this.privateGetMarginHistoryTrade (this.extend (request, params));
         } else {
@@ -2480,6 +2481,9 @@ export default class hitbtc extends Exchange {
             'canceled': 'canceled',
             'expired': 'failed',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2860,6 +2864,9 @@ export default class hitbtc extends Exchange {
         const fundingRates: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
+            if (marketId === undefined) {
+                continue;
+            }
             const rawFundingRate = this.safeValue (response, marketId);
             const marketInner = this.market (marketId);
             const symbol = marketInner['symbol'];
@@ -2928,7 +2935,7 @@ export default class hitbtc extends Exchange {
         //    }
         //
         const contracts = Object.keys (response);
-        const rates = [];
+        const rates: Dict[] = [];
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket (marketId);
@@ -3018,7 +3025,7 @@ export default class hitbtc extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
+        const result: Position[] = [];
         for (let i = 0; i < response.length; i++) {
             result.push (this.parsePosition (response[i]));
         }
@@ -3246,7 +3253,7 @@ export default class hitbtc extends Exchange {
         //         }
         //     }
         //
-        const results = [];
+        const results: Dict[] = [];
         const markets = Object.keys (response);
         for (let i = 0; i < markets.length; i++) {
             const marketId = markets[i];
@@ -3692,7 +3699,7 @@ export default class hitbtc extends Exchange {
             const networkEntry = networks[j];
             const networkId = this.safeString (networkEntry, 'network');
             const code = this.safeString (currency, 'code');
-            let networkCode = this.networkIdToCode (networkId, code);
+            let networkCode: Str = this.networkIdToCode (networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeValue (networkEntry, 'default');
@@ -3703,13 +3710,15 @@ export default class hitbtc extends Exchange {
             if (isDefault === true) {
                 result['withdraw'] = withdrawResult;
             }
-            result['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
@@ -3754,7 +3763,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [any, Dict] {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -3764,7 +3773,7 @@ export default class hitbtc extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
@@ -3830,7 +3839,9 @@ export default class hitbtc extends Exchange {
                     payload.push (getRequest);
                 }
             } else {
-                payload.push (body);
+                if (body !== undefined) {
+                    payload.push (body);
+                }
             }
             payload.push (timestamp);
             const payloadString = payload.join ('');

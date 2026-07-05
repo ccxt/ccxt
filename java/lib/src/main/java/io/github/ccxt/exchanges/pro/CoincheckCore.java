@@ -63,7 +63,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -109,7 +109,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //         }
         //     ]
         //
-        Object symbol = this.symbol(this.safeString(message, 0));
+        Object symbol = this.symbol(((String)this.safeString(message, 0)));
         Object data = this.safeValue(message, 1, new java.util.HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(data, "last_update_at");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp);
@@ -183,7 +183,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         Object first = this.safeValue(message, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbol = this.symbol(this.safeString(first, 2));
+        Object symbol = this.symbol(((String)this.safeString(first, 2)));
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -216,7 +216,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.symbol(this.safeString(trade, 2));
+        Object symbol = this.symbol(((String)this.safeString(trade, 2)));
         Object timestamp = this.safeTimestamp(trade, 0);
         Object side = this.safeString(trade, 5);
         Object priceString = this.safeString(trade, 3);

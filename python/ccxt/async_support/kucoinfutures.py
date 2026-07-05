@@ -64,7 +64,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
@@ -110,7 +110,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             #
         else:
             raise BadRequest(self.id + ' transfer() only supports transfers between future/swap, spot and funding accounts')
-        data: dict = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_transfer(data, currency), {
             'amount': self.parse_number(amountToPrecision),
             'fromAccount': fromAccount,
@@ -118,7 +118,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         })
 
     def parse_transfer_type(self, transferType):
-        transferTypes: dict = {
+        transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',
         }

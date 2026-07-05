@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -105,9 +105,9 @@ class phemex(ccxt.async_support.phemex):
         last = self.parse_number(lastString)
         quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'turnover'), market))
         baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'volume'), market))
-        change: Num = None
-        percentage: Num = None
-        average: Num = None
+        change = None
+        percentage = None
+        average = None
         openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 'open'), market))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
@@ -163,9 +163,9 @@ class phemex(ccxt.async_support.phemex):
         last = self.parse_number(lastString)
         quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), market))
         baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 5), market))
-        change: Num = None
-        percentage: Num = None
-        average: Num = None
+        change = None
+        percentage = None
+        average = None
         openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 1), market))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
@@ -271,7 +271,7 @@ class phemex(ccxt.async_support.phemex):
         #        "type": "snapshot",
         #    }
         #
-        tickers: List = []
+        tickers = []
         if 'market24h' in message:
             ticker = self.safe_value(message, 'market24h')
             tickers.append(self.parse_swap_ticker(ticker))
@@ -305,7 +305,7 @@ class phemex(ccxt.async_support.phemex):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         usePerpetualApi = self.safe_string(params, 'settle') == 'USDT'
         messageHash = ':balance'
@@ -502,7 +502,7 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         subscriptionHash = name + '.subscribe'
         messageHash = 'ticker:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
@@ -535,10 +535,10 @@ class phemex(ccxt.async_support.phemex):
         url = self.urls['api']['ws']
         requestId = self.request_id()
         subscriptionHash = name + '.subscribe'
-        messageHashes: List = []
+        messageHashes = []
         for i in range(0, len(symbols)):
             messageHashes.append('ticker:' + symbols[i])
-        subscribe: dict = {
+        subscribe = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
@@ -546,7 +546,7 @@ class phemex(ccxt.async_support.phemex):
         request = self.deep_extend(subscribe, params)
         ticker = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -575,7 +575,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'trade_p' if (isSwap and settleIsUSDT) else 'trade'
         messageHash = 'trade:' + symbol
         method = name + '.subscribe'
-        subscribe: dict = {
+        subscribe = {
             'method': method,
             'id': requestId,
             'params': [
@@ -600,7 +600,7 @@ class phemex(ccxt.async_support.phemex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -612,7 +612,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'orderbook_p' if (isSwap and settleIsUSDT) else 'orderbook'
         messageHash = 'orderbook:' + symbol
         method = name + '.subscribe'
-        subscribe: dict = {
+        subscribe = {
             'method': method,
             'id': requestId,
             'params': [
@@ -648,7 +648,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'kline_p' if (isSwap and settleIsUSDT) else 'kline'
         messageHash = 'kline:' + timeframe + ':' + symbol
         method = name + '.subscribe'
-        subscribe: dict = {
+        subscribe = {
             'method': method,
             'id': requestId,
             'params': [
@@ -754,8 +754,8 @@ class phemex(ccxt.async_support.phemex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market: Market = None
-        type: Str = None
+        market = None
+        type = None
         messageHash = 'trades:'
         if symbol is not None:
             market = self.market(symbol)
@@ -875,8 +875,8 @@ class phemex(ccxt.async_support.phemex):
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
-        marketIds: dict = {}
-        type: Str = None
+        marketIds = {}
+        type = None
         for i in range(0, len(message)):
             rawTrade = message[i]
             marketId = self.safe_string(rawTrade, 'symbol')
@@ -907,8 +907,8 @@ class phemex(ccxt.async_support.phemex):
         """
         await self.load_markets()
         messageHash = 'orders:'
-        market: Market = None
-        type: Str = None
+        market = None
+        type = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1084,8 +1084,8 @@ class phemex(ccxt.async_support.phemex):
         #        ...
         #    ]
         #
-        trades: List = []
-        parsedOrders: List = []
+        trades = []
+        parsedOrders = []
         if ('closed' in message) or ('fills' in message) or ('open' in message):
             closed = self.safe_value(message, 'closed', [])
             open = self.safe_value(message, 'open', [])
@@ -1112,10 +1112,10 @@ class phemex(ccxt.async_support.phemex):
                 parsedOrders.append(parsedOrder)
         self.handle_my_trades(client, trades)
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-        marketIds: dict = {}
+        marketIds = {}
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
-        type: Str = None
+        type = None
         stored = self.orders
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]
@@ -1484,7 +1484,7 @@ class phemex(ccxt.async_support.phemex):
             payload = self.apiKey + str(expiration)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             method = 'user.auth'
-            request: dict = {
+            request = {
                 'method': method,
                 'params': ['API', self.apiKey, signature, expiration],
                 'id': requestId,

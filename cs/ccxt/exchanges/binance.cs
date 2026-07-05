@@ -769,20 +769,21 @@ public partial class binance : Exchange
                             { "cost", 1 },
                             { "noSymbol", 5 },
                         } },
-                        { "allOrders", new Dictionary<string, object>() {
-                            { "cost", 20 },
+                        { "openAlgoOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
                             { "noSymbol", 40 },
                         } },
+                        { "allOrders", 5 },
                         { "balance", 1 },
                         { "account", 5 },
                         { "positionMargin/history", 1 },
                         { "positionRisk", 1 },
-                        { "userTrades", new Dictionary<string, object>() {
-                            { "cost", 20 },
-                            { "noSymbol", 40 },
-                        } },
+                        { "userTrades", 5 },
                         { "income", 20 },
-                        { "leverageBracket", 1 },
+                        { "leverageBracket", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                            { "noSymbol", 2 },
+                        } },
                         { "forceOrders", new Dictionary<string, object>() {
                             { "cost", 20 },
                             { "noSymbol", 50 },
@@ -801,6 +802,7 @@ public partial class binance : Exchange
                     { "post", new Dictionary<string, object>() {
                         { "positionSide/dual", 1 },
                         { "order", 4 },
+                        { "algoOrder", 1 },
                         { "batchOrders", 5 },
                         { "countdownCancelAll", 10 },
                         { "leverage", 1 },
@@ -815,6 +817,7 @@ public partial class binance : Exchange
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "order", 1 },
+                        { "algoOrder", 1 },
                         { "allOpenOrders", 1 },
                         { "batchOrders", 5 },
                         { "listenKey", 1 },
@@ -1358,6 +1361,7 @@ public partial class binance : Exchange
                 { "defaultSubType", null },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
                 { "warnOnFetchOpenOrdersWithoutSymbol", true },
+                { "warnOnSTPForInverse", true },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "throwMarginModeAlreadySet", false },
                 { "fetchPositions", "positionRisk" },
@@ -1400,6 +1404,9 @@ public partial class binance : Exchange
                     { "OPTION", "option" },
                 } },
                 { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BTC" },
+                    { "BTCSEGWIT", "SEGWITBTC" },
+                    { "BTCLIGHTNING", "LIGHTNING" },
                     { "ERC20", "ETH" },
                     { "ETH", "ETH" },
                     { "TRC20", "TRX" },
@@ -1407,9 +1414,12 @@ public partial class binance : Exchange
                     { "BEP2", "BNB" },
                     { "BSC", "BSC" },
                     { "BEP20", "BSC" },
+                    { "CHZ2", "CHZ2" },
+                    { "XRP", "XRP" },
                     { "EOS", "EOS" },
-                    { "SPL", "SOL" },
+                    { "DOGE", "DOGE" },
                     { "SOL", "SOL" },
+                    { "SONIC", "SONIC" },
                     { "ARBONE", "ARBITRUM" },
                     { "AVAXC", "AVAXC" },
                     { "MATIC", "MATIC" },
@@ -1442,6 +1452,46 @@ public partial class binance : Exchange
                     { "CFX", "CFX" },
                     { "SCRT", "SCRT" },
                     { "ONT", "ONT" },
+                    { "ZEC", "ZEC" },
+                    { "XMR", "XMR" },
+                    { "BCH", "BCH" },
+                    { "LTC", "LTC" },
+                    { "TAO", "TAO" },
+                    { "WLD", "WLD" },
+                    { "ICP", "ICP" },
+                    { "FLR", "FLR" },
+                    { "COSMOS", "ATOM" },
+                    { "ATOM", "ATOM" },
+                    { "FIL", "FIL" },
+                    { "INJ", "INJ" },
+                    { "DASH", "DASH" },
+                    { "VET", "VET" },
+                    { "FET", "FET" },
+                    { "TIA", "TIA" },
+                    { "KAIA", "KAIA" },
+                    { "DCR", "DCR" },
+                    { "IOTA", "IOTA" },
+                    { "THETA", "THETA" },
+                    { "AR", "AR" },
+                    { "DYDX", "DYDX" },
+                    { "XEC", "XEC" },
+                    { "QTUM", "QTUM" },
+                    { "ENJ", "ENJ" },
+                    { "RVN", "RVN" },
+                    { "ZIL", "ZIL" },
+                    { "BERA", "BERA" },
+                    { "0G", "0G" },
+                    { "MINA", "MINA" },
+                    { "AXL", "AXL" },
+                    { "ROSE", "ROSE" },
+                    { "CKB", "CKB" },
+                    { "DGB", "DGB" },
+                    { "MOVE", "MOVE" },
+                    { "XVG", "XVG" },
+                    { "SC", "SC" },
+                    { "LINEA", "LINEA" },
+                    { "WAVES", "WAVES" },
+                    { "MANTA", "MANTA" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "TRX", "TRC20" },
@@ -4089,7 +4139,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -5626,6 +5676,10 @@ public partial class binance : Exchange
     public virtual object editContractOrderRequest(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isTrue((isEqual(price, null))) && !isTrue((inOp(parameters, "priceMatch")))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() and editOrderWs() require a price argument for swap orders")) ;
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "contract")))
         {
@@ -5677,13 +5731,6 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        if (isTrue(isTrue(getValue(market, "linear")) || isTrue(isPortfolioMargin)))
-        {
-            if (isTrue(isTrue((isEqual(price, null))) && !isTrue((inOp(parameters, "priceMatch")))))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a price argument for portfolio margin and linear orders")) ;
-            }
-        }
         object request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "linear")))
@@ -6724,7 +6771,14 @@ public partial class binance : Exchange
                 }
             } else
             {
-                response = await this.dapiPrivatePostOrder(request);
+                if (isTrue(isConditional))
+                {
+                    ((IDictionary<string,object>)request)["algoType"] = "CONDITIONAL";
+                    response = await this.dapiPrivatePostAlgoOrder(request);
+                } else
+                {
+                    response = await this.dapiPrivatePostOrder(request);
+                }
             }
         } else if (isTrue(isTrue(isTrue(isEqual(marketType, "margin")) || isTrue(!isEqual(marginMode, null))) || isTrue(isPortfolioMargin)))
         {
@@ -7112,7 +7166,7 @@ public partial class binance : Exchange
             }
             if (isTrue(!isEqual(stopPrice, null)))
             {
-                if (isTrue(isTrue(isTrue(getValue(market, "linear")) && isTrue(getValue(market, "swap"))) && !isTrue(isPortfolioMargin)))
+                if (isTrue(isTrue(getValue(market, "swap")) && !isTrue(isPortfolioMargin)))
                 {
                     ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
                 } else
@@ -7151,10 +7205,11 @@ public partial class binance : Exchange
         parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
         if (isTrue(!isEqual(selfTradePrevention, null)))
         {
-            if (isTrue(getValue(market, "spot")))
+            if (isTrue(isTrue(getValue(market, "inverse")) && isTrue(getValue(this.options, "warnOnSTPForInverse"))))
             {
-                ((IDictionary<string,object>)request)["selfTradePreventionMode"] = ((string)selfTradePrevention).ToUpper(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+                throw new NotSupported ((string)add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the \"warnOnSTPForInverse\" option to false.")) ;
             }
+            ((IDictionary<string,object>)request)["selfTradePreventionMode"] = ((string)selfTradePrevention).ToUpper(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         object icebergAmount = this.safeNumber(parameters, "icebergAmount");
@@ -7769,7 +7824,13 @@ public partial class binance : Exchange
                 }
             } else
             {
-                response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
+                if (isTrue(isConditional))
+                {
+                    response = await this.dapiPrivateGetOpenAlgoOrders(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
+                }
             }
         } else if (isTrue(isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))) || isTrue(isPortfolioMargin)))
         {
@@ -8181,7 +8242,7 @@ public partial class binance : Exchange
             if (isTrue(getValue(market, "option")))
             {
                 ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
-            } else if (isTrue(isTrue(isTrue(isTrue(getValue(market, "linear")) && isTrue(getValue(market, "swap"))) && isTrue(isConditional)) && !isTrue(isPortfolioMargin)))
+            } else if (isTrue(isTrue(isTrue(getValue(market, "swap")) && isTrue(isConditional)) && !isTrue(isPortfolioMargin)))
             {
                 ((IDictionary<string,object>)request)["clientAlgoId"] = clientOrderId;
             } else
@@ -8199,7 +8260,7 @@ public partial class binance : Exchange
             if (isTrue(isTrue(isPortfolioMargin) && isTrue(isConditional)))
             {
                 ((IDictionary<string,object>)request)["strategyId"] = id;
-            } else if (isTrue(isTrue(isTrue(isTrue(getValue(market, "linear")) && isTrue(getValue(market, "swap"))) && isTrue(isConditional)) && !isTrue(isPortfolioMargin)))
+            } else if (isTrue(isTrue(isTrue(getValue(market, "swap")) && isTrue(isConditional)) && !isTrue(isPortfolioMargin)))
             {
                 ((IDictionary<string,object>)request)["algoId"] = id;
             } else
@@ -8246,7 +8307,13 @@ public partial class binance : Exchange
                 }
             } else
             {
-                response = await this.dapiPrivateDeleteOrder(this.extend(request, parameters));
+                if (isTrue(isConditional))
+                {
+                    response = await this.dapiPrivateDeleteAlgoOrder(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.dapiPrivateDeleteOrder(this.extend(request, parameters));
+                }
             }
         } else if (isTrue(isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))) || isTrue(isPortfolioMargin)))
         {
@@ -14491,15 +14558,14 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(isEqual(subType, "linear")))
-        {
-            response = await this.fapiPrivateGetPositionSideDual(parameters);
-        } else if (isTrue(isEqual(subType, "inverse")))
+        // we still have two working endpoints but positionMode is common for linear and inverse markets
+        // thus we do not throw an error if the subType is not specified and default to linear for now
+        if (isTrue(isEqual(subType, "inverse")))
         {
             response = await this.dapiPrivateGetPositionSideDual(parameters);
         } else
         {
-            throw new BadRequest ((string)add(this.id, " fetchPositionMode requires either a symbol argument or params[\"subType\"]")) ;
+            response = await this.fapiPrivateGetPositionSideDual(parameters);
         }
         //
         //    {

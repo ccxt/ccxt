@@ -28,7 +28,6 @@ class modetrade extends modetrade$1["default"] {
             'certified': false,
             'pro': true,
             'dex': true,
-            'hostname': 'trade.mode.network',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -128,7 +127,7 @@ class modetrade extends modetrade$1["default"] {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
+                'logo': 'https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -512,7 +511,7 @@ class modetrade extends modetrade$1["default"] {
         //     "liquidation_tier": "1"
         //   }
         //
-        const marketId = this.safeString(market, 'symbol');
+        const marketId = this.safeString(market, 'symbol', '');
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
@@ -666,7 +665,7 @@ class modetrade extends modetrade$1["default"] {
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
             // TODO: transform chain id to human readable name
-            const networkId = this.safeString(network, 'chain_id');
+            const networkId = this.safeString(network, 'chain_id', '');
             const precision = this.parsePrecision(this.safeString(network, 'decimals'));
             if (precision !== undefined) {
                 minPrecision = (minPrecision === undefined) ? precision : Precise["default"].stringMin(precision, minPrecision);
@@ -766,7 +765,7 @@ class modetrade extends modetrade$1["default"] {
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
         const feeCost = this.safeString(fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((feeCost !== undefined) && (fee !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise["default"].stringMul(price, amount);
@@ -846,16 +845,17 @@ class modetrade extends modetrade$1["default"] {
         //         }
         //
         const symbol = this.safeString(fundingRate, 'symbol');
-        market = this.market(symbol);
+        market = (symbol === undefined) ? market : this.market(symbol);
         const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
         const fundingTimeString = this.safeString(fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString(fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
+        const fundingSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': fundingSymbol,
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber('0'),
@@ -1170,16 +1170,19 @@ class modetrade extends modetrade$1["default"] {
         const maker = this.safeString(data, 'futures_maker_fee_rate');
         const taker = this.safeString(data, 'futures_taker_fee_rate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': this.parseNumber(Precise["default"].stringDiv(maker, '10000')),
-                'taker': this.parseNumber(Precise["default"].stringDiv(taker, '10000')),
-                'percentage': true,
-                'tierBased': true,
-            };
+        const symbols = this.symbols;
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                result[symbol] = {
+                    'info': response,
+                    'symbol': symbol,
+                    'maker': this.parseNumber(Precise["default"].stringDiv(maker, '10000')),
+                    'taker': this.parseNumber(Precise["default"].stringDiv(taker, '10000')),
+                    'percentage': true,
+                    'tierBased': true,
+                };
+            }
         }
         return result;
     }
@@ -1191,7 +1194,7 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1403,6 +1406,9 @@ class modetrade extends modetrade$1["default"] {
             'fok': 'FOK',
             'post_only': 'PO',
         };
+        if (timeInForce === undefined) {
+            return undefined;
+        }
         return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
@@ -1418,6 +1424,9 @@ class modetrade extends modetrade$1["default"] {
                 'INCOMPLETE': 'open',
                 'COMPLETED': 'closed',
             };
+            if (status === undefined) {
+                return undefined;
+            }
             return this.safeString(statuses, status, status);
         }
         return status;
@@ -1428,6 +1437,9 @@ class modetrade extends modetrade$1["default"] {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
+        if (type === undefined) {
+            return undefined;
+        }
         return this.safeStringLower(types, type, type);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1447,6 +1459,9 @@ class modetrade extends modetrade$1["default"] {
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
@@ -1619,7 +1634,10 @@ class modetrade extends modetrade$1["default"] {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            const type = this.safeString(rawOrder, 'type');
+            if (marketId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
+            }
+            const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -1703,7 +1721,9 @@ class modetrade extends modetrade$1["default"] {
         }
         else {
             request['symbol'] = market['id'];
-            request['side'] = side.toUpperCase();
+            if (side !== undefined) {
+                request['side'] = side.toUpperCase();
+            }
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(params, 'timeInForce');
             const isMarket = orderType === 'MARKET';
@@ -2076,7 +2096,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data', response);
-        const orders = this.safeList(data, 'rows');
+        const orders = this.safeList(data, 'rows', []);
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -2422,6 +2442,9 @@ class modetrade extends modetrade$1["default"] {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     /**
@@ -2473,7 +2496,7 @@ class modetrade extends modetrade$1["default"] {
         const request = {};
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = this.safeList(currencyRows, 1, []);
         //
         //     {
         //         "rows":[],
@@ -2539,7 +2562,7 @@ class modetrade extends modetrade$1["default"] {
         const verifyingContractAddress = this.safeString(this.options, 'verifyingContractAddress');
         const chainId = this.safeString(params, 'chainId');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
-        const coinNetwork = this.safeDict(currencyNetworks, chainId, {});
+        const coinNetwork = (chainId === undefined) ? {} : this.safeDict(currencyNetworks, chainId, {});
         const coinNetworkId = this.safeNumber(coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() require chainId parameter');
@@ -2751,6 +2774,9 @@ class modetrade extends modetrade$1["default"] {
      */
     async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchPosition() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2782,7 +2808,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parsePosition(data, market);
     }
     /**
@@ -2846,8 +2872,7 @@ class modetrade extends modetrade$1["default"] {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][access]);
-        url += '/' + version + '/';
+        let url = this.urls['api'][access] + '/' + version + '/';
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         if (access === 'public') {

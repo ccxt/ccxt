@@ -389,6 +389,7 @@ class coinbase extends coinbase$1["default"] {
                 'CGLD': 'CELO',
             },
             'options': {
+                'mica': true,
                 'usePrivate': false,
                 'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
@@ -1372,8 +1373,8 @@ class coinbase extends coinbase$1["default"] {
                         'type': 'spot',
                         'spot': true,
                         'margin': false,
-                        'swap': false,
-                        'future': false,
+                        'swap': true,
+                        'future': true,
                         'option': false,
                         'active': undefined,
                         'contract': false,
@@ -4020,7 +4021,7 @@ class coinbase extends coinbase$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();

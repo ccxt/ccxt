@@ -9,12 +9,13 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
  * @class Exchange
  */
 export default class Exchange {
+    static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
     api: Dictionary<any>;
     certified: boolean;
     pro: boolean;
-    countries: Str[];
+    countries: Strings;
     proxy: any;
     proxyUrl: Str;
     proxy_url: Str;
@@ -34,10 +35,10 @@ export default class Exchange {
     socks_proxy_callback: any;
     userAgent: {
         'User-Agent': string;
-    } | false;
+    } | false | undefined;
     user_agent: {
         'User-Agent': string;
-    } | false;
+    } | false | undefined;
     wsProxy: Str;
     ws_proxy: Str;
     wssProxy: Str;
@@ -82,13 +83,13 @@ export default class Exchange {
     tickers: Dictionary<Ticker>;
     fundingRates: Dictionary<FundingRate>;
     bidsasks: Dictionary<Ticker>;
-    orders: ArrayCache;
+    orders: ArrayCache | undefined;
     triggerOrders: ArrayCache;
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction>;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: any;
-    myTrades: ArrayCache;
+    myTrades: ArrayCache | undefined;
     positions: any;
     urls: {
         logo?: string;
@@ -118,6 +119,8 @@ export default class Exchange {
     last_request_body: any;
     last_request_url: string;
     last_request_path: string;
+    fetchHistoryCache: Dictionary<any>[];
+    fetchHistoryCacheSize: number;
     id: string;
     markets: Dictionary<any>;
     has: Dictionary<boolean | 'emulated' | undefined>;
@@ -302,7 +305,6 @@ export default class Exchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
-    checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -312,6 +314,8 @@ export default class Exchange {
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
+    addFetchCache(data: any): void;
+    getFetchCache(): Dictionary<any>[];
     isBinaryMessage(msg: any): msg is ArrayBuffer | Uint8Array<ArrayBufferLike>;
     stringToBinary(content: any): Uint8Array<ArrayBufferLike>;
     binaryToString(binary: any): string;
@@ -356,18 +360,18 @@ export default class Exchange {
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
-    ping(client: Client): any;
+    ping(client: Client): Dict | Str;
     client(url: string): WsClient;
     watchMultiple(url: string, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): import("./ws/Future.js").FutureInterface;
     watch(url: string, messageHash: string, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
-    close(): Promise<any[]>;
+    close(cleanInstanceCache?: boolean): Promise<void>;
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
-    valueIsDefined(value: any): boolean;
+    valueIsDefined<T>(value: T): value is NonNullable<T>;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
@@ -423,6 +427,8 @@ export default class Exchange {
     setLastRestRequestTimestamp(): void;
     setLastRequest(request: any): void;
     describe(): any;
+    cleanRestData(): void;
+    cleanWsData(): void;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionaryOrList: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -445,10 +451,10 @@ export default class Exchange {
     getCacheIndex(orderbook: any, deltas: any): number;
     arraysConcat(arraysOfArrays: any[]): any[];
     findTimeframe(timeframe: any, timeframes?: NullableDict): string;
-    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): any;
+    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): string;
     urlEncoderForProxyUrl(targetUrl: string): string;
-    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): any[];
-    checkWsProxySettings(): any[];
+    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): string[];
+    checkWsProxySettings(): string[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     checkAddress(address?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
@@ -469,7 +475,12 @@ export default class Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {};
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: any;
+        method: any;
+        headers: any;
+        body: any;
+    };
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -697,7 +708,7 @@ export default class Exchange {
     safeNumber2(dictionary: object, key1: IndexType, key2: IndexType, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
-    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): LeverageTiers;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     safePosition(position: Dict): Position;
     parsePositions(positions: any[], symbols?: string[], params?: {}): Position[];
@@ -1004,7 +1015,7 @@ export default class Exchange {
     convertTypeToAccount(account: any): any;
     checkRequiredArgument(methodName: string, argument: any, argumentName: any, options?: any[]): void;
     checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
-    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): any;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     depositWithdrawFee(info: any): any;
     assignDefaultDepositWithdrawFees(fee: any, currency?: Currency): any;

@@ -11,6 +11,10 @@ func (this *CoincheckCore) PublicGetExchangeOrdersRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangeOrdersRate", args...)
 }
 
+func (this *CoincheckCore) PublicGetExchangeStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeStatus", args...)
+}
+
 func (this *CoincheckCore) PublicGetOrderBooks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderBooks", args...)
 }
@@ -47,8 +51,16 @@ func (this *CoincheckCore) PrivateGetDepositMoney(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDepositMoney", args...)
 }
 
+func (this *CoincheckCore) PrivateGetExchangeOrdersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersId", args...)
+}
+
 func (this *CoincheckCore) PrivateGetExchangeOrdersOpens(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeOrdersOpens", args...)
+}
+
+func (this *CoincheckCore) PrivateGetExchangeOrdersCancelStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersCancelStatus", args...)
 }
 
 func (this *CoincheckCore) PrivateGetExchangeOrdersTransactions(args ...any) <-chan any {

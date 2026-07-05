@@ -693,7 +693,7 @@ public partial class kraken : ccxt.kraken
         for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
         {
             object candle = getValue(data, subtract(subtract(ohlcvsLength, i), 1));
-            object datetime = this.safeString(candle, "timestamp");
+            object datetime = this.safeString(candle, "interval_begin");
             object timestamp = this.parse8601(datetime);
             object parsed = new List<object>() {timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")};
             callDynamically(stored, "append", new object[] {parsed});
@@ -827,7 +827,7 @@ public partial class kraken : ccxt.kraken
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -843,7 +843,7 @@ public partial class kraken : ccxt.kraken
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -916,13 +916,16 @@ public partial class kraken : ccxt.kraken
         {
             marketsByWsName = new Dictionary<string, object>() {};
             object symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            if (isTrue(!isEqual(symbols, null)))
             {
-                object symbol = getValue(symbols, i);
-                object market = getValue(this.markets, symbol);
-                object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-                object wsName = ((string)this.safeString(info, "wsname"));
-                ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
+                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                {
+                    object symbol = getValue(symbols, i);
+                    object market = getValue(this.markets, symbol);
+                    object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+                    object wsName = ((string)this.safeString(info, "wsname"));
+                    ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
+                }
             }
             ((IDictionary<string,object>)this.options)["marketsByWsName"] = marketsByWsName;
         }
@@ -1556,6 +1559,10 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         // symbols are required
         symbols = this.marketSymbols(symbols, null, false, true, false);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            return null;
+        }
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {

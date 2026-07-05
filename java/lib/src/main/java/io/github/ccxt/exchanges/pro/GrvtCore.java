@@ -117,7 +117,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             return;
         }
         Object channel = this.safeString(message, "stream");
-        Object method = this.safeValue(methods, channel);
+        Object method = this.safeValue(methods, ((String)channel));
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
@@ -182,7 +182,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @method
      * @name grvt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -215,7 +215,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
-                ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(interval)));
+                ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(((String)interval))));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker::", Helpers.GetValue(market, "symbol")));
             }
             final Object finalChannel = channel;
@@ -314,7 +314,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector");
+        Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId, null);
@@ -429,7 +429,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector");
+        Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId, null);
@@ -508,7 +508,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
-                Object market = this.market(symbolString);
+                Object market = this.market(((String)symbolString));
                 Object marketId = Helpers.GetValue(market, "id");
                 Object unfiedTimeframe = this.safeString(data, 1, "1");
                 Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -556,22 +556,22 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector");
+        Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId, null);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object secondPart = this.safeString(parts, 1);
+        Object secondPart = this.safeString(parts, 1, "");
         Object timeframeId = Helpers.replace((String)secondPart, (String)"-TRADE", (String)"");
         Object timeframe = this.findTimeframe(timeframeId);
         Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe))))
+        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
             Object limit = this.handleOption("watchOHLCV", "limit", 1000);
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(data, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
@@ -594,7 +594,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -619,7 +619,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
@@ -650,7 +650,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
-            Object extraPart = ((Helpers.isTrue(isSnapshot))) ? (Helpers.add(Helpers.add(String.valueOf(interval), "-"), String.valueOf(limit))) : String.valueOf(interval);
+            Object extraPart = ((Helpers.isTrue(isSnapshot))) ? (Helpers.add(Helpers.add(String.valueOf(((String)interval)), "-"), String.valueOf(limit))) : String.valueOf(((String)interval));
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -701,7 +701,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector");
+        Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId, null);
@@ -712,7 +712,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object sequenceNumber = this.safeInteger(message, "sequence_number");
+        Object sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         Object stream = this.safeString(message, "stream");
         Object isSnapshotChannel = Helpers.isEqual(stream, "v1.book.s");
         Object isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);

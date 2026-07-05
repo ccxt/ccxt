@@ -451,7 +451,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -583,7 +583,7 @@ class poloniex extends poloniex$1["default"] {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.ohlcvs[symbol], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -622,7 +622,7 @@ class poloniex extends poloniex$1["default"] {
                 const symbol = trade['symbol'];
                 const type = 'trades';
                 const messageHash = type + '::' + symbol;
-                let tradesArray = this.safeValue(this.trades, symbol);
+                let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                     tradesArray = new Cache.ArrayCache(tradesLimit);
@@ -814,8 +814,8 @@ class poloniex extends poloniex$1["default"] {
             const eventType = this.safeString(order, 'eventType');
             if (marketId !== undefined) {
                 const symbol = this.safeSymbol(marketId);
-                const orderId = this.safeString(order, 'orderId');
-                const clientOrderId = this.safeString(order, 'clientOrderId');
+                const orderId = this.safeString(order, 'orderId', '');
+                const clientOrderId = this.safeString(order, 'clientOrderId', '');
                 if (eventType === 'place' || eventType === 'canceled') {
                     const parsed = this.parseWsOrder(order);
                     orders.append(parsed);
@@ -1210,7 +1210,7 @@ class poloniex extends poloniex$1["default"] {
             'cancelAllOrders': this.handleOrderRequest,
             'auth': this.handleAuthenticate,
         };
-        const method = this.safeValue(methods, type);
+        const method = (type === undefined) ? undefined : this.safeValue(methods, type);
         if (type === 'auth') {
             this.handleAuthenticate(client, message);
         }

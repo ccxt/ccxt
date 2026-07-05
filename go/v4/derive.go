@@ -16,7 +16,7 @@ func NewDeriveCore() *DeriveCore {
 func (this *DeriveCore) Describe() any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "derive",
-		"name":      "derive",
+		"name":      "Derive",
 		"countries": []any{},
 		"version":   "v1",
 		"rateLimit": 50,
@@ -132,9 +132,8 @@ func (this *DeriveCore) Describe() any {
 			"1w":  "1w",
 			"1M":  "1M",
 		},
-		"hostname": "derive.xyz",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c",
+			"logo": "https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed",
 			"api": map[string]any{
 				"public":  "https://api.lyra.finance/public",
 				"private": "https://api.lyra.finance/private",
@@ -706,8 +705,8 @@ func (this *DeriveCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7518 := (<-this.LoadMarkets())
-		PanicOnError(retRes7518)
+		retRes7508 := (<-this.LoadMarkets())
+		PanicOnError(retRes7508)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -896,8 +895,8 @@ func (this *DeriveCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes9218 := (<-this.LoadMarkets())
-		PanicOnError(retRes9218)
+		retRes9208 := (<-this.LoadMarkets())
+		PanicOnError(retRes9208)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1038,8 +1037,8 @@ func (this *DeriveCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10418 := (<-this.LoadMarkets())
-		PanicOnError(retRes10418)
+		retRes10408 := (<-this.LoadMarkets())
+		PanicOnError(retRes10408)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -1225,8 +1224,8 @@ func (this *DeriveCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12038 := (<-this.LoadMarkets())
-		PanicOnError(retRes12038)
+		retRes12028 := (<-this.LoadMarkets())
+		PanicOnError(retRes12028)
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(price, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
@@ -1387,7 +1386,7 @@ func (this *DeriveCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		var result any = this.SafeDict(response, "result")
 		var rawOrder any = this.SafeDict(result, "raw_data")
 		if IsTrue(IsEqual(rawOrder, nil)) {
-			rawOrder = this.SafeDict(result, "order")
+			rawOrder = this.SafeDict(result, "order", map[string]any{})
 		}
 		var order any = this.ParseOrder(rawOrder, market)
 		AddElementToObject(order, "type", typeVar)
@@ -1426,8 +1425,8 @@ func (this *DeriveCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes13968 := (<-this.LoadMarkets())
-		PanicOnError(retRes13968)
+		retRes13958 := (<-this.LoadMarkets())
+		PanicOnError(retRes13958)
 		var market any = this.Market(symbol)
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
@@ -1561,7 +1560,7 @@ func (this *DeriveCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		//   }
 		//
 		var result any = this.SafeDict(response, "result")
-		var rawOrder any = this.SafeDict(result, "order")
+		var rawOrder any = this.SafeDict(result, "order", map[string]any{})
 		var order any = this.ParseOrder(rawOrder, market)
 
 		ch <- order
@@ -1596,8 +1595,8 @@ func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes15648 := (<-this.LoadMarkets())
-		PanicOnError(retRes15648)
+		retRes15638 := (<-this.LoadMarkets())
+		PanicOnError(retRes15638)
 		var market any = this.Market(symbol)
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 		var subaccountId any = nil
@@ -1677,7 +1676,7 @@ func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var extendParams any = map[string]any{
 			"symbol": symbol,
 		}
-		var order any = this.SafeDict(response, "result")
+		var order any = this.SafeDict(response, "result", map[string]any{})
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific)
 		}
@@ -1710,8 +1709,8 @@ func (this *DeriveCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16538 := (<-this.LoadMarkets())
-		PanicOnError(retRes16538)
+		retRes16528 := (<-this.LoadMarkets())
+		PanicOnError(retRes16528)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1740,7 +1739,7 @@ func (this *DeriveCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		//     "result": {
 		//         "cancelled_orders": 0
 		//     },
-		//     "id": "9d633799-2098-4559-b547-605bb6f4d8f4"
+		//     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
 		// }
 		//
 		// {
@@ -1785,17 +1784,17 @@ func (this *DeriveCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17018 := (<-this.LoadMarkets())
-		PanicOnError(retRes17018)
+		retRes17008 := (<-this.LoadMarkets())
+		PanicOnError(retRes17008)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes170519 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes170519)
-			ch <- retRes170519
+			retRes170419 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes170419)
+			ch <- retRes170419
 			return nil
 		}
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
@@ -1872,14 +1871,14 @@ func (this *DeriveCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(data, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
 				return nil
 			}
 		}
-		var orders any = this.SafeList(data, "orders")
+		var orders any = this.SafeList(data, "orders", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -1914,15 +1913,15 @@ func (this *DeriveCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17998 := (<-this.LoadMarkets())
-		PanicOnError(retRes17998)
+		retRes17988 := (<-this.LoadMarkets())
+		PanicOnError(retRes17988)
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "open",
 		})
 
-		retRes180115 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes180115)
-		ch <- retRes180115
+		retRes180015 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes180015)
+		ch <- retRes180015
 		return nil
 
 	}()
@@ -1955,15 +1954,15 @@ func (this *DeriveCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18178 := (<-this.LoadMarkets())
-		PanicOnError(retRes18178)
+		retRes18168 := (<-this.LoadMarkets())
+		PanicOnError(retRes18168)
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "filled",
 		})
 
-		retRes181915 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes181915)
-		ch <- retRes181915
+		retRes181815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes181815)
+		ch <- retRes181815
 		return nil
 
 	}()
@@ -1996,15 +1995,15 @@ func (this *DeriveCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18358 := (<-this.LoadMarkets())
-		PanicOnError(retRes18358)
+		retRes18348 := (<-this.LoadMarkets())
+		PanicOnError(retRes18348)
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "cancelled",
 		})
 
-		retRes183715 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes183715)
-		ch <- retRes183715
+		retRes183615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes183615)
+		ch <- retRes183615
 		return nil
 
 	}()
@@ -2186,8 +2185,8 @@ func (this *DeriveCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes20038 := (<-this.LoadMarkets())
-		PanicOnError(retRes20038)
+		retRes20028 := (<-this.LoadMarkets())
+		PanicOnError(retRes20028)
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2283,17 +2282,17 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes20778 := (<-this.LoadMarkets())
-		PanicOnError(retRes20778)
+		retRes20768 := (<-this.LoadMarkets())
+		PanicOnError(retRes20768)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes208119 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes208119)
-			ch <- retRes208119
+			retRes208019 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes208019)
+			ch <- retRes208019
 			return nil
 		}
 		var subaccountId any = nil
@@ -2357,7 +2356,7 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
@@ -2393,8 +2392,8 @@ func (this *DeriveCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes21608 := (<-this.LoadMarkets())
-		PanicOnError(retRes21608)
+		retRes21598 := (<-this.LoadMarkets())
+		PanicOnError(retRes21598)
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2558,17 +2557,17 @@ func (this *DeriveCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes23018 := (<-this.LoadMarkets())
-		PanicOnError(retRes23018)
+		retRes23008 := (<-this.LoadMarkets())
+		PanicOnError(retRes23008)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes230519 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes230519)
-			ch <- retRes230519
+			retRes230419 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes230419)
+			ch <- retRes230419
 			return nil
 		}
 		var subaccountId any = nil
@@ -2627,7 +2626,7 @@ func (this *DeriveCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
@@ -2686,8 +2685,8 @@ func (this *DeriveCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24038 := (<-this.LoadMarkets())
-		PanicOnError(retRes24038)
+		retRes24028 := (<-this.LoadMarkets())
+		PanicOnError(retRes24028)
 		var deriveWalletAddress any = nil
 		deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
 		deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
@@ -2804,8 +2803,8 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes24998 := (<-this.LoadMarkets())
-		PanicOnError(retRes24998)
+		retRes24988 := (<-this.LoadMarkets())
+		PanicOnError(retRes24988)
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2839,7 +2838,7 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		//
 		var currency any = this.SafeCurrency(code)
 		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events")
+		var events any = this.SafeList(result, "events", []any{})
 
 		ch <- this.ParseTransactions(events, currency, since, limit, params)
 		return nil
@@ -2874,8 +2873,8 @@ func (this *DeriveCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25468 := (<-this.LoadMarkets())
-		PanicOnError(retRes25468)
+		retRes25458 := (<-this.LoadMarkets())
+		PanicOnError(retRes25458)
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
 		subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2909,7 +2908,7 @@ func (this *DeriveCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		//
 		var currency any = this.SafeCurrency(code)
 		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events")
+		var events any = this.SafeList(result, "events", []any{})
 
 		ch <- this.ParseTransactions(events, currency, since, limit, params)
 		return nil

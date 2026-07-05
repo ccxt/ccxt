@@ -129,7 +129,7 @@ class toobit(ccxt.async_support.toobit):
         if pongTimestamp is not None:
             self.handle_incoming_pong(client, pongTimestamp)
             return
-        methods: dict = {
+        methods = {
             'trade': self.handle_trades,
             'kline': self.handle_ohlcv,
             'realtimes': self.handle_tickers,
@@ -142,7 +142,7 @@ class toobit(ccxt.async_support.toobit):
             'ticketInfo': self.handle_my_trade,
             'outboundContractPositionInfo': self.handle_positions,
         }
-        method = self.safe_value(methods, topic)
+        method = None if (topic is None) else self.safe_value(methods, topic)
         if method is not None:
             method(client, message)
         else:
@@ -150,7 +150,7 @@ class toobit(ccxt.async_support.toobit):
             for i in range(0, len(message)):
                 item = message[i]
                 event = self.safe_string(item, 'e')
-                method2 = self.safe_value(methods, event)
+                method2 = None if (event is None) else self.safe_value(methods, event)
                 if method2 is not None:
                     method2(client, item)
 
@@ -186,8 +186,8 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes: List = []
-        subParams: List = []
+        messageHashes = []
+        subParams = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -196,7 +196,7 @@ class toobit(ccxt.async_support.toobit):
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': 'trade',
             'event': 'sub',
@@ -282,10 +282,10 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        messageHashes: List = []
+        messageHashes = []
         timeframes = self.safe_dict(self.options['ws'], 'timeframes', {})
-        marketIds: List = []
-        selectedTimeframe: Str = None
+        marketIds = []
+        selectedTimeframe = None
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
             symbolStr = self.safe_string(data, 0)
@@ -299,7 +299,7 @@ class toobit(ccxt.async_support.toobit):
                 selectedTimeframe = rawTimeframe
             marketIds.append(marketId)
             messageHashes.append('ohlcv::' + symbolStr + '::' + unfiedTimeframe)
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': 'kline_' + selectedTimeframe,
             'event': 'sub',
@@ -400,8 +400,8 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes: List = []
-        subParams: List = []
+        messageHashes = []
+        subParams = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -410,14 +410,14 @@ class toobit(ccxt.async_support.toobit):
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': 'realtimes',
             'event': 'sub',
         }
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -482,7 +482,7 @@ class toobit(ccxt.async_support.toobit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -495,14 +495,14 @@ class toobit(ccxt.async_support.toobit):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        channel: Str = None
+        channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'channel', 'depth')
-        messageHashes: List = []
-        subParams: List = []
+        messageHashes = []
+        subParams = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -511,7 +511,7 @@ class toobit(ccxt.async_support.toobit):
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': channel,
             'event': 'sub',
@@ -624,7 +624,7 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         await self.authenticate()
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
         isSpot = (marketType == 'spot')
         type = 'spot' if isSpot else 'contract'
@@ -789,13 +789,13 @@ class toobit(ccxt.async_support.toobit):
         symbol = self.safe_symbol(marketId, market)
         priceType = self.safe_string_lower(order, 'pt')
         rawOrderType = self.safe_string_lower(order, 'o')
-        orderType: Str = None
+        orderType = None
         if priceType == 'market':
             orderType = 'market'
         else:
             orderType = rawOrderType
         feeCost = self.safe_number(order, 'n')
-        fee: Fee = None
+        fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -945,7 +945,7 @@ class toobit(ccxt.async_support.toobit):
             self.positions[type] = ArrayCacheBySymbolBySide()
 
     async def load_positions_snapshot(self, client, messageHash, type):
-        params: dict = {
+        params = {
             'type': type,
         }
         positions = await self.fetch_positions(None, params)
@@ -992,7 +992,7 @@ class toobit(ccxt.async_support.toobit):
         if not (accountType in self.positions):
             self.positions[accountType] = ArrayCacheBySymbolBySide()
         cache = self.positions[accountType]
-        newPositions: List = []
+        newPositions = []
         for i in range(0, len(message)):
             rawPosition = message[i]
             position = self.parse_ws_position(rawPosition)

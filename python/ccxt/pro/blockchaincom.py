@@ -70,7 +70,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'action': 'subscribe',
             'channel': 'balances',
         }
@@ -110,7 +110,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         event = self.safe_string(message, 'event')
         if event == 'subscribed':
             return
-        result: dict = {'info': message}
+        result = {'info': message}
         balances = self.safe_value(message, 'balances', [])
         for i in range(0, len(balances)):
             entry = balances[i]
@@ -254,7 +254,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        ticker: Ticker | None = None
+        ticker = None
         if event == 'subscribed':
             return
         elif event == 'snapshot':
@@ -417,7 +417,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             market = self.market(symbol)
             symbol = market['symbol']
         url = self.urls['api']['ws']
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'channel': 'trading',
         }
@@ -593,7 +593,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             'pending': 'open',
             'open': 'open',
             'rejected': 'rejected',
@@ -614,7 +614,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -622,7 +622,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         type = self.safe_string(params, 'type', 'l2')
         params = self.omit(params, 'type')
         messageHash = 'orderbook:' + symbol + ':' + type
-        subscribe: dict = {
+        subscribe = {
             'action': 'subscribe',
             'channel': type,
             'symbol': market['id'],
@@ -702,7 +702,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
 
     def handle_message(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
-        handlers: dict = {
+        handlers = {
             'ticker': self.handle_ticker,
             'trades': self.handle_trades,
             'prices': self.handle_ohlcv,
@@ -742,7 +742,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         isAuthenticated = self.safe_value(client.subscriptions, messageHash)
         if isAuthenticated is None:
             self.check_required_credentials()
-            request: dict = {
+            request = {
                 'action': 'subscribe',
                 'channel': 'auth',
                 'token': self.secret,

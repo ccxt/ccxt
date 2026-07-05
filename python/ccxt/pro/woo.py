@@ -92,7 +92,7 @@ class woo(ccxt.async_support.woo):
         urlUid = '/' + self.uid if (self.uid) else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -103,12 +103,12 @@ class woo(ccxt.async_support.woo):
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         unsubHash = 'unsubscribe::' + subHash
-        message: dict = {
+        message = {
             'id': requestId,
             'event': 'unsubscribe',
             'topic': subHash,
         }
-        subscription: dict = {
+        subscription = {
             'id': str(requestId),
             'unsubscribe': True,
             'symbols': [symbol],
@@ -133,22 +133,22 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either(default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
-        method: Str = None
+        method = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         topic = market['id'] + '@' + method
         urlUid = '/' + self.uid if (self.uid) else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
             'id': requestId,
         }
-        subscription: dict = {
+        subscription = {
             'id': str(requestId),
             'name': method,
             'symbol': market['symbol'],
@@ -169,10 +169,10 @@ class woo(ccxt.async_support.woo):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
-        method: Str = None
+        method = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         subHash = market['id'] + '@' + method
@@ -303,7 +303,7 @@ class woo(ccxt.async_support.woo):
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -318,7 +318,7 @@ class woo(ccxt.async_support.woo):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        method: Str = None
+        method = None
         method, params = self.handle_option_and_params(params, 'watchTicker', 'method', 'ticker')
         market = self.market(symbol)
         subHash = market['id'] + '@' + method
@@ -404,7 +404,7 @@ class woo(ccxt.async_support.woo):
         symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -462,7 +462,7 @@ class woo(ccxt.async_support.woo):
         topic = self.safe_value(message, 'topic')
         data = self.safe_value(message, 'data')
         timestamp = self.safe_integer(message, 'ts')
-        result: List = []
+        result = []
         for i in range(0, len(data)):
             marketId = self.safe_string(data[i], 'symbol')
             market = self.safe_market(marketId)
@@ -485,7 +485,7 @@ class woo(ccxt.async_support.woo):
         symbols = self.market_symbols(symbols)
         name = 'bbos'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -531,7 +531,7 @@ class woo(ccxt.async_support.woo):
         topic = self.safe_string(message, 'topic')
         data = self.safe_list(message, 'data', [])
         timestamp = self.safe_integer(message, 'ts')
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i)
             ticker['ts'] = timestamp
@@ -577,7 +577,7 @@ class woo(ccxt.async_support.woo):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         topic = market['id'] + '@' + name + '_' + interval
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -667,7 +667,7 @@ class woo(ccxt.async_support.woo):
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -771,11 +771,11 @@ class woo(ccxt.async_support.woo):
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
         maker = self.safe_bool(trade, 'maker')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
         type = self.safe_string_lower(trade, 'type')
-        fee: NullableDict = None
+        fee = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             fee = {
@@ -818,7 +818,7 @@ class woo(ccxt.async_support.woo):
             ts = str(self.nonce())
             auth = '|' + ts
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request: dict = {
+            request = {
                 'event': event,
                 'params': {
                     'apikey': self.apiKey,
@@ -834,7 +834,7 @@ class woo(ccxt.async_support.woo):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -844,7 +844,7 @@ class woo(ccxt.async_support.woo):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -873,7 +873,7 @@ class woo(ccxt.async_support.woo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -906,7 +906,7 @@ class woo(ccxt.async_support.woo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -1161,7 +1161,7 @@ class woo(ccxt.async_support.woo):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        messageHashes: List[str] = []
+        messageHashes = []
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             for i in range(0, len(symbols)):
@@ -1177,7 +1177,7 @@ class woo(ccxt.async_support.woo):
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': 'position',
         }
@@ -1243,7 +1243,7 @@ class woo(ccxt.async_support.woo):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        newPositions: List = []
+        newPositions = []
         for i in range(0, len(postitionsIds)):
             marketId = postitionsIds[i]
             market = self.safe_market(marketId)
@@ -1267,7 +1267,7 @@ class woo(ccxt.async_support.woo):
         await self.load_markets()
         topic = 'balance'
         messageHash = topic
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -1338,7 +1338,7 @@ class woo(ccxt.async_support.woo):
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@estfundingrate'
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -1413,7 +1413,7 @@ class woo(ccxt.async_support.woo):
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'ping': self.handle_ping,
             'pong': self.handle_pong,
             'subscribe': self.handle_subscribe,

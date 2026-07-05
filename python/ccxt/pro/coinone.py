@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -61,13 +61,13 @@ class coinone(ccxt.async_support.coinone):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'request_type': 'SUBSCRIBE',
             'channel': 'ORDERBOOK',
             'topic': {
@@ -145,7 +145,7 @@ class coinone(ccxt.async_support.coinone):
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TICKER',
             'topic': {
@@ -265,7 +265,7 @@ class coinone(ccxt.async_support.coinone):
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TRADE',
             'topic': {
@@ -327,7 +327,7 @@ class coinone(ccxt.async_support.coinone):
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(symbol, market)
         isSellerMaker = self.safe_value(trade, 'is_seller_maker')
-        side: Str = None
+        side = None
         if isSellerMaker is not None:
             side = 'sell' if isSellerMaker else 'buy'
         priceString = self.safe_string(trade, 'price')
@@ -370,7 +370,7 @@ class coinone(ccxt.async_support.coinone):
             return
         if type == 'DATA':
             topic = self.safe_string(message, 'channel', '')
-            methods: dict = {
+            methods = {
                 'ORDERBOOK': self.handle_order_book,
                 'TICKER': self.handle_ticker,
                 'TRADE': self.handle_trades,

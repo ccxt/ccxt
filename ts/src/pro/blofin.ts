@@ -165,7 +165,7 @@ export default class blofin extends blofinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         params['callerMethodName'] = 'watchOrderBook';
@@ -181,7 +181,7 @@ export default class blofin extends blofinRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -304,8 +304,8 @@ export default class blofin extends blofinRest {
             const ticker = this.parseWsTicker (data[i]);
             const symbol = ticker['symbol'];
             const messageHash = channelName + ':' + symbol;
-            this.tickers[symbol] = ticker;
-            client.resolve (this.tickers[symbol], messageHash);
+            this.tickers[(symbol as string)] = ticker;
+            client.resolve (this.tickers[(symbol as string)], messageHash);
         }
     }
 
@@ -325,7 +325,7 @@ export default class blofin extends blofinRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const symbolsList = symbols;
+        const symbolsList = symbols as string[];
         const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
         let marketType: Str = undefined;
@@ -357,7 +357,7 @@ export default class blofin extends blofinRest {
             const ticker = this.parseWsBidAsk (data[i]);
             const symbol = ticker['symbol'];
             const messageHash = 'bidask:' + symbol;
-            this.bidsasks[symbol] = ticker;
+            this.bidsasks[(symbol as string)] = ticker;
             client.resolve (ticker, messageHash);
         }
     }
@@ -681,12 +681,12 @@ export default class blofin extends blofinRest {
         const first = this.safeDict (data, 0, {});
         const fundingRate = this.parseFundingRate (first);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[(symbol as string)] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }
 
-    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray = undefined, params = {}) {
+    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
@@ -780,7 +780,7 @@ export default class blofin extends blofinRest {
             'positions': this.handlePositions,
             'funding-rate': this.handleFundingRate,
         };
-        let method = undefined;
+        let method: any = undefined;
         if (message === 'pong') {
             method = this.safeValue (methods, 'pong');
         } else {

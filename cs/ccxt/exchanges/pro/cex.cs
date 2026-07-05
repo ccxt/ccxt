@@ -246,10 +246,10 @@ public partial class cex : ccxt.cex
         if (!isTrue((inOp(this.trades, symbol))))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
+            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = new ArrayCache(limit);
         }
-        object stored = getValue(this.trades, symbol);
-        object market = this.market(symbol);
+        object stored = getValue(this.trades, ((string)symbol));
+        object market = this.market(((string)symbol));
         object dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
@@ -259,8 +259,8 @@ public partial class cex : ccxt.cex
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = "trades";
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
+        ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, ((string)symbol)), messageHash});
     }
 
     /**
@@ -789,7 +789,7 @@ public partial class cex : ccxt.cex
         }
         object storedOrders = this.orders;
         object ordersBySymbol = this.safeValue((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-        object order = this.safeValue(ordersBySymbol, orderId);
+        object order = this.safeValue(ordersBySymbol, ((string)orderId));
         if (isTrue(isEqual(order, null)))
         {
             order = this.parseWsOrderUpdate(data, market);
@@ -1002,11 +1002,11 @@ public partial class cex : ccxt.cex
      * @method
      * @name cex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://cex.io/websocket-api#orderbook-subscribe
+     * @see https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1565,7 +1565,7 @@ public partial class cex : ccxt.cex
         } catch(Exception error)
         {
             object messageHash = this.safeString(message, "oid");
-            var future = this.safeValue(getValue(client as WebSocketClient, "futures"), messageHash);
+            var future = this.safeValue(getValue(client as WebSocketClient, "futures"), ((string)messageHash));
             if (isTrue(!isEqual(future, null)))
             {
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1609,7 +1609,7 @@ public partial class cex : ccxt.cex
             { "mass-cancel-place-orders", this.resolveData },
             { "get-order", this.resolveData },
         };
-        object handler = this.safeValue(handlers, eventVar);
+        object handler = this.safeValue(handlers, ((string)eventVar));
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

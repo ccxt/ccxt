@@ -247,11 +247,8 @@ class bullish extends bullish$1["default"] {
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let parsed = undefined;
-        if ((updateType === 'snapshot')) {
-            parsed = this.parseTicker(data, market);
-        }
-        else if (updateType === 'update') {
+        let parsed = this.parseTicker(data, market);
+        if (updateType === 'update') {
             const ticker = this.safeDict(this.tickers, symbol, {});
             const rawTicker = this.safeDict(ticker, 'info', {});
             const merged = this.extend(rawTicker, data);
@@ -269,7 +266,7 @@ class bullish extends bullish$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -446,7 +443,9 @@ class bullish extends bullish$1["default"] {
                 const parsedOrder = this.parseOrder(rawOrder);
                 orders.append(parsedOrder);
                 const symbol = this.safeString(parsedOrder, 'symbol');
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const messageHash = 'orders';
             client.resolve(orders, messageHash);
@@ -551,7 +550,9 @@ class bullish extends bullish$1["default"] {
                 const parsedTrade = this.parseTrade(rawTrade);
                 trades.append(parsedTrade);
                 const symbol = this.safeString(parsedTrade, 'symbol');
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const messageHash = 'myTrades';
             client.resolve(trades, messageHash);
@@ -629,6 +630,9 @@ class bullish extends bullish$1["default"] {
         //     }
         //
         const tradingAccountId = this.safeString(message, 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            return;
+        }
         if (!(tradingAccountId in this.balance)) {
             this.balance[tradingAccountId] = {};
         }
@@ -668,7 +672,7 @@ class bullish extends bullish$1["default"] {
         await this.loadMarkets();
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
-        if (!this.isEmpty(symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
             symbols = this.marketSymbols(symbols);
             messageHash += '::' + symbols.join(',');
         }

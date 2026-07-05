@@ -119,7 +119,7 @@ func (this *CexCore) Describe() any {
 			"transfer":                               true,
 		},
 		"urls": map[string]any{
-			"logo": "https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg",
+			"logo": "https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99",
 			"api": map[string]any{
 				"public":  "https://trade.cex.io/api/spot/rest-public",
 				"private": "https://trade.cex.io/api/spot/rest",
@@ -539,6 +539,7 @@ func (this *CexCore) ParseMarket(market any) any {
  * @method
  * @name cex#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -588,8 +589,8 @@ func (this *CexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes5568 := (<-this.LoadMarkets())
-		PanicOnError(retRes5568)
+		retRes5578 := (<-this.LoadMarkets())
+		PanicOnError(retRes5578)
 
 		response := (<-this.FetchTickers([]any{symbol}, params))
 		PanicOnError(response)
@@ -620,8 +621,8 @@ func (this *CexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes5718 := (<-this.LoadMarkets())
-		PanicOnError(retRes5718)
+		retRes5728 := (<-this.LoadMarkets())
+		PanicOnError(retRes5728)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			AddElementToObject(request, "pairs", this.MarketIds(symbols))
@@ -715,8 +716,8 @@ func (this *CexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes6468 := (<-this.LoadMarkets())
-		PanicOnError(retRes6468)
+		retRes6478 := (<-this.LoadMarkets())
+		PanicOnError(retRes6478)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -803,7 +804,7 @@ func (this *CexCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -815,8 +816,8 @@ func (this *CexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes7268 := (<-this.LoadMarkets())
-		PanicOnError(retRes7268)
+		retRes7278 := (<-this.LoadMarkets())
+		PanicOnError(retRes7278)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -886,8 +887,8 @@ func (this *CexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")))
 		}
 
-		retRes7748 := (<-this.LoadMarkets())
-		PanicOnError(retRes7748)
+		retRes7758 := (<-this.LoadMarkets())
+		PanicOnError(retRes7758)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":       GetValue(market, "id"),
@@ -965,8 +966,8 @@ func (this *CexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8428 := (<-this.LoadMarkets())
-		PanicOnError(retRes8428)
+		retRes8438 := (<-this.LoadMarkets())
+		PanicOnError(retRes8438)
 
 		response := (<-this.PrivatePostGetMyCurrentFee(params))
 		PanicOnError(response)
@@ -1032,8 +1033,8 @@ func (this *CexCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8938 := (<-this.LoadMarkets())
-		PanicOnError(retRes8938)
+		retRes8948 := (<-this.LoadMarkets())
+		PanicOnError(retRes8948)
 
 		response := (<-this.PrivatePostGetMyAccountStatusV3(params))
 		PanicOnError(response)
@@ -1192,8 +1193,8 @@ func (this *CexCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10158 := (<-this.LoadMarkets())
-		PanicOnError(retRes10158)
+		retRes10168 := (<-this.LoadMarkets())
+		PanicOnError(retRes10168)
 		var request any = map[string]any{}
 		var isClosedOrders any = (IsEqual(status, "closed"))
 		if IsTrue(isClosedOrders) {
@@ -1297,9 +1298,9 @@ func (this *CexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes109715 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
-		PanicOnError(retRes109715)
-		ch <- retRes109715
+		retRes109815 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
+		PanicOnError(retRes109815)
+		ch <- retRes109815
 		return nil
 
 	}()
@@ -1331,9 +1332,9 @@ func (this *CexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes111215 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-		PanicOnError(retRes111215)
-		ch <- retRes111215
+		retRes111315 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+		PanicOnError(retRes111315)
+		ch <- retRes111315
 		return nil
 
 	}()
@@ -1360,8 +1361,8 @@ func (this *CexCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11268 := (<-this.LoadMarkets())
-		PanicOnError(retRes11268)
+		retRes11278 := (<-this.LoadMarkets())
+		PanicOnError(retRes11278)
 		var request any = map[string]any{
 			"orderId": ParseInt(id),
 		}
@@ -1396,8 +1397,8 @@ func (this *CexCore) FetchClosedOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11458 := (<-this.LoadMarkets())
-		PanicOnError(retRes11458)
+		retRes11468 := (<-this.LoadMarkets())
+		PanicOnError(retRes11468)
 		var request any = map[string]any{
 			"orderId": ParseInt(id),
 		}
@@ -1539,8 +1540,8 @@ func (this *CexCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")))
 		}
 
-		retRes12698 := (<-this.LoadMarkets())
-		PanicOnError(retRes12698)
+		retRes12708 := (<-this.LoadMarkets())
+		PanicOnError(retRes12708)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"clientOrderId": this.Uuid(),
@@ -1648,8 +1649,8 @@ func (this *CexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes13578 := (<-this.LoadMarkets())
-		PanicOnError(retRes13578)
+		retRes13588 := (<-this.LoadMarkets())
+		PanicOnError(retRes13588)
 		var request any = map[string]any{
 			"orderId":         ParseInt(id),
 			"cancelRequestId": Add("c_", ToString((this.Milliseconds()))),
@@ -1689,8 +1690,8 @@ func (this *CexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes13818 := (<-this.LoadMarkets())
-		PanicOnError(retRes13818)
+		retRes13828 := (<-this.LoadMarkets())
+		PanicOnError(retRes13828)
 
 		response := (<-this.PrivatePostDoCancelAllOrders(params))
 		PanicOnError(response)
@@ -1747,8 +1748,8 @@ func (this *CexCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14168 := (<-this.LoadMarkets())
-		PanicOnError(retRes14168)
+		retRes14178 := (<-this.LoadMarkets())
+		PanicOnError(retRes14178)
 		var currency any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1863,8 +1864,8 @@ func (this *CexCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes15098 := (<-this.LoadMarkets())
-		PanicOnError(retRes15098)
+		retRes15108 := (<-this.LoadMarkets())
+		PanicOnError(retRes15108)
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2005,8 +2006,8 @@ func (this *CexCore) TransferBetweenMainAndSubAccount(code any, amount any, from
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes16208 := (<-this.LoadMarkets())
-		PanicOnError(retRes16208)
+		retRes16218 := (<-this.LoadMarkets())
+		PanicOnError(retRes16218)
 		var currency any = this.Currency(code)
 		var fromMain any = (IsEqual(fromAccount, ""))
 		var targetAccount any = Ternary(IsTrue(fromMain), toAccount, fromAccount)
@@ -2056,8 +2057,8 @@ func (this *CexCore) TransferBetweenSubAccounts(code any, amount any, fromAccoun
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes16558 := (<-this.LoadMarkets())
-		PanicOnError(retRes16558)
+		retRes16568 := (<-this.LoadMarkets())
+		PanicOnError(retRes16568)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency":      GetValue(currency, "id"),
@@ -2149,8 +2150,8 @@ func (this *CexCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")))
 		}
 
-		retRes17308 := (<-this.LoadMarkets())
-		PanicOnError(retRes17308)
+		retRes17318 := (<-this.LoadMarkets())
+		PanicOnError(retRes17318)
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
