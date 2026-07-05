@@ -2135,8 +2135,8 @@ class bitget extends Exchange {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
                     $expiryDatetime = $this->iso8601($expiry);
                     $expiryParts = explode('-', $expiryDatetime);
-                    $yearPart = $this->safe_string($expiryParts, 0);
-                    $dayPart = $this->safe_string($expiryParts, 2);
+                    $yearPart = $this->safe_string($expiryParts, 0, '');
+                    $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
                     $month = $this->safe_string($expiryParts, 1);
                     $day = mb_substr($dayPart, 0, 2 - 0);
@@ -2399,8 +2399,8 @@ class bitget extends Exchange {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
                     $expiryDatetime = $this->iso8601($expiry);
                     $expiryParts = explode('-', $expiryDatetime);
-                    $yearPart = $this->safe_string($expiryParts, 0);
-                    $dayPart = $this->safe_string($expiryParts, 2);
+                    $yearPart = $this->safe_string($expiryParts, 0, '');
+                    $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
                     $month = $this->safe_string($expiryParts, 1);
                     $day = mb_substr($dayPart, 0, 2 - 0);
@@ -5935,7 +5935,7 @@ class bitget extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $marginMode = null;
-        $response = null;
+        $response = array();
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $request = array();
         $trailing = $this->safe_value($params, 'trailing');
@@ -6056,10 +6056,10 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $order = null;
+        $order = array();
         if ($isContractTriggerEndpoint) {
             $orderInfo = $this->safe_value($data, 'successList', array());
-            $order = $orderInfo[0];
+            $order = $this->safe_dict($orderInfo, 0, array());
         } else {
             if ($uta && $trigger) {
                 $order = $response;
@@ -7542,7 +7542,7 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer($item, 'cTime');
         $after = $this->safe_number($item, 'balance');
         $fee = $this->safe_number_2($item, 'fees', 'fee');
-        $amountRaw = $this->safe_string_2($item, 'size', 'amount');
+        $amountRaw = $this->safe_string_2($item, 'size', 'amount', '');
         $amount = $this->parse_number(Precise::string_abs($amountRaw));
         $direction = 'in';
         if (mb_strpos($amountRaw, '-') !== false) {
@@ -8890,7 +8890,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -9096,7 +9096,7 @@ class bitget extends Exchange {
             'leverage' => $this->number_to_string($leverage),
         );
         $uta = null;
-        $response = null;
+        $response = array();
         list($uta, $params) = $this->handle_uta_and_params($params, 'setLeverage', false);
         if ($uta) {
             if ($productType === 'SPOT') {
@@ -9212,7 +9212,7 @@ class bitget extends Exchange {
         }
         $productType = null;
         $uta = null;
-        $response = null;
+        $response = array();
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         list($uta, $params) = $this->handle_uta_and_params($params, 'setPositionMode', false);
         if ($uta) {
@@ -10110,7 +10110,7 @@ class bitget extends Exchange {
         );
         $uta = null;
         $response = null;
-        $result = null;
+        $result = array();
         list($uta, $params) = $this->handle_uta_and_params($params, 'fetchCrossBorrowRate', false);
         if ($uta) {
             $response = $this->publicUtaGetV3MarketMarginLoans($this->extend($request, $params));
@@ -10546,7 +10546,7 @@ class bitget extends Exchange {
         return $this->parse_margin_mode($data, $market);
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marginType = $this->safe_string($marginMode, 'marginMode');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(

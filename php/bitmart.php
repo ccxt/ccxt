@@ -3844,7 +3844,7 @@ class bitmart extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null): array {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         // fetchDepositAddress
         //    {
@@ -5577,7 +5577,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];

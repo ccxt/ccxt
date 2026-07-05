@@ -222,7 +222,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($result, $event);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $this->safe_string($market, 'symbol');

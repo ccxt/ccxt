@@ -167,8 +167,8 @@ class p2b extends \ccxt\async\p2b {
             list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
             $messageHashes = array();
             $args = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
+            for ($i = 0; $i < count(($symbols)); $i++) {
+                $market = $this->market(($symbols)[$i]);
                 $messageHashes[] = $name . '::' . $market['symbol'];
                 $args[] = $market['id'];
             }
@@ -346,8 +346,8 @@ class p2b extends \ccxt\async\p2b {
             $tradesArray = new ArrayCache($tradesLimit);
             $this->trades[$symbol] = $tradesArray;
         }
-        for ($i = 0; $i < count($trades); $i++) {
-            $item = $trades[$i];
+        for ($i = 0; $i < count(($trades)); $i++) {
+            $item = ($trades)[$i];
             $trade = $this->parse_trade($item, $market);
             $tradesArray->append($trade);
         }
