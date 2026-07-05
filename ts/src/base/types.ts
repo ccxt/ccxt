@@ -129,7 +129,7 @@ export interface PredictionEvent {
     slug?: Str;
     category?: Str;
     tags?: string[];
-    markets: PredictionMarket[]; // grouped markets (does not re-derive outcomes)
+    markets: Market[];           // grouped ccxt market rows (each with its outcomes list)
     mutuallyExclusive?: Bool;    // exactly one market in the event resolves YES
     active?: Bool;
     resolved?: Bool;
@@ -263,7 +263,9 @@ export interface PredictionOpenInterest extends OpenInterest {
 // extra params accepted by fetchEvents on prediction exchanges; the [key] index
 // signature keeps it open for exchange-specific passthrough params
 export interface fetchEventsParams {
-    query?: string;       // keyword search
+    query?: string;       // keyword search (single query)
+    queries?: string[];   // keyword search (multiple queries, unioned)
+    tags?: string[];      // filter events by tag/category
     limit?: number;       // max number of events to return
     sort?: 'volume' | 'liquidity' | 'newest';
     status?: 'active' | 'inactive' | 'closed' | 'all'; // default 'active'; 'inactive' and 'closed' are interchangeable
@@ -627,6 +629,18 @@ export interface Liquidation {
 
 export interface OrderRequest {
     symbol: string;
+    type: OrderType;
+    side: OrderSide;
+    amount?: number;
+    price?: number | undefined;
+    params?: any;
+}
+
+// prediction-market order request — carries an `outcome` handle instead of a `symbol`
+// (outcome is optional in the type only so the base createOrders override stays compatible with
+// Exchange.createOrders; venues require it at runtime)
+export interface PredictionOrderRequest {
+    outcome?: string;
     type: OrderType;
     side: OrderSide;
     amount?: number;

@@ -1,5 +1,6 @@
 {
     "exchange": "limitless",
+    "asyncOnly": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {
@@ -33,6 +34,18 @@
                 "input": [
                     "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
                     "1d"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades without an outcome must not require the outcome cache",
+                "method": "fetchMyTrades",
+                "url": "https://api.limitless.exchange/portfolio/history?limit=5",
+                "input": [
+                    null,
+                    null,
+                    5
                 ]
             }
         ]

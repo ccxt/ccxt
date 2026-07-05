@@ -16,6 +16,16 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_ticker(exchange, skipped_properties, method, entry, symbol):
+    # prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    # books where bid==ask and a stale `last` far from the median are normal — skip the
+    # crypto-oriented price-relationship checks for them
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        skipped_properties = exchange.extend({
+            'symbol': True,
+            'spread': True,
+            'lastBetweenBidAsk': True,
+            'maxIncrease': True,
+        }, skipped_properties)
     format = {
         'info': {},
         'symbol': 'ETH/BTC',

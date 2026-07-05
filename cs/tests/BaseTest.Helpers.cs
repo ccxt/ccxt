@@ -136,6 +136,13 @@ public partial class testMainClass : BaseTest
         var parsedValues = new List<string> { };
         foreach (var value in values)
         {
+            if (value == null)
+            {
+                // match the JS/Python/PHP dumps, which stringify a null/undefined arg instead of
+                // throwing — e.g. exchange.json(undefined) is null in C# (ws tests have no eventId)
+                parsedValues.Add("null");
+                continue;
+            }
             if (value is IList<object> || value is IDictionary<string, object>)
             {
                 parsedValues.Add(JsonConvert.SerializeObject(value));

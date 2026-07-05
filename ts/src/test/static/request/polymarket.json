@@ -1,6 +1,9 @@
 {
     "exchange": "polymarket",
-    "skipKeys": ["owner"],
+    "asyncOnly": true,
+    "skipKeys": [
+        "owner"
+    ],
     "outputType": "json",
     "options": {
         "l2ApiKey": "0xabc123",
@@ -144,7 +147,7 @@
                 "input": [
                     [
                         {
-                            "symbol": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                            "outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
                             "type": "limit",
                             "side": "buy",
                             "amount": 5,

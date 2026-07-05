@@ -616,6 +616,12 @@ class testMainClass {
     }
 
     public function test_exchange($exchange, $provided_symbol = null) {
+        // prediction-market exchanges have no spot/swap markets and address methods by an
+        // outcome handle (not a market symbol), so they take a dedicated test flow
+        if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+            $this->run_prediction_tests($exchange);
+            return true;
+        }
         $spot_symbols = null;
         $swap_symbols = null;
         if ($provided_symbol !== null) {
@@ -678,6 +684,222 @@ class testMainClass {
                 $exchange->options['defaultType'] = 'swap';
                 $this->run_private_tests($exchange, $swap_symbols);
             }
+        }
+        return true;
+    }
+
+    public function run_prediction_tests($exchange) {
+        // loadMarkets (already called by loadExchange) populates the markets and their outcome
+        // tokens; resolve a tradeable outcome handle from them (works in every language since
+        // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        // then fetchEvents for an event id and run every method by that outcome handle
+        // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        $outcome_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredPredictionOutcome');
+        if ($outcome_symbol !== null) {
+            // validate the pin against the live listing - venues can rotate ids/handles
+            // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            $pin_found = false;
+            $pinned_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
+            for ($i = 0; $i < count($pinned_keys); $i++) {
+                $pinned_market = $exchange->markets[$pinned_keys[$i]];
+                $pinned_outcomes = $exchange->safe_list($pinned_market, 'outcomes', []);
+                for ($j = 0; $j < count($pinned_outcomes); $j++) {
+                    if ($exchange->safe_string($pinned_outcomes[$j], 'outcome') === $outcome_symbol) {
+                        $pin_found = true;
+                        break;
+                    }
+                }
+                if ($pin_found) {
+                    break;
+                }
+            }
+            if (!$pin_found) {
+                dump('[INFO:MAIN] preferredPredictionOutcome', $outcome_symbol, 'not in the live listing (stale pin?) - falling back to market scan');
+                $outcome_symbol = null;
+            }
+        }
+        if ($outcome_symbol === null) {
+            $market_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
+            for ($i = 0; $i < count($market_keys); $i++) {
+                $market = $exchange->markets[$market_keys[$i]];
+                $outcomes_list = $exchange->safe_list($market, 'outcomes', []);
+                $outcomes_list_length = count($outcomes_list);
+                if ($outcomes_list_length > 0) {
+                    $outcome_symbol = $exchange->safe_string($outcomes_list[0], 'outcome');
+                    if ($outcome_symbol !== null) {
+                        break;
+                    }
+                }
+            }
+        }
+        if ($outcome_symbol === null) {
+            dump('[TEST_FAILURE]', $exchange->id, 'no tradeable outcome available in loaded markets');
+            return false;
+        }
+        // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+        // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+        // inline rather than through a per-method test file
+        $event_id = null;
+        if (!$this->ws_tests) {
+            try {
+                // a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                $event_query = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredEventQuery');
+                $event_params = array();
+                if ($event_query !== null) {
+                    $event_params['query'] = $event_query;
+                }
+                $events = call_exchange_method_dynamically($exchange, 'fetchEvents', [$event_params]);
+                assert($events !== null, $exchange->id . ' fetchEvents returned undefined');
+                // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                $events_list = $exchange->safe_list(array(
+                    'events' => $events,
+                ), 'events', []);
+                $this->assert_prediction_events($exchange, $events_list);
+                $events_length = count($events_list);
+                if ($events_length > 0) {
+                    $event_id = $exchange->safe_string($events_list[0], 'id');
+                }
+                if (($event_id !== null) && $exchange->safe_bool($exchange->has, 'fetchEvent', false)) {
+                    $event = call_exchange_method_dynamically($exchange, 'fetchEvent', [$event_id]);
+                    assert($exchange->is_dictionary($event), $exchange->id . ' fetchEvent should return an event structure');
+                    assert($exchange->safe_string($event, 'id') !== null, $exchange->id . ' fetchEvent returned no id');
+                }
+            } catch(\Throwable $e) {
+                dump('[TEST_FAILURE]', $exchange->id, 'fetchEvents/fetchEvent failed:', exception_message($e));
+                return false;
+            }
+        }
+        dump('[INFO:MAIN] Selected prediction OUTCOME:', $outcome_symbol, '| EVENT:', $exchange->json($event_id));
+        $public_tests = array(
+            'fetchStatus' => [],
+            'fetchTime' => [],
+            'fetchTradingFee' => [$outcome_symbol],
+            'fetchOpenInterest' => [$outcome_symbol],
+            'fetchTicker' => [$outcome_symbol],
+            'fetchTickers' => [$outcome_symbol],
+            'fetchOrderBook' => [$outcome_symbol],
+            'fetchOHLCV' => [$outcome_symbol],
+            'fetchTrades' => [$outcome_symbol],
+        );
+        if ($this->ws_tests) {
+            $public_tests = array(
+                'watchTicker' => [$outcome_symbol],
+                'watchOrderBook' => [$outcome_symbol],
+                'watchTrades' => [$outcome_symbol],
+            );
+        }
+        if (!$this->private_test_only) {
+            $this->run_tests($exchange, $public_tests, true);
+        }
+        if (($this->private_test || $this->private_test_only) && !$this->ws_tests) {
+            $private_tests = array(
+                'fetchBalance' => [],
+                'fetchPositions' => [$outcome_symbol],
+                'fetchMyTrades' => [$outcome_symbol],
+                'fetchOrders' => [$outcome_symbol],
+                'fetchOpenOrders' => [$outcome_symbol],
+                'fetchClosedOrders' => [$outcome_symbol],
+                'fetchOrder' => [$outcome_symbol],
+            );
+            $this->run_tests($exchange, $private_tests, false);
+            // order placement is real money — gated behind --fundedTests, like crypto createOrder
+            if (get_cli_arg_value('--fundedTests')) {
+                $this->test_prediction_create_cancel_order($exchange, $outcome_symbol);
+            }
+        }
+        return true;
+    }
+
+    public function assert_prediction_events($exchange, $events) {
+        assert(gettype($events) === 'array' && array_is_list($events), $exchange->id . ' fetchEvents/fetchEvent should return a list');
+        $events_length = count($events);
+        for ($i = 0; $i < $events_length; $i++) {
+            $event = $events[$i];
+            assert($exchange->is_dictionary($event), $exchange->id . ' event should be a dict');
+            assert($exchange->safe_string($event, 'id') !== null, $exchange->id . ' event missing id');
+            assert($exchange->safe_list($event, 'markets') !== null, $exchange->id . ' event missing markets');
+        }
+        return true;
+    }
+
+    public function test_prediction_create_cancel_order($exchange, $outcome) {
+        // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        // typed core-exchange interface (e.g. Go's ICoreExchange).
+        if (!$exchange->safe_bool($exchange->has, 'createOrder', false)) {
+            return true;
+        }
+        // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+        // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+        $create_order_skip = $this->get_skips($exchange, 'createOrder');
+        if (is_string($create_order_skip)) {
+            dump('[INFO] skipping prediction createOrder test', $exchange->id, $create_order_skip);
+            return true;
+        }
+        $can_cancel = $exchange->safe_bool($exchange->has, 'cancelOrder', false) || $exchange->safe_bool($exchange->has, 'cancelAllOrders', false);
+        if (!$can_cancel) {
+            dump('[INFO] skipping prediction createOrder test', $exchange->id, 'no cancelOrder/cancelAllOrders');
+            return true;
+        }
+        if (!$exchange->check_required_credentials(false)) {
+            dump('[INFO] skipping prediction createOrder test', $exchange->id, 'keys not found');
+            return true;
+        }
+        // default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+        // testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+        // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+        $price = $exchange->parse_to_numeric('0.02');
+        $amount = $exchange->parse_to_numeric('5');
+        $funded_price = $exchange->safe_string($this->skipped_settings_for_exchange, 'fundedPrice');
+        if ($funded_price !== null) {
+            $price = $exchange->parse_to_numeric($funded_price);
+        }
+        $funded_amount = $exchange->safe_string($this->skipped_settings_for_exchange, 'fundedAmount');
+        if ($funded_amount !== null) {
+            $amount = $exchange->parse_to_numeric($funded_amount);
+        }
+        dump('[INFO:MAIN] prediction createOrder', $exchange->id, $outcome, 'buy', $amount, '@', $price);
+        // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
+        // either): record any failure, ALWAYS attempt the cancel, then report the failure
+        $order = null;
+        $placed_id = null;
+        $failure = null;
+        try {
+            $order = call_exchange_method_dynamically($exchange, 'createOrder', [$outcome, 'limit', 'buy', $amount, $price]);
+            assert($order !== null, 'createOrder returned undefined for ' . $exchange->id);
+            assert($exchange->is_dictionary($order), 'createOrder did not return an order structure for ' . $exchange->id);
+            $placed_id = $exchange->safe_string($order, 'id');
+            assert($placed_id !== null, 'createOrder returned no order id for ' . $exchange->id);
+            $returned_outcome = $exchange->safe_string($order, 'outcome');
+            assert(($returned_outcome === null) || ($returned_outcome === $outcome), 'createOrder outcome "' . $exchange->json($returned_outcome) . '" should match requested "' . $outcome . '" for ' . $exchange->id);
+        } catch(\Throwable $e) {
+            $failure = exception_message($e);
+        }
+        // always cancel any placed order (cancelPredictionOrder swallows its own errors)
+        $this->cancel_prediction_order($exchange, $placed_id, $outcome);
+        if ($failure !== null) {
+            dump('[TEST_FAILURE]', $exchange->id, 'prediction createOrder failed:', $failure);
+            return false;
+        }
+        return true;
+    }
+
+    public function cancel_prediction_order($exchange, $order_id, $outcome) {
+        if ($order_id === null) {
+            return true;
+        }
+        try {
+            if ($exchange->safe_bool($exchange->has, 'cancelOrder', false)) {
+                call_exchange_method_dynamically($exchange, 'cancelOrder', [$order_id, $outcome]);
+            } else {
+                call_exchange_method_dynamically($exchange, 'cancelAllOrders', [$outcome]);
+            }
+            dump('[INFO:MAIN] prediction order cancelled', $exchange->id, $order_id);
+        } catch(\Throwable $e) {
+            dump('[WARN] prediction order cancel failed', $exchange->id, $order_id, exception_message($e));
         }
         return true;
     }
@@ -1278,6 +1500,8 @@ class testMainClass {
         }
         $exchange = init_exchange($exchange_name, $options);
         $exchange->currencies = $currencies;
+        // prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
+        // populateOutcomes) the first time a method is called, so no explicit setMarkets here
         // not working in python if assigned  in the config dict
         return $exchange;
     }
@@ -1445,6 +1669,13 @@ class testMainClass {
 
     public function check_if_exchange_is_disabled($exchange_name, $exchange_data) {
         $exchange = init_exchange('Exchange', array());
+        // prediction-market exchanges exist only in the async namespaces in python/php,
+        // so their fixtures declare asyncOnly and the sync harness skips them
+        $is_async_only = $exchange->safe_bool($exchange_data, 'asyncOnly', false);
+        if ($is_async_only && is_sync()) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is async-only, skipped by the sync test harness');
+            return true;
+        }
         $is_disabled_py = $exchange->safe_bool($exchange_data, 'disabledPy', false);
         if ($is_disabled_py && ($this->lang === 'PY')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in python');

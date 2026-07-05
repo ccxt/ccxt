@@ -27,7 +27,7 @@ import type {
     Account, fetchEventsParams,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
+import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
 
@@ -53,10 +53,12 @@ export default class limitless extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'approve': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -221,7 +223,10 @@ export default class limitless extends Exchange {
         let allRaw: any[] = [];
         const queriesLength = queries.length;
         if (queries && queriesLength > 0) {
-            const limit = this.safeInteger (rest, 'limit', 50);
+            const requestedLimit = this.safeInteger (params, 'limit', 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request and let
+            // maxMarkets bound the overall collection
+            const limit = Math.min (requestedLimit, 50);
             const searchRest = this.omit (rest, [ 'limit' ]);
             const seen: Dict = {};
             for (let i = 0; i < queries.length; i++) {
@@ -250,7 +255,8 @@ export default class limitless extends Exchange {
             allRaw = this.arrayConcat (allRaw, firstData);
             const promises = [];
             const cappedPages = Math.ceil (maxMarkets / pageSize);
-            const allPages = Math.ceil (totalMarketsCount / pageSize);
+            const knownTotal = (totalMarketsCount !== undefined) ? totalMarketsCount : 0;
+            const allPages = Math.ceil (knownTotal / pageSize);
             const totalPages = Math.min (allPages, cappedPages);
             for (let i = 2; i <= totalPages; i++) {
                 page = i;
@@ -267,7 +273,8 @@ export default class limitless extends Exchange {
             const lastPageResponse = this.safeDict (responses, length - 1);
             const lastPageData = this.safeList (lastPageResponse, 'data', []);
             const lastPageLength = lastPageData.length;
-            if (lastPageLength >= pageSize && allRaw.length < maxMarkets) {
+            const allRawLength = allRaw.length;
+            if (lastPageLength >= pageSize && allRawLength < maxMarkets) {
                 while (true) {
                     page = this.sum (page, 1);
                     request['page'] = page;
@@ -282,7 +289,8 @@ export default class limitless extends Exchange {
                         const raw = page_markets[i];
                         allRaw.push (raw);
                     }
-                    if (pageMarketsLength < pageSize || allRaw.length >= maxMarkets) {
+                    const allRawCount = allRaw.length;
+                    if (pageMarketsLength < pageSize || allRawCount >= maxMarkets) {
                         break;
                     }
                 }
@@ -785,7 +793,7 @@ export default class limitless extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const request: Dict = {
@@ -1069,7 +1077,7 @@ export default class limitless extends Exchange {
         const outcomesBySlug: Dict = {};
         const slugs: any[] = [];
         for (let i = 0; i < outcomes.length; i++) {
-            this.checkEvents (outcomes[i]);
+            await this.loadOutcome (outcomes[i]);
             const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
             if (!(slug in outcomesBySlug)) {
@@ -1118,7 +1126,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
@@ -1161,9 +1169,7 @@ export default class limitless extends Exchange {
             }
             filtered.push (row);
         }
-        // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
-        const parsedTrades = this.parseTrades (filtered, undefined);
-        return this.filterByOutcomeSinceLimit (parsedTrades, outcome, since, limit);
+        return this.parsePredictionTrades (filtered, outcomeObj, since, limit);
     }
 
     /**
@@ -1177,7 +1183,7 @@ export default class limitless extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const request: Dict = {
@@ -1263,7 +1269,7 @@ export default class limitless extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (outcome: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const outcomeLabel = this.safeStringUpper (outcomeObj['info'], 'outcomeLabel');
@@ -1324,54 +1330,52 @@ export default class limitless extends Exchange {
                 history = this.safeList (selectedSeries, 'prices', []);
             }
         }
-        const usableHistory = [];
+        // the endpoint returns raw price points, not candles - bucket them into
+        // timeframe-aligned candles (single points would carry unaligned timestamps)
+        const pseudoTrades = [];
         for (let i = 0; i < history.length; i++) {
             const point = history[i];
             const pointPrice = this.safeNumber (point, 'price');
-            const pointTs = this.safeString (point, 'timestamp');
+            let pointTs = this.safeInteger (point, 'timestamp');
+            if (pointTs === undefined) {
+                const tsString = this.safeString (point, 'timestamp');
+                pointTs = tsString ? this.parse8601 (tsString) : undefined;
+            } else if (pointTs < 1000000000000) {
+                // old responses may return unix seconds
+                pointTs = pointTs * 1000;
+            }
             if ((pointPrice !== undefined) && (pointTs !== undefined)) {
-                usableHistory.push (point);
+                pseudoTrades.push ({ 'timestamp': pointTs, 'price': pointPrice, 'amount': 0 });
             }
         }
-        return this.parseOHLCVs (usableHistory, outcomeObj, timeframe, since, limit);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name limitless#parseOHLCV
-     * @description parses a single limitless price tick into a synthetic CCXT OHLCV tuple (all four OHLC fields set to price)
-     * @param {object} ohlcv the raw price tick object
-     * @param {object} [market] the outcome object the candle belongs to
-     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
-     */
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        //
-        //     {
-        //         "timestamp": 1705318200000,
-        //         "price": 0.1655
-        //     }
-        //
-        //     {
-        //         "price": 0.75,
-        //         "timestamp": "2024-01-15T10:30:00Z"
-        //     }
-        //
-        let ts = this.safeInteger (ohlcv, 'timestamp');
-        if (ts === undefined) {
-            const tsString = this.safeString (ohlcv, 'timestamp');
-            ts = tsString ? this.parse8601 (tsString) : undefined;
-        } else if (ts < 1000000000000) {
-            // old responses may return unix seconds
-            ts = ts * 1000;
+        // the endpoint returns chronological points - keep input order (a re-sort breaks
+        // timestamp ties differently across languages and skews open/close within a bucket)
+        const sorted = pseudoTrades;
+        const ms = this.parseTimeframe (timeframe) * 1000;
+        const candles: Dict = {};
+        const bucketOrder = [];
+        for (let i = 0; i < sorted.length; i++) {
+            const point = sorted[i];
+            const pTs = this.safeInteger (point, 'timestamp');
+            const pPrice = this.safeNumber (point, 'price');
+            const bucket = this.parseToInt (pTs / ms) * ms;
+            const key = bucket.toString ();
+            if (!(key in candles)) {
+                candles[key] = [ bucket, pPrice, pPrice, pPrice, pPrice, 0 ];
+                bucketOrder.push (key);
+            } else {
+                const candle = candles[key];
+                candle[2] = Math.max (candle[2], pPrice);
+                candle[3] = Math.min (candle[3], pPrice);
+                candle[4] = pPrice;
+                candles[key] = candle; // php arrays are value types - write the mutation back
+            }
         }
-        const price = this.safeNumber (ohlcv, 'price');
-        const volume = this.safeNumber (ohlcv, 'volume', 0);   // history endpoint has no volume → 0
-        return [
-            ts,
-            price, price, price, price,   // synthetic OHLC from single tick
-            volume,
-        ];
+        const result = [];
+        for (let i = 0; i < bucketOrder.length; i++) {
+            result.push (candles[bucketOrder[i]]);
+        }
+        return this.filterBySinceLimit (result, since, limit, 0) as OHLCV[];
     }
 
     /**
@@ -1389,7 +1393,7 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires an outcome argument');
         }
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info');
         const request: Dict = {
@@ -1422,7 +1426,7 @@ export default class limitless extends Exchange {
         // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
-        return this.parseOrders (response, undefined, since, limit) as PredictionOrder[];
+        return this.parsePredictionOrders (response, undefined, since, limit);
     }
 
     /**
@@ -1440,7 +1444,7 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
         }
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         params = this.extend (params, {
             'statuses': [ 'LIVE' ],
         });
@@ -1462,7 +1466,7 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
         }
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         params = this.extend (params, {
             'statuses': [ 'MATCHED' ],
         });
@@ -1480,7 +1484,9 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrdersByIds (ids, outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        this.checkEvents (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const length = ids.length;
         if (length > 50) {
             throw new BadRequest (this.id + ' fetchOrdersByIds can only fetch up to 50 orders at a time');
@@ -1602,7 +1608,7 @@ export default class limitless extends Exchange {
                 found.push (item);
             }
         }
-        return this.parseOrders (found, undefined) as PredictionOrder[];
+        return this.parsePredictionOrders (found);
     }
 
     /**
@@ -1616,7 +1622,9 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        this.checkEvents (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const orders = await this.fetchOrdersByIds ([ id ], outcome, params);
         const order = this.safeDict (orders, 0);
         if (order === undefined) {
@@ -1923,7 +1931,7 @@ export default class limitless extends Exchange {
      */
     async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         const accounts = await this.loadAccounts ();
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const account = this.safeDict (accounts, 0);
         const accountInfo = this.safeDict (account, 'info');
@@ -1979,7 +1987,7 @@ export default class limitless extends Exchange {
             'taker': taker,
             'tokenId': outcomeObj['outcomeId'],
             'nonce': 0,
-            'feeRateBps': this.safeInteger (rank, 'feeRateBps'),
+            'feeRateBps': this.safeInteger (rank, 'feeRateBps', 0),
             'side': sideValue,
             'signatureType': signatureType,
         };
@@ -2062,6 +2070,9 @@ export default class limitless extends Exchange {
 
     signOrderRequest (signRequest: Dict, marketSymbol) {
         this.checkRequiredCredentials ();
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders');
+        }
         const market = this.market (marketSymbol);
         const info = this.safeDict (market, 'info');
         const venue = this.safeDict (info, 'venue');
@@ -2111,80 +2122,6 @@ export default class limitless extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    rlpEncodeBytes (hex: string): string {
-        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        const byteLength = this.parseToInt (hex.length / 2);
-        if (byteLength === 0) {
-            return '80';
-        }
-        if ((byteLength === 1) && (hex < '80')) {
-            return hex;
-        }
-        if (byteLength < 56) {
-            return this.intToBase16 (128 + byteLength) + hex;
-        }
-        let lengthHex = this.intToBase16 (byteLength);
-        if ((lengthHex.length % 2) !== 0) {
-            lengthHex = '0' + lengthHex;
-        }
-        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
-        return this.intToBase16 (183 + lengthOfLength) + lengthHex + hex;
-    }
-
-    rlpEncodeList (items: string[]): string {
-        let concatenated = '';
-        for (let i = 0; i < items.length; i++) {
-            concatenated = concatenated + items[i];
-        }
-        const byteLength = this.parseToInt (concatenated.length / 2);
-        if (byteLength < 56) {
-            return this.intToBase16 (192 + byteLength) + concatenated;
-        }
-        let lengthHex = this.intToBase16 (byteLength);
-        if ((lengthHex.length % 2) !== 0) {
-            lengthHex = '0' + lengthHex;
-        }
-        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
-        return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
-    }
-
-    intToRlpHex (value: number): string {
-        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (value === 0) {
-            return '';
-        }
-        let hex = this.intToBase16 (value);
-        if ((hex.length % 2) !== 0) {
-            hex = '0' + hex;
-        }
-        return hex;
-    }
-
-    hexToRlpBytes (hexValue: string): string {
-        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        let h = this.remove0xPrefix (hexValue);
-        let start = 0;
-        const total = h.length;
-        while ((start < total) && (h.slice (start, start + 1) === '0')) {
-            start = start + 1;
-        }
-        h = h.slice (start);
-        if (h === '') {
-            return '';
-        }
-        if ((h.length % 2) !== 0) {
-            h = '0' + h;
-        }
-        return h;
-    }
-
-    padHexAddress (address: string): string {
-        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        const stripped = this.remove0xPrefix (address);
-        return '000000000000000000000000' + stripped;
-    }
-
     signEvmTransaction (tx: Dict, privateKey: string): string {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         const accessList = this.rlpEncodeList ([]);
@@ -2204,12 +2141,8 @@ export default class limitless extends Exchange {
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
         let rHex = this.safeString (signature, 'r');
         let sHex = this.safeString (signature, 's');
-        if ((rHex.length % 2) !== 0) {
-            rHex = '0' + rHex;
-        }
-        if ((sHex.length % 2) !== 0) {
-            sHex = '0' + sHex;
-        }
+        rHex = this.padHexToEven (rHex);
+        sHex = this.padHexToEven (sHex);
         const yParity = this.safeInteger (signature, 'v');
         const signedFields = [];
         for (let i = 0; i < fields.length; i++) {
@@ -2219,47 +2152,6 @@ export default class limitless extends Exchange {
         signedFields.push (this.rlpEncodeBytes (rHex));
         signedFields.push (this.rlpEncodeBytes (sHex));
         return '0x02' + this.rlpEncodeList (signedFields);
-    }
-
-    async ethRpc (rpcUrl: string, method: string, rpcParams: any[]) {
-        const payload: Dict = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
-        const headers: Dict = { 'Content-Type': 'application/json' };
-        const response = await this.fetch (rpcUrl, 'POST', headers, this.json (payload));
-        const rpcError = this.safeValue (response, 'error');
-        if (rpcError !== undefined) {
-            throw new ExchangeError (this.id + ' rpc ' + method + ' error: ' + this.json (rpcError));
-        }
-        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt)
-        return this.safeValue (response, 'result');
-    }
-
-    async sendEvmTransaction (rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string> {
-        const nonce = await this.ethRpc (rpcUrl, 'eth_getTransactionCount', [ fromAddress, 'pending' ]);
-        const gasPrice = await this.ethRpc (rpcUrl, 'eth_gasPrice', []);
-        const tx: Dict = {
-            'chainId': chainId,
-            'nonce': nonce,
-            'maxPriorityFeePerGas': gasPrice,
-            'maxFeePerGas': gasPrice,
-            'gasLimit': gasLimit,
-            'to': to,
-            'value': value,
-            'data': data,
-        };
-        const signed = this.signEvmTransaction (tx, this.privateKey);
-        return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
-    }
-
-    async waitForTransactionReceipt (rpcUrl: string, txHash: string, timeout = 60000): Promise<any> {
-        const start = this.milliseconds ();
-        while ((this.milliseconds () - start) < timeout) {
-            const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
-            if ((receipt !== undefined) && (receipt !== null)) {
-                return receipt;
-            }
-            await this.sleep (2000);
-        }
-        throw new ExchangeError (this.id + ' transaction ' + txHash + ' not mined within timeout');
     }
 
     /**
@@ -2317,7 +2209,9 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        this.checkEvents (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const request: Dict = {
             'order_id': id,
         };
@@ -2344,7 +2238,9 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        this.checkEvents (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const request: Dict = {
             'orderIds': ids,
         };
@@ -2357,7 +2253,7 @@ export default class limitless extends Exchange {
             const feedback = this.id + ' cancelOrders failed: ' + message;
             throw new OrderNotFound (feedback);
         }
-        return this.parseOrders (canceled) as PredictionOrder[];
+        return this.parsePredictionOrders (canceled);
     }
 
     /**
@@ -2371,7 +2267,6 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        this.checkEvents (outcome);
         if (outcome !== undefined) {
             let warn = true;
             [ warn, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
@@ -2382,7 +2277,7 @@ export default class limitless extends Exchange {
         const request: Dict = {};
         const slug = this.safeString (params, 'slug');
         if (outcome !== undefined) {
-            const outcomeObj = this.outcome (outcome);
+            const outcomeObj = await this.loadOutcome (outcome);
             request['slug'] = this.safeString (outcomeObj['info'], 'slug');
         } else if (slug === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders requires either an outcome argument or a slug parameter');
@@ -2408,7 +2303,12 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.checkEvents (outcome);
+        // resolve the handle for the final filter — the caller may have passed an outcomeId
+        let outcomeSymbol = outcome;
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome (outcome);
+            outcomeSymbol = this.safeString (outcomeObj, 'outcome');
+        }
         let paginate = false;
         const maxLimit = 100;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', paginate);
@@ -2498,8 +2398,8 @@ export default class limitless extends Exchange {
                 }
             }
         }
-        const parsedTrades = this.parseTrades (trades, undefined);
-        return this.filterByOutcomeSinceLimit (parsedTrades, outcome, since, limit);
+        const parsedTrades = this.parsePredictionTrades (trades, undefined);
+        return this.filterByOutcomeSinceLimit (parsedTrades, outcomeSymbol, since, limit);
     }
 
     /**
@@ -2652,10 +2552,10 @@ export default class limitless extends Exchange {
         }
         if (symbolsLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                this.checkEvents (outcomes[i]);
+                await this.loadOutcome (outcomes[i]);
             }
         } else {
-            this.checkEvents ();
+            await this.loadOutcomes ();
         }
         const response = await this.limitlessPrivateGetPortfolioPositions (params);
         //
@@ -2843,23 +2743,26 @@ export default class limitless extends Exchange {
      * @description fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.limitless.exchange/api-reference/markets/search
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by market address or slug
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
-        let result = [];
         const queriesLength = queries.length;
-        if (!queries || queriesLength === 0) {
-            result = Object.values (this.events as Dict) as any[];
-        } else {
-            const limit = this.safeInteger (params, 'limit', 50);
-            const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
+        const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
+        const eventId = this.safeString2 (params, 'eventId', 'slug');
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
+        // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
+        const rawMarkets: any[] = [];
+        if (queriesLength > 0) {
+            const requestedLimit = this.safeInteger (params, 'limit', 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request
+            const limit = Math.min (requestedLimit, 50);
             const seen: Dict = {};
-            const rawMarkets: any[] = [];
             for (let i = 0; i < queries.length; i++) {
                 const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({
@@ -2876,68 +2779,88 @@ export default class limitless extends Exchange {
                     }
                 }
             }
-            if (!this.events) {
-                this.events = {};
-            }
-            if (!this.markets) {
-                this.markets = this.createSafeDictionary ();
-            }
-            const eventGroups: Dict = {};
-            for (let i = 0; i < rawMarkets.length; i++) {
-                const raw = rawMarkets[i];
-                const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
-                const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
-                const m = this.parseMarket (raw);
-                this.markets[m['symbol'] as string] = m;
-                if (eventKey) {
-                    if (!(eventKey in eventGroups)) {
-                        eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
-                    }
-                    const eventGroup = eventGroups[eventKey] as Dict;
-                    eventGroup['markets'].push (m);
-                }
-            }
-            result = [];
-            const eventKeys = Object.keys (eventGroups);
-            for (let i = 0; i < eventKeys.length; i++) {
-                const eventKey = eventKeys[i];
-                const g = eventGroups[eventKey] as Dict;
-                const ev = this.parseEvent (g);
-                this.events[eventKey] = ev;
-                result.push (ev);
+        } else if (eventId !== undefined) {
+            const response = await this.limitlessPublicGetMarketsAddressOrSlug (this.extend ({ 'addressOrSlug': eventId }, rest));
+            rawMarkets.push (response);
+        } else {
+            const listRaw = await this.fetchRawActiveMarkets (params);
+            const listRawLength = listRaw.length;
+            for (let i = 0; i < listRawLength; i++) {
+                rawMarkets.push (listRaw[i]);
             }
         }
-        this.rebuildOutcomes ();
+        if (!this.events) {
+            this.events = {};
+        }
+        if (!this.markets) {
+            this.markets = this.createSafeDictionary ();
+        }
+        const eventGroups: Dict = {};
+        const rawMarketsLength = rawMarkets.length;
+        for (let i = 0; i < rawMarketsLength; i++) {
+            const raw = rawMarkets[i];
+            const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
+            const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
+            const m = this.parseMarket (raw);
+            this.markets[m['symbol'] as string] = m;
+            if (eventKey) {
+                if (!(eventKey in eventGroups)) {
+                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
+                }
+                const eventGroup = eventGroups[eventKey] as Dict;
+                eventGroup['markets'].push (m);
+            }
+        }
+        const result: any[] = [];
+        const eventKeys = Object.keys (eventGroups);
+        const eventKeysLength = eventKeys.length;
+        for (let i = 0; i < eventKeysLength; i++) {
+            const g = eventGroups[eventKeys[i]] as Dict;
+            const ev = this.parseEvent (g);
+            result.push (ev);
+        }
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents (result);
+        this.populateOutcomes ();
         return this.applyEventFetchParams (result, params, queries);
     }
 
     /**
      * @ignore
      * @method
-     * @name limitless#rebuildOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
+     * @name limitless#fetchRawActiveMarkets
+     * @description pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] max number of raw markets to collect
+     * @returns {object[]} raw limitless market objects
      */
-    rebuildOutcomes () {
-        this.outcomes = {};
-        this.outcomes_by_id = {};
-        const marketsMap = (this.markets !== undefined) ? this.markets : {};
-        const marketKeys = Object.keys (marketsMap);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]] as Dict;
-            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'outcome');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                const ocId = this.safeString (oc, 'outcomeId');
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
+    async fetchRawActiveMarkets (params = {}): Promise<any[]> {
+        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
+        const pageSize = this.safeInteger (this.options, 'marketsPageSize', 25);
+        const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
+        const allRaw: any[] = [];
+        let page = 1;
+        let collected = 0;
+        while (true) {
+            const request: Dict = { 'page': page, 'limit': pageSize };
+            const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
+            const data = this.safeList (response, 'data', []) as any[];
+            const dataLength = data.length;
+            if (dataLength === 0) {
+                break;
+            }
+            for (let i = 0; i < dataLength; i++) {
+                if (collected < maxMarkets) {
+                    allRaw.push (data[i]);
+                    collected = this.sum (collected, 1);
                 }
             }
+            page = this.sum (page, 1);
+            if (dataLength < pageSize || collected >= maxMarkets) {
+                break;
+            }
         }
+        return allRaw;
     }
 
     /**

@@ -149,6 +149,16 @@ class OrderRequest(TypedDict):
     params: Dict[str, Any]
 
 
+# prediction-market order request — carries an `outcome` handle instead of a `symbol`
+class PredictionOrderRequest(TypedDict):
+    outcome: Str
+    type: Str
+    side: Str
+    amount: Union[None, float]
+    price: Union[None, float]
+    params: Dict[str, Any]
+
+
 class CancellationRequest(TypedDict):
     id: Str
     symbol: Str

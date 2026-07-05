@@ -37,7 +37,7 @@ class extended(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -173,16 +173,16 @@ class extended(Exchange, ImplicitAPI):
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo': 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
                 'test': {
                     'rest': 'https://api.starknet.sepolia.{hostname}',
                 },
-                'www': 'https://app.{hostname}',
-                'doc': 'https://api.docs.{hostname}',
-                'fees': 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www': 'https://app.extended.exchange',
+                'doc': 'https://api.docs.extended.exchange',
+                'fees': 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral': '',
             },
             'api': {
@@ -868,7 +868,7 @@ class extended(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

@@ -183,7 +183,7 @@ class bitget(Exchange, ImplicitAPI):
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
+                'logo': 'https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -3110,7 +3110,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -6014,7 +6014,7 @@ class bitget(Exchange, ImplicitAPI):
             #     {
             #         "code": "00000",
             #         "msg": "success",
-            #         "requestTime": "1680008815965",
+            #         "requestTime": "1680008815966",
             #         "data": {
             #             "successList": [
             #                 {
@@ -10632,8 +10632,10 @@ class bitget(Exchange, ImplicitAPI):
                         queryInner = queryInner.replace('%24', '$')
                     url += queryInner
                     # bitget signs the raw(non-percent-encoded) query string, so the
-                    # signature must use the decoded values(e.g. non-ascii market ids)
-                    auth += '?' + self.rawencode(sortedParams)
+                    # signature must use the decoded values(e.g. non-ascii market ids).
+                    # sort explicitly(True) so the signed order matches the url order in Go,
+                    # where map iteration is not ordered(keysort's order is otherwise lost)
+                    auth += '?' + self.rawencode(sortedParams, True)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
             headers = {

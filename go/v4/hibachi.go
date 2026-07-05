@@ -122,7 +122,7 @@ func (this *HibachiCore) Describe() any {
 			"1w":  "1w",
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973",
+			"logo": "https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab",
 			"api": map[string]any{
 				"public":  "https://data-api.hibachi.xyz",
 				"private": "https://api.hibachi.xyz",
@@ -136,25 +136,29 @@ func (this *HibachiCore) Describe() any {
 			"public": map[string]any{
 				"get": map[string]any{
 					"market/exchange-info":      1,
-					"market/data/trades":        1,
+					"market/inventory":          1,
 					"market/data/prices":        1,
 					"market/data/stats":         1,
+					"market/data/trades":        1,
 					"market/data/klines":        1,
-					"market/data/orderbook":     1,
 					"market/data/open-interest": 1,
+					"market/data/orderbook":     1,
 					"market/data/funding-rates": 1,
 					"exchange/utc-timestamp":    1,
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"capital/deposit-info":          1,
-					"capital/history":               1,
-					"trade/account/trading_history": 1,
-					"trade/account/info":            1,
-					"trade/order":                   1,
-					"trade/account/trades":          1,
-					"trade/orders":                  1,
+					"capital/balance":                   1,
+					"capital/history":                   1,
+					"capital/deposit-info":              1,
+					"trade/account/info":                1,
+					"trade/account/trades":              1,
+					"trade/account/trading_history":     1,
+					"trade/account/settlements_history": 1,
+					"trade/orders":                      1,
+					"trade/order":                       1,
+					"trade/orders/history":              1,
 				},
 				"put": map[string]any{
 					"trade/order": 1,
@@ -164,9 +168,11 @@ func (this *HibachiCore) Describe() any {
 					"trade/orders": 1,
 				},
 				"post": map[string]any{
-					"trade/order":      1,
-					"trade/orders":     1,
-					"capital/withdraw": 1,
+					"trade/order":            1,
+					"trade/orders":           1,
+					"capital/withdraw":       1,
+					"capital/transfer":       1,
+					"trade/account/leverage": 1,
 				},
 			},
 		},
@@ -622,8 +628,8 @@ func (this *HibachiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes5928 := (<-this.LoadMarkets())
-		PanicOnError(retRes5928)
+		retRes5988 := (<-this.LoadMarkets())
+		PanicOnError(retRes5988)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -655,7 +661,8 @@ func (this *HibachiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 /**
  * @method
  * @name hibachi#fetchTicker
- * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+ * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+ * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
  * @description fetches a price ticker and the related information for the past 24h
  * @param {string} symbol unified symbol of the market
  * @param {object} [params] extra parameters specific to the hibachi api endpoint
@@ -669,8 +676,8 @@ func (this *HibachiCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes6248 := (<-this.LoadMarkets())
-		PanicOnError(retRes6248)
+		retRes6318 := (<-this.LoadMarkets())
+		PanicOnError(retRes6318)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -805,8 +812,8 @@ func (this *HibachiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes7468 := (<-this.LoadMarkets())
-		PanicOnError(retRes7468)
+		retRes7538 := (<-this.LoadMarkets())
+		PanicOnError(retRes7538)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -830,6 +837,7 @@ func (this *HibachiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name hibachi#fetchTradingFees
  * @description fetch the trading fee
+ * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
@@ -841,8 +849,8 @@ func (this *HibachiCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7678 := (<-this.LoadMarkets())
-		PanicOnError(retRes7678)
+		retRes7758 := (<-this.LoadMarkets())
+		PanicOnError(retRes7758)
 		var request any = map[string]any{
 			"accountId": this.GetAccountId(),
 		}
@@ -994,8 +1002,8 @@ func (this *HibachiCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes8998 := (<-this.LoadMarkets())
-		PanicOnError(retRes8998)
+		retRes9078 := (<-this.LoadMarkets())
+		PanicOnError(retRes9078)
 		var nonce any = this.Nonce()
 		var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
 		AddElementToObject(request, "accountId", this.GetAccountId())
@@ -1035,8 +1043,8 @@ func (this *HibachiCore) CreateOrders(orders any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9258 := (<-this.LoadMarkets())
-		PanicOnError(retRes9258)
+		retRes9338 := (<-this.LoadMarkets())
+		PanicOnError(retRes9338)
 		var nonce any = this.Nonce()
 		var requestOrders any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1126,14 +1134,14 @@ func (this *HibachiCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes9928 := (<-this.LoadMarkets())
-		PanicOnError(retRes9928)
+		retRes10008 := (<-this.LoadMarkets())
+		PanicOnError(retRes10008)
 		var nonce any = this.Nonce()
 		var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
 		AddElementToObject(request, "accountId", this.GetAccountId())
 
-		retRes9968 := (<-this.PrivatePutTradeOrder(request))
-		PanicOnError(retRes9968)
+		retRes10048 := (<-this.PrivatePutTradeOrder(request))
+		PanicOnError(retRes10048)
 
 		// At this time the response body is empty. A 200 response means the update request is accepted and sent to process
 		//
@@ -1166,8 +1174,8 @@ func (this *HibachiCore) EditOrders(orders any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10178 := (<-this.LoadMarkets())
-		PanicOnError(retRes10178)
+		retRes10258 := (<-this.LoadMarkets())
+		PanicOnError(retRes10258)
 		var nonce any = this.Nonce()
 		var requestOrders any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1334,8 +1342,8 @@ func (this *HibachiCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11398 := (<-this.LoadMarkets())
-		PanicOnError(retRes11398)
+		retRes11478 := (<-this.LoadMarkets())
+		PanicOnError(retRes11478)
 		var nonce any = this.Nonce()
 		var nonce16 any = this.IntToBase16(nonce)
 		var noncePadded any = PadStart(nonce16, 16, "0")
@@ -1444,8 +1452,8 @@ func (this *HibachiCore) Withdraw(code any, amount any, address any, optionalArg
 			"signature":       signature,
 		}
 
-		retRes12338 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
-		PanicOnError(retRes12338)
+		retRes12418 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
+		PanicOnError(retRes12418)
 
 		// At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
 		//
@@ -1503,7 +1511,7 @@ func (this *HibachiCore) SignMessage(message any, privateKey any) any {
  * @method
  * @name hibachi#fetchOrderBook
  * @description fetches the state of the open orders on the orderbook
- * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+ * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
  * @param {string} symbol unified symbol of the market
  * @param {int} [limit] currently unused
  * @param {object} [params] extra parameters to be passed -- see documentation link above
@@ -1519,8 +1527,8 @@ func (this *HibachiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12928 := (<-this.LoadMarkets())
-		PanicOnError(retRes12928)
+		retRes13008 := (<-this.LoadMarkets())
+		PanicOnError(retRes13008)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1602,8 +1610,8 @@ func (this *HibachiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes13548 := (<-this.LoadMarkets())
-		PanicOnError(retRes13548)
+		retRes13628 := (<-this.LoadMarkets())
+		PanicOnError(retRes13628)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1687,8 +1695,8 @@ func (this *HibachiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14228 := (<-this.LoadMarkets())
-		PanicOnError(retRes14228)
+		retRes14308 := (<-this.LoadMarkets())
+		PanicOnError(retRes14308)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1736,8 +1744,9 @@ func (this *HibachiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 }
 
 /**
+ * @method
  * @name hibachi#fetchOHLCV
- * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+ * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
  * @description fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1761,8 +1770,8 @@ func (this *HibachiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14758 := (<-this.LoadMarkets())
-		PanicOnError(retRes14758)
+		retRes14848 := (<-this.LoadMarkets())
+		PanicOnError(retRes14848)
 		var market any = this.Market(symbol)
 		timeframe = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var request any = map[string]any{
@@ -1823,8 +1832,8 @@ func (this *HibachiCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15188 := (<-this.LoadMarkets())
-		PanicOnError(retRes15188)
+		retRes15278 := (<-this.LoadMarkets())
+		PanicOnError(retRes15278)
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
 			"accountId": this.GetAccountId(),
@@ -2094,8 +2103,8 @@ func (this *HibachiCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17508 := (<-this.LoadMarkets())
-		PanicOnError(retRes17508)
+		retRes17598 := (<-this.LoadMarkets())
+		PanicOnError(retRes17598)
 		var currency any = this.Currency("USDT")
 		var request any = map[string]any{
 			"accountId": this.GetAccountId(),
@@ -2200,6 +2209,7 @@ func (this *HibachiCore) FetchLedger(optionalArgs ...any) <-chan any {
  * @method
  * @name hibachi#fetchDepositAddress
  * @description fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+ * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters for API
  * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
@@ -2428,7 +2438,7 @@ func (this *HibachiCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
  * @method
  * @name hibachi#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+ * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -2470,8 +2480,8 @@ func (this *HibachiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20478 := (<-this.LoadMarkets())
-		PanicOnError(retRes20478)
+		retRes20578 := (<-this.LoadMarkets())
+		PanicOnError(retRes20578)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2515,8 +2525,8 @@ func (this *HibachiCore) FetchFundingRate(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20778 := (<-this.LoadMarkets())
-		PanicOnError(retRes20778)
+		retRes20878 := (<-this.LoadMarkets())
+		PanicOnError(retRes20878)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2572,7 +2582,7 @@ func (this *HibachiCore) FetchFundingRate(symbol any, optionalArgs ...any) <-cha
  * @method
  * @name hibachi#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+ * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -2593,8 +2603,8 @@ func (this *HibachiCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes21348 := (<-this.LoadMarkets())
-		PanicOnError(retRes21348)
+		retRes21448 := (<-this.LoadMarkets())
+		PanicOnError(retRes21448)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),

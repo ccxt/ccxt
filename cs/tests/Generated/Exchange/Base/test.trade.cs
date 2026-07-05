@@ -9,6 +9,13 @@ public partial class testMainClass : BaseTest
 {
     public static void testTrade(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+            }, skippedProperties);
+        }
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "12345-67890:09876/54321" },

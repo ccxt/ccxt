@@ -304,10 +304,12 @@ public partial class Exchange
     public static string Rsa(object data, object publicKey, Delegate hash = null, object padding = null)
     {
         var pk = ((string)publicKey);
+        // robust PEM parsing: drop the header/footer and blank lines by content instead of by
+        // position — a trailing newline (how openssl writes PEM files) would otherwise leave
+        // the footer line inside the base64 payload
         var pkParts = pk.Split(new[] { ((string)"\n") }, StringSplitOptions.None).ToList();
-        pkParts.RemoveAt(0);
-        pkParts.RemoveAt(pkParts.Count - 1);
-        var newPk = string.Join("", pkParts);
+        var b64Lines = pkParts.Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith("-----")).ToList();
+        var newPk = string.Join("", b64Lines);
         byte[] Data = Encoding.UTF8.GetBytes((string)data);
         byte[] privatekey;
         privatekey = Convert.FromBase64String(newPk);

@@ -7,7 +7,7 @@ public class  Kalshi: kalshi { public Kalshi(object args = null) : base(args) { 
 public partial class kalshi
 {
     /// <summary>
-    /// fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+    /// fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
     /// </summary>
     /// <remarks>
     /// See <see href="https://trading-api.readme.io/reference/getmarkets"/>  <br/>
@@ -21,13 +21,13 @@ public partial class kalshi
     /// <item>
     /// <term>params.query</term>
     /// <description>
-    /// string : a single query string to filter markets by (matches ticker/title)
+    /// string : a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.limit</term>
     /// <description>
-    /// int : max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
+    /// int : for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
     /// </description>
     /// </item>
     /// </list>
@@ -37,6 +37,19 @@ public partial class kalshi
     {
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    /// <summary>
+    /// resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the resolved outcome object.</returns>
+    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
+    {
+        var res = await this.fetchOutcome(outcomeSymbol);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches the current market price and bid/ask for a single kalshi outcome
@@ -431,7 +444,7 @@ public partial class kalshi
     /// <item>
     /// <term>params.maxPages</term>
     /// <description>
-    /// int : maximum number of pages to scan, defaults to 5
+    /// int : maximum number of event pages to scan, defaults to 50
     /// </description>
     /// </item>
     /// </list>

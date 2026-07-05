@@ -2,8 +2,9 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
+import { BadSymbol, ArgumentsRequired } from '../base/errors.js';
 import type {
-    Int, Str, Num, Dict, Strings,
+    Int, int, Str, Num, Dict, Strings,
     Market, PredictionOrderBook, OHLCV,
     Balances, PredictionOpenInterest,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
@@ -22,7 +23,7 @@ export default class kalshi extends Exchange {
             'id': 'kalshi',
             'name': 'Kalshi',
             'countries': [ 'US' ],
-            'rateLimit': 100,
+            'rateLimit': 200,
             'certified': false,
             'pro': false,
             'has': {
@@ -63,10 +64,15 @@ export default class kalshi extends Exchange {
             'urls': {
                 'logo': 'https://kalshi.com/favicon.ico',
                 'api': {
-                    'kalshi': 'https://api.elections.kalshi.com/trade-api/v2',
+                    'kalshi': 'https://external-api.kalshi.com/trade-api/v2',
+                    // free-text search (/v1/search/series) lives only on the elections web host —
+                    // external-api returns 404 for it. discovery-only, read-only, no auth.
+                    'elections': 'https://api.elections.kalshi.com/v1',
                 },
                 'test': {
-                    'kalshi': 'https://demo-api.kalshi.co/trade-api/v2',
+                    'kalshi': 'https://external-api.demo.kalshi.co/trade-api/v2',
+                    // demo has no synthetic search index; point discovery at the live elections host
+                    'elections': 'https://api.elections.kalshi.com/v1',
                 },
                 'www': 'https://kalshi.com',
                 'doc': [ 'https://trading-api.readme.io/reference/getting-started' ],
@@ -161,6 +167,13 @@ export default class kalshi extends Exchange {
                         },
                     },
                 },
+                'elections': {
+                    'public': {
+                        'get': {
+                            'search/series': 1,   // free-text series/event search — elections web host only
+                        },
+                    },
+                },
             },
             'requiredCredentials': {
                 'apiKey': true,   // KALSHI-ACCESS-KEY (UUID)
@@ -175,10 +188,23 @@ export default class kalshi extends Exchange {
                     'taker': 0.07,  // 7% fee on profit
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'not_found': BadSymbol,   // 404 for an unknown market/ticker id — distinguish from an outage
+                },
+                'broad': {},
+            },
             'options': {
-                'defaultFetchEventsLimit': 100,
-                'maxFetchMarketsLimit': 1000,
+                'defaultFetchEventsLimit': 200,   // events page size for the per-series /events cursor scan
+                'maxFetchMarketsLimit': 1000,      // markets page size / max markets collected per unscoped listing
+                'searchSeriesLimit': 25,           // page_size for the free-text series search endpoint (used when no limit is given)
+                'maxFetchEventsResults': 100,      // default cap on events actually fetched when the caller gives no limit
+                'maxEventPagesPerSeries': 20,      // safety cap on /events pages fetched per resolved series
                 'defaultEventStatus': 'open',  // 'open' | 'closed' | 'settled'
+                // kalshi has tens of thousands of markets. false (default) = resolve each outcome on
+                // demand (~1s per market, cached) so hot paths are cheap; set true to bulk-load every
+                // outcome once up front (a multi-second listing scan) and make every later lookup a hit
+                'loadAllOutcomes': false,
             },
         });
     }
@@ -186,29 +212,46 @@ export default class kalshi extends Exchange {
     /**
      * @method
      * @name kalshi#fetchMarkets
-     * @description fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+     * @description fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
      * @see https://trading-api.readme.io/reference/getmarkets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.query] a single query string to filter markets by (matches ticker/title)
-     * @param {string[]} [params.queries] multiple query strings (alternative to query)
-     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
+     * @param {string} [params.query] a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
+     * @param {string[]} [params.queries] multiple search queries (alternative to query); markets from any matching event are returned
+     * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.parseSearchQueries (params) as any[];
-        const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
-        // scope the listing: without a search query loadMarkets would otherwise page through
-        // every kalshi market via the cursor. Cap the total number of markets collected.
-        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
-        const lowerQueries: string[] = [];
-        for (let qi = 0; qi < queries.length; qi++) {
-            lowerQueries.push (queries[qi].toLowerCase ());
+        const queriesLength = queries.length;
+        // kalshi's public markets endpoint has no free-text search, so a query would otherwise
+        // force a client-side scan of every open market (thousands, paged 1000 at a time, which
+        // hangs). Resolve the query against the events endpoint instead — it is bounded by
+        // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
+        // markets — then flatten those markets.
+        if (queriesLength > 0) {
+            const eventParams = this.omit (params, [ 'limit' ]);
+            const events = await this.fetchEvents (eventParams);
+            const eventsLength = events.length;
+            const queryMarkets: Market[] = [];
+            for (let ei = 0; ei < eventsLength; ei++) {
+                const eventMarkets = this.safeList (events[ei], 'markets', []) as any[];
+                const eventMarketsLength = eventMarkets.length;
+                for (let mi = 0; mi < eventMarketsLength; mi++) {
+                    queryMarkets.push (eventMarkets[mi]);
+                }
+            }
+            return queryMarkets;
         }
-        const lowerQueriesLength = lowerQueries.length;
+        const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
+        // no query: page the markets listing directly. Cap the total collected so an unscoped
+        // loadMarkets cannot run away through every kalshi market via the cursor.
+        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000));
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
         let cursor: Str = undefined;
-        const limit = this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000);
+        // don't request a full 1000-market page (3+ MB) when the caller wants fewer
+        const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 1000);
+        const limit = Math.min (maxMarkets, pageLimit);
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -223,20 +266,6 @@ export default class kalshi extends Exchange {
             const rawMarketsLength = rawMarkets.length;
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
-                if (lowerQueriesLength > 0) {
-                    const ticker = this.safeString (raw, 'ticker', '').toLowerCase ();
-                    const title = this.safeString (raw, 'title', '').toLowerCase ();
-                    let matches = false;
-                    for (let mi = 0; mi < lowerQueries.length; mi++) {
-                        if (ticker.indexOf (lowerQueries[mi]) > -1 || title.indexOf (lowerQueries[mi]) > -1) {
-                            matches = true;
-                            break;
-                        }
-                    }
-                    if (!matches) {
-                        continue;
-                    }
-                }
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
@@ -275,6 +304,62 @@ export default class kalshi extends Exchange {
 
     parseBinaryMarketToOutcomes (raw: Dict): Market[] {
         return [ this.parseMarket (raw) ];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcome
+     * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+     * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+     * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+     * @returns {object} the resolved outcome object
+     */
+    async fetchOutcome (outcomeSymbol: string): Promise<any> {
+        const symbolLength = outcomeSymbol.length;
+        const suffix = outcomeSymbol.slice (symbolLength - 3);
+        const isNo = (suffix === '-NO');
+        const baseTicker = isNo ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
+        let response = undefined;
+        try {
+            response = await this.kalshiPublicGetMarketsTicker ({ 'ticker': baseTicker });
+        } catch (e) {
+            // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+            // which handleErrors maps to BadSymbol. surface a clear hint; let network failures propagate.
+            if (e instanceof BadSymbol) {
+                throw new BadSymbol (this.id + ' could not resolve outcome ' + outcomeSymbol + ' — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first');
+            }
+            throw e;
+        }
+        const rawMarket = this.safeDict (response, 'market', response);
+        const parsed = this.parseMarket (rawMarket);
+        if (this.markets === undefined) {
+            this.markets = this.createSafeDictionary ();
+        }
+        this.markets[parsed['symbol']] = parsed;
+        // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+        // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+        this.indexMarketOutcomes (parsed);
+        return this.outcome (outcomeSymbol);
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
+        // through to the base http-status handling.
+        if (!response) {
+            return undefined;
+        }
+        const error = this.safeDict (response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString (error, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
+        }
+        return undefined;
     }
 
     parseMarket (raw: Dict): Market {
@@ -335,9 +420,9 @@ export default class kalshi extends Exchange {
         const status = this.safeString (raw, 'status');
         const active = (status === 'active') || (status === 'open');
         const endDate = this.safeString (raw, 'expiration_time');
-        const volume = this.safeNumber (raw, 'volume');
-        const liquidity = this.safeNumber (raw, 'liquidity');
-        const openInt = this.safeNumber (raw, 'open_interest');
+        const volume = this.safeNumber2 (raw, 'volume_fp', 'volume');
+        const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
+        const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
         let eventParts = [];
         if (eventTicker) {
@@ -456,7 +541,7 @@ export default class kalshi extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = {
@@ -555,7 +640,7 @@ export default class kalshi extends Exchange {
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
     async fetchOpenInterest (outcome: string, params = {}): Promise<PredictionOpenInterest> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = { 'ticker': ticker };
@@ -730,11 +815,11 @@ export default class kalshi extends Exchange {
         const targets: any[] = [];
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
-                this.checkEvents (outcomes[i]);
+                await this.loadOutcome (outcomes[i]);
                 targets.push (outcomes[i]);
             }
         } else {
-            this.checkEvents ();
+            await this.loadOutcomes ();
             const allKeys = Object.keys (this.outcomes);
             for (let i = 0; i < allKeys.length; i++) {
                 targets.push (allKeys[i]);
@@ -808,7 +893,7 @@ export default class kalshi extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const isNo = outcomeObj['label'] === 'NO';
@@ -900,7 +985,7 @@ export default class kalshi extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (outcome: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const seriesTicker = this.safeString (outcomeObj['info'], 'seriesTicker', ticker);
@@ -918,6 +1003,9 @@ export default class kalshi extends Exchange {
             if (limit !== undefined) {
                 const end = this.sum (sinceS, limit * tf);
                 request['end_ts'] = (end < now) ? end : now;
+            } else {
+                // the candlesticks endpoint requires end_ts - default to now
+                request['end_ts'] = now;
             }
         } else {
             const defaultLimit = this.safeInteger (this.options, 'defaultFetchOHLCVLimit', 200);
@@ -1040,7 +1128,7 @@ export default class kalshi extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = { 'ticker': ticker };
@@ -1057,7 +1145,7 @@ export default class kalshi extends Exchange {
                 filteredTrades.push (trade);
             }
         }
-        return this.parseTrades (filteredTrades, outcomeObj as any, since, limit) as PredictionTrade[];
+        return this.parsePredictionTrades (filteredTrades, outcomeObj, since, limit);
     }
 
     /**
@@ -1130,7 +1218,6 @@ export default class kalshi extends Exchange {
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        this.checkEvents ();
         const response = await this.kalshiPrivateGetPortfolioBalance (params);
         return this.parseBalance (response);
     }
@@ -1171,14 +1258,38 @@ export default class kalshi extends Exchange {
         }
         if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                this.checkEvents (outcomes[i]);
+                await this.loadOutcome (outcomes[i]);
             }
         } else {
-            this.checkEvents ();
+            await this.loadOutcomes ();
         }
         const response = await this.kalshiPrivateGetPortfolioPositions (params);
         const positions = this.safeList (response, 'market_positions', []) as any[];
-        return this.parsePositions (positions, outcomes) as PredictionPosition[];
+        // filter by the requested outcomes' market tickers — a kalshi position is per market
+        // ticker and covers both the YES and the NO leg
+        const parsed = this.parsePredictionPositions (positions);
+        if (outcomesLength === 0) {
+            return parsed as PredictionPosition[];
+        }
+        const wantedTickers: Dict = {};
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
+            const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+            const marketTicker = this.safeString (outcomeInfo, 'ticker');
+            if (marketTicker !== undefined) {
+                wantedTickers[marketTicker] = true;
+            }
+        }
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const position = parsed[i];
+            const positionInfo = this.safeDict (position, 'info', {});
+            const positionTicker = this.safeString (positionInfo, 'ticker');
+            if ((positionTicker !== undefined) && (positionTicker in wantedTickers)) {
+                result.push (position);
+            }
+        }
+        return result as PredictionPosition[];
     }
 
     /**
@@ -1245,9 +1356,9 @@ export default class kalshi extends Exchange {
      */
     async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
-            this.checkEvents (outcome);
+            await this.loadOutcome (outcome);
         } else {
-            this.checkEvents ();
+            await this.loadOutcomes ();
         }
         const request: Dict = { 'status': 'resting' };
         let outcomeObj: any = undefined;
@@ -1257,7 +1368,7 @@ export default class kalshi extends Exchange {
         }
         const response = await this.kalshiPrivateGetPortfolioOrders (this.extend (request, params));
         const orders = this.safeList (response, 'orders', []) as any[];
-        return this.parseOrders (orders, outcomeObj as any, since, limit) as PredictionOrder[];
+        return this.parsePredictionOrders (orders, outcomeObj, since, limit);
     }
 
     /**
@@ -1271,10 +1382,10 @@ export default class kalshi extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        // outcome is only a labelling hint here — the request needs just the id, and
+        // parseOrder resolves identity cache-only, so don't force a full market scan
         if (outcome !== undefined) {
-            this.checkEvents (outcome);
-        } else {
-            this.checkEvents ();
+            await this.loadOutcome (outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
         return this.parseOrder (this.safeValue (response, 'order', response));
@@ -1292,7 +1403,14 @@ export default class kalshi extends Exchange {
     parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
         const id = this.safeString (order, 'order_id');
         const ticker = this.safeString (order, 'ticker');
-        const mkt = this.safeOutcome (ticker, market as any);
+        // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
+        // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
+        const sideLeg = this.safeStringLower (order, 'side');
+        let outcomeKey = ticker;
+        if ((sideLeg === 'no') && (ticker !== undefined)) {
+            outcomeKey = ticker + '-NO';
+        }
+        const mkt = this.safeOutcome (outcomeKey, market as any);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const action = this.safeString (order, 'action');
         const side = (action === 'buy') ? 'buy' : 'sell';
@@ -1377,14 +1495,18 @@ export default class kalshi extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
-        this.checkEvents (outcome);
+        // kalshi has no market orders — every order is a limit order and the price is required
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }");
+        }
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const isNo = (outcomeObj['label'] === 'NO');
         const isBuy = (side === 'buy');
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
-        // (buy NO @ q == sell YES @ 1-q), so flip the book side and the price
+        // buy NO @ q == sell YES @ 1-q - flip the book side and the price
         let bookSide = (isBuy) ? 'bid' : 'ask';
         let yesPrice = price;
         if (isNo) {
@@ -1439,14 +1561,20 @@ export default class kalshi extends Exchange {
      */
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (outcome !== undefined) {
-            this.checkEvents (outcome);
-        } else {
-            this.checkEvents ();
+            await this.loadOutcome (outcome);
         }
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parseOrder (this.safeDict (response, 'order', response));
+        const order = this.parseOrder (this.safeDict (response, 'order', response));
+        // the delete response carries no id/status - backfill the requested id and the outcome
+        if (order['id'] === undefined) {
+            order['id'] = id;
+        }
+        if (order['status'] === undefined) {
+            order['status'] = 'canceled';
+        }
+        return order;
     }
 
     /**
@@ -1460,9 +1588,7 @@ export default class kalshi extends Exchange {
      */
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
-            this.checkEvents (outcome);
-        } else {
-            this.checkEvents ();
+            await this.loadOutcome (outcome);
         }
         // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
         // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
@@ -1483,147 +1609,270 @@ export default class kalshi extends Exchange {
                 canceledOrders.push (this.safeDict (response, 'order', response));
             }
         }
-        return this.parseOrders (canceledOrders) as PredictionOrder[];
+        return this.parsePredictionOrders (canceledOrders);
     }
 
     /**
      * @method
      * @name kalshi#fetchEvents
-     * @description fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in this.events
-     * @see https://trading-api.readme.io/reference/getevents
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.query] a single query string to filter events by (matches event ticker/title)
-     * @param {string[]} [params.queries] multiple query strings (alternative to query)
-     * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
-     * @param {int} [params.limit] page size per request, defaults to 200
-     * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
+     * @description fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
+     * @see https://docs.kalshi.com/api-reference/events/get-events
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events)
+     * @param {string} [params.query] free-text search resolved server-side via kalshi's series search endpoint
+     * @param {string[]} [params.queries] multiple free-text searches (alternative to query, unioned)
+     * @param {string} [params.series_ticker] one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search
+     * @param {string[]} [params.tags] kalshi series tags (e.g. ['BTC']) — resolved to series via the /series listing
+     * @param {string} [params.category] a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing
+     * @param {string} [params.status] 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
+     * @param {int} [params.limit] max number of events to return
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
-        this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
+        const queriesLength = queries.length;
         params = this.omit (params, [ 'query', 'queries' ]);
+        const userLimit = this.safeInteger (params, 'limit');
+        // bound how many events are actually FETCHED (not just returned) so a broad scope like
+        // category='Crypto' (hundreds of series) doesn't page every one of them
+        let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
+        if (userLimit !== undefined) {
+            fetchCap = userLimit;
+        }
         // map the unified status onto the kalshi event status (open / closed) so it is pushed server-side
         const requestedStatus = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
         let status = 'open';
         if ((requestedStatus === 'closed') || (requestedStatus === 'inactive')) {
             status = 'closed';
         }
-        const pageLimit = this.safeInteger (params, 'limit', 200);
-        const maxPages = this.safeInteger (params, 'maxPages', 50);
-        const rest = this.omit (params, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug' ]);
-        if (!this.events) {
-            this.events = {};
-        }
+        // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
+        const rest = this.omit (params, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ]);
         if (!this.markets) {
             this.markets = this.createSafeDictionary ();
         }
-        const lowerQueries: string[] = [];
-        for (let qi = 0; qi < queries.length; qi++) {
-            lowerQueries.push (queries[qi].toLowerCase ());
-        }
-        const lowerQueriesLength = lowerQueries.length;
-        // sequential cursor scan with nested markets included, collecting the matching events directly
-        const matchedEvents: any[] = [];
-        let cursor: string | undefined = undefined;
-        let page = 0;
-        while (page < maxPages) {
-            const request: Dict = { 'status': status, 'limit': pageLimit, 'with_nested_markets': true };
-            if (cursor) {
-                request['cursor'] = cursor;
+        const eventId = this.safeString2 (params, 'eventId', 'slug');
+        let rawEvents: any[] = [];
+        if (queriesLength > 0) {
+            // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
+            rawEvents = await this.fetchEventsByQuery (queries, fetchCap, rest);
+        } else if (eventId !== undefined) {
+            // kalshi's event id (and slug) is the event_ticker — fetch it directly
+            const fullEvent = await this.fetchRawEventByTicker (eventId, rest);
+            rawEvents = [ fullEvent ];
+        } else {
+            // tags / category / series_ticker resolve to a set of series; fetch their events, capped
+            const seriesTickers = await this.resolveEventSeriesTickers (params);
+            const seriesTickersLength = seriesTickers.length;
+            if (seriesTickersLength === 0) {
+                this.requireEventQuery (params);
             }
-            const response = await this.kalshiPublicGetEvents (this.extend (request, rest));
-            const rawEvents = this.safeList (response, 'events', []) as any[];
-            const rawEventsLength = rawEvents.length;
-            cursor = this.safeString (response, 'cursor');
-            for (let rei = 0; rei < rawEvents.length; rei++) {
-                const rawEvent = rawEvents[rei];
-                const ticker = this.safeString (rawEvent, 'event_ticker', '');
-                const tickerLower = ticker.toLowerCase ();
-                const title = this.safeString (rawEvent, 'title', '').toLowerCase ();
-                let matches = (lowerQueriesLength === 0);
-                for (let li = 0; li < lowerQueries.length; li++) {
-                    if (tickerLower.indexOf (lowerQueries[li]) > -1 || title.indexOf (lowerQueries[li]) > -1) {
-                        matches = true;
+            rawEvents = await this.fetchSeriesEvents (seriesTickers, status, fetchCap, rest);
+        }
+        const rawEventsLength = rawEvents.length;
+        const result: any[] = [];
+        for (let di = 0; di < rawEventsLength; di++) {
+            const parsedEvent = this.parseEvent (rawEvents[di]);
+            result.push (parsedEvent);
+            // register the parsed markets so populateOutcomes can index their outcomes
+            const parsedMarketsRaw = parsedEvent['markets'];
+            const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
+            const parsedMarketsLength = parsedMarkets.length;
+            for (let mi = 0; mi < parsedMarketsLength; mi++) {
+                const m = parsedMarkets[mi];
+                this.markets[m['symbol']] = m;
+            }
+        }
+        this.populateOutcomes ();
+        // scoping already happened server-side, so strip the resolved scopes before the client-side
+        // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
+        // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
+        const postParams = this.omit (params, [ 'tags', 'category', 'series_ticker' ]);
+        return this.applyEventFetchParams (result, postParams, []);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchEventsByQuery
+     * @description resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
+     * @param {string[]} queries free-text search strings
+     * @param {int} [limit] max number of events to fetch
+     * @param {object} [rest] extra params forwarded verbatim to the events endpoint
+     * @returns {object[]} raw kalshi event objects with nested markets
+     */
+    async fetchEventsByQuery (queries: string[], limit: Int, rest = {}): Promise<any[]> {
+        const pageSize = (limit !== undefined) ? limit : this.safeInteger (this.options, 'searchSeriesLimit', 25);
+        // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
+        const seen: Dict = {};
+        const eventTickers: string[] = [];
+        const queriesLength = queries.length;
+        for (let qi = 0; qi < queriesLength; qi++) {
+            const searchResponse = await this.electionsPublicGetSearchSeries ({
+                'query': queries[qi],
+                'order_by': 'querymatch',
+                'page_size': pageSize,
+            });
+            const page = this.safeList (searchResponse, 'current_page', []) as any[];
+            const pageLength = page.length;
+            for (let pi = 0; pi < pageLength; pi++) {
+                const et = this.safeString (page[pi], 'event_ticker');
+                if (et !== undefined) {
+                    const already = this.safeString (seen, et);
+                    if (already === undefined) {
+                        seen[et] = et;
+                        eventTickers.push (et);
+                    }
+                }
+            }
+        }
+        const rawEvents: any[] = [];
+        const eventTickersLength = eventTickers.length;
+        for (let ei = 0; ei < eventTickersLength; ei++) {
+            if ((limit !== undefined) && (rawEvents.length >= limit)) {
+                break;
+            }
+            const fullEvent = await this.fetchRawEventByTicker (eventTickers[ei], rest);
+            rawEvents.push (fullEvent);
+        }
+        return rawEvents;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchRawEventByTicker
+     * @description fetches a single raw kalshi event object (with nested markets) by its event ticker
+     * @param {string} ticker the kalshi event ticker
+     * @param {object} [params] extra params forwarded verbatim to the events endpoint
+     * @returns {object} the raw kalshi event object with nested markets
+     */
+    async fetchRawEventByTicker (ticker: string, params = {}): Promise<any> {
+        const request: Dict = { 'event_ticker': ticker, 'with_nested_markets': true };
+        const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
+        const fullEvent = this.safeDict (response, 'event', response);
+        const nestedMarkets = this.safeList (fullEvent, 'markets');
+        if (nestedMarkets === undefined) {
+            fullEvent['markets'] = this.safeList (response, 'markets', []);
+        }
+        return fullEvent;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#resolveEventSeriesTickers
+     * @description resolves a fetchEvents scope (tags, category or series_ticker) to a deduplicated list of kalshi series tickers, preserving discovery order
+     * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
+     * @returns {string[]} deduplicated series tickers
+     */
+    async resolveEventSeriesTickers (params = {}): Promise<string[]> {
+        const collected: any[] = [];
+        // tags / category -> documented /series listing
+        const tags = this.safeList (params, 'tags', []);
+        const tagsLength = tags.length;
+        for (let ti = 0; ti < tagsLength; ti++) {
+            const seriesResponse = await this.kalshiPublicGetSeries ({ 'tags': tags[ti] });
+            const seriesList = this.safeList (seriesResponse, 'series', []) as any[];
+            const seriesListLength = seriesList.length;
+            for (let si = 0; si < seriesListLength; si++) {
+                const st = this.safeString (seriesList[si], 'ticker');
+                if (st !== undefined) {
+                    collected.push (st);
+                }
+            }
+        }
+        const category = this.safeString (params, 'category');
+        if (category !== undefined) {
+            const seriesResponse = await this.kalshiPublicGetSeries ({ 'category': category });
+            const seriesList = this.safeList (seriesResponse, 'series', []) as any[];
+            const seriesListLength = seriesList.length;
+            for (let si = 0; si < seriesListLength; si++) {
+                const st = this.safeString (seriesList[si], 'ticker');
+                if (st !== undefined) {
+                    collected.push (st);
+                }
+            }
+        }
+        // explicit series_ticker(s) — comma-separated accepted, used verbatim
+        const seriesParam = this.safeString (params, 'series_ticker');
+        if (seriesParam !== undefined) {
+            const parts = seriesParam.split (',');
+            const partsLength = parts.length;
+            for (let pi = 0; pi < partsLength; pi++) {
+                collected.push (parts[pi]);
+            }
+        }
+        // deduplicate preserving order
+        const seen: Dict = {};
+        const ordered: string[] = [];
+        const collectedLength = collected.length;
+        for (let ci = 0; ci < collectedLength; ci++) {
+            const st = collected[ci];
+            const already = this.safeString (seen, st);
+            if ((st !== undefined) && (st !== '') && (already === undefined)) {
+                seen[st] = st;
+                ordered.push (st);
+            }
+        }
+        return ordered;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchSeriesEvents
+     * @description fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
+     * @param {string[]} seriesTickers the series to fetch events for
+     * @param {string} status the kalshi event status ('open' | 'closed')
+     * @param {int} [limit] stop fetching once this many events are gathered
+     * @param {object} [rest] extra params forwarded verbatim to the events endpoint
+     * @returns {object[]} raw kalshi event objects with nested markets
+     */
+    async fetchSeriesEvents (seriesTickers: string[], status: Str, limit: Int, rest = {}): Promise<any[]> {
+        const rawEvents: any[] = [];
+        const seriesTickersLength = seriesTickers.length;
+        const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 200);
+        const maxPages = this.safeInteger (this.options, 'maxEventPagesPerSeries', 20);
+        for (let si = 0; si < seriesTickersLength; si++) {
+            if ((limit !== undefined) && (rawEvents.length >= limit)) {
+                break;
+            }
+            let cursor: Str = undefined;
+            for (let page = 0; page < maxPages; page++) {
+                let reqLimit = pageLimit;
+                if (limit !== undefined) {
+                    const remaining = limit - rawEvents.length;
+                    if (remaining < reqLimit) {
+                        reqLimit = remaining;
+                    }
+                    if (reqLimit <= 0) {
                         break;
                     }
                 }
-                if (matches && ticker) {
-                    matchedEvents.push (rawEvent);
+                const request: Dict = {
+                    'series_ticker': seriesTickers[si],
+                    'status': status,
+                    'with_nested_markets': true,
+                    'limit': reqLimit,
+                };
+                if (cursor !== undefined) {
+                    request['cursor'] = cursor;
                 }
-            }
-            page = this.sum (page, 1);
-            if (!cursor || rawEventsLength < pageLimit) {
-                break;
-            }
-        }
-        const result: any[] = [];
-        for (let di = 0; di < matchedEvents.length; di++) {
-            const fullEvent = matchedEvents[di];
-            const rawNestedMarkets = this.safeList (fullEvent, 'markets', []) as any[];
-            const rawNestedMarketsLength = rawNestedMarkets.length;
-            if (rawNestedMarketsLength === 0) {
-                const eventTicker = this.safeString (fullEvent, 'event_ticker');
-                if (eventTicker !== undefined) {
-                    const eventMarkets: any[] = [];
-                    let marketCursor: string | undefined = undefined;
-                    const marketsLimit = this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000);
-                    const maxMarketPages = this.safeInteger (this.options, 'maxMarketPages', 1000);
-                    for (let mp = 0; mp < maxMarketPages; mp++) {
-                        const marketRequest: Dict = {
-                            'event_ticker': eventTicker,
-                            'limit': marketsLimit,
-                        };
-                        if (marketCursor !== undefined) {
-                            marketRequest['cursor'] = marketCursor;
-                        }
-                        const marketResponse = await this.kalshiPublicGetMarkets (marketRequest);
-                        const pageMarkets = this.safeList (marketResponse, 'markets', []) as any[];
-                        const pageMarketsLength = pageMarkets.length;
-                        for (let mi = 0; mi < pageMarkets.length; mi++) {
-                            eventMarkets.push (pageMarkets[mi]);
-                        }
-                        marketCursor = this.safeString (marketResponse, 'cursor');
-                        if ((marketCursor === undefined) || (marketCursor === '') || (pageMarketsLength < marketsLimit)) {
-                            break;
-                        }
-                    }
-                    fullEvent['markets'] = eventMarkets;
+                const response = await this.kalshiPublicGetEvents (this.extend (request, rest));
+                const pageEvents = this.safeList (response, 'events', []) as any[];
+                const pageEventsLength = pageEvents.length;
+                for (let ei = 0; ei < pageEventsLength; ei++) {
+                    rawEvents.push (pageEvents[ei]);
                 }
-            }
-            const parsedEvent = this.parseEvent (fullEvent);
-            const eventTitle = this.safeString (fullEvent, 'title');
-            const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
-            if (eventKey) {
-                this.events[eventKey] = parsedEvent;
-                result.push (parsedEvent);
-                const parsedMarketsRaw = parsedEvent['markets'];
-                const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
-                for (let mi = 0; mi < parsedMarkets.length; mi++) {
-                    const m = parsedMarkets[mi];
-                    this.markets[m['symbol']] = m;
+                cursor = this.safeString (response, 'cursor');
+                if ((limit !== undefined) && (rawEvents.length >= limit)) {
+                    break;
+                }
+                if ((cursor === undefined) || (cursor === '') || (pageEventsLength < reqLimit)) {
+                    break;
                 }
             }
         }
-        this.outcomes = {};
-        this.outcomes_by_id = {};
-        const marketKeys = Object.keys (this.markets);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]] as Dict;
-            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'outcome');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                const ocId = this.safeString (oc, 'outcomeId');
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
-                }
-            }
-        }
-        return this.applyEventFetchParams (result, params, queries);
+        return rawEvents;
     }
 
     /**
@@ -1636,13 +1885,7 @@ export default class kalshi extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        const request: Dict = { 'event_ticker': id, 'with_nested_markets': true };
-        const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
-        const fullEvent = this.safeDict (response, 'event', response);
-        const nestedMarkets = this.safeList (fullEvent, 'markets');
-        if (nestedMarkets === undefined) {
-            fullEvent['markets'] = this.safeList (response, 'markets', []);
-        }
+        const fullEvent = await this.fetchRawEventByTicker (id, params);
         const event: any = this.parseEvent (fullEvent);
         return event;
     }

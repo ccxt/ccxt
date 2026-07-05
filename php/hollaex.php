@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\hollaex as Exchange;
 
 class hollaex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hollaex',
@@ -294,7 +293,7 @@ class hollaex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for hollaex
          *
@@ -303,7 +302,7 @@ class hollaex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->publicGetConstants ($params);
+        $response = $this->publicGetConstants($params);
         //
         //     {
         //         "coins" => array(
@@ -411,7 +410,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -420,7 +419,7 @@ class hollaex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetConstants ($params);
+        $response = $this->publicGetConstants($params);
         //
         //    {
         //        "coins" => {
@@ -548,7 +547,7 @@ class hollaex extends Exchange {
         ));
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          *
@@ -560,7 +559,7 @@ class hollaex extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbol
          */
         $this->load_markets();
-        $response = $this->publicGetOrderbooks ($params);
+        $response = $this->publicGetOrderbooks($params);
         $result = array();
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -573,7 +572,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -582,14 +581,14 @@ class hollaex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetOrderbook ($this->extend($request, $params));
+        $response = $this->publicGetOrderbook($this->extend($request, $params));
         //
         //     {
         //         "btc-usdt" => array(
@@ -614,7 +613,7 @@ class hollaex extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -629,7 +628,7 @@ class hollaex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTicker ($this->extend($request, $params));
+        $response = $this->publicGetTicker($this->extend($request, $params));
         //
         //     {
         //         "open" => 8615.55,
@@ -644,7 +643,7 @@ class hollaex extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -656,7 +655,7 @@ class hollaex extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetTickers ($params);
+        $response = $this->publicGetTickers($params);
         //
         //     {
         //         "bch-usdt" => array(
@@ -675,7 +674,7 @@ class hollaex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_tickers($tickers, ?array $symbols = null, $params = array ()): array {
+    public function parse_tickers($tickers, ?array $symbols = null, $params = array()): array {
         $result = array();
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -745,7 +744,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -762,7 +761,7 @@ class hollaex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTrades ($this->extend($request, $params));
+        $response = $this->publicGetTrades($this->extend($request, $params));
         //
         //     {
         //         "btc-usdt" => array(
@@ -838,7 +837,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading $fees for multiple markets
          *
@@ -848,7 +847,7 @@ class hollaex extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
          */
         $this->load_markets();
-        $response = $this->publicGetTiers ($params);
+        $response = $this->publicGetTiers($params);
         //
         //     {
         //         "1" => {
@@ -899,7 +898,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * hollaex has large gaps between candles, so it's recommended to specify $since
          *
@@ -938,7 +937,7 @@ class hollaex extends Exchange {
         $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds
         $request['to'] = $this->parse_to_int($until / 1000); // convert to seconds
         $params = $this->omit($params, 'until');
-        $response = $this->publicGetChart ($this->extend($request, $params));
+        $response = $this->publicGetChart($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -996,7 +995,7 @@ class hollaex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1006,7 +1005,7 @@ class hollaex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privateGetUserBalance ($params);
+        $response = $this->privateGetUserBalance($params);
         //
         //     {
         //         "updated_at" => "2020-03-02T22:27:38.428Z",
@@ -1022,7 +1021,7 @@ class hollaex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetch an open order by it's $id
          *
@@ -1037,7 +1036,7 @@ class hollaex extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetOrder ($this->extend($request, $params));
+        $response = $this->privateGetOrder($this->extend($request, $params));
         //
         //     {
         //         "id" => "string",
@@ -1065,7 +1064,7 @@ class hollaex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1083,7 +1082,7 @@ class hollaex extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -1101,7 +1100,7 @@ class hollaex extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an $order made by the user
          *
@@ -1116,7 +1115,7 @@ class hollaex extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetOrder ($this->extend($request, $params));
+        $response = $this->privateGetOrder($this->extend($request, $params));
         //             {
         //                 "id" => "string",
         //                 "side" => "sell",
@@ -1146,7 +1145,7 @@ class hollaex extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -1182,7 +1181,7 @@ class hollaex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 50, max 100
         }
-        $response = $this->privateGetOrders ($this->extend($request, $params));
+        $response = $this->privateGetOrders($this->extend($request, $params));
         //
         //     {
         //         "count" => 1,
@@ -1292,7 +1291,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -1333,7 +1332,7 @@ class hollaex extends Exchange {
             $request['meta'] = array( 'post_only' => true );
         }
         $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ));
-        $response = $this->privatePostOrder ($this->extend($request, $params));
+        $response = $this->privatePostOrder($this->extend($request, $params));
         //
         //     {
         //         "fee" => 0,
@@ -1360,7 +1359,7 @@ class hollaex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1375,7 +1374,7 @@ class hollaex extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateDeleteOrder ($this->extend($request, $params));
+        $response = $this->privateDeleteOrder($this->extend($request, $params));
         //
         //     {
         //         "title" => "string",
@@ -1392,7 +1391,7 @@ class hollaex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -1410,7 +1409,7 @@ class hollaex extends Exchange {
         $market = null;
         $market = $this->market($symbol);
         $request['symbol'] = $market['id'];
-        $response = $this->privateDeleteOrderAll ($this->extend($request, $params));
+        $response = $this->privateDeleteOrderAll($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1429,7 +1428,7 @@ class hollaex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -1462,7 +1461,7 @@ class hollaex extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $response = $this->privateGetUserTrades ($this->extend($request, $params));
+        $response = $this->privateGetUserTrades($this->extend($request, $params));
         //
         //     {
         //         "count" => 1,
@@ -1513,7 +1512,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit $addresses for multiple currencies and chain types
          *
@@ -1526,7 +1525,7 @@ class hollaex extends Exchange {
         $this->load_markets();
         $network = $this->safe_string($params, 'network');
         $params = $this->omit($params, 'network');
-        $response = $this->privateGetUser ($params);
+        $response = $this->privateGetUser($params);
         //
         //     {
         //         "id":620,
@@ -1577,7 +1576,7 @@ class hollaex extends Exchange {
         return $this->parse_deposit_addresses($addresses, $codes);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -1610,7 +1609,7 @@ class hollaex extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $response = $this->privateGetUserDeposits ($this->extend($request, $params));
+        $response = $this->privateGetUserDeposits($this->extend($request, $params));
         //
         //     {
         //         "count" => 1,
@@ -1638,7 +1637,7 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *
@@ -1658,7 +1657,7 @@ class hollaex extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privateGetUserWithdrawals ($this->extend($request, $params));
+        $response = $this->privateGetUserWithdrawals($this->extend($request, $params));
         //
         //     {
         //         "count" => 1,
@@ -1687,7 +1686,7 @@ class hollaex extends Exchange {
         return $this->parse_transaction($transaction, $currency);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -1720,7 +1719,7 @@ class hollaex extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $response = $this->privateGetUserWithdrawals ($this->extend($request, $params));
+        $response = $this->privateGetUserWithdrawals($this->extend($request, $params));
         //
         //     {
         //         "count" => 1,
@@ -1847,7 +1846,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1878,7 +1877,7 @@ class hollaex extends Exchange {
             'address' => $address,
             'network' => $this->network_code_to_id($network, $code),
         );
-        $response = $this->privatePostUserWithdrawal ($this->extend($request, $params));
+        $response = $this->privatePostUserWithdrawal($this->extend($request, $params));
         //
         //     {
         //         "message" => "Withdrawal $request is in the queue and will be processed.",
@@ -1960,7 +1959,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
         /**
          * fetch deposit and withdraw fees
          *
@@ -1970,7 +1969,7 @@ class hollaex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $response = $this->publicGetConstants ($params);
+        $response = $this->publicGetConstants($params);
         //
         //     {
         //         "coins":array(
@@ -2010,7 +2009,7 @@ class hollaex extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {

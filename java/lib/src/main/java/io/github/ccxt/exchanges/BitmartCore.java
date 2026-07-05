@@ -116,7 +116,7 @@ public class BitmartCore extends BitmartApi
             }} );
             put( "hostname", "bitmart.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14" );
+                put( "logo", "https://github.com/user-attachments/assets/3741e8c0-83a8-4504-ae68-32b00e3c27ee" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://api-cloud.{hostname}" );
                     put( "swap", "https://api-cloud-v2.{hostname}" );
@@ -1747,7 +1747,7 @@ public class BitmartCore extends BitmartApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

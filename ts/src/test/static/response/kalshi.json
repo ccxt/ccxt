@@ -1,774 +1,1095 @@
 {
-	"exchange": "kalshi",
-	"skipKeys": [
-		"timestamp",
-		"datetime"
-	],
-	"options": {},
-	"methods": {
-		"fetchTicker": [
-			{
-				"description": "fetchTicker for a yes outcome",
-				"method": "fetchTicker",
-				"input": [
-					"ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
-				],
-				"httpResponse": {
-					"market": {
-						"can_close_early": true,
-						"close_time": "2099-08-01T04:59:00Z",
-						"created_time": "2025-08-28T20:40:16.168768Z",
-						"early_close_condition": "This market will close and expire early if the event occurs.",
-						"event_ticker": "KXELONMARS-99",
-						"expected_expiration_time": "2099-08-01T15:00:00Z",
-						"expiration_time": "2099-08-08T15:00:00Z",
-						"expiration_value": "",
-						"fractional_trading_enabled": true,
-						"last_price_dollars": "0.1000",
-						"latest_expiration_time": "2099-08-08T15:00:00Z",
-						"liquidity_dollars": "0.0000",
-						"market_type": "binary",
-						"no_ask_dollars": "0.9200",
-						"no_bid_dollars": "0.8800",
-						"no_sub_title": "Mars",
-						"notional_value_dollars": "1.0000",
-						"open_interest_fp": "32746.17",
-						"open_time": "2025-08-28T20:45:00Z",
-						"previous_price_dollars": "0.0800",
-						"previous_yes_ask_dollars": "0.1000",
-						"previous_yes_bid_dollars": "0.0800",
-						"price_level_structure": "linear_cent",
-						"price_ranges": [
-							{
-								"end": "1.0000",
-								"start": "0.0000",
-								"step": "0.0100"
-							}
-						],
-						"response_price_units": "usd_cent",
-						"result": "",
-						"rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
-						"rules_secondary": "",
-						"settlement_timer_seconds": "1800",
-						"status": "active",
-						"ticker": "KXELONMARS-99",
-						"title": "Will Elon Musk visit Mars before Aug 1, 2099?",
-						"updated_time": "2026-04-09T09:31:16.616867Z",
-						"volume_24h_fp": "19.74",
-						"volume_fp": "94884.62",
-						"yes_ask_dollars": "0.1200",
-						"yes_ask_size_fp": "1967.33",
-						"yes_bid_dollars": "0.0800",
-						"yes_bid_size_fp": "444.32",
-						"yes_sub_title": "Mars"
-					}
-				},
-				"parsedResponse": {
-					"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
-					"outcomeId": "KXELONMARS-99",
-					"label": "YES",
-					"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
-					"timestamp": 1781915898497,
-					"datetime": "2026-06-20T00:38:18.497Z",
-					"high": null,
-					"low": null,
-					"bid": 0.08,
-					"bidVolume": 444.32,
-					"ask": 0.12,
-					"askVolume": 1967.33,
-					"vwap": null,
-					"open": null,
-					"close": 0.1,
-					"last": 0.1,
-					"previousClose": null,
-					"change": null,
-					"percentage": null,
-					"average": 0.1,
-					"baseVolume": 19.74,
-					"quoteVolume": null,
-					"info": {
-						"can_close_early": true,
-						"close_time": "2099-08-01T04:59:00Z",
-						"created_time": "2025-08-28T20:40:16.168768Z",
-						"early_close_condition": "This market will close and expire early if the event occurs.",
-						"event_ticker": "KXELONMARS-99",
-						"expected_expiration_time": "2099-08-01T15:00:00Z",
-						"expiration_time": "2099-08-08T15:00:00Z",
-						"expiration_value": "",
-						"fractional_trading_enabled": true,
-						"last_price_dollars": "0.1000",
-						"latest_expiration_time": "2099-08-08T15:00:00Z",
-						"liquidity_dollars": "0.0000",
-						"market_type": "binary",
-						"no_ask_dollars": "0.9200",
-						"no_bid_dollars": "0.8800",
-						"no_sub_title": "Mars",
-						"notional_value_dollars": "1.0000",
-						"open_interest_fp": "32746.17",
-						"open_time": "2025-08-28T20:45:00Z",
-						"previous_price_dollars": "0.0800",
-						"previous_yes_ask_dollars": "0.1000",
-						"previous_yes_bid_dollars": "0.0800",
-						"price_level_structure": "linear_cent",
-						"price_ranges": [
-							{
-								"end": "1.0000",
-								"start": "0.0000",
-								"step": "0.0100"
-							}
-						],
-						"response_price_units": "usd_cent",
-						"result": "",
-						"rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
-						"rules_secondary": "",
-						"settlement_timer_seconds": "1800",
-						"status": "active",
-						"ticker": "KXELONMARS-99",
-						"title": "Will Elon Musk visit Mars before Aug 1, 2099?",
-						"updated_time": "2026-04-09T09:31:16.616867Z",
-						"volume_24h_fp": "19.74",
-						"volume_fp": "94884.62",
-						"yes_ask_dollars": "0.1200",
-						"yes_ask_size_fp": "1967.33",
-						"yes_bid_dollars": "0.0800",
-						"yes_bid_size_fp": "444.32",
-						"yes_sub_title": "Mars"
-					},
-					"indexPrice": null,
-					"markPrice": null,
-					"event": null
-				}
-			}
-		],
-		"fetchTickers": [
-			{
-				"description": "fetchTickers with two outcome symbols",
-				"method": "fetchTickers",
-				"input": [
-					[
-						"ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
-						"HUMANS_COLONIZE_MARS_2050:YES"
-					]
-				],
-				"httpResponse": {
-					"cursor": "",
-					"markets": [
-						{
-							"can_close_early": true,
-							"close_time": "2099-08-01T04:59:00Z",
-							"created_time": "2025-08-28T20:40:16.168768Z",
-							"early_close_condition": "This market will close and expire early if the event occurs.",
-							"event_ticker": "KXELONMARS-99",
-							"expected_expiration_time": "2099-08-01T15:00:00Z",
-							"expiration_time": "2099-08-08T15:00:00Z",
-							"expiration_value": "",
-							"fractional_trading_enabled": true,
-							"last_price_dollars": "0.1000",
-							"latest_expiration_time": "2099-08-08T15:00:00Z",
-							"liquidity_dollars": "0.0000",
-							"market_type": "binary",
-							"no_ask_dollars": "0.9200",
-							"no_bid_dollars": "0.8800",
-							"no_sub_title": "Mars",
-							"notional_value_dollars": "1.0000",
-							"open_interest_fp": "32746.17",
-							"open_time": "2025-08-28T20:45:00Z",
-							"previous_price_dollars": "0.0800",
-							"previous_yes_ask_dollars": "0.1000",
-							"previous_yes_bid_dollars": "0.0800",
-							"price_level_structure": "linear_cent",
-							"price_ranges": [
-								{
-									"end": "1.0000",
-									"start": "0.0000",
-									"step": "0.0100"
-								}
-							],
-							"response_price_units": "usd_cent",
-							"result": "",
-							"rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
-							"rules_secondary": "",
-							"settlement_timer_seconds": "1800",
-							"status": "active",
-							"ticker": "KXELONMARS-99",
-							"title": "Will Elon Musk visit Mars before Aug 1, 2099?",
-							"updated_time": "2026-04-09T09:31:16.616867Z",
-							"volume_24h_fp": "19.74",
-							"volume_fp": "94884.62",
-							"yes_ask_dollars": "0.1200",
-							"yes_ask_size_fp": "1967.33",
-							"yes_bid_dollars": "0.0800",
-							"yes_bid_size_fp": "444.32",
-							"yes_sub_title": "Mars"
-						},
-						{
-							"can_close_early": true,
-							"close_time": "2050-01-01T04:59:00Z",
-							"created_time": "2025-06-27T16:35:35.36594Z",
-							"early_close_condition": "This market will close and expire early if the event occurs.",
-							"event_ticker": "KXCOLONIZEMARS-50",
-							"expected_expiration_time": "2050-01-01T15:00:00Z",
-							"expiration_time": "2050-01-08T15:00:00Z",
-							"expiration_value": "",
-							"fractional_trading_enabled": true,
-							"last_price_dollars": "0.1950",
-							"latest_expiration_time": "2050-01-08T15:00:00Z",
-							"liquidity_dollars": "0.0000",
-							"market_type": "binary",
-							"no_ask_dollars": "0.8370",
-							"no_bid_dollars": "0.8050",
-							"no_sub_title": "Before 2050",
-							"notional_value_dollars": "1.0000",
-							"open_interest_fp": "9084.00",
-							"open_time": "2025-06-27T20:45:00Z",
-							"previous_price_dollars": "0.1950",
-							"previous_yes_ask_dollars": "0.1950",
-							"previous_yes_bid_dollars": "0.1630",
-							"price_level_structure": "deci_cent",
-							"price_ranges": [
-								{
-									"end": "1.0000",
-									"start": "0.0000",
-									"step": "0.0010"
-								}
-							],
-							"response_price_units": "usd_cent",
-							"result": "",
-							"rules_primary": "If humans have a self-sufficient colony of at least 10 people reside on Mars for at least one Earth year before Jan 1, 2050, then the market resolves to Yes.",
-							"rules_secondary": "",
-							"settlement_timer_seconds": "1800",
-							"status": "active",
-							"ticker": "KXCOLONIZEMARS-50",
-							"title": "Will humans colonize Mars before 2050?",
-							"updated_time": "2026-04-09T10:33:10.234054Z",
-							"volume_24h_fp": "141.68",
-							"volume_fp": "21043.39",
-							"yes_ask_dollars": "0.1950",
-							"yes_ask_size_fp": "97.53",
-							"yes_bid_dollars": "0.1630",
-							"yes_bid_size_fp": "30.97",
-							"yes_sub_title": "Before 2050"
-						}
-					]
-				},
-				"parsedResponse": {
-					"ELON_MUSK_VISIT_MARS_AUG_1_2099:YES": {
-						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
-						"outcomeId": "KXELONMARS-99",
-						"label": "YES",
-						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
-						"timestamp": 1781915898599,
-						"datetime": "2026-06-20T00:38:18.599Z",
-						"high": null,
-						"low": null,
-						"bid": 0.08,
-						"bidVolume": 444.32,
-						"ask": 0.12,
-						"askVolume": 1967.33,
-						"vwap": null,
-						"open": null,
-						"close": 0.1,
-						"last": 0.1,
-						"previousClose": null,
-						"change": null,
-						"percentage": null,
-						"average": 0.1,
-						"baseVolume": 19.74,
-						"quoteVolume": null,
-						"info": {
-							"can_close_early": true,
-							"close_time": "2099-08-01T04:59:00Z",
-							"created_time": "2025-08-28T20:40:16.168768Z",
-							"early_close_condition": "This market will close and expire early if the event occurs.",
-							"event_ticker": "KXELONMARS-99",
-							"expected_expiration_time": "2099-08-01T15:00:00Z",
-							"expiration_time": "2099-08-08T15:00:00Z",
-							"expiration_value": "",
-							"fractional_trading_enabled": true,
-							"last_price_dollars": "0.1000",
-							"latest_expiration_time": "2099-08-08T15:00:00Z",
-							"liquidity_dollars": "0.0000",
-							"market_type": "binary",
-							"no_ask_dollars": "0.9200",
-							"no_bid_dollars": "0.8800",
-							"no_sub_title": "Mars",
-							"notional_value_dollars": "1.0000",
-							"open_interest_fp": "32746.17",
-							"open_time": "2025-08-28T20:45:00Z",
-							"previous_price_dollars": "0.0800",
-							"previous_yes_ask_dollars": "0.1000",
-							"previous_yes_bid_dollars": "0.0800",
-							"price_level_structure": "linear_cent",
-							"price_ranges": [
-								{
-									"end": "1.0000",
-									"start": "0.0000",
-									"step": "0.0100"
-								}
-							],
-							"response_price_units": "usd_cent",
-							"result": "",
-							"rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
-							"rules_secondary": "",
-							"settlement_timer_seconds": "1800",
-							"status": "active",
-							"ticker": "KXELONMARS-99",
-							"title": "Will Elon Musk visit Mars before Aug 1, 2099?",
-							"updated_time": "2026-04-09T09:31:16.616867Z",
-							"volume_24h_fp": "19.74",
-							"volume_fp": "94884.62",
-							"yes_ask_dollars": "0.1200",
-							"yes_ask_size_fp": "1967.33",
-							"yes_bid_dollars": "0.0800",
-							"yes_bid_size_fp": "444.32",
-							"yes_sub_title": "Mars"
-						},
-						"indexPrice": null,
-						"markPrice": null,
-						"event": null
-					},
-					"HUMANS_COLONIZE_MARS_2050:YES": {
-						"outcome": "HUMANS_COLONIZE_MARS_2050:YES",
-						"outcomeId": "KXCOLONIZEMARS-50",
-						"label": "YES",
-						"market": "HUMANS_COLONIZE_MARS_2050",
-						"timestamp": 1781915898599,
-						"datetime": "2026-06-20T00:38:18.599Z",
-						"high": null,
-						"low": null,
-						"bid": 0.163,
-						"bidVolume": 30.97,
-						"ask": 0.195,
-						"askVolume": 97.53,
-						"vwap": null,
-						"open": null,
-						"close": 0.195,
-						"last": 0.195,
-						"previousClose": null,
-						"change": null,
-						"percentage": null,
-						"average": 0.179,
-						"baseVolume": 141.68,
-						"quoteVolume": null,
-						"info": {
-							"can_close_early": true,
-							"close_time": "2050-01-01T04:59:00Z",
-							"created_time": "2025-06-27T16:35:35.36594Z",
-							"early_close_condition": "This market will close and expire early if the event occurs.",
-							"event_ticker": "KXCOLONIZEMARS-50",
-							"expected_expiration_time": "2050-01-01T15:00:00Z",
-							"expiration_time": "2050-01-08T15:00:00Z",
-							"expiration_value": "",
-							"fractional_trading_enabled": true,
-							"last_price_dollars": "0.1950",
-							"latest_expiration_time": "2050-01-08T15:00:00Z",
-							"liquidity_dollars": "0.0000",
-							"market_type": "binary",
-							"no_ask_dollars": "0.8370",
-							"no_bid_dollars": "0.8050",
-							"no_sub_title": "Before 2050",
-							"notional_value_dollars": "1.0000",
-							"open_interest_fp": "9084.00",
-							"open_time": "2025-06-27T20:45:00Z",
-							"previous_price_dollars": "0.1950",
-							"previous_yes_ask_dollars": "0.1950",
-							"previous_yes_bid_dollars": "0.1630",
-							"price_level_structure": "deci_cent",
-							"price_ranges": [
-								{
-									"end": "1.0000",
-									"start": "0.0000",
-									"step": "0.0010"
-								}
-							],
-							"response_price_units": "usd_cent",
-							"result": "",
-							"rules_primary": "If humans have a self-sufficient colony of at least 10 people reside on Mars for at least one Earth year before Jan 1, 2050, then the market resolves to Yes.",
-							"rules_secondary": "",
-							"settlement_timer_seconds": "1800",
-							"status": "active",
-							"ticker": "KXCOLONIZEMARS-50",
-							"title": "Will humans colonize Mars before 2050?",
-							"updated_time": "2026-04-09T10:33:10.234054Z",
-							"volume_24h_fp": "141.68",
-							"volume_fp": "21043.39",
-							"yes_ask_dollars": "0.1950",
-							"yes_ask_size_fp": "97.53",
-							"yes_bid_dollars": "0.1630",
-							"yes_bid_size_fp": "30.97",
-							"yes_sub_title": "Before 2050"
-						},
-						"indexPrice": null,
-						"markPrice": null,
-						"event": null
-					}
-				}
-			}
-		],
-		"fetchOrderBook": [
-			{
-				"description": "fetchOrderBook for a yes outcome",
-				"method": "fetchOrderBook",
-				"input": [
-					"ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
-				],
-				"httpResponse": {
-					"orderbook_fp": {
-						"no_dollars": [
-							[
-								"0.0100",
-								"13553.00"
-							],
-							[
-								"0.0400",
-								"555.00"
-							],
-							[
-								"0.0500",
-								"888.00"
-							],
-							[
-								"0.0600",
-								"500.00"
-							],
-							[
-								"0.0900",
-								"20.00"
-							],
-							[
-								"0.1000",
-								"25.00"
-							],
-							[
-								"0.1100",
-								"5000.00"
-							],
-							[
-								"0.4600",
-								"25.00"
-							],
-							[
-								"0.5000",
-								"4040.45"
-							],
-							[
-								"0.6000",
-								"284.00"
-							],
-							[
-								"0.6100",
-								"500.00"
-							],
-							[
-								"0.6200",
-								"5.00"
-							],
-							[
-								"0.6500",
-								"25.00"
-							],
-							[
-								"0.7000",
-								"10.40"
-							],
-							[
-								"0.7300",
-								"38.73"
-							],
-							[
-								"0.7400",
-								"250.00"
-							],
-							[
-								"0.8700",
-								"118.85"
-							],
-							[
-								"0.8800",
-								"1967.33"
-							]
-						],
-						"yes_dollars": [
-							[
-								"0.0100",
-								"6558.50"
-							],
-							[
-								"0.0200",
-								"705.00"
-							],
-							[
-								"0.0300",
-								"18708.00"
-							],
-							[
-								"0.0400",
-								"1162.00"
-							],
-							[
-								"0.0500",
-								"50.00"
-							],
-							[
-								"0.0600",
-								"2201.86"
-							],
-							[
-								"0.0700",
-								"3195.84"
-							],
-							[
-								"0.0800",
-								"444.32"
-							]
-						]
-					}
-				},
-				"parsedResponse": {
-					"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
-					"bids": [
-						[
-							0.08,
-							444.32
-						],
-						[
-							0.07,
-							3195.84
-						],
-						[
-							0.06,
-							2201.86
-						],
-						[
-							0.05,
-							50
-						],
-						[
-							0.04,
-							1162
-						],
-						[
-							0.03,
-							18708
-						],
-						[
-							0.02,
-							705
-						],
-						[
-							0.01,
-							6558.5
-						]
-					],
-					"asks": [
-						[
-							0.12,
-							1967.33
-						],
-						[
-							0.13,
-							118.85
-						],
-						[
-							0.26,
-							250
-						],
-						[
-							0.27,
-							38.73
-						],
-						[
-							0.3,
-							10.4
-						],
-						[
-							0.35,
-							25
-						],
-						[
-							0.38,
-							5
-						],
-						[
-							0.39,
-							500
-						],
-						[
-							0.4,
-							284
-						],
-						[
-							0.5,
-							4040.45
-						],
-						[
-							0.54,
-							25
-						],
-						[
-							0.89,
-							5000
-						],
-						[
-							0.9,
-							25
-						],
-						[
-							0.91,
-							20
-						],
-						[
-							0.94,
-							500
-						],
-						[
-							0.95,
-							888
-						],
-						[
-							0.96,
-							555
-						],
-						[
-							0.99,
-							13553
-						]
-					],
-					"timestamp": 1781915898700,
-					"datetime": "2026-06-20T00:38:18.700Z",
-					"nonce": null,
-					"outcomeId": "KXELONMARS-99",
-					"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099"
-				}
-			}
-		],
-		"fetchTrades": [
-			{
-				"description": "fetchTrades with limit",
-				"method": "fetchTrades",
-				"input": [
-					"ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
-					null,
-					3
-				],
-				"httpResponse": {
-					"cursor": "EhIKEFq9i3ERl0wsdoYvGaMHJ8kaCwikt7DRBhCwt946",
-					"trades": [
-						{
-							"count_fp": "9.40",
-							"created_time": "2026-06-12T17:11:11.927591Z",
-							"is_block_trade": false,
-							"no_price_dollars": "0.9000",
-							"taker_book_side": "bid",
-							"taker_outcome_side": "yes",
-							"taker_side": "yes",
-							"ticker": "KXELONMARS-99",
-							"trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
-							"yes_price_dollars": "0.1000"
-						},
-						{
-							"count_fp": "0.94",
-							"created_time": "2026-06-12T15:45:05.842468Z",
-							"is_block_trade": false,
-							"no_price_dollars": "0.9000",
-							"taker_book_side": "bid",
-							"taker_outcome_side": "yes",
-							"taker_side": "yes",
-							"ticker": "KXELONMARS-99",
-							"trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
-							"yes_price_dollars": "0.1000"
-						},
-						{
-							"count_fp": "9.40",
-							"created_time": "2026-06-12T14:45:56.123182Z",
-							"is_block_trade": false,
-							"no_price_dollars": "0.9200",
-							"taker_book_side": "ask",
-							"taker_outcome_side": "no",
-							"taker_side": "no",
-							"ticker": "KXELONMARS-99",
-							"trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
-							"yes_price_dollars": "0.0800"
-						}
-					]
-				},
-				"parsedResponse": []
-			}
-		],
-		"fetchOHLCV": [
-			{
-				"description": "fetchOHLCV with since and limit",
-				"method": "fetchOHLCV",
-				"input": [
-					"ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
-					"1h",
-					1781100000000,
-					24
-				],
-				"httpResponse": {
-					"candlesticks": [
-						{
-							"end_period_ts": "1781143200",
-							"open_interest_fp": "32764.57",
-							"price": {
-								"previous_dollars": "0.1000"
-							},
-							"volume_fp": "0.00",
-							"yes_ask": {
-								"close_dollars": "0.1000",
-								"high_dollars": "0.1000",
-								"low_dollars": "0.0900",
-								"open_dollars": "0.0900"
-							},
-							"yes_bid": {
-								"close_dollars": "0.0800",
-								"high_dollars": "0.0800",
-								"low_dollars": "0.0800",
-								"open_dollars": "0.0800"
-							}
-						},
-						{
-							"end_period_ts": "1781172000",
-							"open_interest_fp": "32764.57",
-							"price": {
-								"previous_dollars": "0.1000"
-							},
-							"volume_fp": "0.00",
-							"yes_ask": {
-								"close_dollars": "0.1000",
-								"high_dollars": "0.1000",
-								"low_dollars": "0.1000",
-								"open_dollars": "0.1000"
-							},
-							"yes_bid": {
-								"close_dollars": "0.0800",
-								"high_dollars": "0.0800",
-								"low_dollars": "0.0800",
-								"open_dollars": "0.0800"
-							}
-						}
-					],
-					"ticker": "KXELONMARS-99"
-				},
-				"parsedResponse": [
-					[
-						1781143200000,
-						0.1,
-						0.1,
-						0.1,
-						0.1,
-						0
-					],
-					[
-						1781172000000,
-						0.1,
-						0.1,
-						0.1,
-						0.1,
-						0
-					]
-				]
-			}
-		]
-	}
+    "exchange": "kalshi",
+    "asyncOnly": true,
+    "skipKeys": [
+        "timestamp",
+        "datetime"
+    ],
+    "options": {},
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker for a yes outcome",
+                "method": "fetchTicker",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
+                ],
+                "httpResponse": {
+                    "market": {
+                        "can_close_early": true,
+                        "close_time": "2099-08-01T04:59:00Z",
+                        "created_time": "2025-08-28T20:40:16.168768Z",
+                        "early_close_condition": "This market will close and expire early if the event occurs.",
+                        "event_ticker": "KXELONMARS-99",
+                        "expected_expiration_time": "2099-08-01T15:00:00Z",
+                        "expiration_time": "2099-08-08T15:00:00Z",
+                        "expiration_value": "",
+                        "fractional_trading_enabled": true,
+                        "last_price_dollars": "0.1000",
+                        "latest_expiration_time": "2099-08-08T15:00:00Z",
+                        "liquidity_dollars": "0.0000",
+                        "market_type": "binary",
+                        "no_ask_dollars": "0.9200",
+                        "no_bid_dollars": "0.8800",
+                        "no_sub_title": "Mars",
+                        "notional_value_dollars": "1.0000",
+                        "open_interest_fp": "32746.17",
+                        "open_time": "2025-08-28T20:45:00Z",
+                        "previous_price_dollars": "0.0800",
+                        "previous_yes_ask_dollars": "0.1000",
+                        "previous_yes_bid_dollars": "0.0800",
+                        "price_level_structure": "linear_cent",
+                        "price_ranges": [
+                            {
+                                "end": "1.0000",
+                                "start": "0.0000",
+                                "step": "0.0100"
+                            }
+                        ],
+                        "response_price_units": "usd_cent",
+                        "result": "",
+                        "rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
+                        "rules_secondary": "",
+                        "settlement_timer_seconds": "1800",
+                        "status": "active",
+                        "ticker": "KXELONMARS-99",
+                        "title": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                        "updated_time": "2026-04-09T09:31:16.616867Z",
+                        "volume_24h_fp": "19.74",
+                        "volume_fp": "94884.62",
+                        "yes_ask_dollars": "0.1200",
+                        "yes_ask_size_fp": "1967.33",
+                        "yes_bid_dollars": "0.0800",
+                        "yes_bid_size_fp": "444.32",
+                        "yes_sub_title": "Mars"
+                    }
+                },
+                "parsedResponse": {
+                    "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                    "outcomeId": "KXELONMARS-99",
+                    "label": "YES",
+                    "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                    "timestamp": 1781915898497,
+                    "datetime": "2026-06-20T00:38:18.497Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 0.08,
+                    "bidVolume": 444.32,
+                    "ask": 0.12,
+                    "askVolume": 1967.33,
+                    "vwap": null,
+                    "open": null,
+                    "close": 0.1,
+                    "last": 0.1,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": 0.1,
+                    "baseVolume": 19.74,
+                    "quoteVolume": null,
+                    "info": {
+                        "can_close_early": true,
+                        "close_time": "2099-08-01T04:59:00Z",
+                        "created_time": "2025-08-28T20:40:16.168768Z",
+                        "early_close_condition": "This market will close and expire early if the event occurs.",
+                        "event_ticker": "KXELONMARS-99",
+                        "expected_expiration_time": "2099-08-01T15:00:00Z",
+                        "expiration_time": "2099-08-08T15:00:00Z",
+                        "expiration_value": "",
+                        "fractional_trading_enabled": true,
+                        "last_price_dollars": "0.1000",
+                        "latest_expiration_time": "2099-08-08T15:00:00Z",
+                        "liquidity_dollars": "0.0000",
+                        "market_type": "binary",
+                        "no_ask_dollars": "0.9200",
+                        "no_bid_dollars": "0.8800",
+                        "no_sub_title": "Mars",
+                        "notional_value_dollars": "1.0000",
+                        "open_interest_fp": "32746.17",
+                        "open_time": "2025-08-28T20:45:00Z",
+                        "previous_price_dollars": "0.0800",
+                        "previous_yes_ask_dollars": "0.1000",
+                        "previous_yes_bid_dollars": "0.0800",
+                        "price_level_structure": "linear_cent",
+                        "price_ranges": [
+                            {
+                                "end": "1.0000",
+                                "start": "0.0000",
+                                "step": "0.0100"
+                            }
+                        ],
+                        "response_price_units": "usd_cent",
+                        "result": "",
+                        "rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
+                        "rules_secondary": "",
+                        "settlement_timer_seconds": "1800",
+                        "status": "active",
+                        "ticker": "KXELONMARS-99",
+                        "title": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                        "updated_time": "2026-04-09T09:31:16.616867Z",
+                        "volume_24h_fp": "19.74",
+                        "volume_fp": "94884.62",
+                        "yes_ask_dollars": "0.1200",
+                        "yes_ask_size_fp": "1967.33",
+                        "yes_bid_dollars": "0.0800",
+                        "yes_bid_size_fp": "444.32",
+                        "yes_sub_title": "Mars"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null,
+                    "event": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers with two outcome symbols",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "HUMANS_COLONIZE_MARS_2050:YES"
+                    ]
+                ],
+                "httpResponse": {
+                    "cursor": "",
+                    "markets": [
+                        {
+                            "can_close_early": true,
+                            "close_time": "2099-08-01T04:59:00Z",
+                            "created_time": "2025-08-28T20:40:16.168768Z",
+                            "early_close_condition": "This market will close and expire early if the event occurs.",
+                            "event_ticker": "KXELONMARS-99",
+                            "expected_expiration_time": "2099-08-01T15:00:00Z",
+                            "expiration_time": "2099-08-08T15:00:00Z",
+                            "expiration_value": "",
+                            "fractional_trading_enabled": true,
+                            "last_price_dollars": "0.1000",
+                            "latest_expiration_time": "2099-08-08T15:00:00Z",
+                            "liquidity_dollars": "0.0000",
+                            "market_type": "binary",
+                            "no_ask_dollars": "0.9200",
+                            "no_bid_dollars": "0.8800",
+                            "no_sub_title": "Mars",
+                            "notional_value_dollars": "1.0000",
+                            "open_interest_fp": "32746.17",
+                            "open_time": "2025-08-28T20:45:00Z",
+                            "previous_price_dollars": "0.0800",
+                            "previous_yes_ask_dollars": "0.1000",
+                            "previous_yes_bid_dollars": "0.0800",
+                            "price_level_structure": "linear_cent",
+                            "price_ranges": [
+                                {
+                                    "end": "1.0000",
+                                    "start": "0.0000",
+                                    "step": "0.0100"
+                                }
+                            ],
+                            "response_price_units": "usd_cent",
+                            "result": "",
+                            "rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
+                            "rules_secondary": "",
+                            "settlement_timer_seconds": "1800",
+                            "status": "active",
+                            "ticker": "KXELONMARS-99",
+                            "title": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                            "updated_time": "2026-04-09T09:31:16.616867Z",
+                            "volume_24h_fp": "19.74",
+                            "volume_fp": "94884.62",
+                            "yes_ask_dollars": "0.1200",
+                            "yes_ask_size_fp": "1967.33",
+                            "yes_bid_dollars": "0.0800",
+                            "yes_bid_size_fp": "444.32",
+                            "yes_sub_title": "Mars"
+                        },
+                        {
+                            "can_close_early": true,
+                            "close_time": "2050-01-01T04:59:00Z",
+                            "created_time": "2025-06-27T16:35:35.36594Z",
+                            "early_close_condition": "This market will close and expire early if the event occurs.",
+                            "event_ticker": "KXCOLONIZEMARS-50",
+                            "expected_expiration_time": "2050-01-01T15:00:00Z",
+                            "expiration_time": "2050-01-08T15:00:00Z",
+                            "expiration_value": "",
+                            "fractional_trading_enabled": true,
+                            "last_price_dollars": "0.1950",
+                            "latest_expiration_time": "2050-01-08T15:00:00Z",
+                            "liquidity_dollars": "0.0000",
+                            "market_type": "binary",
+                            "no_ask_dollars": "0.8370",
+                            "no_bid_dollars": "0.8050",
+                            "no_sub_title": "Before 2050",
+                            "notional_value_dollars": "1.0000",
+                            "open_interest_fp": "9084.00",
+                            "open_time": "2025-06-27T20:45:00Z",
+                            "previous_price_dollars": "0.1950",
+                            "previous_yes_ask_dollars": "0.1950",
+                            "previous_yes_bid_dollars": "0.1630",
+                            "price_level_structure": "deci_cent",
+                            "price_ranges": [
+                                {
+                                    "end": "1.0000",
+                                    "start": "0.0000",
+                                    "step": "0.0010"
+                                }
+                            ],
+                            "response_price_units": "usd_cent",
+                            "result": "",
+                            "rules_primary": "If humans have a self-sufficient colony of at least 10 people reside on Mars for at least one Earth year before Jan 1, 2050, then the market resolves to Yes.",
+                            "rules_secondary": "",
+                            "settlement_timer_seconds": "1800",
+                            "status": "active",
+                            "ticker": "KXCOLONIZEMARS-50",
+                            "title": "Will humans colonize Mars before 2050?",
+                            "updated_time": "2026-04-09T10:33:10.234054Z",
+                            "volume_24h_fp": "141.68",
+                            "volume_fp": "21043.39",
+                            "yes_ask_dollars": "0.1950",
+                            "yes_ask_size_fp": "97.53",
+                            "yes_bid_dollars": "0.1630",
+                            "yes_bid_size_fp": "30.97",
+                            "yes_sub_title": "Before 2050"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES": {
+                        "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "outcomeId": "KXELONMARS-99",
+                        "label": "YES",
+                        "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "timestamp": 1781915898599,
+                        "datetime": "2026-06-20T00:38:18.599Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 0.08,
+                        "bidVolume": 444.32,
+                        "ask": 0.12,
+                        "askVolume": 1967.33,
+                        "vwap": null,
+                        "open": null,
+                        "close": 0.1,
+                        "last": 0.1,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": 0.1,
+                        "baseVolume": 19.74,
+                        "quoteVolume": null,
+                        "info": {
+                            "can_close_early": true,
+                            "close_time": "2099-08-01T04:59:00Z",
+                            "created_time": "2025-08-28T20:40:16.168768Z",
+                            "early_close_condition": "This market will close and expire early if the event occurs.",
+                            "event_ticker": "KXELONMARS-99",
+                            "expected_expiration_time": "2099-08-01T15:00:00Z",
+                            "expiration_time": "2099-08-08T15:00:00Z",
+                            "expiration_value": "",
+                            "fractional_trading_enabled": true,
+                            "last_price_dollars": "0.1000",
+                            "latest_expiration_time": "2099-08-08T15:00:00Z",
+                            "liquidity_dollars": "0.0000",
+                            "market_type": "binary",
+                            "no_ask_dollars": "0.9200",
+                            "no_bid_dollars": "0.8800",
+                            "no_sub_title": "Mars",
+                            "notional_value_dollars": "1.0000",
+                            "open_interest_fp": "32746.17",
+                            "open_time": "2025-08-28T20:45:00Z",
+                            "previous_price_dollars": "0.0800",
+                            "previous_yes_ask_dollars": "0.1000",
+                            "previous_yes_bid_dollars": "0.0800",
+                            "price_level_structure": "linear_cent",
+                            "price_ranges": [
+                                {
+                                    "end": "1.0000",
+                                    "start": "0.0000",
+                                    "step": "0.0100"
+                                }
+                            ],
+                            "response_price_units": "usd_cent",
+                            "result": "",
+                            "rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
+                            "rules_secondary": "",
+                            "settlement_timer_seconds": "1800",
+                            "status": "active",
+                            "ticker": "KXELONMARS-99",
+                            "title": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                            "updated_time": "2026-04-09T09:31:16.616867Z",
+                            "volume_24h_fp": "19.74",
+                            "volume_fp": "94884.62",
+                            "yes_ask_dollars": "0.1200",
+                            "yes_ask_size_fp": "1967.33",
+                            "yes_bid_dollars": "0.0800",
+                            "yes_bid_size_fp": "444.32",
+                            "yes_sub_title": "Mars"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "event": null
+                    },
+                    "HUMANS_COLONIZE_MARS_2050:YES": {
+                        "outcome": "HUMANS_COLONIZE_MARS_2050:YES",
+                        "outcomeId": "KXCOLONIZEMARS-50",
+                        "label": "YES",
+                        "market": "HUMANS_COLONIZE_MARS_2050",
+                        "timestamp": 1781915898599,
+                        "datetime": "2026-06-20T00:38:18.599Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 0.163,
+                        "bidVolume": 30.97,
+                        "ask": 0.195,
+                        "askVolume": 97.53,
+                        "vwap": null,
+                        "open": null,
+                        "close": 0.195,
+                        "last": 0.195,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": 0.179,
+                        "baseVolume": 141.68,
+                        "quoteVolume": null,
+                        "info": {
+                            "can_close_early": true,
+                            "close_time": "2050-01-01T04:59:00Z",
+                            "created_time": "2025-06-27T16:35:35.36594Z",
+                            "early_close_condition": "This market will close and expire early if the event occurs.",
+                            "event_ticker": "KXCOLONIZEMARS-50",
+                            "expected_expiration_time": "2050-01-01T15:00:00Z",
+                            "expiration_time": "2050-01-08T15:00:00Z",
+                            "expiration_value": "",
+                            "fractional_trading_enabled": true,
+                            "last_price_dollars": "0.1950",
+                            "latest_expiration_time": "2050-01-08T15:00:00Z",
+                            "liquidity_dollars": "0.0000",
+                            "market_type": "binary",
+                            "no_ask_dollars": "0.8370",
+                            "no_bid_dollars": "0.8050",
+                            "no_sub_title": "Before 2050",
+                            "notional_value_dollars": "1.0000",
+                            "open_interest_fp": "9084.00",
+                            "open_time": "2025-06-27T20:45:00Z",
+                            "previous_price_dollars": "0.1950",
+                            "previous_yes_ask_dollars": "0.1950",
+                            "previous_yes_bid_dollars": "0.1630",
+                            "price_level_structure": "deci_cent",
+                            "price_ranges": [
+                                {
+                                    "end": "1.0000",
+                                    "start": "0.0000",
+                                    "step": "0.0010"
+                                }
+                            ],
+                            "response_price_units": "usd_cent",
+                            "result": "",
+                            "rules_primary": "If humans have a self-sufficient colony of at least 10 people reside on Mars for at least one Earth year before Jan 1, 2050, then the market resolves to Yes.",
+                            "rules_secondary": "",
+                            "settlement_timer_seconds": "1800",
+                            "status": "active",
+                            "ticker": "KXCOLONIZEMARS-50",
+                            "title": "Will humans colonize Mars before 2050?",
+                            "updated_time": "2026-04-09T10:33:10.234054Z",
+                            "volume_24h_fp": "141.68",
+                            "volume_fp": "21043.39",
+                            "yes_ask_dollars": "0.1950",
+                            "yes_ask_size_fp": "97.53",
+                            "yes_bid_dollars": "0.1630",
+                            "yes_bid_size_fp": "30.97",
+                            "yes_sub_title": "Before 2050"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "event": null
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
+                ],
+                "httpResponse": {
+                    "orderbook_fp": {
+                        "no_dollars": [
+                            [
+                                "0.0100",
+                                "13553.00"
+                            ],
+                            [
+                                "0.0400",
+                                "555.00"
+                            ],
+                            [
+                                "0.0500",
+                                "888.00"
+                            ],
+                            [
+                                "0.0600",
+                                "500.00"
+                            ],
+                            [
+                                "0.0900",
+                                "20.00"
+                            ],
+                            [
+                                "0.1000",
+                                "25.00"
+                            ],
+                            [
+                                "0.1100",
+                                "5000.00"
+                            ],
+                            [
+                                "0.4600",
+                                "25.00"
+                            ],
+                            [
+                                "0.5000",
+                                "4040.45"
+                            ],
+                            [
+                                "0.6000",
+                                "284.00"
+                            ],
+                            [
+                                "0.6100",
+                                "500.00"
+                            ],
+                            [
+                                "0.6200",
+                                "5.00"
+                            ],
+                            [
+                                "0.6500",
+                                "25.00"
+                            ],
+                            [
+                                "0.7000",
+                                "10.40"
+                            ],
+                            [
+                                "0.7300",
+                                "38.73"
+                            ],
+                            [
+                                "0.7400",
+                                "250.00"
+                            ],
+                            [
+                                "0.8700",
+                                "118.85"
+                            ],
+                            [
+                                "0.8800",
+                                "1967.33"
+                            ]
+                        ],
+                        "yes_dollars": [
+                            [
+                                "0.0100",
+                                "6558.50"
+                            ],
+                            [
+                                "0.0200",
+                                "705.00"
+                            ],
+                            [
+                                "0.0300",
+                                "18708.00"
+                            ],
+                            [
+                                "0.0400",
+                                "1162.00"
+                            ],
+                            [
+                                "0.0500",
+                                "50.00"
+                            ],
+                            [
+                                "0.0600",
+                                "2201.86"
+                            ],
+                            [
+                                "0.0700",
+                                "3195.84"
+                            ],
+                            [
+                                "0.0800",
+                                "444.32"
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                    "bids": [
+                        [
+                            0.08,
+                            444.32
+                        ],
+                        [
+                            0.07,
+                            3195.84
+                        ],
+                        [
+                            0.06,
+                            2201.86
+                        ],
+                        [
+                            0.05,
+                            50
+                        ],
+                        [
+                            0.04,
+                            1162
+                        ],
+                        [
+                            0.03,
+                            18708
+                        ],
+                        [
+                            0.02,
+                            705
+                        ],
+                        [
+                            0.01,
+                            6558.5
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.12,
+                            1967.33
+                        ],
+                        [
+                            0.13,
+                            118.85
+                        ],
+                        [
+                            0.26,
+                            250
+                        ],
+                        [
+                            0.27,
+                            38.73
+                        ],
+                        [
+                            0.3,
+                            10.4
+                        ],
+                        [
+                            0.35,
+                            25
+                        ],
+                        [
+                            0.38,
+                            5
+                        ],
+                        [
+                            0.39,
+                            500
+                        ],
+                        [
+                            0.4,
+                            284
+                        ],
+                        [
+                            0.5,
+                            4040.45
+                        ],
+                        [
+                            0.54,
+                            25
+                        ],
+                        [
+                            0.89,
+                            5000
+                        ],
+                        [
+                            0.9,
+                            25
+                        ],
+                        [
+                            0.91,
+                            20
+                        ],
+                        [
+                            0.94,
+                            500
+                        ],
+                        [
+                            0.95,
+                            888
+                        ],
+                        [
+                            0.96,
+                            555
+                        ],
+                        [
+                            0.99,
+                            13553
+                        ]
+                    ],
+                    "timestamp": 1781915898700,
+                    "datetime": "2026-06-20T00:38:18.700Z",
+                    "nonce": null,
+                    "outcomeId": "KXELONMARS-99",
+                    "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099"
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "cursor": "EhIKEFq9i3ERl0wsdoYvGaMHJ8kaCwikt7DRBhCwt946",
+                    "trades": [
+                        {
+                            "count_fp": "9.40",
+                            "created_time": "2026-06-12T17:11:11.927591Z",
+                            "is_block_trade": false,
+                            "no_price_dollars": "0.9000",
+                            "taker_book_side": "bid",
+                            "taker_outcome_side": "yes",
+                            "taker_side": "yes",
+                            "ticker": "KXELONMARS-99",
+                            "trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+                            "yes_price_dollars": "0.1000"
+                        },
+                        {
+                            "count_fp": "0.94",
+                            "created_time": "2026-06-12T15:45:05.842468Z",
+                            "is_block_trade": false,
+                            "no_price_dollars": "0.9000",
+                            "taker_book_side": "bid",
+                            "taker_outcome_side": "yes",
+                            "taker_side": "yes",
+                            "ticker": "KXELONMARS-99",
+                            "trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+                            "yes_price_dollars": "0.1000"
+                        },
+                        {
+                            "count_fp": "9.40",
+                            "created_time": "2026-06-12T14:45:56.123182Z",
+                            "is_block_trade": false,
+                            "no_price_dollars": "0.9200",
+                            "taker_book_side": "ask",
+                            "taker_outcome_side": "no",
+                            "taker_side": "no",
+                            "ticker": "KXELONMARS-99",
+                            "trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+                            "yes_price_dollars": "0.0800"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+                        "info": {
+                            "count_fp": "9.40",
+                            "created_time": "2026-06-12T14:45:56.123182Z",
+                            "is_block_trade": false,
+                            "no_price_dollars": "0.9200",
+                            "taker_book_side": "ask",
+                            "taker_outcome_side": "no",
+                            "taker_side": "no",
+                            "ticker": "KXELONMARS-99",
+                            "trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+                            "yes_price_dollars": "0.0800"
+                        },
+                        "timestamp": 1781275556123,
+                        "datetime": "2026-06-12T14:45:56.123Z",
+                        "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "outcomeId": "KXELONMARS-99",
+                        "label": "YES",
+                        "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.08,
+                        "amount": 9.4,
+                        "cost": 0.752,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "event": null
+                    },
+                    {
+                        "id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+                        "info": {
+                            "count_fp": "0.94",
+                            "created_time": "2026-06-12T15:45:05.842468Z",
+                            "is_block_trade": false,
+                            "no_price_dollars": "0.9000",
+                            "taker_book_side": "bid",
+                            "taker_outcome_side": "yes",
+                            "taker_side": "yes",
+                            "ticker": "KXELONMARS-99",
+                            "trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+                            "yes_price_dollars": "0.1000"
+                        },
+                        "timestamp": 1781279105842,
+                        "datetime": "2026-06-12T15:45:05.842Z",
+                        "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "outcomeId": "KXELONMARS-99",
+                        "label": "YES",
+                        "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 0.1,
+                        "amount": 0.94,
+                        "cost": 0.094,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "event": null
+                    },
+                    {
+                        "id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+                        "info": {
+                            "count_fp": "9.40",
+                            "created_time": "2026-06-12T17:11:11.927591Z",
+                            "is_block_trade": false,
+                            "no_price_dollars": "0.9000",
+                            "taker_book_side": "bid",
+                            "taker_outcome_side": "yes",
+                            "taker_side": "yes",
+                            "ticker": "KXELONMARS-99",
+                            "trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+                            "yes_price_dollars": "0.1000"
+                        },
+                        "timestamp": 1781284271927,
+                        "datetime": "2026-06-12T17:11:11.927Z",
+                        "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "outcomeId": "KXELONMARS-99",
+                        "label": "YES",
+                        "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 0.1,
+                        "amount": 9.4,
+                        "cost": 0.9400000000000001,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "event": null
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                    "1h",
+                    1781100000000,
+                    24
+                ],
+                "httpResponse": {
+                    "candlesticks": [
+                        {
+                            "end_period_ts": "1781143200",
+                            "open_interest_fp": "32764.57",
+                            "price": {
+                                "previous_dollars": "0.1000"
+                            },
+                            "volume_fp": "0.00",
+                            "yes_ask": {
+                                "close_dollars": "0.1000",
+                                "high_dollars": "0.1000",
+                                "low_dollars": "0.0900",
+                                "open_dollars": "0.0900"
+                            },
+                            "yes_bid": {
+                                "close_dollars": "0.0800",
+                                "high_dollars": "0.0800",
+                                "low_dollars": "0.0800",
+                                "open_dollars": "0.0800"
+                            }
+                        },
+                        {
+                            "end_period_ts": "1781172000",
+                            "open_interest_fp": "32764.57",
+                            "price": {
+                                "previous_dollars": "0.1000"
+                            },
+                            "volume_fp": "0.00",
+                            "yes_ask": {
+                                "close_dollars": "0.1000",
+                                "high_dollars": "0.1000",
+                                "low_dollars": "0.1000",
+                                "open_dollars": "0.1000"
+                            },
+                            "yes_bid": {
+                                "close_dollars": "0.0800",
+                                "high_dollars": "0.0800",
+                                "low_dollars": "0.0800",
+                                "open_dollars": "0.0800"
+                            }
+                        }
+                    ],
+                    "ticker": "KXELONMARS-99"
+                },
+                "parsedResponse": [
+                    [
+                        1781143200000,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0
+                    ],
+                    [
+                        1781172000000,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions filtered by a NO outcome handle matches the market-level position",
+                "method": "fetchPositions",
+                "options": {
+                    "loadAllOutcomes": true
+                },
+                "input": [
+                    [
+                        "ELON_MUSK_VISIT_MARS_AUG_1_2099:NO"
+                    ]
+                ],
+                "httpResponse": {
+                    "market_positions": [
+                        {
+                            "ticker": "KXELONMARS-99",
+                            "position": -12,
+                            "market_exposure": 480,
+                            "realized_pnl": 0,
+                            "total_traded": 480,
+                            "resting_orders_count": 0,
+                            "fees_paid": 6
+                        },
+                        {
+                            "ticker": "KXOTHERMARKET-21",
+                            "position": 5,
+                            "market_exposure": 250,
+                            "realized_pnl": 100,
+                            "total_traded": 350,
+                            "resting_orders_count": 1,
+                            "fees_paid": 3
+                        }
+                    ],
+                    "event_positions": []
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "outcomeId": "KXELONMARS-99",
+                        "label": "YES",
+                        "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "timestamp": null,
+                        "datetime": null,
+                        "contracts": 12,
+                        "contractSize": 1,
+                        "side": "short",
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": null,
+                        "markPrice": null,
+                        "liquidationPrice": null,
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "marginType": "cross",
+                        "percentage": null,
+                        "info": {
+                            "ticker": "KXELONMARS-99",
+                            "position": -12,
+                            "market_exposure": 480,
+                            "realized_pnl": 0,
+                            "total_traded": 480,
+                            "resting_orders_count": 0,
+                            "fees_paid": 6
+                        },
+                        "event": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders parses both legs with the right outcome identity and prices",
+                "method": "fetchOpenOrders",
+                "options": {
+                    "loadAllOutcomes": true
+                },
+                "input": [],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "order_id": "a1111111-2222-3333-4444-555555555555",
+                            "ticker": "KXELONMARS-99",
+                            "side": "yes",
+                            "action": "buy",
+                            "status": "resting",
+                            "type": "limit",
+                            "yes_price_dollars": "0.0800",
+                            "no_price_dollars": "0.9200",
+                            "initial_count_fp": "10.00",
+                            "remaining_count_fp": "10.00",
+                            "fill_count_fp": "0.00",
+                            "created_time": "2026-06-12T14:00:00.000000Z"
+                        },
+                        {
+                            "order_id": "b1111111-2222-3333-4444-666666666666",
+                            "ticker": "KXELONMARS-99",
+                            "side": "no",
+                            "action": "sell",
+                            "status": "resting",
+                            "type": "limit",
+                            "yes_price_dollars": "0.0700",
+                            "no_price_dollars": "0.9300",
+                            "initial_count_fp": "5.00",
+                            "remaining_count_fp": "5.00",
+                            "fill_count_fp": "0.00",
+                            "created_time": "2026-06-12T15:00:00.000000Z"
+                        }
+                    ],
+                    "cursor": ""
+                },
+                "parsedResponse": [
+                    {
+                        "id": "a1111111-2222-3333-4444-555555555555",
+                        "clientOrderId": null,
+                        "info": {
+                            "order_id": "a1111111-2222-3333-4444-555555555555",
+                            "ticker": "KXELONMARS-99",
+                            "side": "yes",
+                            "action": "buy",
+                            "status": "resting",
+                            "type": "limit",
+                            "yes_price_dollars": "0.0800",
+                            "no_price_dollars": "0.9200",
+                            "initial_count_fp": "10.00",
+                            "remaining_count_fp": "10.00",
+                            "fill_count_fp": "0.00",
+                            "created_time": "2026-06-12T14:00:00.000000Z"
+                        },
+                        "timestamp": 1781272800000,
+                        "datetime": "2026-06-12T14:00:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "outcomeId": "KXELONMARS-99",
+                        "label": "YES",
+                        "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 0.08,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "average": null,
+                        "amount": 10,
+                        "cost": 0,
+                        "filled": 0,
+                        "remaining": 10,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "event": null
+                    },
+                    {
+                        "id": "b1111111-2222-3333-4444-666666666666",
+                        "clientOrderId": null,
+                        "info": {
+                            "order_id": "b1111111-2222-3333-4444-666666666666",
+                            "ticker": "KXELONMARS-99",
+                            "side": "no",
+                            "action": "sell",
+                            "status": "resting",
+                            "type": "limit",
+                            "yes_price_dollars": "0.0700",
+                            "no_price_dollars": "0.9300",
+                            "initial_count_fp": "5.00",
+                            "remaining_count_fp": "5.00",
+                            "fill_count_fp": "0.00",
+                            "created_time": "2026-06-12T15:00:00.000000Z"
+                        },
+                        "timestamp": 1781276400000,
+                        "datetime": "2026-06-12T15:00:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:NO",
+                        "outcomeId": "KXELONMARS-99-NO",
+                        "label": "NO",
+                        "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 0.93,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "average": null,
+                        "amount": 5,
+                        "cost": 0,
+                        "filled": 0,
+                        "remaining": 5,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "event": null
+                    }
+                ]
+            }
+        ]
+    },
+    "apiKey": "test-api-key",
+    "privateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA5nvtn11mQ5nI+kArEf8Pa+9+JmdUDck2mP0rFIm3OPAydvDu\nM0i8dQFFBBKcvlPpuZk+gdzFGMWaY35F+bg6JJPJIufa0sfSvKyybJe1IY8BHZ1w\nF0s183F8Lt0/YnKRRO8G7dYqBwzwVbytZmRP03dWMYMQzqcWnNb4KDn2QvheZe28\n/MKJWODpQtARAXTv4ZGAEXGeJXZZpEULeMNP9F2GhLj966Yol8Z7kSCJa6cEcJnz\nqSBEzGtuSJLrNYfdVaM10Ha/Gmp1hCUpmoRKDaF3PTK3WU/+OTsCTH3+6qP6SBQS\nXYNkFyRPM4ivT/sHPkTCAi04Z0auf1i4hry9IQIDAQABAoIBAADAN5p0ze/7cMWr\n7tf8qjqySYlrfcEbvjNKY9kJx9CGK8vqZgRBwOdqrSRhwSP3lwPVRXhb1UKK5kFb\nuHOjT4EuABI+ih50qzGVKHGlHuBwnFLR3/sbch4MaRin/Nxfvixo0O92aqWiO6gz\n2KbEPeRU97FqmWPq9G5nXuCWq8A1GFf4ccORHhZnoNoOEwDbVQQWYQ7cK+HUrJFe\nZi9612jZGy9YeYhaZMWF0NW/a7MEuIcIXPx2FDx0VzSZy104dnp6PQbZJ10edz2I\n0jj2VsbWwquhcyulEqKqf15ofHO2V5cFrYJm8s3kNuMvEosFcd8DxdfjVq4bV5OV\n/5t0y28CgYEA/0UXUTBky0173vyHwTrCteQ5jDRbWcOUONkSUBCsdmuE7monSv5H\nrAwv2fZF9CawjBZIYSBvqCDAY4TPA9EntKNTxhT1sbfdI08OSFCkUG7t5q8pduhb\nduDLvwpGZeDWlGpRevI9zSJBxzmVXLLlKAGPJyczQpdAaXzE28JFvBMCgYEA5ySw\nXphZXEtJJ26KMK7piTlsKYjgnk86+vjNWKEDMqM04edq4Bk5KoJ9nyFxIQiBgaQx\nLNL0H1QLX/fsts/mNygodjkwdfnWofHeN0gAqas/PoyxW+f4Y6/Oi+pCjpu8P6iu\nK2hTIaPs/QHK4coQmvBlcBiCklsW1i7aYB6DIHsCgYEAzTfvUe8U6TiGoDLmtJqX\n1IEBHs0sr5KDQ9yHU2TEMYOo377pjem1FwTJJ3JMtMax4j07vRHFkiWaZadsggYQ\n5LD1dWZ+S3ykRHGW6t4h6yPzECS7sgOFHKIGSrRo+hhyieibTrsWoiarOQ37HQYZ\nIjt2qaRjGmLcfrG21XFufI8CgYAD28Lt8VEcj00rUVcRNPpFBiZeEyDcw6nSYrDa\n1+U7xSmu07QfBYzEvuTl8SL4UDIJPfpsKyFUHI0MDxFug83uAcebIZ1DeuYwUd9J\nwPPx4R/vJV4YkKi+0UJ7Z2+w/byIu4Icy2MH3rqoBo2ic0MPsw+ebWpQkyCwdpvC\nmv/JXQKBgQD8Z4ohktbGRO2AjkpbGKwB+4AOs64qe1Lp8e0UuqlrytjEYMSLO8yJ\n2FITWHhC+GlTZGJ8lcd+9MsR6exxNzfmP9Bwk45UhZIu6r+vFP9Gv96P68t5++1Q\nqqRdCyi9tzKwQMYJA5QlS8HZs3d13mcw/w7ZFbZFndGn0tzJZv6eJw==\n-----END RSA PRIVATE KEY-----\n"
 }

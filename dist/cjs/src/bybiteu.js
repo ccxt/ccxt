@@ -57,6 +57,9 @@ class bybiteu extends bybit["default"] {
                 'future': false,
                 'option': undefined,
             },
+            'options': {
+                'mica': true,
+            },
         });
     }
 }

@@ -1,4 +1,4 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../../ts/ccxt.js';
 
 // AUTO-TRANSPILE //
 
@@ -56,7 +56,7 @@ async function example () {
     const statuses = [ 'open', 'closed', 'settled' ];
     let events: any[] = [];
     for (let si = 0; si < statuses.length; si++) {
-        events = await exchange.fetchEvents ([ query ], { 'status': statuses[si] });
+        events = await exchange.fetchEvents ({ 'queries': [ query ], 'status': statuses[si] });
         if (events.length > 0) {
             console.log ('Found events with status:', statuses[si]);
             break;

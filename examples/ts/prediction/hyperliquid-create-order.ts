@@ -1,4 +1,4 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../../ts/ccxt.js';
 
 async function example () {
 
@@ -11,7 +11,7 @@ async function example () {
     // exchange.verbose = true; // uncomment for debugging
 
     // Fetch outcome events (groups YES+NO outcomes by underlying)
-    const events = await exchange.fetchEvents ();
+    const events = await exchange.fetchEvents ({ 'queries': [ 'BTC' ] });
     console.log ('Total outcome events:', events.length);
 
     if (events.length === 0) {
@@ -29,7 +29,7 @@ async function example () {
             const m = markets[mi];
             const outcomes = m.outcomes || [];
             for (let oi = 0; oi < outcomes.length; oi++) {
-                const symbol = outcomes[oi].symbol;
+                const symbol = outcomes[oi].outcome;
                 if (typeof symbol === 'string' && symbol.includes ('OTHER')) {
                     continue;
                 }

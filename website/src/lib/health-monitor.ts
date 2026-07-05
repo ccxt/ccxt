@@ -86,7 +86,7 @@ async function checkOne(id: string, logo: string): Promise<StatusEntry> {
   let started = performance.now(); // for error cases where instantiation/warmup fails and probe() isn't even called
   try {
     const ExchangeClass = (ccxt as unknown as Record<string, new (config: object) => Exchange>)[id];
-    const exchange = new ExchangeClass({ timeout: TIMEOUT_MS });
+    const exchange = new ExchangeClass({ timeout: TIMEOUT_MS, enableRateLimit: false });
     await exchange.loadMarkets(); // warm up the instance (e.g. resolve any id mapping) before the timed probe
     started = performance.now(); // reset the timer after instantiation and warmup, so we measure just the probe method
     const { ok, method, error } = await probe(exchange);

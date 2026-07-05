@@ -291,6 +291,10 @@ func (this *KalshiCore) KalshiPrivateDeletePortfolioOrdersBatched(args ...any) <
 	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrdersBatched", args...)
 }
 
+func (this *KalshiCore) KalshiPrivateDeletePortfolioEventsOrdersOrderId(args ...any) <-chan any {
+	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioEventsOrdersOrderId", args...)
+}
+
 func (this *KalshiCore) KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId", args...)
 }

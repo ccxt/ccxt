@@ -14,14 +14,13 @@ use ccxt\Precise;
 use const ccxt\ROUND;
 use const ccxt\TRUNCATE;
 use const ccxt\DECIMAL_PLACES;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheByOutcomeById;
 
 class polymarket extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'polymarket',
@@ -30,6 +29,12 @@ class polymarket extends Exchange {
             'rateLimit' => 100,
             'certified' => false,
             'pro' => true,
+            'streaming' => array(
+                // Polymarket's CLOB ws (market . user channels) has no protocol-level ping-pong;
+                // it requires a text "PING" every 10s and replies "PONG" (see @see in describe)
+                'ping' => array($this, 'ping'),
+                'keepAlive' => 10000,
+            ),
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -263,9 +268,27 @@ class polymarket extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array(
+                'exact' => array(
+                    'not enough balance / allowance' => '\\ccxt\\InsufficientFunds',
+                    'invalid signature' => '\\ccxt\\AuthenticationError',
+                    'api key not found' => '\\ccxt\\AuthenticationError',
+                ),
+                'broad' => array(
+                    'No orderbook exists' => '\\ccxt\\BadSymbol',
+                    'not enough balance' => '\\ccxt\\InsufficientFunds',
+                    'allowance' => '\\ccxt\\InsufficientFunds',
+                    'invalid amount' => '\\ccxt\\InvalidOrder',
+                    'invalid price' => '\\ccxt\\InvalidOrder',
+                    'minimum tick size' => '\\ccxt\\InvalidOrder',
+                    'geoblocked' => '\\ccxt\\PermissionDenied',
+                    'restricted jurisdiction' => '\\ccxt\\PermissionDenied',
+                    'Unauthorized' => '\\ccxt\\AuthenticationError',
+                ),
+            ),
             'requiredCredentials' => array(
                 // dual auth => either pass the L2 api credentials directly
-                // (apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE)
+                // apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE
                 // or a privateKey to derive them (see loadApiCredentials); none are
                 // individually required, so validation happens in loadApiCredentials
                 'apiKey' => false,
@@ -284,6 +307,12 @@ class polymarket extends Exchange {
             ),
             'options' => array(
                 'defaultFetchEventsLimit' => 100,
+                // gamma caps each /events response at 100, so paginate at that page size
+                'eventsPageSize' => 100,
+                // cap the cold-start listing => each gamma event is heavy (~90 KB with the HTML
+                // description), so 200 events (2 pages, volume-ordered) is ~18 MB; raise via
+                // params.limit or this option when you need a wider set
+                'fetchMarketsLimit' => 200,
                 'maxFetchEventsLimit' => 500,
                 'defaultEventStatus' => 'active',  // 'active' | 'closed' | 'all'
                 // CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
@@ -297,7 +326,7 @@ class polymarket extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for polymarket, each prediction market becomes one market with its outcome tokens listed under the outcomes key
@@ -312,7 +341,7 @@ class polymarket extends Exchange {
              * @param {int} [$params->limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
              * @return {array[]} an array of objects representing market data
              */
-            $queries = $this->parseSearchQueries ($params);
+            $queries = $this->parse_search_queries($params);
             $rest = $this->omit($params, array( 'query', 'queries' ));
             $queriesLength = count($queries);
             $rawEvents = array();
@@ -332,16 +361,16 @@ class polymarket extends Exchange {
                 $parsedEvent = $this->parse_event($rawEvent);
                 $eventSlug = $this->safe_string($rawEvent, 'slug');
                 if ($eventSlug) {
-                    $eventKey = $this->shortenSlug ($eventSlug);
+                    $eventKey = $this->shorten_slug($eventSlug);
                     $eventsDict[$eventKey] = $parsedEvent;
                 }
             }
             $this->events = $eventsDict;
             return $flatMarkets;
-        }) ();
+        })();
     }
 
-    public function fetch_raw_events_by_search(array $queries, $params = array ()): PromiseInterface {
+    public function fetch_raw_events_by_search(array $queries, $params = array()): PromiseInterface {
         return Async\async(function () use ($queries, $params) {
             /**
              * @ignore
@@ -355,15 +384,33 @@ class polymarket extends Exchange {
              * @return {array[]} an array of raw gamma event objects
              */
             $pageSize = $this->safe_integer($params, 'limit', 50);
-            $rest = $this->omit($params, array( 'limit' ));
+            // map the unified sort/status onto the gamma search $params
+            $sort = $this->safe_string($params, 'sort');
+            $sortParam = 'volume';
+            if ($sort === 'liquidity') {
+                $sortParam = 'liquidity';
+            } elseif ($sort === 'newest') {
+                $sortParam = 'startDate';
+            }
+            $status = $this->safe_string($params, 'status', 'active');
+            $eventsStatus = 'active';
+            if (($status === 'closed') || ($status === 'inactive')) {
+                $eventsStatus = 'closed';
+            } elseif ($status === 'all') {
+                $eventsStatus = null;
+            }
+            $rest = $this->omit($params, array( 'limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries' ));
             $seen = array();
             $rawEvents = array();
             for ($qi = 0; $qi < count($queries); $qi++) {
                 $q = $queries[$qi];
-                $baseRequest = array( 'q' => $q, 'limit_per_type' => $pageSize, 'events_status' => 'active' );
+                $baseRequest = array( 'q' => $q, 'limit_per_type' => $pageSize, 'sort' => $sortParam, 'ascending' => false );
+                if ($eventsStatus !== null) {
+                    $baseRequest['events_status'] = $eventsStatus;
+                }
                 $firstRequest = array( 'page' => 1 );
                 $firstRequest = $this->extend($this->extend($firstRequest, $baseRequest), $rest);
-                $first = Async\await($this->gammaPublicGetPublicSearch ($firstRequest));
+                $first = Async\await($this->gammaPublicGetPublicSearch($firstRequest));
                 $firstEvents = $this->safe_list($first, 'events', array());
                 $firstEventsLength = count($firstEvents);
                 $pagination = $this->safe_dict($first, 'pagination', array());
@@ -377,7 +424,7 @@ class polymarket extends Exchange {
                 for ($pi = 0; $pi < count($remainingPages); $pi++) {
                     $pageRequest = array( 'page' => $remainingPages[$pi] );
                     $pageRequest = $this->extend($this->extend($pageRequest, $baseRequest), $rest);
-                    $restPromises[] = $this->gammaPublicGetPublicSearch ($pageRequest);
+                    $restPromises[] = $this->gammaPublicGetPublicSearch($pageRequest);
                 }
                 $restResponses = Async\await(Promise\all($restPromises));
                 $allEvents = array();
@@ -400,10 +447,10 @@ class polymarket extends Exchange {
                 }
             }
             return $rawEvents;
-        }) ();
+        })();
     }
 
-    public function fetch_raw_events_list($params = array ()): PromiseInterface {
+    public function fetch_raw_events_list($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @ignore
@@ -416,24 +463,37 @@ class polymarket extends Exchange {
              * @param {int} [$params->limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
              * @return {array[]} an array of raw gamma event objects
              */
-            $pageSize = $this->safe_integer($this->options, 'maxFetchEventsLimit', 500);
+            // gamma hard-caps each response at 100 events regardless of the requested $limit, so the
+            // $page size must be that cap or pagination never advances (the > check below stays false)
+            $pageSize = $this->safe_integer($this->options, 'eventsPageSize', 100);
             // scope the listing => without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `$limit` events (most-traded first).
-            $limit = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
+            $limit = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 200));
             $maxPages = (int) ceil($limit / $pageSize);
             $status = $this->safe_string($params, 'status', $this->safe_string($this->options, 'defaultEventStatus', 'active'));
-            $rest = $this->omit($params, array( 'status', 'limit' ));
-            $baseRequest = array( 'limit' => $pageSize, 'order' => 'volume24hr', 'ascending' => false );
+            // $sort maps to the gamma `$order` field; 'volume' is the default ranking
+            $sort = $this->safe_string($params, 'sort');
+            $order = 'volume';
+            if ($sort === 'liquidity') {
+                $order = 'liquidity';
+            } elseif ($sort === 'newest') {
+                $order = 'startDate';
+            }
+            $rest = $this->omit($params, array( 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries' ));
+            $baseRequest = array( 'limit' => $pageSize, 'order' => $order, 'ascending' => false );
             $baseRequest = $this->extend($baseRequest, $rest);
             if ($status === 'active') {
                 $baseRequest['active'] = true;
-            } elseif ($status === 'closed') {
+                $baseRequest['closed'] = false;
+            } elseif (($status === 'closed') || ($status === 'inactive')) {
+                $baseRequest['active'] = false;
                 $baseRequest['closed'] = true;
             }
+            // 'all' — no active/closed filter
             // fetch $page 1 first; if full, fire remaining pages in parallel
             $firstPageRequest = array( 'offset' => 0 );
             $firstPageRequest = $this->extend($firstPageRequest, $baseRequest);
-            $firstPageResponse = Async\await($this->gammaPublicGetEvents ($firstPageRequest));
+            $firstPageResponse = Async\await($this->gammaPublicGetEvents($firstPageRequest));
             $firstPage = ($firstPageResponse !== null) ? $firstPageResponse : array();
             $firstPageLength = count($firstPage);
             $allRawEvents = array();
@@ -449,7 +509,7 @@ class polymarket extends Exchange {
                 for ($oi = 0; $oi < count($offsets); $oi++) {
                     $pageRequest = array( 'offset' => $offsets[$oi] );
                     $pageRequest = $this->extend($pageRequest, $baseRequest);
-                    $restPromises[] = $this->gammaPublicGetEvents ($pageRequest);
+                    $restPromises[] = $this->gammaPublicGetEvents($pageRequest);
                 }
                 $restPages = Async\await(Promise\all($restPromises));
                 for ($ri = 0; $ri < count($restPages); $ri++) {
@@ -465,7 +525,7 @@ class polymarket extends Exchange {
                 return $this->array_slice($allRawEvents, 0, $limit);
             }
             return $allRawEvents;
-        }) ();
+        })();
     }
 
     public function parse_event_to_markets(array $event): array {
@@ -602,8 +662,8 @@ class polymarket extends Exchange {
             if ($outcomeLabelsLength === 0 || $clobTokenIdsLength === 0) {
                 continue;
             }
-            // Market symbol (no outcome suffix)
-            $marketSymbol = $this->slugToMarketSymbol ($eventSlug, $marketSlug);
+            // Market outcome (no outcome suffix)
+            $marketSymbol = $this->slug_to_market_symbol($eventSlug, $marketSlug);
             // Build $outcomes array
             $outcomes = array();
             for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
@@ -683,25 +743,23 @@ class polymarket extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * fetches the current mid-price and best bid/ask for a single $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
              * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
              *
-             * @param {string} $symbol unified $outcome $symbol like TRUMP_DANCE_TODAY_997:YES or an $outcome token id
+             * @param {string} $outcome unified $outcome like TRUMP_DANCE_TODAY_997:YES or an $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
              */
-            $outcome = $symbol;
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $promises = array(
-                $this->clobPublicGetMidpoint (array( 'token_id' => $tokenId )),
-                $this->clobPublicGetBook (array( 'token_id' => $tokenId )),
+                $this->clobPublicGetMidpoint(array( 'token_id' => $tokenId )),
+                $this->clobPublicGetBook(array( 'token_id' => $tokenId )),
             );
             list($midpointResponse, $bookResponse) = Async\await(Promise\all($promises));
             $response = array( 'midpoint' => $midpointResponse, 'book' => $bookResponse );
@@ -738,33 +796,22 @@ class polymarket extends Exchange {
                 $response,
                 $outcomeObj
             );
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_tickers(?array $outcomes = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcomes, $params) {
             /**
              * fetches tickers for multiple outcome tokens at once using the batched CLOB $book and midpoint endpoints
              *
              * @see https://docs.polymarket.com/api-reference/market-data/get-order-$books-request-body
              * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
              *
-             * @param {string[]} [$symbols] unified outcome $symbols or outcome token ids, fetches all loaded $outcomes when omitted
+             * @param {string[]} [$outcomes] unified $outcomes or outcome token ids, fetches all loaded $outcomes when omitted
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome symbol
+             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
              */
-            $outcomes = $symbols;
-            $outcomesLength = 0;
-            if ($outcomes !== null) {
-                $outcomesLength = count($outcomes);
-            }
-            if ($outcomesLength > 0) {
-                for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->checkEventsAndMarkets ($outcomes[$i]);
-                }
-            } else {
-                $this->checkEventsAndMarkets ();
-            }
+            Async\await($this->load_outcomes());
             $outcomesMap = ($this->outcomes !== null) ? $this->outcomes : array();
             $targets = array();
             if ($outcomes !== null) {
@@ -780,7 +827,7 @@ class polymarket extends Exchange {
             $outcomesByTokenId = array();
             $tokenIds = array();
             for ($i = 0; $i < count($targets); $i++) {
-                $outcomeObj = $this->outcome ($targets[$i]);
+                $outcomeObj = $this->outcome($targets[$i]);
                 $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
                 if (($tokenId !== null) && !(is_array($outcomesByTokenId) && array_key_exists($tokenId, $outcomesByTokenId))) {
                     $outcomesByTokenId[$tokenId] = $outcomeObj;
@@ -801,8 +848,8 @@ class polymarket extends Exchange {
                     $bookParams[] = array( 'token_id' => $tokenIds[$i] );
                 }
                 $promises = array(
-                    $this->clobPublicPostBooks ($bookParams),
-                    $this->clobPublicPostMidpoints ($bookParams),
+                    $this->clobPublicPostBooks($bookParams),
+                    $this->clobPublicPostMidpoints($bookParams),
                 );
                 $responses = Async\await(Promise\all($promises));
                 $books = $responses[0];
@@ -824,7 +871,7 @@ class polymarket extends Exchange {
                 $startIndex = $this->sum($startIndex, $chunkSize);
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -832,7 +879,7 @@ class polymarket extends Exchange {
          * @ignore
          * parses a combined midpoint . order book response into a unified $ticker object
          * @param {array} $ticker a dict with midpoint and book entries
-         * @param {array} [$market] the outcome object the $ticker belongs to
+         * @param {array} [$market] the $outcome object the $ticker belongs to
          * @return {array} a [$ticker structure](https://docs.ccxt.com/#/?id=$ticker-structure)
          */
         //
@@ -876,14 +923,14 @@ class polymarket extends Exchange {
         $bestAsk = ($asksLength > 0) ? $asks[$asksLength - 1] : null;
         $lastTradePrice = $this->safe_number($bookData, 'last_trade_price');
         $last = ($lastTradePrice !== null) ? $lastTradePrice : $mid;
-        $symbol = $this->safeOutcomeSymbol (null, $market);
+        $outcome = $this->safe_outcome_symbol(null, $market);
         $timestamp = $this->safe_integer($bookData, 'timestamp', $this->milliseconds());
         $quoteVolume = null;
         if ($market !== null) {
             $quoteVolume = $this->safe_number_2($market['info'], 'volume24hr', 'volume');
         }
-        return $this->safePredictionTicker (array(
-            'symbol' => $symbol,
+        return $this->safe_prediction_ticker(array(
+            'outcome' => $outcome,
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
@@ -909,26 +956,24 @@ class polymarket extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * fetches the CLOB order book for a single $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
              *
-             * @param {string} $symbol unified $outcome $symbol or $outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {int} [$limit] not used by polymarket fetchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
              */
-            $outcome = $symbol;
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $request = array(
                 'token_id' => $tokenId,
             );
-            $response = Async\await($this->clobPublicGetBook ($this->extend($request, $params)));
+            $response = Async\await($this->clobPublicGetBook($this->extend($request, $params)));
             //
             //     {
             //         "market" => "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -950,31 +995,26 @@ class polymarket extends Exchange {
             //     }
             //
             $timestamp = $this->safe_integer($response, 'timestamp');
-            $orderbook = $this->parse_order_book($response, $this->safeOutcomeSymbol ($outcome, $outcomeObj), $timestamp, 'bids', 'asks', 'price', 'size');
-            $orderbook['outcome'] = $this->safe_string($outcomeObj, 'outcome');
-            $orderbook['outcomeId'] = $this->safe_string($outcomeObj, 'outcomeId');
-            $orderbook['market'] = $this->safe_string($outcomeObj, 'market');
-            return $orderbook;
-        }) ();
+            $orderbook = $this->parse_order_book($response, $this->safe_outcome_symbol($outcome, $outcomeObj), $timestamp, 'bids', 'asks', 'price', 'size');
+            return $this->safe_prediction_order_book($orderbook, $outcomeObj);
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+    public function fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $timeframe, $since, $limit, $params) {
             /**
              * fetches $price $history ticks for a single $outcome token and $buckets them client-side into OHLCV $candles, snapping tick timestamps to the $candle boundary
              *
              * @see https://docs.polymarket.com/api-reference/markets/get-prices-$history
              *
-             * @param {string} $symbol unified $outcome $symbol or $outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {string} $timeframe the length of time each $candle represents
              * @param {int} [$since] timestamp in ms of the earliest $candle to fetch
              * @param {int} [$limit] the maximum number of $candles to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
-            $outcome = $symbol;
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $fidelityMin = $this->safe_integer($this->timeframes, $timeframe, 1); // fidelity in minutes
             $nowS = $this->seconds();
@@ -995,7 +1035,7 @@ class polymarket extends Exchange {
                 'startTs' => $startS,
                 'endTs' => $endS,
             );
-            $response = Async\await($this->clobPublicGetPricesHistory ($this->extend($request, $params)));
+            $response = Async\await($this->clobPublicGetPricesHistory($this->extend($request, $params)));
             //
             //     {
             //         "history" => array(
@@ -1029,8 +1069,8 @@ class polymarket extends Exchange {
                     $buckets[$bucketKey] = array( $snappedMs, $price, $price, $price, $price, $vol );
                 } else {
                     $candle = $buckets[$bucketKey];
-                    $candle[2] = max ($candle[2], $price); // high
-                    $candle[3] = min ($candle[3], $price); // low
+                    $candle[2] = max($candle[2], $price); // high
+                    $candle[3] = min($candle[3], $price); // low
                     $candle[4] = $price;                                  // close (last tick wins)
                     $candle[5] = $this->sum($candle[5], $vol);   // volume
                     $buckets[$bucketKey] = $candle; // reassign after mutation, php arrays are value types
@@ -1047,7 +1087,7 @@ class polymarket extends Exchange {
                 return $this->array_slice($candles, -$limit);
             }
             return $candles;
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1062,7 +1102,7 @@ class polymarket extends Exchange {
         return array( $this->safe_timestamp($ohlcv, 't'), $price, $price, $price, $price, 0 );
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current timestamp from the CLOB server
@@ -1072,15 +1112,15 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current server time in milliseconds
              */
-            $response = Async\await($this->clobPublicGetTime ($params));
+            $response = Async\await($this->clobPublicGetTime($params));
             //
             //     1781273248
             //
             return $this->parse_to_int($response) * 1000;
-        }) ();
+        })();
     }
 
-    public function fetch_status($params = array ()): PromiseInterface {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the gamma API health status
@@ -1090,7 +1130,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
              */
-            $response = Async\await($this->gammaPublicGetStatus ($params));
+            $response = Async\await($this->gammaPublicGetStatus($params));
             //
             //     OK
             //
@@ -1102,45 +1142,43 @@ class polymarket extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_open_interest(string $outcome, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * fetches the open interest of a prediction market $outcome
              *
              * @see https://docs.polymarket.com/api-reference/misc/get-open-interest
              *
-             * @param {string} $symbol unified $outcome $symbol or $outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
              */
-            $outcome = $symbol;
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
             $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
             if ($conditionId === null) {
                 throw new BadRequest($this->id . ' fetchOpenInterest() requires $outcome->info.conditionId for ' . $outcome);
             }
             $request = array( 'market' => $conditionId );
-            $response = Async\await($this->dataPublicGetOi ($this->extend($request, $params)));
+            $response = Async\await($this->dataPublicGetOi($this->extend($request, $params)));
             //
             //     array( array( "market" => "0x7976b8...92", "value" => 4925662.470476 ) )
             //
             $first = $this->safe_dict($response, 0, array());
             return $this->parse_open_interest($first, $outcomeObj);
-        }) ();
+        })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null): OpenInterest {
+    public function parse_open_interest($interest, ?array $market = null): array {
         //
         //     array( "market" => "0x7976b8...92", "value" => 4925662.470476 )
         //
         $timestamp = $this->milliseconds();
-        return $this->safe_open_interest(array(
-            'symbol' => $this->safeOutcomeSymbol (null, $market),
+        $openInterest = $this->safe_open_interest(array(
+            'symbol' => $this->safe_outcome_symbol(null, $market),
             'openInterestAmount' => null,
             'openInterestValue' => $this->safe_number($interest, 'value'),
             'baseVolume' => null,
@@ -1149,25 +1187,28 @@ class polymarket extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         ), $market);
+        $openInterest['outcome'] = $this->safe_outcome_symbol(null, $market);
+        $openInterest['outcomeId'] = $this->safe_string($market, 'outcomeId');
+        $openInterest['market'] = $this->safe_string($market, 'market');
+        unset($openInterest['symbol']);
+        return $openInterest;
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_trading_fee(string $outcome, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * fetches the base fee $rate for a prediction market $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/market-data/get-fee-$rate
              *
-             * @param {string} $symbol unified $outcome $symbol or $outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
              */
-            $outcome = $symbol;
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $request = array( 'token_id' => $tokenId );
-            $response = Async\await($this->clobPublicGetFeeRate ($this->extend($request, $params)));
+            $response = Async\await($this->clobPublicGetFeeRate($this->extend($request, $params)));
             //
             //     array( "base_fee" => 30 )   // base fee in basis points
             //
@@ -1175,31 +1216,31 @@ class polymarket extends Exchange {
             $rate = ($baseFeeBps !== null) ? $this->parse_number(Precise::string_div($baseFeeBps, '10000')) : null;
             return array(
                 'info' => $response,
-                'symbol' => $this->safeOutcomeSymbol (null, $outcomeObj),
+                'outcome' => $this->safe_outcome_symbol(null, $outcomeObj),
+                'outcomeId' => $this->safe_string($outcomeObj, 'outcomeId'),
+                'market' => $this->safe_string($outcomeObj, 'market'),
                 'maker' => $rate,
                 'taker' => $rate,
                 'percentage' => true,
                 'tierBased' => false,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetches public $trade history for a single $outcome token from the data API
              *
              * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
              *
-             * @param {string} $symbol unified $outcome $symbol or $outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {int} [$since] not used by polymarket fetchTrades
              * @param {int} [$limit] the maximum number of trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=public-trades)
              */
-            $outcome = $symbol;
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
             $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
@@ -1211,7 +1252,7 @@ class polymarket extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->dataPublicGetTrades ($this->extend($request, $params)));
+            $response = Async\await($this->dataPublicGetTrades($this->extend($request, $params)));
             $rawTrades = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : $this->safe_list($response, 'data', array());
             $filteredTrades = array();
             for ($i = 0; $i < count($rawTrades); $i++) {
@@ -1221,18 +1262,20 @@ class polymarket extends Exchange {
                     $filteredTrades[] = $trade;
                 }
             }
-            return $this->parse_trades($filteredTrades, $outcomeObj, $since, $limit);
-        }) ();
+            // the trades are already narrowed to this $outcome by asset id above;
+            // parseTrade resolves the $outcome from each trade's asset id
+            return $this->parse_prediction_trades($filteredTrades, null, $since, $limit);
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
-             * fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
+             * fetches the authenticated user's trade history from the CLOB, optionally filtered by $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/trade/get-trades
              *
-             * @param {string} [$symbol] unified outcome $symbol or outcome token id
+             * @param {string} [$outcome] unified $outcome or $outcome token id
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1241,26 +1284,25 @@ class polymarket extends Exchange {
             Async\await($this->load_api_credentials());
             $request = array();
             $outcomeObj = null;
-            if ($symbol !== null) {
-                $this->checkEventsAndMarkets ($symbol);
-                $outcomeObj = $this->outcome ($symbol);
+            if ($outcome !== null) {
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $request['asset_id'] = $outcomeObj['outcomeId'];
             }
-            $response = Async\await($this->clobPrivateGetDataTrades ($this->extend($request, $params)));
+            $response = Async\await($this->clobPrivateGetDataTrades($this->extend($request, $params)));
             $rawTrades = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : $this->safe_list($response, 'data', array());
-            return $this->parse_trades($rawTrades, $outcomeObj, $since, $limit);
-        }) ();
+            return $this->parse_prediction_trades($rawTrades, $outcomeObj, $since, $limit);
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+    public function fetch_order_trades(string $id, ?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $since, $limit, $params) {
             /**
              * fetches all the $trades made from a single order
              *
              * @see https://docs.polymarket.com/api-reference/trade/get-$trades
              *
              * @param {string} $id the order $id
-             * @param {string} [$symbol] unified outcome $symbol or outcome token $id to narrow the lookup
+             * @param {string} [$outcome] unified $outcome or $outcome token $id to narrow the lookup
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1268,7 +1310,7 @@ class polymarket extends Exchange {
              */
             // the /data/trades endpoint has no order filter, so fetch the user's $trades and keep
             // the ones where this order was the taker or one of the matched makers
-            $trades = Async\await($this->fetch_my_trades($symbol, null, null, $params));
+            $trades = Async\await($this->fetch_my_trades($outcome, null, null, $params));
             $result = array();
             for ($i = 0; $i < count($trades); $i++) {
                 $trade = $trades[$i];
@@ -1285,7 +1327,7 @@ class polymarket extends Exchange {
                 }
             }
             return $this->filter_by_since_limit($result, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1293,7 +1335,7 @@ class polymarket extends Exchange {
          * @ignore
          * parses a raw data API $trade object into a unified $trade object
          * @param {array} $trade the raw $trade object
-         * @param {array} [$market] the outcome object the $trade belongs to
+         * @param {array} [$market] the $outcome object the $trade belongs to
          * @return {array} a [$trade structure](https://docs.ccxt.com/#/?$id=public-trades)
          */
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
@@ -1308,8 +1350,8 @@ class polymarket extends Exchange {
         $rawSide = $this->safe_string_lower($trade, 'side');
         $side = ($rawSide === 'buy' || $rawSide === 'sell') ? $rawSide : null;
         $assetId = $this->safe_string_2($trade, 'asset', 'asset_id');
-        $mkt = ($market !== null) ? $market : $this->safeOutcome ($assetId);
-        $symbol = $this->safeOutcomeSymbol (null, $mkt);
+        $mkt = ($market !== null) ? $market : $this->safe_outcome($assetId);
+        $outcome = $this->safe_outcome_symbol(null, $mkt);
         $rawTakerOrMaker = $this->safe_string_lower($trade, 'trader_side');
         $takerOrMaker = ($rawTakerOrMaker === 'taker' || $rawTakerOrMaker === 'maker') ? $rawTakerOrMaker : null;
         $feeRateBps = $this->safe_string($trade, 'fee_rate_bps');
@@ -1320,13 +1362,12 @@ class polymarket extends Exchange {
                 'rate' => $this->parse_number(Precise::string_div($feeRateBps, '10000')),
             );
         }
-        return $this->safePredictionTrade (array(
+        return $this->safe_prediction_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
-            'outcome' => $symbol,
+            'outcome' => $outcome,
             'outcomeId' => $assetId,
             'label' => $this->safe_string($mkt, 'label'),
             'market' => $this->safe_string($mkt, 'market'),
@@ -1341,7 +1382,7 @@ class polymarket extends Exchange {
         ), $mkt);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the USDC collateral balance available for trading on the CLOB
@@ -1360,9 +1401,9 @@ class polymarket extends Exchange {
                 'asset_type' => 'COLLATERAL',
                 'signature_type' => $signatureType,
             );
-            $response = Async\await($this->clobPrivateGetBalanceAllowance ($this->extend($request, $rest)));
+            $response = Async\await($this->clobPrivateGetBalanceAllowance($this->extend($request, $rest)));
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1387,46 +1428,39 @@ class polymarket extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_positions(?array $outcomes = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcomes, $params) {
             /**
              * fetches open outcome token $positions for the wallet from the data API
              *
              * @see https://docs.polymarket.com/api-reference/core/get-current-$positions-for-a-user
              *
-             * @param {string[]} [$symbols] unified outcome $symbols to filter by
+             * @param {string[]} [$outcomes] unified $outcomes to filter by
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
              */
-            $outcomes = $symbols;
             $outcomesLength = 0;
             if ($outcomes !== null) {
                 $outcomesLength = count($outcomes);
             }
-            if ($outcomesLength > 0) {
-                for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->checkEventsAndMarkets ($outcomes[$i]);
-                }
-            } else {
-                $this->checkEventsAndMarkets ();
-            }
+            Async\await($this->load_outcomes());
             if ($this->walletAddress === null) {
                 throw new ArgumentsRequired($this->id . ' walletAddress is required to fetchPositions');
             }
             $request = array(
                 'user' => $this->walletAddress,
             );
-            $response = Async\await($this->dataPublicGetPositions ($this->extend($request, $params)));
+            $response = Async\await($this->dataPublicGetPositions($this->extend($request, $params)));
             $positions = $this->safe_list($response, 'data', array());
-            // parse without the base symbol filter (it resolves standard markets, not outcome tokens),
+            // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
-            $parsed = $this->parse_positions($positions, null);
+            $parsed = $this->parse_prediction_positions($positions);
             if ($outcomesLength === 0) {
                 return $parsed;
             }
             $wantedIds = array();
             for ($i = 0; $i < count($outcomes); $i++) {
-                $outcomeObj = $this->outcome ($outcomes[$i]);
+                $outcomeObj = $this->outcome($outcomes[$i]);
                 $wantedIds[$outcomeObj['outcomeId']] = true;
             }
             $result = array();
@@ -1439,23 +1473,23 @@ class polymarket extends Exchange {
                 }
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_position(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_position(string $outcome, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
-             * fetches the open position for a single outcome token
+             * fetches the open position for a single $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/core/get-current-$positions-for-a-user
              *
-             * @param {string} $symbol unified outcome $symbol or outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
              */
-            $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
+            $positions = Async\await($this->fetch_positions(array( $outcome ), $params));
             return $this->safe_dict($positions, 0);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -1467,7 +1501,7 @@ class polymarket extends Exchange {
          * @return {array} a [$position structure](https://docs.ccxt.com/#/?id=$position-structure)
          */
         $tokenId = $this->safe_string($position, 'asset');
-        $marketData = $this->safeOutcome ($tokenId, $market);
+        $marketData = $this->safe_outcome($tokenId, $market);
         $size = $this->safe_number($position, 'size');
         $entryPrice = $this->safe_number($position, 'avgPrice');
         $curPrice = $this->safe_number($position, 'currentPrice');
@@ -1475,13 +1509,15 @@ class polymarket extends Exchange {
         if (($size !== null) && ($curPrice !== null)) {
             $notional = $size * $curPrice;
         }
-        return $this->safePredictionPosition (array(
+        return $this->safe_prediction_position(array(
             'id' => $this->safe_string($position, 'id'),
-            'symbol' => $marketData['outcome'],
-            'outcomeId' => $marketData['outcomeId'],
-            'market' => $marketData['market'],
-            'label' => $marketData['label'],
-            'event' => $marketData['event'],
+            // safe access => safeOutcome stubs (unknown assets) carry no 'event' key, and raw
+            // bracket access on a missing key raises in Python/PHP
+            'outcome' => $this->safe_string($marketData, 'outcome'),
+            'outcomeId' => $this->safe_string($marketData, 'outcomeId'),
+            'market' => $this->safe_string($marketData, 'market'),
+            'label' => $this->safe_string($marketData, 'label'),
+            'event' => $this->safe_string($marketData, 'event'),
             'timestamp' => null,
             'datetime' => null,
             'contracts' => $size,
@@ -1508,61 +1544,51 @@ class polymarket extends Exchange {
         ));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_open_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetches open resting $orders for the authenticated user, optionally filtered by $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/trade/get-user-$orders
              *
-             * @param {string} [$symbol] unified $outcome $symbol or $outcome token id
+             * @param {string} [$outcome] unified $outcome or $outcome token id
              * @param {int} [$since] not used by polymarket fetchOpenOrders
              * @param {int} [$limit] the maximum number of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
-            $outcome = $symbol;
-            if ($outcome !== null) {
-                $this->checkEventsAndMarkets ($outcome);
-            } else {
-                $this->checkEventsAndMarkets ();
-            }
             $request = array();
             $outcomeObj = null;
             if ($outcome !== null) {
-                $outcomeObj = $this->outcome ($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $request['asset_id'] = $outcomeObj['outcomeId'];
             }
-            $response = Async\await($this->clobPrivateGetDataOrders ($this->extend($request, $params)));
+            $response = Async\await($this->clobPrivateGetDataOrders($this->extend($request, $params)));
             $orders = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($orders, $outcomeObj, $since, $limit);
-        }) ();
+            return $this->parse_prediction_orders($orders, $outcomeObj, $since, $limit);
+        })();
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
+    public function fetch_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $params) {
             /**
              * fetches a single order by $id from the CLOB private data endpoint
              *
              * @see https://docs.polymarket.com/api-reference/trade/get-single-order-by-$id
              *
              * @param {string} $id the order $id
-             * @param {string} [$symbol] unified $outcome $symbol or $outcome token $id
+             * @param {string} [$outcome] unified $outcome or $outcome token $id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
+            // the $request only needs the order $id; the $outcome is a labelling hint, so resolve it from
+            // cache (no network) — fetchOrder stays a single $request even on a cold cache.
             Async\await($this->load_api_credentials());
-            $outcome = $symbol;
-            if ($outcome !== null) {
-                $this->checkEventsAndMarkets ($outcome);
-            } else {
-                $this->checkEventsAndMarkets ();
-            }
             $request = array( 'id' => $id );
-            $response = Async\await($this->clobPrivateGetDataOrderId ($this->extend($request, $params)));
+            $response = Async\await($this->clobPrivateGetDataOrderId($this->extend($request, $params)));
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1585,7 +1611,7 @@ class polymarket extends Exchange {
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
         $id = $this->safe_string_2($order, 'id', 'orderID');
         $tokenId = $this->safe_string($order, 'asset_id');
-        $mkt = $this->safeOutcome ($tokenId, $market);
+        $mkt = $this->safe_outcome($tokenId, $market);
         // REST returns 'status'; the user-websocket $order event carries lifecycle in 'type'
         $status = $this->parse_order_status($this->safe_string_2($order, 'status', 'type'));
         $side = $this->safe_string_lower($order, 'side');
@@ -1593,7 +1619,7 @@ class polymarket extends Exchange {
         $amount = $this->safe_number($order, 'original_size');
         $filled = $this->safe_number($order, 'size_matched', 0);
         $ts = $this->safe_integer_product($order, 'created_at', 1000);
-        return $this->safePredictionOrder (array(
+        return $this->safe_prediction_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -1601,7 +1627,7 @@ class polymarket extends Exchange {
             'datetime' => $this->iso8601($ts),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $mkt['outcome'],
+            'outcome' => $mkt['outcome'],
             'outcomeId' => $this->safe_string($mkt, 'outcomeId'),
             'label' => $this->safe_string($mkt, 'label'),
             'market' => $this->safe_string($mkt, 'market'),
@@ -1645,48 +1671,50 @@ class polymarket extends Exchange {
         return $this->safe_string($statuses, $normalized, $normalized);
     }
 
-    public function create_order(string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+    public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $type, $side, $amount, $price, $params) {
             /**
-             * places a limit or market order on the CLOB for the given outcome token
+             * places a limit or market order on the CLOB for the given $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
              *
-             * @param {string} $symbol unified outcome $symbol or outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {string} $type 'market' or 'limit'; market orders default to FOK and, when no $price is given, use the outcome's current $price marketable reference
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how many outcome tokens to trade
-             * @param {float} [$price] the $price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current $price for market orders
+             * @param {float} $amount how many $outcome tokens to trade
+             * @param {float} [$price] the $price per $outcome token between 0 and 1; required for limit orders, defaults to the outcome's current $price for market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->orderType] time-in-force override => 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
              * @param {int} [$params->signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
              * @param {string} [$params->funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
-             * @param {string} [$params->tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
-             * @param {bool} [$params->negRisk] whether the market is a neg-risk market; read from the outcome when omitted
+             * @param {string} [$params->tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the $outcome when omitted
+             * @param {bool} [$params->negRisk] whether the market is a neg-risk market; read from the $outcome when omitted
              * @param {string} [$params->salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
              * @param {string} [$params->timestamp] order timestamp; defaults to the current time in ms
              * @param {string} [$params->expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
-            $built = Async\await($this->build_clob_order_body($symbol, $type, $side, $amount, $price, $params));
-            $response = Async\await($this->clobPrivatePostOrder ($this->safe_dict($built, 'body')));
+            Async\await($this->load_outcome($outcome));
+            $built = $this->build_clob_order_body($outcome, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->clobPrivatePostOrder($this->safe_dict($built, 'body')));
             return $this->parse_order($response, $this->safe_dict($built, 'outcome'));
-        }) ();
+        })();
     }
 
-    public function create_orders(array $orders, $params = array ()): PromiseInterface {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(function () use ($orders, $params) {
             /**
              * places multiple $orders on the CLOB in a single batched request
              *
              * @see https://docs.polymarket.com/api-reference/trade/post-$orders
              *
-             * @param {array[]} $orders a list of order requests, each an object with symbol, type, side, amount, price and optional $params (same $params)
+             * @param {array[]} $orders a list of order requests, each an object with outcome, type, side, amount, price and optional $params (same $params)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
+            Async\await($this->load_outcomes());
             $bodies = array();
             $outcomes = array();
             $batchSalt = $this->milliseconds();
@@ -1697,11 +1725,11 @@ class polymarket extends Exchange {
                     // a distinct salt per order so two identical $orders in one batch don't collide
                     $orderParams = $this->extend($orderParams, array( 'salt' => $this->number_to_string($this->sum($batchSalt, $i)) ));
                 }
-                $built = Async\await($this->build_clob_order_body($this->safe_string($o, 'symbol'), $this->safe_string($o, 'type'), $this->safe_string($o, 'side'), $this->safe_number($o, 'amount'), $this->safe_number($o, 'price'), $orderParams));
+                $built = $this->build_clob_order_body($this->safe_string($o, 'outcome'), $this->safe_string($o, 'type'), $this->safe_string($o, 'side'), $this->safe_number($o, 'amount'), $this->safe_number($o, 'price'), $orderParams);
                 $bodies[] = $this->safe_dict($built, 'body');
                 $outcomes[] = $this->safe_dict($built, 'outcome');
             }
-            $response = Async\await($this->clobPrivatePostOrders ($bodies));
+            $response = Async\await($this->clobPrivatePostOrders($bodies));
             $result = array();
             if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 for ($i = 0; $i < count($response); $i++) {
@@ -1711,23 +1739,25 @@ class polymarket extends Exchange {
                 $result[] = $this->parse_order($response);
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function build_clob_order_body(string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function build_clob_order_body(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * builds and signs a single CLOB order request body (shared by createOrder and createOrders)
          * @return {array} an object with 'body' (the signed order request) and 'outcome' (the resolved $outcome)
          */
-        $outcome = $symbol;
-        // $outcome () validates the $symbol against the loaded outcomes (built from events or markets)
-        $outcomeObj = $this->outcome ($outcome);
+        // pure builder, no network I/O — intentionally synchronous. a no-op async method
+        // transpiles in php to a promise-typed wrapper around a body that returns a plain
+        // dict, which throws a TypeError
+        // $outcome () validates the $outcome against the loaded outcomes (built from events or markets)
+        $outcomeObj = $this->outcome($outcome);
         $tokenId = $outcomeObj['outcomeId'];
         $sideStr = strtoupper($side);
         $isMarket = ($type === 'market');
         // CCXT $type (limit/market) maps to a polymarket time-in-force => limit -> GTC, market -> FOK.
-        // callers can override with $params->orderType (GTC, GTD, FOK or FAK)
+        // callers can override with $params->orderType(GTC, GTD, FOK or FAK)
         $orderTypeStr = $this->safe_string_upper($params, 'orderType');
         if ($orderTypeStr === null) {
             $orderTypeStr = $isMarket ? 'FOK' : 'GTC';
@@ -1817,21 +1847,21 @@ class polymarket extends Exchange {
         );
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $cost, $params) {
+    public function create_market_buy_order_with_cost(string $outcome, float $cost, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $cost, $params) {
             /**
              * places a market buy order sized by USDC $cost (how much to spend) rather than shares
              *
              * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
              *
-             * @param {string} $symbol unified outcome $symbol or outcome token id
+             * @param {string} $outcome unified $outcome or $outcome token id
              * @param {float} $cost the amount of USDC to spend
              * @param {array} [$params] extra parameters specific to the exchange API endpoint (see createOrder)
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
             $request = $this->extend($params, array( 'cost' => $cost ));
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $request));
-        }) ();
+            return Async\await($this->create_order($outcome, 'market', 'buy', $cost, null, $request));
+        })();
     }
 
     public function polymarket_order_raw_amounts(string $side, float $size, float $price, string $tickSize, ?float $cost = null): array {
@@ -1874,10 +1904,16 @@ class polymarket extends Exchange {
         );
     }
 
-    public function sign_clob_order(array $message, string $exchangeAddress, string $domainVersion, float $signatureType): string {
-        $chainId = $this->safe_integer($this->options, 'chainId', 137);
+    public function sign_clob_order(array $message, string $exchangeAddress, string $domainVersion, float $sigType): string {
+        // param is $sigType, not signatureType => the php regex transpiler would rewrite the
+        // substring "signatureType" inside the $orderTypeString literal below into the local
+        // '$signatureType', corrupting the EIP-712 type hash
+        // $chainIdValue, not chainId => the php regex transpiler would rewrite the substring "chainId"
+        // inside the 'EIP712Domain(...uint256 chainId,...)' literal below to the local '$chainId',
+        // corrupting the domain type hash
+        $chainIdValue = $this->safe_integer($this->options, 'chainId', 137);
         $domainName = $this->safe_string($this->options, 'ctfExchangeName', 'Polymarket CTF Exchange');
-        $orderTypeString = 'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 $signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
+        $orderTypeString = 'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
         $orderStruct = array(
             array( 'name' => 'salt', 'type' => 'uint256' ),
             array( 'name' => 'maker', 'type' => 'address' ),
@@ -1891,8 +1927,10 @@ class polymarket extends Exchange {
             array( 'name' => 'metadata', 'type' => 'bytes32' ),
             array( 'name' => 'builder', 'type' => 'bytes32' ),
         );
-        $orderDomain = array( 'name' => $domainName, 'version' => $domainVersion, 'chainId' => $chainId, 'verifyingContract' => $exchangeAddress );
-        if ($signatureType !== 3) {
+        $orderDomain = array( 'name' => $domainName, 'version' => $domainVersion, 'chainId' => $chainIdValue, 'verifyingContract' => $exchangeAddress );
+        // parseToInt => php types the number param, and 3.0 !== 3 (int) is true under
+        // strict comparison, which would always wrongly select the EOA path
+        if ($this->parse_to_int($sigType) !== 3) {
             // standard EOA EIP-712 order signature
             $encoded = $this->eth_encode_structured_data($orderDomain, array( 'Order' => $orderStruct ), $message);
             $eoaSig = $this->sign_message($encoded, $this->privateKey);
@@ -1903,19 +1941,19 @@ class polymarket extends Exchange {
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types => bytes32, uint256
-        // (raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs)
+        // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         $orderTypeHash = $this->hash($this->encode($orderTypeString), 'keccak', 'binary');
         $contentsData = $this->eth_abi_encode(
             array( 'bytes32', 'uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint8', 'uint8', 'uint256', 'bytes32', 'bytes32' ),
-            [ $orderTypeHash, $this->convert_to_big_int($message['salt']), $message['maker'], $message['signer'], $this->convert_to_big_int($message['tokenId']), $this->convert_to_big_int($message['makerAmount']), $this->convert_to_big_int($message['takerAmount']), $message['side'], $message['signatureType'], $this->convert_to_big_int($message['timestamp']), $this->base16_to_binary($this->remove0x_prefix($message['metadata'])), $this->base16_to_binary($this->remove0x_prefix($message['builder'])) ]
+            array( $orderTypeHash, $this->convert_to_big_int($message['salt']), $message['maker'], $message['signer'], $this->convert_to_big_int($message['tokenId']), $this->convert_to_big_int($message['makerAmount']), $this->convert_to_big_int($message['takerAmount']), $message['side'], $message['signatureType'], $this->convert_to_big_int($message['timestamp']), $this->base16_to_binary($this->remove0x_prefix($message['metadata'])), $this->base16_to_binary($this->remove0x_prefix($message['builder'])) )
         );
         $contentsHash = '0x' . $this->hash($contentsData, 'keccak', 'hex');
-        $domainTypeHash = $this->hash($this->encode('EIP712Domain(string name,string version,uint256 $chainId,address verifyingContract)'), 'keccak', 'binary');
+        $domainTypeHash = $this->hash($this->encode('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'), 'keccak', 'binary');
         $nameHash = $this->hash($this->encode($domainName), 'keccak', 'binary');
         $versionHash = $this->hash($this->encode($domainVersion), 'keccak', 'binary');
         $appDomainData = $this->eth_abi_encode(
             array( 'bytes32', 'bytes32', 'bytes32', 'uint256', 'address' ),
-            array( $domainTypeHash, $nameHash, $versionHash, $this->convert_to_big_int($this->number_to_string($chainId)), $exchangeAddress )
+            array( $domainTypeHash, $nameHash, $versionHash, $this->convert_to_big_int($this->number_to_string($chainIdValue)), $exchangeAddress )
         );
         $appDomainSep = '0x' . $this->hash($appDomainData, 'keccak', 'hex');
         $typedDataSignStruct = array(
@@ -1931,7 +1969,7 @@ class polymarket extends Exchange {
             'contents' => $message,
             'name' => 'DepositWallet',
             'version' => '1',
-            'chainId' => $chainId,
+            'chainId' => $chainIdValue,
             'verifyingContract' => $message['signer'],
             'salt' => $bytes32Zero,
         );
@@ -1939,10 +1977,11 @@ class polymarket extends Exchange {
         $innerSigObj = $this->sign_message($innerEncoded, $this->privateKey);
         $innerSig = $this->remove0x_prefix($innerSigObj['r']) . $this->remove0x_prefix($innerSigObj['s']) . $this->int_to_base16($innerSigObj['v']);
         // $innerSig(65) || $appDomainSep(32) || $contentsHash(32) || contentsType || uint16_BE(len)
-        $ctLen = count($orderTypeString);
+        // strlen($orderTypeString) is used inline (not via a `$n = count(str);` statement) so the
+        // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
+        $ctLenHex = $this->int_to_base16(strlen($orderTypeString));
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
-        $ctLenHex = $this->int_to_base16($ctLen);
         $lenHex = str_pad($ctLenHex, 4, '0', STR_PAD_LEFT);
         $orderTypeStringHex = bin2hex($this->encode($orderTypeString));
         $wrappedSignature = '0x' . $innerSig . $this->remove0x_prefix($appDomainSep) . $this->remove0x_prefix($contentsHash) . $orderTypeStringHex . $lenHex;
@@ -1951,108 +1990,124 @@ class polymarket extends Exchange {
         return strtolower($wrappedSignature);
     }
 
-    public function cancel_order(?string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
+    public function cancel_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $params) {
             /**
              * cancels a single open order by $id on the CLOB
              *
              * @see https://docs.polymarket.com/api-reference/trade/cancel-single-order
              *
              * @param {string} $id the order $id
-             * @param {string} [$symbol] unified outcome $symbol or outcome token $id
+             * @param {string} [$outcome] unified $outcome or $outcome token $id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
             Async\await($this->load_api_credentials());
             // cancelling by $id needs no market data, so events do not have to be loaded first
             $request = array( 'orderID' => $id );
-            $response = Async\await($this->clobPrivateDeleteOrder ($this->extend($request, $params)));
+            $response = Async\await($this->clobPrivateDeleteOrder($this->extend($request, $params)));
             // the DELETE endpoint returns array( canceled => [$id], not_canceled => array( $id => reason ) ) with no order
-            // fields, so report the cancellation outcome explicitly rather than parsing an empty order
+            // fields, so report the cancellation $outcome explicitly rather than parsing an empty order
             $notCanceled = $this->safe_dict($response, 'not_canceled', array());
             $failureReason = $this->safe_string($notCanceled, $id);
             $status = ($failureReason === null) ? 'canceled' : 'open';
-            return $this->safePredictionOrder (array( 'id' => $id, 'status' => $status, 'info' => $response ));
-        }) ();
+            return $this->safe_prediction_order(array( 'id' => $id, 'status' => $status, 'info' => $response ));
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($ids, $symbol, $params) {
+    public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($ids, $outcome, $params) {
             /**
              * cancels multiple open $orders by id on the CLOB in a single request
              *
              * @see https://docs.polymarket.com/api-reference/trade/cancel-$orders
              *
              * @param {string[]} $ids the order $ids to cancel
-             * @param {string} [$symbol] not used by polymarket cancelOrders
+             * @param {string} [$outcome] not used by polymarket cancelOrders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
             // the request body is the bare array of order $ids (DELETE /orders), so $params are not merged
-            $response = Async\await($this->clobPrivateDeleteOrders ($ids));
+            $response = Async\await($this->clobPrivateDeleteOrders($ids));
             $canceled = $this->safe_list($response, 'canceled', array());
             $orders = array();
             for ($i = 0; $i < count($canceled); $i++) {
-                $orders[] = $this->safePredictionOrder (array( 'id' => $this->safe_string($canceled, $i), 'status' => 'canceled', 'info' => $response ));
+                $orders[] = $this->safe_prediction_order(array( 'id' => $this->safe_string($canceled, $i), 'status' => 'canceled', 'info' => $response ));
             }
             return $orders;
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function cancel_all_orders(?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * cancels all open $orders on the CLOB, optionally scoped to one $outcome token
              *
              * @see https://docs.polymarket.com/api-reference/trade/cancel-all-$orders
              * @see https://docs.polymarket.com/api-reference/trade/cancel-market-$orders
              *
-             * @param {string} [$symbol] unified $outcome $symbol or $outcome token id; when given only that outcome's $orders are cancelled
+             * @param {string} [$outcome] unified $outcome or $outcome token id; when given only that outcome's $orders are cancelled
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
-            $outcome = $symbol;
             $response = null;
             if ($outcome !== null) {
                 // scope to a single $outcome token via DELETE /cancel-market-$orders array( asset_id )
-                $this->checkEventsAndMarkets ($outcome);
-                $outcomeObj = $this->outcome ($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $request = array( 'asset_id' => $outcomeObj['outcomeId'] );
-                $response = Async\await($this->clobPrivateDeleteCancelMarketOrders ($this->extend($request, $params)));
+                $response = Async\await($this->clobPrivateDeleteCancelMarketOrders($this->extend($request, $params)));
             } else {
                 // cancel every open order via DELETE /cancel-all (no body, no market data needed)
-                $response = Async\await($this->clobPrivateDeleteCancelAll ($params));
+                $response = Async\await($this->clobPrivateDeleteCancelAll($params));
             }
             $canceled = $this->safe_list($response, 'canceled', array());
             $orders = array();
             for ($i = 0; $i < count($canceled); $i++) {
-                $orders[] = $this->safePredictionOrder (array( 'id' => $this->safe_string($canceled, $i), 'status' => 'canceled', 'info' => $response ));
+                $orders[] = $this->safe_prediction_order(array( 'id' => $this->safe_string($canceled, $i), 'status' => 'canceled', 'info' => $response ));
             }
             return $orders;
-        }) ();
+        })();
     }
 
-    public function fetch_events($params = array ()): PromiseInterface {
+    public function fetch_events(array $params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches prediction-$market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
+             * fetches prediction-market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
              *
              * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
              * @see https://docs.polymarket.com/api-reference/events/list-events
              *
              * @param {array} [$params] extra exchange-specific parameters
-             * @param {string} [$params->query] a single search term; when omitted (and no $queries) the most active events are returned (capped)
+             * @param {string} [$params->query] a single keyword search term
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
-             * @param {int} [$params->limit] when searching, page size per query (default 50); when omitted, max events to fetch (default options.fetchMarketsLimit, 1000), ordered by 24h volume
+             * @param {int} [$params->limit] max number of events to return
+             * @param {string} [$params->sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
+             * @param {string} [$params->status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
+             * @param {string} [$params->searchIn] when searching, restrict the match to 'title' (default), 'description' or 'both'
+             * @param {string} [$params->eventId] direct $lookup by event id (short-circuits the listing/search)
+             * @param {string} [$params->slug] direct $lookup by event slug
              * @return {array[]} an array of event structures
              */
-            $queries = $this->parseSearchQueries ($params);
-            $rest = $this->omit($params, array( 'query', 'queries' ));
+            $this->require_event_query($params);
+            $requestedEventId = $this->safe_string($params, 'eventId');
+            $requestedSlug = $this->safe_string($params, 'slug');
+            $queries = $this->parse_search_queries($params);
+            $rest = $this->omit($params, array( 'query', 'queries', 'eventId', 'slug' ));
             $queriesLength = count($queries);
             $rawEvents = array();
-            if ($queriesLength > 0) {
+            if (($requestedEventId !== null) || ($requestedSlug !== null)) {
+                // direct $lookup by event id or slug via the events endpoint (returns a list)
+                $lookup = array();
+                if ($requestedEventId !== null) {
+                    $lookup['id'] = $requestedEventId;
+                } else {
+                    $lookup['slug'] = $requestedSlug;
+                }
+                $response = Async\await($this->gammaPublicGetEvents($lookup));
+                $rawEvents = ($response !== null) ? $response : array();
+            } elseif ($queriesLength > 0) {
                 $rawEvents = Async\await($this->fetch_raw_events_by_search($queries, $rest));
             } else {
                 $rawEvents = Async\await($this->fetch_raw_events_list($rest));
@@ -2076,9 +2131,9 @@ class polymarket extends Exchange {
                     $rawEventSlug = $this->safe_string($rawEvent, 'slug');
                     $detailedEvent = null;
                     if ($eventId !== null) {
-                        $detailedEvent = Async\await($this->gammaPublicGetEventsId (array( 'id' => $eventId )));
+                        $detailedEvent = Async\await($this->gammaPublicGetEventsId(array( 'id' => $eventId )));
                     } elseif ($rawEventSlug !== null) {
-                        $detailedEvent = Async\await($this->gammaPublicGetEventsSlugSlug (array( 'slug' => $rawEventSlug )));
+                        $detailedEvent = Async\await($this->gammaPublicGetEventsSlugSlug(array( 'slug' => $rawEventSlug )));
                     }
                     if ($detailedEvent !== null) {
                         $eventForParsing = $this->safe_value($detailedEvent, 'event', $detailedEvent);
@@ -2090,36 +2145,27 @@ class polymarket extends Exchange {
                     $this->markets[$m['symbol']] = $m;
                 }
                 $parsedEvent = $this->parse_event($eventForParsing);
-                $eventSlug = $this->safe_string($eventForParsing, 'slug', $this->safe_string($rawEvent, 'slug'));
-                if ($eventSlug) {
-                    $eventKey = $this->shortenSlug ($eventSlug);
-                    $this->events[$eventKey] = $parsedEvent;
-                }
                 $result[] = $parsedEvent;
             }
-            $this->outcomes = array();
-            $this->outcomes_by_id = array();
-            $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
-            for ($i = 0; $i < count($marketKeys); $i++) {
-                $market = $this->markets[$marketKeys[$i]];
-                $outcomesList = $this->safe_list($market, 'outcomes', array());
-                for ($j = 0; $j < count($outcomesList); $j++) {
-                    $oc = $outcomesList[$j];
-                    $ocSymbol = $this->safe_string($oc, 'symbol');
-                    if ($ocSymbol !== null) {
-                        $this->outcomes[$ocSymbol] = $oc;
-                    }
-                    $ocId = $this->safe_string($oc, 'id');
-                    if ($ocId !== null) {
-                        $this->outcomes_by_id[$ocId] = $oc;
-                    }
-                }
+            // populateOutcomes rebuilds the outcome cache from the markets registered above; the
+            // shared applyEventFetchParams then caches (setEvents) and applies the unified
+            // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
+            $this->populate_outcomes();
+            $effectiveParams = $params;
+            if ($queriesLength > 0) {
+                // the gamma search endpoint is fuzzy, so default to refining by active status and a
+                // title match (the caller can override); the other venues search exactly and need no
+                // such default. inject the defaults $params so the shared pipeline stays
+                // the single behaviour definition
+                $effectiveParams = $this->extend(array(), $params);
+                $effectiveParams['status'] = $this->safe_string($params, 'status', 'active');
+                $effectiveParams['searchIn'] = $this->safe_string($params, 'searchIn', 'title');
             }
-            return $result;
-        }) ();
+            return $this->apply_event_fetch_params($result, $effectiveParams, $queries);
+        })();
     }
 
-    public function fetch_event(string $id, $params = array ()): PromiseInterface {
+    public function fetch_event(string $id, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $params) {
             /**
              * fetches a single prediction-market $event by its $id or slug
@@ -2133,14 +2179,14 @@ class polymarket extends Exchange {
              */
             $response = null;
             if (mb_strpos($id, '-') !== false) {
-                $response = Async\await($this->gammaPublicGetEventsSlugSlug ($this->extend(array( 'slug' => $id ), $params)));
+                $response = Async\await($this->gammaPublicGetEventsSlugSlug($this->extend(array( 'slug' => $id ), $params)));
             } else {
-                $response = Async\await($this->gammaPublicGetEventsId ($this->extend(array( 'id' => $id ), $params)));
+                $response = Async\await($this->gammaPublicGetEventsId($this->extend(array( 'id' => $id ), $params)));
             }
             $eventForParsing = $this->safe_dict($response, 'event', $response);
             $event = $this->parse_event($eventForParsing);
             return $event;
-        }) ();
+        })();
     }
 
     public function parse_event(array $rawEvent): array {
@@ -2205,23 +2251,35 @@ class polymarket extends Exchange {
         // }
         $marketsList = $this->parse_event_to_markets($rawEvent);
         $slug = $this->safe_string($rawEvent, 'slug');
+        // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
+        // the snake_case fallbacks cover older payload shapes
+        $createdAt = $this->safe_string_2($rawEvent, 'createdAt', 'created_date_iso');
+        $endDate = $this->safe_string_2($rawEvent, 'endDate', 'end_date_iso');
+        $updatedAt = $this->safe_string_2($rawEvent, 'updatedAt', 'last_updated_date_iso');
+        $rawActive = $this->safe_bool($rawEvent, 'active');
+        $closed = $this->safe_bool($rawEvent, 'closed', false);
+        $active = null;
+        if ($rawActive !== null) {
+            $active = $rawActive && !$closed;
+        }
         return $this->extend(array(
             'id' => $this->safe_string($rawEvent, 'id'),
             'slug' => $slug,
-            'symbol' => $slug ? $this->shortenSlug ($slug) : null,
+            'event' => $slug ? $this->shorten_slug($slug) : null,
             'title' => $this->safe_string($rawEvent, 'title'),
             'markets' => $marketsList,
+            'active' => $active,
             'url' => $this->safe_string($rawEvent, 'url'),
-            'image' => $this->safe_string($rawEvent, 'image_url'),
-            'created' => $this->parse8601($this->safe_string($rawEvent, 'created_date_iso')),
-            'createdDatetime' => $this->safe_string($rawEvent, 'created_date_iso'),
-            'end' => $this->parse8601($this->safe_string($rawEvent, 'end_date_iso')),
-            'endDatetime' => $this->safe_string($rawEvent, 'end_date_iso'),
+            'image' => $this->safe_string_2($rawEvent, 'image', 'image_url'),
+            'created' => $this->parse8601($createdAt),
+            'createdDatetime' => $createdAt,
+            'end' => $this->parse8601($endDate),
+            'endDatetime' => $endDate,
             'category' => $this->safe_string($rawEvent, 'category'),
-            'lastUpdatedAt' => $this->parse8601($this->safe_string($rawEvent, 'last_updated_date_iso')),
-            'lastUpdatedAtDatetime' => $this->safe_string($rawEvent, 'last_updated_date_iso'),
-            'resolutionSource' => $this->safe_string($rawEvent, 'resolution_source'),
-            'resolved' => $this->safe_bool($rawEvent, 'resolved'),
+            'lastUpdatedAt' => $this->parse8601($updatedAt),
+            'lastUpdatedAtDatetime' => $updatedAt,
+            'resolutionSource' => $this->safe_string_2($rawEvent, 'resolutionSource', 'resolution_source'),
+            'resolved' => $this->safe_bool_2($rawEvent, 'closed', 'resolved'),
             'info' => $rawEvent,
         ));
     }
@@ -2241,7 +2299,23 @@ class polymarket extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, mixed $api = 'gamma', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
+    public function handle_errors(?int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        // the CLOB api returns array( "error" => "..." ) (and createOrder variants use "errorMsg");
+        // map the known messages so callers can distinguish a dead book or a rejected order
+        // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if (!$response) {
+            return null;
+        }
+        $errorMessage = $this->safe_string_2($response, 'error', 'errorMsg');
+        if ($errorMessage !== null) {
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+        }
+        return null;
+    }
+
+    public function sign(mixed $path, mixed $api = 'gamma', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches HMAC-SHA256 authentication $headers for private endpoints
@@ -2259,7 +2333,14 @@ class polymarket extends Exchange {
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['gamma']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
-        $isArrayBody = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
+        // an empty $params container must not become a $body => in PHP an empty array is
+        // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "array()"
+        $isArrayBody = false;
+        if ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
+            $paramsList = $params;
+            $paramsListLength = count($paramsList);
+            $isArrayBody = $paramsListLength > 0;
+        }
         $query = array();
         if (!$isArrayBody) {
             $query = $this->omit($params, $this->extract_params($path));
@@ -2284,7 +2365,12 @@ class polymarket extends Exchange {
             'Content-Type' => 'application/json',
         ), $headerDefaults);
         if ($access === 'private') {
-            $isL1Auth = ($path === 'auth/api-key') || ($path === 'auth/derive-$api-key') || ($path === 'auth/api-keys');
+            // 'auth/derive-$api-key' is built by concatenation so the substring "api" sits at a
+            // string-literal boundary => the php regex transpiler rewrites a bare "api" flanked by
+            // '-' into the local '$api' (it only skips quote/slash-adjacent matches), which
+            // would corrupt the literal to 'auth/derive-$api-key' and break this check
+            $deriveApiKeyPath = 'auth/derive-' . 'api-key';
+            $isL1Auth = ($path === 'auth/api-key') || ($path === $deriveApiKeyPath) || ($path === 'auth/api-keys');
             if ($isL1Auth) {
                 // L1 (private-key / EIP-712) $auth used to create or derive the L2 $api credentials
                 if ($this->privateKey === null) {
@@ -2318,11 +2404,17 @@ class polymarket extends Exchange {
                 if ($body !== null) {
                     $auth = $auth . $body;
                 }
-                // the L2 $api $secret is base64url-encoded; decode it to raw bytes for the HMAC key
-                $secretBytes = str_replace('_', '/', base64_decode($secret->replaceAll ('-', '+')));
+                // the L2 $api $secret is base64url-encoded; decode it to raw bytes for the HMAC key.
+                // unchained replaceAll => the php transpiler only converts the outermost .replaceAll
+                // in a chain, leaving the inner call (invalid) $method call
+                $normalizedSecret = $secret;
+                $normalizedSecret = str_replace('-', '+', $normalizedSecret);
+                $normalizedSecret = str_replace('_', '/', $normalizedSecret);
+                $secretBytes = base64_decode($normalizedSecret);
                 $signature = $this->hmac($this->encode($auth), $secretBytes, 'sha256', 'base64');
                 // $url-safe base64, preserving '=' padding (matches the reference client)
-                $signature = str_replace('/', '_', $signature->replaceAll ('+', '-'));
+                $signature = str_replace('+', '-', $signature);
+                $signature = str_replace('/', '_', $signature);
                 $headers = $this->extend($headers, array(
                     'POLY_ADDRESS' => $address,
                     'POLY_API_KEY' => $apiKey,
@@ -2403,7 +2495,7 @@ class polymarket extends Exchange {
         return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
     }
 
-    public function derive_api_key($params = array ()): PromiseInterface {
+    public function derive_api_key($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * derives the L2 api credentials (apiKey, secret, passphrase) deterministically from the wallet private key
@@ -2414,12 +2506,12 @@ class polymarket extends Exchange {
              * @param {int} [$params->nonce] the nonce used to derive the credentials, defaults to 0
              * @return {array} the api credentials array( apiKey, secret, passphrase )
              */
-            $response = Async\await($this->clobPrivateGetAuthDeriveApiKey ($params));
+            $response = Async\await($this->clobPrivateGetAuthDeriveApiKey($params));
             return $this->set_api_credentials($response);
-        }) ();
+        })();
     }
 
-    public function create_api_key($params = array ()): PromiseInterface {
+    public function create_api_key($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * creates new L2 api credentials (apiKey, secret, passphrase) for the wallet private key
@@ -2430,12 +2522,12 @@ class polymarket extends Exchange {
              * @param {int} [$params->nonce] the nonce used to create the credentials, defaults to 0
              * @return {array} the api credentials array( apiKey, secret, passphrase )
              */
-            $response = Async\await($this->clobPrivatePostAuthApiKey ($params));
+            $response = Async\await($this->clobPrivatePostAuthApiKey($params));
             return $this->set_api_credentials($response);
-        }) ();
+        })();
     }
 
-    public function create_or_derive_api_key($params = array ()): PromiseInterface {
+    public function create_or_derive_api_key($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * derives the existing L2 api credentials for the wallet private key, creating them if none exist yet
@@ -2452,7 +2544,7 @@ class polymarket extends Exchange {
                 $creds = Async\await($this->create_api_key($params));
             }
             return $creds;
-        }) ();
+        })();
     }
 
     public function set_api_credentials(array $response): array {
@@ -2473,7 +2565,7 @@ class polymarket extends Exchange {
     }
 
     public function load_api_credentials() {
-        return Async\async(function ()  {
+        return Async\async(function () {
             /**
              * @ignore
              * ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
@@ -2496,12 +2588,21 @@ class polymarket extends Exchange {
                 return;
             }
             throw new AuthenticationError($this->id . ' requires L2 api credentials ($apiKey, $secret, password) or a privateKey to derive them');
-        }) ();
+        })();
+    }
+
+    public function ping(mixed $client) {
+        // Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
+        // keepAlive interval set in describe.streaming sends it on both the market and user channels
+        return 'PING';
     }
 
     public function handle_message(mixed $client, mixed $message) {
-        // Polymarket sends "PONG" text frames responses; skip them.
+        // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
+        // client's onPong never fires; refresh $client->lastPong here on the "PONG" reply, otherwise the
+        // base keepalive treats the connection and times it out after maxPingPongMisses.
         if (gettype($message) === 'string') {
+            $client->lastPong = $this->milliseconds();
             return;
         }
         $events = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) ? $message : array( $message );
@@ -2528,14 +2629,15 @@ class polymarket extends Exchange {
 
     public function handle_order_book_snapshot(mixed $client, mixed $event) {
         $tokenId = $this->safe_string($event, 'asset_id');
-        $symbol = $this->token_id_to_symbol($tokenId);
-        if ($symbol === null) {
+        $outcome = $this->token_id_to_symbol($tokenId);
+        if ($outcome === null) {
             return;
         }
-        if ($this->orderbooks[$symbol] === null) {
-            $this->orderbooks[$symbol] = $this->order_book(array());
+        if (!(is_array($this->orderbooks) && array_key_exists($outcome, $this->orderbooks))) {
+            $seededBook = $this->order_book(array());
+            $this->orderbooks[$outcome] = $seededBook;
         }
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->orderbooks[$outcome];
         $timestamp = $this->parse_poly_timestamp($this->safe_string($event, 'timestamp'));
         $rawBids = $this->safe_list($event, 'bids', array());
         $rawAsks = $this->safe_list($event, 'asks', array());
@@ -2549,15 +2651,18 @@ class polymarket extends Exchange {
             $a = $rawAsks[$j];
             $asks[] = array( $this->safe_number($a, 'price'), $this->safe_number($a, 'size') );
         }
-        $orderbook->reset (array(
+        $outcomeObj = $this->safe_outcome($outcome);
+        $orderbook->reset(array(
             'bids' => $bids,
             'asks' => $asks,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'outcome' => $outcome,
+            'outcomeId' => $tokenId,
+            'market' => $this->safe_string($outcomeObj, 'market'),
         ));
-        $client->resolve ($orderbook, 'orderbook::' . $symbol);
-        $client->resolve ($orderbook, 'ticker::' . $symbol);
+        $client->resolve($orderbook, 'orderbook::' . $outcome);
+        $client->resolve($orderbook, 'ticker::' . $outcome);
     }
 
     public function handle_order_book_delta(mixed $client, mixed $event) {
@@ -2567,47 +2672,47 @@ class polymarket extends Exchange {
         for ($i = 0; $i < count($changes); $i++) {
             $change = $changes[$i];
             $tokenId = $this->safe_string($change, 'asset_id');
-            $symbol = $this->token_id_to_symbol($tokenId);
-            if ($symbol === null || $this->orderbooks[$symbol] === null) {
+            $outcome = $this->token_id_to_symbol($tokenId);
+            if (($outcome === null) || !(is_array($this->orderbooks) && array_key_exists($outcome, $this->orderbooks))) {
                 continue; // no snapshot yet — discard delta
             }
-            $orderbook = $this->orderbooks[$symbol];
+            $orderbook = $this->orderbooks[$outcome];
             $price = $this->safe_number($change, 'price');
             $size = $this->safe_number($change, 'size');
             $isBuy = $this->safe_string_upper($change, 'side', '') === 'BUY';
             $side = $isBuy ? $orderbook['bids'] : $orderbook['asks'];
             // storeArray([$price, $size]) inserts/updates or removes ($size=0) the level
             $sideRef = $side;
-            $sideRef->storeArray (array( $price, $size ));
+            $sideRef->storeArray(array( $price, $size ));
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
-            $updated[$symbol] = true;
+            $updated[$outcome] = true;
         }
         $updatedSymbols = is_array($updated) ? array_keys($updated) : array();
         for ($k = 0; $k < count($updatedSymbols); $k++) {
-            $symbol = $updatedSymbols[$k];
-            $orderbook = $this->orderbooks[$symbol];
-            $client->resolve ($orderbook, 'orderbook::' . $symbol);
-            $client->resolve ($orderbook, 'ticker::' . $symbol);
+            $outcome = $updatedSymbols[$k];
+            $orderbook = $this->orderbooks[$outcome];
+            $client->resolve($orderbook, 'orderbook::' . $outcome);
+            $client->resolve($orderbook, 'ticker::' . $outcome);
         }
     }
 
     public function handle_trade(mixed $client, mixed $event) {
         $tokenId = $this->safe_string($event, 'asset_id');
-        $symbol = $this->token_id_to_symbol($tokenId);
-        if ($symbol === null) {
+        $outcome = $this->token_id_to_symbol($tokenId);
+        if ($outcome === null) {
             return;
         }
         $timestamp = $this->parse_poly_timestamp($this->safe_string($event, 'timestamp'));
         $price = $this->safe_number($event, 'price');
         $amount = $this->safe_number($event, 'size');
-        $market = $this->safeOutcome ($tokenId);
-        $trade = $this->safePredictionTrade (array(
+        $market = $this->safe_outcome($tokenId);
+        $trade = $this->safe_prediction_trade(array(
             'id' => $this->safe_string($event, 'transaction_hash'),
             'info' => $event,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'outcome' => $outcome,
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
@@ -2623,81 +2728,76 @@ class polymarket extends Exchange {
         if (!$this->trades) {
             $this->trades = array();
         }
-        $stored = $this->trades[$symbol];
+        $stored = $this->safe_value($this->trades, $outcome);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
-            $this->trades[$symbol] = $stored;
+            $stored = new ArrayCache($limit);
+            $this->trades[$outcome] = $stored;
         }
-        $stored->append ($trade);
-        $client->resolve ($stored, 'trades::' . $symbol);
+        $stored->append($trade);
+        $client->resolve($stored, 'trades::' . $outcome);
     }
 
-    public function watch_order_book(?string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
+    public function watch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * streams live order-book updates for a single Polymarket $outcome token
-             * @param {string} $symbol unified $outcome $symbol (e.g. "ELECTION/YES:USDC")
+             * @param {string} $outcome unified $outcome (e.g. "TRUMP_WINS_2028:YES") or an $outcome token id
              * @param {int} [$limit] optional depth $limit applied after resolving
              * @param {array} [$params] extra $params (currently unused)
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-            $symbol = $this->safe_string($outcomeObj, 'outcome');
-            $messageHash = 'orderbook::' . $symbol;
+            $outcome = $this->safe_string($outcomeObj, 'outcome');
+            $messageHash = 'orderbook::' . $outcome;
             $subscribeHash = 'subscribe::' . $tokenId;
             $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
             $url = $this->urls['api']['ws'];
             $orderbook = Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscribeHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function watch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * streams live fills for a single Polymarket $outcome token
-             * @param {string} $symbol unified $outcome $symbol
+             * @param {string} $outcome unified $outcome
              * @param {int} [$since] optional unix timestamp (ms) lower bound
              * @param {int} [$limit] optional max number of $trades to return
              * @param {array} [$params] extra $params (unused)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-            $symbol = $this->safe_string($outcomeObj, 'outcome');
-            $messageHash = 'trades::' . $symbol;
+            $outcome = $this->safe_string($outcomeObj, 'outcome');
+            $messageHash = 'trades::' . $outcome;
             $subscribeHash = 'subscribe::' . $tokenId;
             $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
             $url = $this->urls['api']['ws'];
             $trades = Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscribeHash));
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function watch_ticker(?string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function watch_ticker(?string $outcome, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * streams a synthetic ticker derived from order-book snapshots and deltas ($mid = (bid . ask) / 2)
-             * @param {string} $symbol unified $outcome $symbol
+             * @param {string} $outcome unified $outcome
              * @param {array} [$params] extra $params (unused)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $outcomeObj = $this->outcome ($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-            $symbol = $this->safe_string($outcomeObj, 'outcome');
-            $messageHash = 'ticker::' . $symbol;
+            $outcome = $this->safe_string($outcomeObj, 'outcome');
+            $messageHash = 'ticker::' . $outcome;
             $subscribeHash = 'subscribe::' . $tokenId;
             $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
-            if ($this->orderbooks[$symbol] === null) {
-                $this->orderbooks[$symbol] = $this->order_book(array());
+            if (!(is_array($this->orderbooks) && array_key_exists($outcome, $this->orderbooks))) {
+                $seededBook = $this->order_book(array());
+                $this->orderbooks[$outcome] = $seededBook;
             }
             $url = $this->urls['api']['ws'];
             $orderbook = Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscribeHash));
@@ -2732,9 +2832,9 @@ class polymarket extends Exchange {
             } else {
                 $mid = $bestAsk;
             }
-            $market = $this->safeOutcome ($symbol);
-            return $this->safePredictionTicker (array(
-                'symbol' => $symbol,
+            $market = $this->safe_outcome($outcome);
+            return $this->safe_prediction_ticker(array(
+                'outcome' => $outcome,
                 'outcomeId' => $this->safe_string($market, 'outcomeId'),
                 'label' => $this->safe_string($market, 'label'),
                 'market' => $this->safe_string($market, 'market'),
@@ -2758,68 +2858,66 @@ class polymarket extends Exchange {
                 'quoteVolume' => null,
                 'info' => $orderbook,
             ), $market);
-        }) ();
+        })();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function watch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * watches the authenticated user's order updates over the CLOB user websocket channel
              *
              * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
              *
-             * @param {string} [$symbol] unified outcome $symbol to filter the stream to one market
+             * @param {string} [$outcome] unified $outcome to filter the stream to one market
              * @param {int} [$since] the earliest time in ms to return $orders for
              * @param {int} [$limit] the maximum number of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            Async\await($this->load_markets());
             Async\await($this->load_api_credentials());
             $messageHash = 'orders';
-            if ($symbol !== null) {
-                $outcomeObj = $this->outcome ($symbol);
-                $symbol = $this->safe_string($outcomeObj, 'outcome');
-                $messageHash = 'orders::' . $symbol;
+            if ($outcome !== null) {
+                $outcomeObj = Async\await($this->load_outcome($outcome));
+                $outcome = $this->safe_string($outcomeObj, 'outcome');
+                $messageHash = 'orders::' . $outcome;
             }
             $orders = Async\await($this->subscribe_user_channel($messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($outcome, $limit);
             }
-            return $this->filterByOutcomeSinceLimit ($orders, $symbol, $since, $limit, true);
-        }) ();
+            return $this->filter_by_outcome_since_limit($orders, $outcome, $since, $limit, true);
+        })();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function watch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * watches the authenticated user's trade fills over the CLOB user websocket channel
              *
              * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
              *
-             * @param {string} [$symbol] unified outcome $symbol to filter the stream to one market
+             * @param {string} [$outcome] unified $outcome to filter the stream to one market
              * @param {int} [$since] the earliest time in ms to return $trades for
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
              */
-            Async\await($this->load_markets());
             Async\await($this->load_api_credentials());
             $messageHash = 'myTrades';
-            if ($symbol !== null) {
-                $outcomeObj = $this->outcome ($symbol);
-                $symbol = $this->safe_string($outcomeObj, 'outcome');
-                $messageHash = 'myTrades::' . $symbol;
+            if ($outcome !== null) {
+                $outcomeObj = Async\await($this->load_outcome($outcome));
+                $outcome = $this->safe_string($outcomeObj, 'outcome');
+                $messageHash = 'myTrades::' . $outcome;
             }
             $trades = Async\await($this->subscribe_user_channel($messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($outcome, $limit);
             }
-            return $this->filterByOutcomeSinceLimit ($trades, $symbol, $since, $limit, true);
-        }) ();
+            return $this->filter_by_outcome_since_limit($trades, $outcome, $since, $limit, true);
+        })();
     }
 
-    public function subscribe_user_channel(string $messageHash, $params = array ()) {
+    public function subscribe_user_channel(string $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             // the user channel authenticates inside the subscribe frame, not via HMAC headers
             $apiKey = ($this->apiKey !== null) ? $this->apiKey : $this->safe_string($this->options, 'l2ApiKey');
@@ -2831,36 +2929,36 @@ class polymarket extends Exchange {
             $url = $this->urls['api']['wsUser'];
             $subscribeHash = 'user';
             return Async\await($this->watch($url, $messageHash, $this->extend($subscribeMsg, $params), $subscribeHash));
-        }) ();
+        })();
     }
 
     public function handle_order(mixed $client, mixed $event) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheByOutcomeById ($limit);
+            $this->orders = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->orders;
         $parsed = $this->parse_order($event);
-        $stored->append ($parsed);
-        $client->resolve ($stored, 'orders');
-        $symbol = $this->safe_string($parsed, 'outcome');
-        if ($symbol !== null) {
-            $client->resolve ($stored, 'orders::' . $symbol);
+        $stored->append($parsed);
+        $client->resolve($stored, 'orders');
+        $outcome = $this->safe_string($parsed, 'outcome');
+        if ($outcome !== null) {
+            $client->resolve($stored, 'orders::' . $outcome);
         }
     }
 
     public function handle_my_trade(mixed $client, mixed $event) {
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheByOutcomeById ($limit);
+            $this->myTrades = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->myTrades;
         $parsed = $this->parse_trade($event);
-        $stored->append ($parsed);
-        $client->resolve ($stored, 'myTrades');
-        $symbol = $this->safe_string($parsed, 'outcome');
-        if ($symbol !== null) {
-            $client->resolve ($stored, 'myTrades::' . $symbol);
+        $stored->append($parsed);
+        $client->resolve($stored, 'myTrades');
+        $outcome = $this->safe_string($parsed, 'outcome');
+        if ($outcome !== null) {
+            $client->resolve($stored, 'myTrades::' . $outcome);
         }
     }
 
@@ -2874,9 +2972,10 @@ class polymarket extends Exchange {
         if ($outcomeObj !== null) {
             return $this->safe_string($outcomeObj, 'outcome');
         }
-        $marketsById = $this->markets_by_id;
-        $market = ($marketsById !== null) ? $marketsById[$tokenId] : null;
-        return $market ? ($market['symbol']) : null;
+        // safe dict/string access => a bare marketsById[$tokenId] / $market['symbol'] is null in JS
+        // but raises KeyError in Python when the token isn't a $market id (the ws trade path hits this)
+        $market = $this->safe_dict($this->markets_by_id, $tokenId);
+        return $this->safe_string($market, 'symbol');
     }
 
     public function parse_poly_timestamp(?string $raw): float {

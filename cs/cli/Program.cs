@@ -120,6 +120,11 @@ public static class Program
             var converted = (dict)JsonHelper.Deserialize(file);
             var ids = (list)converted["ids"];
             List<string> strings = ids.Select(s => (string)s).ToList();
+            if (converted.ContainsKey("prediction"))
+            {
+                var predictionIds = (list)converted["prediction"];
+                strings.AddRange(predictionIds.Select(s => (string)s));
+            }
             exchangesId = strings;
         }
         else
@@ -183,8 +188,12 @@ public static class Program
 
         var isWsMethod = methodName.StartsWith("watch") || methodName.StartsWith("Watch");
         var isWsCrudeMethod = methodName.EndsWith("Ws");
-        var exchangeNameAdapted = (isWsMethod || isWsCrudeMethod) ? "ccxt.pro." + exchangeName : exchangeName;
-        var instance = Exchange.DynamicallyCreateInstance(exchangeNameAdapted);
+        // --prediction forces the prediction-markets namespace for ids present in both
+        // (e.g. hyperliquid); prediction-only ids resolve there automatically. prediction
+        // classes carry their own watch* methods, so the ccxt.pro prefix does not apply
+        var forcePrediction = args.Contains("--prediction") || args.Contains("-p");
+        var exchangeNameAdapted = ((isWsMethod || isWsCrudeMethod) && !forcePrediction) ? "ccxt.pro." + exchangeName : exchangeName;
+        var instance = Exchange.DynamicallyCreateInstance(exchangeNameAdapted, null, false, forcePrediction);
 
         InitOptions(instance, flags);
         SetCredentials(instance);

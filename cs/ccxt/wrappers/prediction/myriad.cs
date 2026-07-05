@@ -248,7 +248,7 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> CreateOrders(List<PredictionOrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
@@ -851,11 +851,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure).</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrderBook(outcome, limit, parameters);
-        return ((ccxt.pro.IOrderBook) res).Copy();
+        return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());
     }
     /// <summary>
     /// streams public trades for an outcome over the Centrifugo websocket

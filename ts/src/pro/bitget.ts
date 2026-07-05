@@ -542,7 +542,7 @@ export default class bitget extends bitgetRest {
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -721,7 +721,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -738,7 +738,7 @@ export default class bitget extends bitgetRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -786,7 +786,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -903,7 +903,10 @@ export default class bitget extends bitgetRest {
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             const isSnapshot = this.safeString (message, 'action') === 'snapshot'; // snapshot does not have a checksum
-            if (!isSnapshot && checksum) {
+            // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
+            // so only validate the checksum when the exchange actually sends one
+            const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
+            if (!isSnapshot && checksum && (responseChecksum !== undefined)) {
                 const storedAsks = storedOrderBook['asks'];
                 const storedBids = storedOrderBook['bids'];
                 const asksLength = storedAsks.length;
@@ -921,12 +924,7 @@ export default class bitget extends bitgetRest {
                 }
                 const payload = payloadArray.join (':');
                 const calculatedChecksum = this.crc32 (payload, true);
-                const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
-                    // if (messageHash in client.subscriptions) {
-                    //     // delete client.subscriptions[messageHash];
-                    //     // delete this.orderbooks[symbol];
-                    // }
                     this.spawn (this.handleCheckSumError, client, symbol, messageHash);
                     return;
                 }
@@ -2716,10 +2714,14 @@ export default class bitget extends bitgetRest {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
+        // UTA
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
+        //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
         const type = (instType === 'spot') ? 'spot' : 'contract';
-        const instId = this.safeString (arg, 'instId');
+        const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
         const messageHash = 'unsubscribe:orderbook:' + market['symbol'];

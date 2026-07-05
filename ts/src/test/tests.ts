@@ -751,7 +751,7 @@ class testMainClass {
                 // getValidSymbol returns undefined in that case — skip swap
                 // tests rather than crashing on `undefined.replace(...)`.
                 if (primarySymbol !== undefined) {
-                    const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
+                    const secondarySymbol = primarySymbol.replaceAll ('BTC', 'ETH'); // this should work any exchange
                     swapSymbols = [ primarySymbol, secondarySymbol ];
                 }
             }
@@ -800,6 +800,29 @@ class testMainClass {
         // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
         // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
         let outcomeSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredPredictionOutcome');
+        if (outcomeSymbol !== undefined) {
+            // validate the pin against the live listing - venues can rotate ids/handles
+            // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            let pinFound = false;
+            const pinnedKeys = Object.keys (exchange.markets);
+            for (let i = 0; i < pinnedKeys.length; i++) {
+                const pinnedMarket = exchange.markets[pinnedKeys[i]];
+                const pinnedOutcomes = exchange.safeList (pinnedMarket, 'outcomes', []);
+                for (let j = 0; j < pinnedOutcomes.length; j++) {
+                    if (exchange.safeString (pinnedOutcomes[j], 'outcome') === outcomeSymbol) {
+                        pinFound = true;
+                        break;
+                    }
+                }
+                if (pinFound) {
+                    break;
+                }
+            }
+            if (!pinFound) {
+                dump ('[INFO:MAIN] preferredPredictionOutcome', outcomeSymbol, 'not in the live listing (stale pin?) - falling back to market scan');
+                outcomeSymbol = undefined;
+            }
+        }
         if (outcomeSymbol === undefined) {
             const marketKeys = Object.keys (exchange.markets);
             for (let i = 0; i < marketKeys.length; i++) {
@@ -844,8 +867,43 @@ class testMainClass {
                 }
                 if ((eventId !== undefined) && exchange.safeBool (exchange.has, 'fetchEvent', false)) {
                     const event = await callExchangeMethodDynamically (exchange, 'fetchEvent', [ eventId ]);
-                    assert (exchange.isDictionary (event), exchange.id + ' fetchEvent should return an event structure');
-                    assert (exchange.safeString (event, 'id') !== undefined, exchange.id + ' fetchEvent returned no id');
+                    this.assertPredictionEvent (exchange, event);
+                }
+                // exercise EACH scoping parameter path, not just the initial query. a scope that
+                // silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                // series filter) is a real bug that only surfaces if the path is actually asserted.
+                // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                const scopesToTest = [];
+                if (eventId !== undefined) {
+                    // copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                    // since eventId is reassigned above. every venue must refetch an event by its own id
+                    const eventIdScope = eventId;
+                    scopesToTest.push ({ 'eventId': eventIdScope });
+                }
+                // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                const extraScopes = exchange.safeList (this.skippedSettingsForExchange, 'preferredEventScopes', []);
+                const extraScopesLength = extraScopes.length;
+                for (let si = 0; si < extraScopesLength; si++) {
+                    scopesToTest.push (extraScopes[si]);
+                }
+                const scopesToTestLength = scopesToTest.length;
+                for (let sj = 0; sj < scopesToTestLength; sj++) {
+                    const scope = scopesToTest[sj];
+                    // fetchEvents scoped by a single parameter must return a non-empty, valid list
+                    const scopedEvents = await callExchangeMethodDynamically (exchange, 'fetchEvents', [ scope ]);
+                    const scopedList = exchange.safeList ({ 'events': scopedEvents }, 'events', []);
+                    const scopedListLength = scopedList.length;
+                    assert (scopedListLength > 0, exchange.id + ' fetchEvents scoped by ' + exchange.json (scope) + ' returned no events - the parameter path may be broken');
+                    this.assertPredictionEvents (exchange, scopedList);
+                }
+                if (eventQuery !== undefined) {
+                    // limit must bound the number of events returned (applied by applyEventFetchParams)
+                    const limited = await callExchangeMethodDynamically (exchange, 'fetchEvents', [ { 'query': eventQuery, 'limit': 1 } ]);
+                    const limitedList = exchange.safeList ({ 'events': limited }, 'events', []);
+                    const limitedListLength = limitedList.length;
+                    assert (limitedListLength <= 1, exchange.id + ' fetchEvents did not honour limit=1');
                 }
             } catch (e) {
                 dump ('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exceptionMessage (e));
@@ -898,11 +956,38 @@ class testMainClass {
         assert (Array.isArray (events), exchange.id + ' fetchEvents/fetchEvent should return a list');
         const eventsLength = events.length;
         for (let i = 0; i < eventsLength; i++) {
-            const event = events[i];
-            assert (exchange.isDictionary (event), exchange.id + ' event should be a dict');
-            assert (exchange.safeString (event, 'id') !== undefined, exchange.id + ' event missing id');
-            assert (exchange.safeList (event, 'markets') !== undefined, exchange.id + ' event missing markets');
+            this.assertPredictionEvent (exchange, events[i]);
         }
+        return true;
+    }
+
+    assertPredictionEvent (exchange, event) {
+        // validates one PredictionEvent structure (id, event handle, markets each carrying an
+        // outcomes list, and the optional typed fields when present)
+        const logText = ' event: ' + exchange.json (event);
+        assert (exchange.isDictionary (event), exchange.id + ' event should be a dict' + logText);
+        assert (exchange.safeString (event, 'id') !== undefined, exchange.id + ' event missing id' + logText);
+        assert (exchange.safeString (event, 'event') !== undefined, exchange.id + ' event missing the unified event handle' + logText);
+        const markets = exchange.safeList (event, 'markets');
+        assert (markets !== undefined, exchange.id + ' event missing markets' + logText);
+        const marketsLength = markets.length;
+        for (let i = 0; i < marketsLength; i++) {
+            const market = markets[i];
+            assert (exchange.isDictionary (market), exchange.id + ' event market should be a dict' + logText);
+            const outcomes = exchange.safeList (market, 'outcomes');
+            assert (outcomes !== undefined, exchange.id + ' event market missing outcomes' + logText);
+        }
+        // optional typed fields must have the right type when present
+        const active = exchange.safeValue (event, 'active');
+        if (active !== undefined) {
+            assert ((active === true) || (active === false), exchange.id + ' event active must be a bool' + logText);
+        }
+        const tags = exchange.safeValue (event, 'tags');
+        if (tags !== undefined) {
+            assert (Array.isArray (tags), exchange.id + ' event tags must be a list' + logText);
+        }
+        const info = exchange.safeValue (event, 'info');
+        assert (info !== undefined, exchange.id + ' event missing info' + logText);
         return true;
     }
 
@@ -1620,8 +1705,8 @@ class testMainClass {
         }
         const exchange = initExchange (exchangeName, options);
         exchange.currencies = currencies;
-        // prediction exchanges resolve outcomes lazily from the injected markets (checkEvents ->
-        // setOutcomesFromMarkets) the first time a method is called, so no explicit setMarkets here
+        // prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
+        // populateOutcomes) the first time a method is called, so no explicit setMarkets here
         // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1800,6 +1885,13 @@ class testMainClass {
 
     checkIfExchangeIsDisabled (exchangeName: string, exchangeData: object) {
         const exchange = initExchange ('Exchange', {});
+        // prediction-market exchanges exist only in the async namespaces in python/php,
+        // so their fixtures declare asyncOnly and the sync harness skips them
+        const isAsyncOnly = exchange.safeBool (exchangeData, 'asyncOnly', false);
+        if (isAsyncOnly && isSync ()) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is async-only, skipped by the sync test harness');
+            return true;
+        }
         const isDisabledPy = exchange.safeBool (exchangeData, 'disabledPy', false);
         if (isDisabledPy && (this.lang === 'PY')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');

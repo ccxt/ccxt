@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -18,34 +18,11 @@ export default class PredictionExchange extends Exchange {
     outcomes_by_id: Dictionary<any> = undefined;
     events: Dictionary<any> = undefined;
     events_by_slug: Dictionary<any> = undefined;
-    reloadingEvents: Bool = undefined;
-    eventsLoading: Promise<Dictionary<any>> = undefined;
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     isPrediction (): boolean {
         return this.safeBool (this.has, 'prediction', false);
-    }
-
-
-    checkEvents (outcome: Str = undefined) {
-        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
-        // async would make the coroutine never run in Python/PHP and silently skip validation.
-        // outcomes are the real dependency for resolving a symbol; they are populated by
-        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
-        // rebuild lazily from cached markets here because the setMarkets override that
-        // normally does it is not dispatched by the base loadMarkets under the AST languages.
-        if ((!this.outcomes || this.isEmpty (this.outcomes)) && !this.isEmpty (this.markets)) {
-            this.setOutcomesFromMarkets ();
-        }
-        if (!this.outcomes || this.isEmpty (this.outcomes)) {
-            throw new ArgumentsRequired ('Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)');
-        }
-        if (outcome !== undefined) {
-            if (!(outcome in this.outcomes) && !(outcome in this.outcomes_by_id)) {
-                throw new ArgumentsRequired ('The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents');
-            }
-        }
     }
 
     parseSearchQueries (params = {}): Strings {
@@ -73,7 +50,10 @@ export default class PredictionExchange extends Exchange {
 
     applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
-        // so exchanges whose API can't filter natively still support them consistently
+        // so exchanges whose API can't filter natively still support them consistently.
+        // every fetched event lands in the cache before filtering, so loadEvents()/event()
+        // serve them later without another request
+        this.setEvents (events);
         let result = events;
         const eventId = this.safeString (params, 'eventId');
         const slug = this.safeString (params, 'slug');
@@ -90,6 +70,7 @@ export default class PredictionExchange extends Exchange {
             result = filtered;
         }
         result = this.filterEventsByStatus (result, this.safeString (params, 'status'));
+        result = this.filterEventsByTags (result, this.safeList (params, 'tags'));
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         let queriesLength = 0;
@@ -174,7 +155,54 @@ export default class PredictionExchange extends Exchange {
         return result;
     }
 
-    async fetchEvents (params: fetchEventsParams = {}): Promise<any[]> {
+    filterEventsByTags (events: any[], tags: string[] = undefined): any[] {
+        // keep events carrying one of the requested tags; tolerant to string tags and to
+        // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
+        let tagsLength = 0;
+        if (tags !== undefined) {
+            tagsLength = tags.length;
+        }
+        if (tagsLength === 0) {
+            return events;
+        }
+        const wanted = [];
+        for (let i = 0; i < tags.length; i++) {
+            wanted.push (tags[i].toLowerCase ());
+        }
+        const result = [];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const eventTags = this.safeList (event, 'tags', []);
+            let matched = false;
+            for (let ti = 0; ti < eventTags.length; ti++) {
+                const tag = eventTags[ti];
+                let tagLabel = undefined;
+                if (typeof tag === 'string') {
+                    tagLabel = tag;
+                } else {
+                    tagLabel = this.safeString2 (tag, 'slug', 'title');
+                }
+                if (tagLabel !== undefined) {
+                    const tagLower = tagLabel.toLowerCase ();
+                    for (let wi = 0; wi < wanted.length; wi++) {
+                        if (tagLower.indexOf (wanted[wi]) >= 0) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (matched) {
+                    break;
+                }
+            }
+            if (matched) {
+                result.push (event);
+            }
+        }
+        return result;
+    }
+
+    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         throw new NotSupported (this.id + ' fetchEvents() is not supported yet');
     }
 
@@ -183,14 +211,25 @@ export default class PredictionExchange extends Exchange {
     }
 
     setEvents (events: any[]): Dictionary<any> {
-        this.events = {};
-        this.events_by_slug = {};
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
+        // index by the unified `event` handle too (that's the identifier every outcome's `event`
+        // field carries), so getEvent (handle) resolves without each exchange hand-writing it
+        if (this.events === undefined) {
+            this.events = {};
+        }
+        if (this.events_by_slug === undefined) {
+            this.events_by_slug = {};
+        }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const id = this.safeString (event, 'id');
             const slug = this.safeString (event, 'slug');
+            const handle = this.safeString (event, 'event');
             if (id !== undefined) {
                 this.events[id] = event;
+            }
+            if (handle !== undefined) {
+                this.events[handle] = event;
             }
             if (slug !== undefined) {
                 this.events_by_slug[slug] = event;
@@ -199,7 +238,30 @@ export default class PredictionExchange extends Exchange {
         return this.events;
     }
 
+    eventsList (): any[] {
+        // the cached events as a list; empty on a cold instance (this.events is keyed by both
+        // id and handle, so de-duplicate by identity before returning)
+        if (this.events === undefined) {
+            return [];
+        }
+        const result = [];
+        const seen: Dict = {};
+        const keys = Object.keys (this.events);
+        for (let i = 0; i < keys.length; i++) {
+            const event = this.events[keys[i]];
+            const identity = this.safeString2 (event, 'id', 'event', keys[i]);
+            if (!(identity in seen)) {
+                seen[identity] = true;
+                result.push (event);
+            }
+        }
+        return result;
+    }
+
     async loadEventsHelper (reload = false, params = {}) {
+        // note: the cache-hit shortcut ignores params, so events fetched under one scope are
+        // returned for a later differently-scoped call. events are scoped (unlike global
+        // markets), so prefer fetchEvents (params) directly when you need a specific scope
         if (!reload && this.events) {
             return this.events;
         }
@@ -208,20 +270,35 @@ export default class PredictionExchange extends Exchange {
     }
 
     async loadEvents (reload = false, params = {}): Promise<Dictionary<any>> {
+        // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+        // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
+        // base, so two truly concurrent first calls may fetch twice (both land in the cache)
         return await this.loadEventsHelper (reload, params);
     }
 
+    getEvent (eventIdOrSlug: string): any {
+        // cache-only event resolver (the event analogue of this.outcome) - the cache fills
+        // through fetchEvents; this never fetches
+        if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
+            return this.events[eventIdOrSlug];
+        }
+        if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
+            return this.events_by_slug[eventIdOrSlug];
+        }
+        throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
+    }
+
     outcome (outcomeSymbol: string): any {
-        if (this.outcomes === undefined) {
-            throw new ExchangeError (this.id + ' outcomes not loaded');
+        if ((this.outcomes === undefined) || this.isEmpty (this.outcomes)) {
+            throw new ExchangeError (this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
         if (outcomeSymbol in this.outcomes) {
             return this.outcomes[outcomeSymbol];
         }
-        if (outcomeSymbol in this.outcomes_by_id) {
+        if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
             return this.outcomes_by_id[outcomeSymbol];
         }
-        throw new BadSymbol (this.id + ' does not have outcome symbol ' + outcomeSymbol);
+        throw new BadSymbol (this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
 
     safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): any {
@@ -236,7 +313,7 @@ export default class PredictionExchange extends Exchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'info': {}};
+        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {}};
     }
 
     safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
@@ -318,82 +395,477 @@ export default class PredictionExchange extends Exchange {
         return this.shortenSlug (marketSlug) + ':' + outcome.toUpperCase ();
     }
 
-    slugToMarketId (eventSlug: string, marketSlug: string, outcome: string): string {
-        return this.slugToOutcomeSymbol (eventSlug, marketSlug, outcome);
-    }
-
     setMarkets (markets, currencies = undefined) {
         const result = super.setMarkets (markets, currencies);
-        this.setOutcomesFromMarkets ();
+        this.populateOutcomes ();
         return result;
     }
 
-    setOutcomesFromMarkets () {
-        // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline.
-        // normalize each outcome object to the canonical identity keys (outcome /
-        // outcomeId / market) so consumers and the safe* helpers are uniform even when
-        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
-        this.outcomes = {};
-        this.outcomes_by_id = {};
-        const marketKeys = Object.keys (this.markets);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]];
-            const outcomesList = this.safeList (market, 'outcomes', []);
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                const ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
-                const ocId = this.safeString2 (oc, 'outcomeId', 'id');
-                // assign unconditionally — safeString2 keeps the canonical key when present
-                // and falls back to the legacy one, so this never clobbers and avoids a
-                // missing-key access (which throws in Python/PHP, unlike TS undefined)
+    indexMarketOutcomes (market) {
+        // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
+        // normalizing each to the canonical identity keys (outcome / outcomeId / market) so
+        // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
+        // still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
+        // for a full rebuild and by on-demand single-market fetches (kalshi fetchOutcome), so a
+        // cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
+        if (this.outcomes === undefined) {
+            this.outcomes = {};
+        }
+        if (this.outcomes_by_id === undefined) {
+            this.outcomes_by_id = {};
+        }
+        const outcomesList = this.safeList (market, 'outcomes', []);
+        for (let j = 0; j < outcomesList.length; j++) {
+            const oc = outcomesList[j];
+            let ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
+            const ocId = this.safeString2 (oc, 'outcomeId', 'id');
+            // assign unconditionally — safeString2 keeps the canonical key when present
+            // and falls back to the legacy one, so this never clobbers and avoids a
+            // missing-key access that throws in Python/PHP, unlike TS undefined
+            oc['outcomeId'] = ocId;
+            oc['market'] = this.safeString2 (oc, 'market', 'marketSymbol');
+            if (ocSymbol !== undefined) {
+                // shortenSlug is lossy, so two different markets can produce the same handle.
+                // on a real collision of same handle but different outcomeId, disambiguate the
+                // second one deterministically instead of silently overwriting the first —
+                // trading the wrong market would otherwise be indistinguishable
+                const existing = this.safeValue (this.outcomes, ocSymbol);
+                if (existing !== undefined) {
+                    const existingId = this.safeString (existing, 'outcomeId');
+                    if ((existingId !== undefined) && (ocId !== undefined) && (existingId !== ocId)) {
+                        const idLen = ocId.length;
+                        let suffix = ocId;
+                        if (idLen > 6) {
+                            suffix = ocId.slice (idLen - 6);
+                        }
+                        ocSymbol = ocSymbol + '_' + suffix.toUpperCase ();
+                    }
+                }
                 oc['outcome'] = ocSymbol;
-                oc['outcomeId'] = ocId;
-                oc['market'] = this.safeString2 (oc, 'market', 'marketSymbol');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
-                }
+                this.outcomes[ocSymbol] = oc;
+            } else {
+                oc['outcome'] = ocSymbol;
+            }
+            if (ocId !== undefined) {
+                this.outcomes_by_id[ocId] = oc;
             }
         }
     }
 
-    async fetchTicker (outcome: string, params = {}): Promise<Ticker> {
-        return await super.fetchTicker (outcome, params);
+    populateOutcomes () {
+        // rebuild the whole outcome lookup cache from this.markets (each market carries its
+        // outcome tokens under the outcomes key) so cached market data works offline. no-op on
+        // a cold instance where markets are not loaded yet (avoids a null-access crash on the
+        // eventId/slug-only fetchEvents path)
+        this.outcomes = {};
+        this.outcomes_by_id = {};
+        if (this.markets === undefined) {
+            return;
+        }
+        const marketKeys = Object.keys (this.markets);
+        for (let i = 0; i < marketKeys.length; i++) {
+            this.indexMarketOutcomes (this.markets[marketKeys[i]]);
+        }
     }
 
-    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await super.fetchOrderBook (outcome, limit, params);
+    async loadOutcomes (reload = false, params = {}) {
+        // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
+        // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
+        // true refetches and rebuilds. idempotent otherwise: once outcomes are populated (here, or
+        // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
+        // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
+        // from the loaded markets (the setMarkets override that normally does this is not dispatched
+        // by the base loadMarkets under the Go/C#/Java transpilers).
+        if (!reload && (this.outcomes !== undefined) && !this.isEmpty (this.outcomes)) {
+            return this.outcomes;
+        }
+        await this.loadMarkets (reload, params);
+        this.populateOutcomes ();
+        return this.outcomes;
     }
 
+    async loadOutcome (outcomeSymbol: string) {
+        // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
+        // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
+        // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
+        // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
+        if (this.outcomes !== undefined) {
+            if (outcomeSymbol in this.outcomes) {
+                return this.outcomes[outcomeSymbol];
+            }
+            if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                return this.outcomes_by_id[outcomeSymbol];
+            }
+        }
+        const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
+        // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+        // but the outcome cache is cold, index them for free before hitting the network — this
+        // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+        if (!wasWarm && (this.markets !== undefined) && !this.isEmpty (this.markets)) {
+            this.populateOutcomes ();
+            if (this.outcomes !== undefined) {
+                if (outcomeSymbol in this.outcomes) {
+                    return this.outcomes[outcomeSymbol];
+                }
+                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                    return this.outcomes_by_id[outcomeSymbol];
+                }
+            }
+        }
+        const loadAll = this.safeBool (this.options, 'loadAllOutcomes', true);
+        if (loadAll && !wasWarm) {
+            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+            // the whole listing (which would mask typos and clobber offline-injected markets)
+            await this.loadOutcomes ();
+            if (this.outcomes !== undefined) {
+                if (outcomeSymbol in this.outcomes) {
+                    return this.outcomes[outcomeSymbol];
+                }
+                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                    return this.outcomes_by_id[outcomeSymbol];
+                }
+            }
+        }
+        return await this.fetchOutcome (outcomeSymbol);
+    }
+
+    async fetchOutcome (outcomeSymbol: string) {
+        // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
+        // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
+        // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
+        // override this to fetch and cache only the requested outcome — the "always fetch one" path.
+        await this.loadOutcomes ();
+        return this.outcome (outcomeSymbol);
+    }
+
+    /**
+     * @method
+     * @name fetchTicker
+     * @description fetches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+        return await super.fetchTicker (outcome, params) as PredictionTicker;
+    }
+
+    /**
+     * @method
+     * @name fetchOrderBook
+     * @description fetches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        return await super.fetchOrderBook (outcome, limit, params) as PredictionOrderBook;
+    }
+
+    /**
+     * @method
+     * @name fetchOHLCV
+     * @description fetches historical candlestick data for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         return await super.fetchOHLCV (outcome, timeframe, since, limit, params);
     }
 
-    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await super.fetchTrades (outcome, since, limit, params);
+    /**
+     * @method
+     * @name fetchTrades
+     * @description get the list of most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        return await super.fetchTrades (outcome, since, limit, params) as PredictionTrade[];
     }
 
-    async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        return await super.createOrder (outcome, type, side, amount, price, params);
+    /**
+     * @method
+     * @name createOrder
+     * @description create a trade order on a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how many shares of the outcome to trade
+     * @param {float} [price] the price at which the order is to be filled, in cost per share
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        return await super.createOrder (outcome, type, side, amount, price, params) as PredictionOrder;
     }
 
-    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<Order> {
-        return await super.cancelOrder (id, outcome, params);
+    /**
+     * @method
+     * @name cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        return await super.cancelOrder (id, outcome, params) as PredictionOrder;
     }
 
-    async watchTicker (outcome: string, params = {}): Promise<Ticker> {
-        return await super.watchTicker (outcome, params);
+    /**
+     * @method
+     * @name watchTicker
+     * @description watches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+        return await super.watchTicker (outcome, params) as PredictionTicker;
     }
 
-    async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await super.watchOrderBook (outcome, limit, params);
+    /**
+     * @method
+     * @name watchOrderBook
+     * @description watches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        return await super.watchOrderBook (outcome, limit, params) as PredictionOrderBook;
     }
 
-    async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await super.watchTrades (outcome, since, limit, params);
+    /**
+     * @method
+     * @name watchTrades
+     * @description watches the most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        return await super.watchTrades (outcome, since, limit, params) as PredictionTrade[];
+    }
+
+    /**
+     * @method
+     * @name fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async fetchOrderTrades (id: string, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        throw new NotSupported (this.id + ' fetchOrderTrades() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name fetchPosition
+     * @description fetch the open position held on a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name fetchTradingFee
+     * @description fetch the trading fee for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    async fetchTradingFee (outcome: string, params = {}): Promise<PredictionTradingFee> {
+        throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name fetchOpenInterest
+     * @description fetch the open interest of a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    async fetchOpenInterest (outcome: string, params = {}): Promise<PredictionOpenInterest> {
+        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name createOrders
+     * @description create a list of trade orders
+     * @param {object[]} orders a list of PredictionOrderRequest objects, each carrying an `outcome` handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' createOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name cancelOrders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name createMarketBuyOrderWithCost
+     * @description create a market buy order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to spend, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
+        // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
+        // when the option is undeclared (it is for every prediction exchange)
+        if (this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', false) || this.safeBool (this.has, 'createMarketBuyOrderWithCost', false)) {
+            return await this.createOrder (outcome, 'market', 'buy', cost, 1, params);
+        }
+        throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name createMarketSellOrderWithCost
+     * @description create a market sell order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to receive, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createMarketSellOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
+        if (this.safeBool (this.options, 'createMarketSellOrderRequiresPrice', false) || this.safeBool (this.has, 'createMarketSellOrderWithCost', false)) {
+            return await this.createOrder (outcome, 'market', 'sell', cost, 1, params);
+        }
+        throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name watchTickers
+     * @description watches price tickers for multiple prediction outcomes
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    async watchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        throw new NotSupported (this.id + ' watchTickers() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to watch
+     * @param {int} [limit] the maximum number of orders to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' watchOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name watchMyTrades
+     * @description watches all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to watch
+     * @param {int} [limit] the maximum number of trades to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name watchPositions
+     * @description watches the open positions held by the user
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {int} [since] timestamp in ms of the earliest position to watch
+     * @param {int} [limit] the maximum number of positions to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    async watchPositions (outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionPosition[]> {
+        throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
 
     safePredictionOrder (order: Dict, market = undefined): PredictionOrder {
@@ -421,7 +893,7 @@ export default class PredictionExchange extends Exchange {
     safePredictionOrderBook (orderbook: Dict, outcomeObj: Dict = undefined): PredictionOrderBook {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
-        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        // outcomeId and market - so books match the PredictionOrderBook structure.
         const fallback = this.safeString2 (orderbook, 'outcome', 'symbol');
         orderbook['outcome'] = (outcomeObj === undefined) ? fallback : this.safeString (outcomeObj, 'outcome', fallback);
         orderbook['outcomeId'] = (outcomeObj === undefined) ? this.safeString (orderbook, 'outcomeId') : this.safeString (outcomeObj, 'outcomeId');
@@ -445,6 +917,85 @@ export default class PredictionExchange extends Exchange {
             delete parsed['symbol'];
         }
         return parsed;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionTrades
+     * @description parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+     * @param {object[]} trades the raw trades
+     * @param {object} [outcomeObj] the resolved outcome object the trades belong to
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra fields to merge into every parsed trade
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    parsePredictionTrades (trades: any[], outcomeObj: any = undefined, since: Int = undefined, limit: Int = undefined, params = {}): PredictionTrade[] {
+        // prediction-market analogue of the base parseTrades: the base aggregator post-filters
+        // by the market's `symbol` key, but prediction structures carry an `outcome` handle
+        // instead — and an outcome object rebuilt from cached markets may still hold a legacy
+        // `symbol` key, which would silently drop every parsed row
+        const rows = this.toArray (trades);
+        let results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parseTrade (rows[i], outcomeObj);
+            const trade = this.extend (parsed, params);
+            results.push (trade);
+        }
+        results = this.sortBy2 (results, 'timestamp', 'id');
+        const outcomeHandle = this.safeString (outcomeObj, 'outcome');
+        return this.filterByOutcomeSinceLimit (results, outcomeHandle, since, limit) as PredictionTrade[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionOrders
+     * @description parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+     * @param {object[]} orders the raw orders
+     * @param {object} [outcomeObj] the resolved outcome object the orders belong to
+     * @param {int} [since] timestamp in ms of the earliest order to return
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra fields to merge into every parsed order
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    parsePredictionOrders (orders: any[], outcomeObj: any = undefined, since: Int = undefined, limit: Int = undefined, params = {}): PredictionOrder[] {
+        // prediction-market analogue of the base parseOrders — see parsePredictionTrades
+        const rows = this.toArray (orders);
+        let results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parseOrder (rows[i], outcomeObj);
+            const order = this.extend (parsed, params);
+            results.push (order);
+        }
+        results = this.sortBy (results, 'timestamp');
+        const outcomeHandle = this.safeString (outcomeObj, 'outcome');
+        return this.filterByOutcomeSinceLimit (results, outcomeHandle, since, limit) as PredictionOrder[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionPositions
+     * @description parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+     * @param {object[]} positions the raw positions
+     * @param {object} [params] extra fields to merge into every parsed position
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    parsePredictionPositions (positions: any[], params = {}): PredictionPosition[] {
+        // prediction-market analogue of the base parsePositions, which resolves its `symbols`
+        // argument through marketSymbols() and would throw BadSymbol on outcome handles.
+        // venue-specific outcome filtering stays in the exchange (position identity differs
+        // per venue: kalshi positions are market-level, polymarket ones are per token)
+        const rows = this.toArray (positions);
+        const results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parsePosition (rows[i]);
+            const position = this.extend (parsed, params);
+            results.push (position);
+        }
+        return results as PredictionPosition[];
     }
 
     filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
@@ -472,5 +1023,136 @@ export default class PredictionExchange extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.costToPrecision (marketSymbol, cost);
+    }
+
+    // ------------------------------------------------------------------------
+    // shared EVM helpers — RLP encoding + a minimal JSON-RPC client + raw-tx
+    // broadcast, used by the on-chain (EOA) trading paths of EVM prediction
+    // venues (limitless, myriad). signEvmTransaction stays per-exchange because
+    // it needs the noble crypto imports (keccak/ecdsa/secp256k1) which the
+    // per-language prediction base skeletons don't carry; this base
+    // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
+
+    padHexToEven (hex: string): string {
+        // prepend a nibble so the hex has an even number of characters (whole bytes)
+        const hexLength = hex.length;
+        if ((hexLength % 2) !== 0) {
+            return '0' + hex;
+        }
+        return hex;
+    }
+
+    padHexAddress (address: string): string {
+        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
+        const stripped = this.remove0xPrefix (address);
+        return '000000000000000000000000' + stripped;
+    }
+
+    rlpEncodeBytes (hex: string): string {
+        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
+        const byteLength = this.parseToInt (hex.length / 2);
+        if (byteLength === 0) {
+            return '80';
+        }
+        if ((byteLength === 1) && (hex < '80')) {
+            return hex;
+        }
+        if (byteLength < 56) {
+            return this.intToBase16 (128 + byteLength) + hex;
+        }
+        let lengthHex = this.intToBase16 (byteLength);
+        lengthHex = this.padHexToEven (lengthHex);
+        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
+        return this.intToBase16 (183 + lengthOfLength) + lengthHex + hex;
+    }
+
+    rlpEncodeList (items: string[]): string {
+        let concatenated = '';
+        for (let i = 0; i < items.length; i++) {
+            concatenated = concatenated + items[i];
+        }
+        const byteLength = this.parseToInt (concatenated.length / 2);
+        if (byteLength < 56) {
+            return this.intToBase16 (192 + byteLength) + concatenated;
+        }
+        let lengthHex = this.intToBase16 (byteLength);
+        lengthHex = this.padHexToEven (lengthHex);
+        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
+        return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
+    }
+
+    intToRlpHex (value: number): string {
+        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
+        if (value === 0) {
+            return '';
+        }
+        let hex = this.intToBase16 (value);
+        hex = this.padHexToEven (hex);
+        return hex;
+    }
+
+    hexToRlpBytes (hexValue: string): string {
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
+        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        let h = this.remove0xPrefix (hexValue);
+        let start = 0;
+        const total = h.length;
+        while ((start < total) && (h.slice (start, start + 1) === '0')) {
+            start = start + 1;
+        }
+        h = h.slice (start);
+        if (h === '') {
+            return '';
+        }
+        h = this.padHexToEven (h);
+        return h;
+    }
+
+    signEvmTransaction (tx: Dict, privateKey: string): string {
+        // per-exchange override — needs the noble crypto imports. the base declares it so
+        // sendEvmTransaction below can call it; a call on the base itself is unsupported
+        throw new NotSupported (this.id + ' signEvmTransaction() must be overridden by the exchange');
+    }
+
+    async ethRpc (rpcUrl: string, method: string, rpcParams: any[]) {
+        const payload: Dict = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
+        const headers: Dict = { 'Content-Type': 'application/json' };
+        const response = await this.fetch (rpcUrl, 'POST', headers, this.json (payload));
+        const rpcError = this.safeValue (response, 'error');
+        if (rpcError !== undefined) {
+            throw new ExchangeError (this.id + ' rpc ' + method + ' error: ' + this.json (rpcError));
+        }
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return this.safeValue (response, 'result');
+    }
+
+    async sendEvmTransaction (rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string> {
+        const nonce = await this.ethRpc (rpcUrl, 'eth_getTransactionCount', [ fromAddress, 'pending' ]);
+        const gasPrice = await this.ethRpc (rpcUrl, 'eth_gasPrice', []);
+        const tx: Dict = {
+            'chainId': chainId,
+            'nonce': nonce,
+            'maxPriorityFeePerGas': gasPrice,
+            'maxFeePerGas': gasPrice,
+            'gasLimit': gasLimit,
+            'to': to,
+            'value': value,
+            'data': data,
+        };
+        const signed = this.signEvmTransaction (tx, this.privateKey);
+        return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
+    }
+
+    async waitForTransactionReceipt (rpcUrl: string, txHash: string, timeout = 60000): Promise<any> {
+        const start = this.milliseconds ();
+        while ((this.milliseconds () - start) < timeout) {
+            const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
+            if (receipt) {
+                return receipt;
+            }
+            await this.sleep (2000);
+        }
+        throw new ExchangeError (this.id + ' transaction ' + txHash + ' not mined within timeout');
     }
 }

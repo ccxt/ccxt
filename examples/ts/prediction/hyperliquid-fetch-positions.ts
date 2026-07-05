@@ -1,4 +1,4 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../../ts/ccxt.js';
 
 async function example () {
     const exchange = new ccxt.prediction.hyperliquid ({
@@ -6,7 +6,7 @@ async function example () {
         'walletAddress': 'YOUR_WALLET_ADDRESS',
     });
 
-    await exchange.fetchEvents ();
+    await exchange.loadMarkets ();
     const allPositions = await exchange.fetchPositions ();
     console.log ('all positions', allPositions);
 

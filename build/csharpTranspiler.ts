@@ -353,7 +353,7 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
-            return `Task<ccxt.pro.IOrderBook>`;
+            return this.isPrediction ? `Task<ccxt.PredictionOrderBook>` : `Task<ccxt.pro.IOrderBook>`;
         }
 
         if (name === 'watchOHLCVForSymbols') {
@@ -576,7 +576,8 @@ class NewTranspiler {
     createReturnStatement(methodName: string,  unwrappedType:string ) {
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
-            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+            // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
+            return this.isPrediction ? `return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());` : `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
 
         if (methodName === 'watchOHLCVForSymbols') {
@@ -865,7 +866,15 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class PredictionExchange : Exchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + fields + baseMethods + "\n";
+            // typed wrappers (Task<PredictionTrade> etc.) emitted as a second partial so a prediction
+            // venue that does NOT override a unified method still exposes the prediction-typed signature
+            // instead of inheriting the crypto-typed wrapper from Exchange.Wrappers.cs
+            const prevIsPrediction = this.isPrediction;
+            this.isPrediction = true;
+            const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
+            this.isPrediction = prevIsPrediction;
+            const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
+            const file = fileHeader + fields + baseMethods + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }
@@ -969,8 +978,16 @@ class NewTranspiler {
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
-        if (prediction && !exchanges.length) {
-            exchanges = predictionIds;
+        if (prediction) {
+            // a scoped run (e.g. a --multi worker chunk of regular exchanges) carries regular
+            // ids in argv — the prediction pass must not try to transpile those from
+            // ts/src/prediction/ (the files don't exist there); the multi parent transpiles
+            // the prediction set itself after the workers finish
+            const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x))
+            if (exchanges.length && !predictionOnly.length) {
+                return;
+            }
+            exchanges = predictionOnly.length ? predictionOnly : predictionIds;
         }
         const options = { csharpFolder, exchanges }
 
@@ -1122,7 +1139,7 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
-            content = this.replaceImportedRestClasses (content, csharpVersion.imports, restNamespace);
+            content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
             const className = classNameExec ? classNameExec[1] : '';
@@ -1578,7 +1595,11 @@ class NewTranspiler {
 
 async function runMain () {
     const ws = process.argv.includes ('--ws')
-    const prediction = process.argv.includes ('--prediction')
+    // bare prediction-only ids (e.g. `csharpTranspiler.ts kalshi`) auto-route to the
+    // prediction namespace so scoped CI steps don't need to know it
+    const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+    const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x))
+    const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
     const baseOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');

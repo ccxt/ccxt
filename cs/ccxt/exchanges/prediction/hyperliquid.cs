@@ -39,7 +39,7 @@ public partial class hyperliquid : PredictionExchange
                 { "fetchPositions", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
-                { "fetchTrades", false },
+                { "fetchTrades", true },
                 { "prediction", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -110,7 +110,7 @@ public partial class hyperliquid : PredictionExchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "prediction" },
-                { "sandboxMode", true },
+                { "sandboxMode", false },
                 { "outcomeQuoteCurrency", "USDH" },
                 { "defaultSlippage", 0.05 },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
@@ -716,7 +716,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object coin = this.safeString(info, "coinName");
@@ -760,11 +760,14 @@ public partial class hyperliquid : PredictionExchange
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                this.checkEvents(requested);
-                object requestedOutcomeObj = this.outcome(requested);
+                object requestedOutcomeObj = await this.loadOutcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
+        } else
+        {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes();
         }
         object response = await this.publicPostInfo(this.extend(new Dictionary<string, object>() {
             { "type", "allMids" },
@@ -843,8 +846,8 @@ public partial class hyperliquid : PredictionExchange
         {
             mid = divide(this.sum(bid, ask), 2);
         }
-        // day volume lives on the parent market's ctx; resolve it from the outcome's marketSymbol
-        object parentSymbol = this.safeString(mkt, "outcome");
+        // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
+        object parentSymbol = this.safeString(mkt, "market");
         object parentMarket = ((bool) isTrue((!isEqual(parentSymbol, null)))) ? this.safeMarket(parentSymbol) : null;
         object ctx = ((bool) isTrue((!isEqual(parentMarket, null)))) ? this.safeDict(this.safeDict(((object)parentMarket), "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         object dayVolume = this.safeNumber(ctx, "dayNtlVlm");
@@ -852,7 +855,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", outcome },
             { "outcomeId", this.safeString2(mkt, "outcomeId", "id") },
             { "label", this.safeString(mkt, "label") },
-            { "market", this.safeString(mkt, "outcome") },
+            { "market", this.safeString(mkt, "market") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", null },
@@ -888,7 +891,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object request = new Dictionary<string, object>() {
@@ -946,7 +949,7 @@ public partial class hyperliquid : PredictionExchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
         object market = this.market(this.safeString(outcomeObj, "market"));
@@ -1073,7 +1076,8 @@ public partial class hyperliquid : PredictionExchange
     /**
      * @method
      * @name hyperliquid#fetchPositions
-     * @description fetches outcome token positions from spot clearinghouse state, outcome tokens appear as spot token balances starting with '+'
+     * @description fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
@@ -1088,11 +1092,14 @@ public partial class hyperliquid : PredictionExchange
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                this.checkEvents(requested);
-                object requestedOutcomeObj = this.outcome(requested);
+                object requestedOutcomeObj = await this.loadOutcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
+        } else
+        {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes();
         }
         object userAddress = null;
         var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
@@ -1102,26 +1109,35 @@ public partial class hyperliquid : PredictionExchange
             { "type", "spotClearinghouseState" },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
+        // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
+        // value / entry price / pnl, so they are computed from the current mid prices
+        object promises = new List<object> {this.publicPostInfo(this.extend(request, parameters)), this.publicPostInfo(new Dictionary<string, object>() {
+    { "type", "allMids" },
+})};
+        object results = await promiseAll(promises);
+        object response = getValue(results, 0);
+        object midsResponse = getValue(results, 1);
         object balances = this.safeList(response, "balances", new List<object>() {});
+        object mids = this.safeDict(midsResponse, "mids", midsResponse);
         object positions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
-            object coin = this.safeString(balance, "coin");
-            // Outcome tokens start with '+'
-            if (isTrue(!isTrue(coin) || !isTrue(((string)coin).StartsWith(((string)"+")))))
+            object balance = this.safeDict(balances, i, new Dictionary<string, object>() {});
+            object coin = this.safeString(balance, "coin", "");
+            // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
+            if (isTrue(!isEqual(getIndexOf(coin, "+"), 0)))
             {
                 continue;
             }
             object totalStr = this.safeString(balance, "total");
-            object total = this.parseNumber(totalStr);
-            if (isTrue(isTrue(isEqual(total, null)) || isTrue(isEqual(total, 0))))
+            if (isTrue(isTrue((isEqual(totalStr, null))) || isTrue(Precise.stringEq(totalStr, "0"))))
             {
                 continue;
             }
-            object outcomeId = add("#", slice(coin, 1, null)); // +10 -> #10
-            object outcomeObj = this.safeOutcome(outcomeId);
+            // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
+            object tradeCoin = add("#", slice(coin, 1, null));
+            object outcomeObj = this.safeOutcome(tradeCoin);
             if (isTrue(!isEqual(outcomes, null)))
             {
                 object outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -1130,7 +1146,10 @@ public partial class hyperliquid : PredictionExchange
                     continue;
                 }
             }
-            ((IList<object>)positions).Add(this.parsePosition(balance, outcomeObj));
+            object enriched = this.extend(balance, new Dictionary<string, object>() {
+                { "markPx", this.safeString(mids, tradeCoin) },
+            });
+            ((IList<object>)positions).Add(this.parsePosition(enriched, outcomeObj));
         }
         return positions;
     }
@@ -1146,24 +1165,35 @@ public partial class hyperliquid : PredictionExchange
      */
     public override object parsePosition(object position, object market = null)
     {
+        // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
+        // enriched with the current mid price (markPx); hyperliquid does not return the position
+        // value / entry price / pnl for outcome tokens, so they are computed here
         object outcomeObj = this.safeOutcome(null, market);
         object totalStr = this.safeString(position, "total");
         object total = this.parseNumber(totalStr);
-        object holdStr = this.safeString(position, "hold");
-        object hold = this.parseNumber(holdStr);
         object entryNtlStr = this.safeString(position, "entryNtl");
-        object entryNotional = this.parseNumber(entryNtlStr);
         object entryPrice = null;
-        if (isTrue(isTrue(isTrue(!isEqual(entryNotional, null)) && isTrue(!isEqual(total, null))) && isTrue(isGreaterThan(total, 0))))
+        if (isTrue(isTrue(isTrue((!isEqual(entryNtlStr, null))) && isTrue((!isEqual(totalStr, null)))) && !isTrue(Precise.stringEq(totalStr, "0"))))
         {
-            entryPrice = divide(entryNotional, total);
+            entryPrice = this.parseNumber(Precise.stringDiv(entryNtlStr, totalStr));
+        }
+        object markPxStr = this.safeString(position, "markPx");
+        object notional = null; // current position value = size * mark price
+        object unrealizedPnl = null; // value - entry notional
+        if (isTrue(isTrue((!isEqual(markPxStr, null))) && isTrue((!isEqual(totalStr, null)))))
+        {
+            object notionalStr = Precise.stringMul(totalStr, markPxStr);
+            notional = this.parseNumber(notionalStr);
+            if (isTrue(!isEqual(entryNtlStr, null)))
+            {
+                unrealizedPnl = this.parseNumber(Precise.stringSub(notionalStr, entryNtlStr));
+            }
         }
         return this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", null },
             { "outcome", this.safeString(outcomeObj, "outcome") },
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
-            { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "timestamp", null },
             { "datetime", null },
             { "isolated", false },
@@ -1172,20 +1202,19 @@ public partial class hyperliquid : PredictionExchange
             { "contracts", total },
             { "contractSize", 1 },
             { "entryPrice", entryPrice },
-            { "markPrice", null },
-            { "notional", entryNotional },
+            { "markPrice", this.parseNumber(markPxStr) },
+            { "notional", notional },
             { "leverage", null },
-            { "collateral", hold },
+            { "collateral", this.safeNumber(position, "hold") },
             { "initialMargin", null },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
-            { "unrealizedPnl", null },
+            { "unrealizedPnl", unrealizedPnl },
             { "realizedPnl", null },
             { "liquidationPrice", null },
             { "marginRatio", null },
             { "marginMode", "cross" },
-            { "marginType", "cross" },
             { "percentage", null },
             { "info", position },
         });
@@ -1333,7 +1362,7 @@ public partial class hyperliquid : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.initializeClient();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -1444,7 +1473,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", this.safeString(outcomeObj, "outcome", outcome) },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "type", type },
             { "side", side },
             { "price", price },
@@ -1495,7 +1524,7 @@ public partial class hyperliquid : PredictionExchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires an outcome argument")) ;
         }
         await this.initializeClient();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object assetId = this.safeInteger(outcomeInfo, "assetId");
@@ -1584,7 +1613,7 @@ public partial class hyperliquid : PredictionExchange
                 { "outcome", outcomeSymbol },
                 { "outcomeId", this.safeString(outcomeObj, "id") },
                 { "label", this.safeString(outcomeObj, "label") },
-                { "market", this.safeString(outcomeObj, "outcome") },
+                { "market", this.safeString(outcomeObj, "market") },
                 { "timestamp", this.milliseconds() },
                 { "datetime", this.iso8601(this.milliseconds()) },
             };
@@ -1630,11 +1659,11 @@ public partial class hyperliquid : PredictionExchange
                 { "ccxtStatus", "open" },
             }));
         }
-        object parsed = this.parseOrders(ordersWithStatus, null, since, null);
+        object parsed = this.parsePredictionOrders(ordersWithStatus, null, since);
         object outcomeHandle = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
@@ -1693,11 +1722,11 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         object dedupedValues = new List<object>(((IDictionary<string,object>)deduped).Values);
-        object parsed = this.parseOrders(dedupedValues, null, since, null);
+        object parsed = this.parsePredictionOrders(dedupedValues, null, since);
         object outcomeHandle = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
@@ -1742,7 +1771,7 @@ public partial class hyperliquid : PredictionExchange
         object parsed = this.parseOrder(orderWrapper, null);
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             object outcomeObj = this.outcome(outcome);
             object expected = this.safeString(outcomeObj, "outcome");
             if (isTrue(!isEqual(this.safeString(parsed, "outcome"), expected)))
@@ -1813,7 +1842,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", this.safeString(outcomeObj, "outcome") },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "type", this.parseOrderType(this.safeString(entry, "orderType", "limit")) },
             { "timeInForce", tif },
             { "postOnly", postOnly },
@@ -1880,6 +1909,33 @@ public partial class hyperliquid : PredictionExchange
 
     /**
      * @method
+     * @name hyperliquid#fetchTrades
+     * @description fetches the most recent public trades for an outcome
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-coins-recent-trades
+     * @param {string} outcome unified outcome
+     * @param {int} [since] only return trades at or after this timestamp in ms
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadOutcome(outcome);
+        object outcomeObj = this.outcome(outcome);
+        object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
+        object request = new Dictionary<string, object>() {
+            { "type", "recentTrades" },
+            { "coin", this.safeString(info, "coinName") },
+        };
+        // recentTrades returns the coin's most recent public trades (newest first)
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object trades = ((bool) isTrue((response))) ? response : new List<object>() {};
+        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
      * @name hyperliquid#fetchMyTrades
      * @description fetches the authenticated user's fill history
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
@@ -1894,6 +1950,17 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object outcomeHandle = null;
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            object outcomeObj = await this.loadOutcome(outcome);
+            outcomeHandle = this.safeString(outcomeObj, "outcome");
+        } else
+        {
+            // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
+            // cache (one market load) so parseTrade can resolve the unified outcome identity
+            await this.loadOutcomes();
+        }
         object userAddress = null;
         var userAddressparametersVariable = this.handlePublicAddress("fetchMyTrades", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
@@ -1916,15 +1983,11 @@ public partial class hyperliquid : PredictionExchange
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object parsed = this.parseTrades(response, null, since, null);
-        object outcomeHandle = null;
-        if (isTrue(!isEqual(outcome, null)))
-        {
-            this.checkEvents(outcome);
-            object outcomeObj = this.outcome(outcome);
-            outcomeHandle = this.safeString(outcomeObj, "outcome");
-        }
-        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
+        object fills = ((bool) isTrue((response))) ? response : new List<object>() {};
+        // parse without an outcome fallback — fills span every market the wallet traded, so a
+        // requested-outcome fallback would mislabel fills whose market is no longer listed
+        object parsedTrades = this.parsePredictionTrades((IList<object>)(fills), null);
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
     }
 
     /**
@@ -1990,7 +2053,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", outcomeSymbol },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "order", this.safeString(trade, "oid") },
             { "type", "limit" },
             { "side", side },
@@ -2014,8 +2077,14 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        this.requireEventQuery(parameters);
         object queries = this.parseSearchQueries(parameters);
-        object marketValues = new List<object>(((IDictionary<string,object>)this.markets).Values);
+        // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
+        // markets. use the cached load so the handles advertised here always match the
+        // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
+        // disagree with a previously warmed cache within the same session)
+        object marketsDict = await this.loadMarkets();
+        object marketValues = this.toArray(marketsDict);
         // Group markets by parentSymbol
         object groupMap = new Dictionary<string, object>() {};
         object lowerQueries = new List<object>() {};
@@ -2040,10 +2109,25 @@ public partial class hyperliquid : PredictionExchange
                 object description = ((string)this.safeString(info, "description", "")).ToLower();
                 object parentSymbolOrEmpty = ((bool) isTrue((!isEqual(parentSymbol, null)))) ? parentSymbol : "";
                 object symLower = ((string)parentSymbolOrEmpty).ToLower();
+                // the parentSymbol uses hyphens (BTC-ABOVE-...), so match the haystack word-by-word
+                // and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+                object haystack = add(add(description, " "), symLower);
                 object matches = false;
                 for (object qi = 0; isLessThan(qi, getArrayLength(lowerQueries)); postFixIncrement(ref qi))
                 {
-                    if (isTrue(isTrue(isGreaterThan(getIndexOf(description, getValue(lowerQueries, qi)), -1)) || isTrue(isGreaterThan(getIndexOf(symLower, getValue(lowerQueries, qi)), -1))))
+                    object words = ((string)getValue(lowerQueries, qi)).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+                    object wordsLength = getArrayLength(words);
+                    object allWords = true;
+                    for (object wi = 0; isLessThan(wi, wordsLength); postFixIncrement(ref wi))
+                    {
+                        object word = getValue(words, wi);
+                        if (isTrue(isTrue((!isEqual(word, ""))) && isTrue((isEqual(getIndexOf(haystack, word), -1)))))
+                        {
+                            allWords = false;
+                            break;
+                        }
+                    }
+                    if (isTrue(allWords))
                     {
                         matches = true;
                         break;
@@ -2192,8 +2276,12 @@ public partial class hyperliquid : PredictionExchange
     public virtual object signHash(object hash, object privateKey)
     {
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        object r = (getValue(signature, "r") as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        object s = (getValue(signature, "s") as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+        // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
+        // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
+        object rRaw = getValue(signature, "r");
+        object sRaw = getValue(signature, "s");
+        object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+        object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
             { "r", add("0x", r) },
             { "s", add("0x", s) },
@@ -2259,13 +2347,19 @@ public partial class hyperliquid : PredictionExchange
         return this.signMessage(msg, this.privateKey);
     }
 
-    public async virtual Task initializeClient()
+    public async virtual Task<object> initializeClient()
     {
+        // createOrder/createOrders call this before trading; load markets so the order builder can
+        // resolve the outcome's market and precision. loading them also keeps this method genuinely
+        // async for the PHP and typed transpilers, which mishandle an async body that never suspends
+        await this.loadMarkets();
         object buildFee = this.safeBool(this.options, "builderFee", false);
         if (!isTrue(buildFee))
         {
-            return;  // eslint-disable-line no-useless-return
+            return null;
         }
+        // builder fee approval would go here if needed
+        return null;
     }
 
     public virtual object handlePublicAddress(object methodName, object parameters)
@@ -2309,7 +2403,7 @@ public partial class hyperliquid : PredictionExchange
         method ??= "POST";
         parameters ??= new Dictionary<string, object>();
         object apiGroup = ((bool) isTrue(((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? getValue(api, 0) : api;
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", true);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseUrl = null;
         if (isTrue(sandboxMode))
         {

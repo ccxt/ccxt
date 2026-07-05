@@ -101,7 +101,7 @@ public partial class bitmex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchVolatilityHistory", false },
-                { "index", true },
+                { "index", false },
                 { "reduceMargin", null },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -124,7 +124,7 @@ public partial class bitmex : Exchange
                     { "public", "https://testnet.bitmex.com" },
                     { "private", "https://testnet.bitmex.com" },
                 } },
-                { "logo", "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04" },
+                { "logo", "https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://www.bitmex.com" },
                     { "private", "https://www.bitmex.com" },
@@ -858,7 +858,7 @@ public partial class bitmex : Exchange
             }
             expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
-            if (isTrue(!isEqual(expiry, null)))
+            if (isTrue(isTrue(!isEqual(expiry, null)) && isTrue(future)))
             {
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
@@ -1075,7 +1075,7 @@ public partial class bitmex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

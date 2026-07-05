@@ -57,6 +57,7 @@ interface Exchange {
     kalshiPrivateGetHistoricalFills(params?: {}): Promise<implicitReturnType>;
     kalshiPrivateGetHistoricalOrders(params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrders(params?: {}): Promise<implicitReturnType>;
+    kalshiPrivatePostPortfolioEventsOrders(params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersBatched(params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersOrderIdAmend(params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersOrderIdDecrease(params?: {}): Promise<implicitReturnType>;
@@ -70,8 +71,8 @@ interface Exchange {
     kalshiPrivatePutPortfolioSubaccountsNetting(params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup(params?: {}): Promise<implicitReturnType>;
     kalshiPrivateDeletePortfolioOrdersOrderId(params?: {}): Promise<implicitReturnType>;
-    kalshiPrivateDeletePortfolioOrders(params?: {}): Promise<implicitReturnType>;
     kalshiPrivateDeletePortfolioOrdersBatched(params?: {}): Promise<implicitReturnType>;
+    kalshiPrivateDeletePortfolioEventsOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {

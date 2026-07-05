@@ -26,7 +26,7 @@ func (this *ExtendedCore) Describe() any {
 		"dex":           true,
 		"has": map[string]any{
 			"CORS":                                 nil,
-			"spot":                                 false,
+			"spot":                                 true,
 			"margin":                               false,
 			"swap":                                 true,
 			"future":                               false,
@@ -162,16 +162,16 @@ func (this *ExtendedCore) Describe() any {
 		},
 		"hostname": "extended.exchange",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299",
+			"logo": "https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079",
 			"api": map[string]any{
 				"rest": "https://api.starknet.{hostname}",
 			},
 			"test": map[string]any{
 				"rest": "https://api.starknet.sepolia.{hostname}",
 			},
-			"www":      "https://app.{hostname}",
-			"doc":      "https://api.docs.{hostname}",
-			"fees":     "https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates",
+			"www":      "https://app.extended.exchange",
+			"doc":      "https://api.docs.extended.exchange",
+			"fees":     "https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates",
 			"referral": "",
 		},
 		"api": map[string]any{
@@ -890,7 +890,7 @@ func (this *ExtendedCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ExtendedCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

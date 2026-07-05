@@ -13,6 +13,13 @@ import io.github.ccxt.base.Precise;
 public class TestOrderBook extends BaseTest {
     public static void testOrderBook(Exchange exchange, Object skippedProperties, Object method, Object orderbook, Object symbol)
     {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
+                put( "symbol", true );
+            }}, skippedProperties);
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "symbol", "ETH/BTC" );
             put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.24"), exchange.parseNumber("0.453"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.25"), exchange.parseNumber("0.157"))))) );

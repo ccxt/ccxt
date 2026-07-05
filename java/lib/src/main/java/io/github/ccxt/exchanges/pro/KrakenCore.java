@@ -739,7 +739,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
             Object candle = Helpers.GetValue(data, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
-            Object datetime = this.safeString(candle, "timestamp");
+            Object datetime = this.safeString(candle, "interval_begin");
             Object timestamp = this.parse8601(datetime);
             Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -905,7 +905,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -927,7 +927,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {

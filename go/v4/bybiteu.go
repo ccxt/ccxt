@@ -59,6 +59,9 @@ func (this *BybiteuCore) Describe() any {
 			"future": false,
 			"option": nil,
 		},
+		"options": map[string]any{
+			"mica": true,
+		},
 	})
 }
 

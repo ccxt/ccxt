@@ -7,7 +7,7 @@ import asTable from 'as-table';
 import log from 'ololog';
 import ansicolor from 'ansicolor';
 
-
+// @ts-expect-error
 ansicolor.nice
 
 const exchange = new ccxt.binance ({

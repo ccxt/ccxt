@@ -42,6 +42,11 @@ declare class testMainClass {
     getMarketsFromExchange(exchange: any, spot?: boolean): {};
     getValidSymbol(exchange: any, spot?: boolean): any;
     testExchange(exchange: any, providedSymbol?: any): Promise<boolean>;
+    runPredictionTests(exchange: any): Promise<boolean>;
+    assertPredictionEvents(exchange: any, events: any): boolean;
+    assertPredictionEvent(exchange: any, event: any): boolean;
+    testPredictionCreateCancelOrder(exchange: any, outcome: any): Promise<boolean>;
+    cancelPredictionOrder(exchange: any, orderId: any, outcome: any): Promise<boolean>;
     runPrivateTests(exchange: any, symbol: any): Promise<boolean>;
     testProxies(exchange: any): Promise<boolean>;
     checkConstructor(exchange: Exchange): void;

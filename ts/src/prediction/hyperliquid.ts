@@ -10,7 +10,7 @@ import type {
     Strings,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
-import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../../ccxt.js';
+import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -653,7 +653,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const coin = this.safeString (info, 'coinName');
@@ -691,11 +691,13 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                this.checkEvents (requested);
-                const requestedOutcomeObj = this.outcome (requested);
+                const requestedOutcomeObj = await this.loadOutcome (requested);
                 const requestedOutcome = this.safeString (requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
             }
+        } else {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes ();
         }
         const response = await this.publicPostInfo (this.extend ({ 'type': 'allMids' }, params));
         //
@@ -763,8 +765,8 @@ export default class hyperliquid extends Exchange {
         if (mid === undefined && bid !== undefined && ask !== undefined) {
             mid = this.sum (bid, ask) / 2;
         }
-        // day volume lives on the parent market's ctx; resolve it from the outcome's marketSymbol
-        const parentSymbol = this.safeString (mkt, 'outcome');
+        // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
+        const parentSymbol = this.safeString (mkt, 'market');
         const parentMarket = (parentSymbol !== undefined) ? this.safeMarket (parentSymbol) : undefined;
         const ctx = (parentMarket !== undefined) ? this.safeDict (this.safeDict (parentMarket as any, 'info', {}), 'ctx', {}) : {};
         const dayVolume = this.safeNumber (ctx, 'dayNtlVlm');
@@ -772,7 +774,7 @@ export default class hyperliquid extends Exchange {
             'outcome': outcome,
             'outcomeId': this.safeString2 (mkt, 'outcomeId', 'id'),
             'label': this.safeString (mkt, 'label'),
-            'market': this.safeString (mkt, 'outcome'),
+            'market': this.safeString (mkt, 'market'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -806,7 +808,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const request = {
@@ -856,7 +858,7 @@ export default class hyperliquid extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
         const market = this.market (this.safeString (outcomeObj, 'market'));
@@ -994,11 +996,13 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                this.checkEvents (requested);
-                const requestedOutcomeObj = this.outcome (requested);
+                const requestedOutcomeObj = await this.loadOutcome (requested);
                 const requestedOutcome = this.safeString (requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
             }
+        } else {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes ();
         }
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
@@ -1080,7 +1084,7 @@ export default class hyperliquid extends Exchange {
             'id': undefined,
             'outcome': this.safeString (outcomeObj, 'outcome'),
             'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
-            'market': this.safeString (outcomeObj, 'outcome'),
+            'market': this.safeString (outcomeObj, 'market'),
             'timestamp': undefined,
             'datetime': undefined,
             'isolated': false,
@@ -1222,7 +1226,7 @@ export default class hyperliquid extends Exchange {
      */
     async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         await this.initializeClient ();
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -1321,7 +1325,7 @@ export default class hyperliquid extends Exchange {
             'outcome': this.safeString (outcomeObj, 'outcome', outcome),
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'outcome'),
+            'market': this.safeString (outcomeObj, 'market'),
             'type': type,
             'side': side,
             'price': price,
@@ -1367,7 +1371,7 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires an outcome argument');
         }
         await this.initializeClient ();
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const assetId = this.safeInteger (outcomeInfo, 'assetId');
@@ -1434,7 +1438,7 @@ export default class hyperliquid extends Exchange {
                 'outcome': outcomeSymbol,
                 'outcomeId': this.safeString (outcomeObj, 'id'),
                 'label': this.safeString (outcomeObj, 'label'),
-                'market': this.safeString (outcomeObj, 'outcome'),
+                'market': this.safeString (outcomeObj, 'market'),
                 'timestamp': this.milliseconds (),
                 'datetime': this.iso8601 (this.milliseconds ()),
             };
@@ -1468,10 +1472,10 @@ export default class hyperliquid extends Exchange {
             const order = response[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
         }
-        const parsed = this.parseOrders (ordersWithStatus, undefined, since, undefined);
+        const parsed = this.parsePredictionOrders (ordersWithStatus, undefined, since);
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
-            this.checkEvents (outcome);
+            await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
             outcomeHandle = this.safeString (outcomeObj, 'outcome');
         }
@@ -1517,10 +1521,10 @@ export default class hyperliquid extends Exchange {
             }
         }
         const dedupedValues = Object.values (deduped);
-        const parsed = this.parseOrders (dedupedValues, undefined, since, undefined);
+        const parsed = this.parsePredictionOrders (dedupedValues, undefined, since);
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
-            this.checkEvents (outcome);
+            await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
             outcomeHandle = this.safeString (outcomeObj, 'outcome');
         }
@@ -1555,7 +1559,7 @@ export default class hyperliquid extends Exchange {
         const orderWrapper = this.safeDict (response, 'order', response);
         const parsed = this.parseOrder (orderWrapper, undefined);
         if (outcome !== undefined) {
-            this.checkEvents (outcome);
+            await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
             const expected = this.safeString (outcomeObj, 'outcome');
             if (this.safeString (parsed, 'outcome') !== expected) {
@@ -1623,7 +1627,7 @@ export default class hyperliquid extends Exchange {
             'outcome': this.safeString (outcomeObj, 'outcome'),
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'outcome'),
+            'market': this.safeString (outcomeObj, 'market'),
             'type': this.parseOrderType (this.safeString (entry, 'orderType', 'limit')),
             'timeInForce': tif,
             'postOnly': postOnly,
@@ -1694,7 +1698,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const request = {
@@ -1703,8 +1707,8 @@ export default class hyperliquid extends Exchange {
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo (this.extend (request, params));
-        const trades = (response !== undefined && response !== null) ? response : [];
-        return this.parseTrades (trades, outcomeObj as any, since, limit) as PredictionTrade[];
+        const trades = (response) ? response : [];
+        return this.parsePredictionTrades (trades, outcomeObj, since, limit);
     }
 
     /**
@@ -1721,10 +1725,35 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        if (outcome === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an outcome argument');
+        let outcomeHandle: Str = undefined;
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome (outcome);
+            outcomeHandle = this.safeString (outcomeObj, 'outcome');
+        } else {
+            // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
+            // cache (one market load) so parseTrade can resolve the unified outcome identity
+            await this.loadOutcomes ();
         }
-        return await this.fetchTrades (outcome, since, limit, params) as PredictionTrade[];
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
+        const request: Dict = { 'user': userAddress };
+        if (since !== undefined) {
+            request['type'] = 'userFillsByTime';
+            request['startTime'] = since;
+        } else {
+            request['type'] = 'userFills';
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        const fills = (response) ? response : [];
+        // parse without an outcome fallback — fills span every market the wallet traded, so a
+        // requested-outcome fallback would mislabel fills whose market is no longer listed
+        const parsedTrades = this.parsePredictionTrades (fills as any[], undefined);
+        return this.filterByOutcomeSinceLimit (parsedTrades, outcomeHandle, since, limit);
     }
 
     /**
@@ -1784,7 +1813,7 @@ export default class hyperliquid extends Exchange {
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'outcome'),
+            'market': this.safeString (outcomeObj, 'market'),
             'order': this.safeString (trade, 'oid'),
             'type': 'limit',
             'side': side,
@@ -1808,10 +1837,12 @@ export default class hyperliquid extends Exchange {
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
-        // hyperliquid has no dedicated events endpoint — events are grouped from the outcome
-        // markets, so fetch them directly rather than relying on this.markets (which may be
-        // unloaded or hold the non-prediction hyperliquid markets)
-        const marketValues = await this.fetchMarkets ();
+        // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
+        // markets. use the cached load so the handles advertised here always match the
+        // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
+        // disagree with a previously warmed cache within the same session)
+        const marketsDict = await this.loadMarkets ();
+        const marketValues = this.toArray (marketsDict);
         // Group markets by parentSymbol
         const groupMap = {};
         const lowerQueries = [];
@@ -1869,13 +1900,8 @@ export default class hyperliquid extends Exchange {
             const event = this.parseEvent ({ 'parentSymbol': key, 'markets': groupMarkets });
             events.push (event);
         }
-        if (!this.events) {
-            this.events = {};
-        }
-        for (let i = 0; i < events.length; i++) {
-            const ev = events[i];
-            this.events[ev['event']] = ev;
-        }
+        // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
+        // so getEvent() resolves these events by any of the three keys
         return this.applyEventFetchParams (events, params, queries);
     }
 
@@ -2037,9 +2063,9 @@ export default class hyperliquid extends Exchange {
     }
 
     async initializeClient (): Promise<any> {
-        // createOrder/createOrders call this before trading; load markets so checkEvents/outcome can
-        // resolve the outcome handle. loading them also keeps this method genuinely async for the PHP
-        // and typed transpilers, which mishandle an async body that never suspends
+        // createOrder/createOrders call this before trading; load markets so the order builder can
+        // resolve the outcome's market and precision. loading them also keeps this method genuinely
+        // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets ();
         const buildFee = this.safeBool (this.options, 'builderFee', false);
         if (!buildFee) {

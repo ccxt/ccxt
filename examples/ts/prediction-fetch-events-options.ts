@@ -10,6 +10,9 @@
 //   eventId   direct lookup by event id
 //   slug      direct lookup by event slug
 //
+// fetchEvents must be scoped by at least one of query/queries/tags/eventId/slug; the other
+// options (limit/sort/status/searchIn) refine that scoped result.
+//
 // Where the exchange API supports a param it is pushed server-side (polymarket maps
 // sort -> order, status -> active/closed, eventId/slug -> the events endpoint); otherwise
 // it is applied client-side, so every exchange supports the same options uniformly.
@@ -31,12 +34,11 @@ async function main () {
     const exchange = new ccxt.prediction.polymarket ();
 
     const cases: Array<[string, any]> = [
-        [ 'default (top by volume)', {} ],
-        [ 'limit: 3', { limit: 3 } ],
-        [ 'sort: newest, limit 3', { sort: 'newest', limit: 3 } ],
-        [ 'sort: liquidity, limit 3', { sort: 'liquidity', limit: 3 } ],
-        [ 'status: closed, limit 3', { status: 'closed', limit: 3 } ],
         [ 'query: Fed', { query: 'Fed' } ],
+        [ 'query: Fed, limit 3', { query: 'Fed', limit: 3 } ],
+        [ 'query: Fed, sort newest', { query: 'Fed', sort: 'newest', limit: 3 } ],
+        [ 'query: Fed, sort liquidity', { query: 'Fed', sort: 'liquidity', limit: 3 } ],
+        [ 'query: Fed, status closed', { query: 'Fed', status: 'closed', limit: 3 } ],
         [ 'query: Fed, searchIn title', { query: 'Fed', searchIn: 'title' } ],
         [ 'query: Fed, searchIn description', { query: 'Fed', searchIn: 'description' } ],
     ];
@@ -50,8 +52,8 @@ async function main () {
         }
     }
 
-    // direct lookup by slug (and by id) — grab a real one from the listing first
-    const top = await exchange.fetchEvents ({ 'limit': 1 });
+    // direct lookup by slug (and by id) — grab a real one from a scoped listing first
+    const top = await exchange.fetchEvents ({ 'query': 'Fed', 'limit': 1 });
     const sample = top[0];
     if (sample !== undefined) {
         const bySlug = await exchange.fetchEvents ({ 'slug': sample.slug });

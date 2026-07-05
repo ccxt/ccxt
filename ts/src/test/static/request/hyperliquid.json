@@ -152,17 +152,20 @@
         ],
         "createOrder": [
             {
-                "description": "create order",
+                "description": "order with builderFee off but still sending 0",
                 "method": "createOrder",
                 "url": "https://api.hyperliquid.xyz/exchange",
+                "options": {
+                    "builderFee": false
+                },
                 "input": [
-                    "WORLD-CUP-COLOMBIA-VS-PORTUGAL-PORTUGAL-592:YES",
+                    "HYPE/USDC:USDC",
                     "market",
-                    "sell",
-                    21,
-                    0.52
+                    "buy",
+                    1,
+                    65
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":100005920,\"b\":false,\"p\":\"0.494\",\"s\":\"21\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1782467824776,\"signature\":{\"r\":\"0xb17ddf735d6c6105f450bb506d921ca6e28fe66d3730b4c985a94fe7186b6076\",\"s\":\"0x4b3600c16981574a12e1c1bdf1e989562c26be358c0252a57fb5e70064011958\",\"v\":27}}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":159,\"b\":true,\"p\":\"68.25\",\"s\":\"1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"builder\":{\"b\":\"0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6\",\"f\":0}},\"nonce\":1782826288096,\"signature\":{\"r\":\"0xec92b905b61d2ea9abd28898905f2d00c12362fdf84aa3b61aee6db598834467\",\"s\":\"0x6201d6a7415a24b454f6ddff4f52cec1c0a48659e60b6e5543170dcc6c9158c2\",\"v\":28}}"
             },
             {
                 "description": "limit order with more than 5 sig digs",

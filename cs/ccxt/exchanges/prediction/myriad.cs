@@ -14,7 +14,7 @@ public partial class myriad : PredictionExchange
             { "countries", new List<object>() {} },
             { "rateLimit", 200 },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },
@@ -465,7 +465,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task<object> fetchTradeQuote(object outcome, object side, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
@@ -518,91 +518,7 @@ public partial class myriad : PredictionExchange
         };
     }
 
-    public virtual object rlpEncodeBytes(object hex)
-    {
-        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        object byteLength = this.parseToInt(divide(((string)hex).Length, 2));
-        if (isTrue(isEqual(byteLength, 0)))
-        {
-            return "80";
-        }
-        if (isTrue(isTrue((isEqual(byteLength, 1))) && isTrue((isLessThan(hex, "80")))))
-        {
-            return hex;
-        }
-        if (isTrue(isLessThan(byteLength, 56)))
-        {
-            return add(this.intToBase16(add(128, byteLength)), hex);
-        }
-        object lengthHex = this.intToBase16(byteLength);
-        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
-        {
-            lengthHex = add("0", lengthHex);
-        }
-        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
-        return add(add(this.intToBase16(add(183, lengthOfLength)), lengthHex), hex);
-    }
-
-    public virtual object rlpEncodeList(object items)
-    {
-        object concatenated = "";
-        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
-        {
-            concatenated = add(concatenated, getValue(items, i));
-        }
-        object byteLength = this.parseToInt(divide(((string)concatenated).Length, 2));
-        if (isTrue(isLessThan(byteLength, 56)))
-        {
-            return add(this.intToBase16(add(192, byteLength)), concatenated);
-        }
-        object lengthHex = this.intToBase16(byteLength);
-        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
-        {
-            lengthHex = add("0", lengthHex);
-        }
-        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
-        return add(add(this.intToBase16(add(247, lengthOfLength)), lengthHex), concatenated);
-    }
-
-    public virtual object intToRlpHex(object value)
-    {
-        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (isTrue(isEqual(value, 0)))
-        {
-            return "";
-        }
-        object hex = this.intToBase16(value);
-        if (isTrue(!isEqual((mod(((string)hex).Length, 2)), 0)))
-        {
-            hex = add("0", hex);
-        }
-        return hex;
-    }
-
-    public virtual object hexToRlpBytes(object hexValue)
-    {
-        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        object h = this.remove0xPrefix(hexValue);
-        object start = 0;
-        object total = getArrayLength(h);
-        while (isTrue((isLessThan(start, total))) && isTrue((isEqual(slice(h, start, add(start, 1)), "0"))))
-        {
-            start = add(start, 1);
-        }
-        h = slice(h, start, null);
-        if (isTrue(isEqual(h, "")))
-        {
-            return "";
-        }
-        if (isTrue(!isEqual((mod(getArrayLength(h), 2)), 0)))
-        {
-            h = add("0", h);
-        }
-        return h;
-    }
-
-    public virtual object signEvmTransaction(object tx, object privateKey)
+    public override object signEvmTransaction(object tx, object privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -634,7 +550,7 @@ public partial class myriad : PredictionExchange
         return add("0x02", this.rlpEncodeList(signedFields));
     }
 
-    public async virtual Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
+    public async override Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
     {
         object payload = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -651,48 +567,9 @@ public partial class myriad : PredictionExchange
         {
             throw new ExchangeError ((string)add(add(add(add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
         }
-        return this.safeString(response, "result");
-    }
-
-    public virtual object padHexAddress(object address)
-    {
-        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        object stripped = this.remove0xPrefix(address);
-        return add("000000000000000000000000", stripped);
-    }
-
-    public async virtual Task<object> sendEvmTransaction(object rpcUrl, object networkId, object fromAddress, object to, object value, object data, object gasLimit)
-    {
-        object nonce = await this.ethRpc(rpcUrl, "eth_getTransactionCount", new List<object>() {fromAddress, "pending"});
-        object gasPrice = await this.ethRpc(rpcUrl, "eth_gasPrice", new List<object>() {});
-        object tx = new Dictionary<string, object>() {
-            { "chainId", this.parseToInt(networkId) },
-            { "nonce", nonce },
-            { "maxPriorityFeePerGas", gasPrice },
-            { "maxFeePerGas", gasPrice },
-            { "gasLimit", gasLimit },
-            { "to", to },
-            { "value", value },
-            { "data", data },
-        };
-        object signed = this.signEvmTransaction(tx, this.privateKey);
-        return await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed});
-    }
-
-    public async virtual Task<object> waitForTransactionReceipt(object rpcUrl, object txHash, object timeout = null)
-    {
-        timeout ??= 60000;
-        object start = this.milliseconds();
-        while (isLessThan((subtract(this.milliseconds(), start)), timeout))
-        {
-            object receipt = await this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new List<object>() {txHash});
-            if (isTrue(isTrue((!isEqual(receipt, null))) && isTrue((!isEqual(receipt, null)))))
-            {
-                return ((object)receipt);
-            }
-            await this.sleep(2000);
-        }
-        throw new ExchangeError ((string)add(add(add(this.id, " transaction "), txHash), " not mined within timeout")) ;
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return this.safeValue(response, "result");
     }
 
     public async virtual Task<object> ensureErc20Allowance(object rpcUrl, object networkId, object token, object owner, object spender)
@@ -712,7 +589,7 @@ public partial class myriad : PredictionExchange
         // approve(spender, maxUint256)
         object maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
         object approveData = add(add("0x095ea7b3", this.padHexAddress(spender)), maxUint);
-        object approveHash = await this.sendEvmTransaction(rpcUrl, networkId, owner, token, "0x0", approveData, "0x186a0");
+        object approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0");
         await this.waitForTransactionReceipt(rpcUrl, approveHash);
         return null;
     }
@@ -736,7 +613,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object defaultModel = this.safeString(info, "tradingModel", "amm");
@@ -785,7 +662,7 @@ public partial class myriad : PredictionExchange
         object outcomeObj = this.outcome(outcome);
         object parsed = this.parseOrder(wrapper, ((object)outcomeObj));
         // the POST /orders response is minimal (hash + status), so backfill the known request values
-        // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
         object sideStr = ((bool) isTrue((isEqual(side, null)))) ? null : ((string)((string)side)).ToLower();
         object typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)((string)type)).ToLower();
         if (isTrue(isEqual(this.safeString(parsed, "side"), null)))
@@ -910,13 +787,13 @@ public partial class myriad : PredictionExchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object ordersLength = getArrayLength(orders);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
         {
             object o = getValue(orders, i);
-            object outcome = this.safeString(o, "symbol");
+            object outcome = this.safeString(o, "outcome");
             object type = this.safeString(o, "type");
             object side = this.safeString(o, "side");
             object amount = this.safeNumber(o, "amount");
@@ -946,7 +823,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         await this.cancelOrder(id, outcome);
         return await this.createOrderbookOrder(outcome, type, side, amount, price, parameters);
     }
@@ -965,7 +842,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a privateKey to sign the on-chain transaction")) ;
         }
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
@@ -989,7 +866,7 @@ public partial class myriad : PredictionExchange
         {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
-        object txHash = await this.sendEvmTransaction(rpcUrl, networkId, fromAddress, predictionMarket, "0x0", calldata, gasLimit);
+        object txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit);
         return this.parseTradeTx(txHash, quote, ((object)outcomeObj), sideStr);
     }
 
@@ -1194,9 +1071,9 @@ public partial class myriad : PredictionExchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "outcome", outcome },
-            { "outcomeId", this.safeString(outcomeObj, "id") },
+            { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "type", ((bool) isTrue(isMarketTif)) ? "market" : "limit" },
             { "timeInForce", tif },
             { "postOnly", (isEqual(tif, "PO")) },
@@ -1253,7 +1130,7 @@ public partial class myriad : PredictionExchange
         object market = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.ensureOutcomesLoaded();
+            await this.loadOutcomes();
             market = this.outcome(outcome);
         }
         return this.parseOrder(wrapper, ((object)market));
@@ -1280,7 +1157,7 @@ public partial class myriad : PredictionExchange
         object networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.ensureOutcomesLoaded();
+            await this.loadOutcomes();
             object outcomeObj = this.outcome(outcome);
             object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             marketId = this.safeString(info, "marketId", marketId);
@@ -1349,7 +1226,7 @@ public partial class myriad : PredictionExchange
             { "network_id", this.parseToInt(networkId) },
         };
         await this.myriadPublicPostOrdersCancelBatch(this.extend(request, parameters));
-        return this.parseOrders(wrappers, null, null, null);
+        return this.parsePredictionOrders(wrappers);
     }
 
     /**
@@ -1371,7 +1248,7 @@ public partial class myriad : PredictionExchange
         object market = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.ensureOutcomesLoaded();
+            await this.loadOutcomes();
             market = this.outcome(outcome);
         }
         return this.parseOrder(response, ((object)market));
@@ -1408,7 +1285,7 @@ public partial class myriad : PredictionExchange
         object outcomeSymbol = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.ensureOutcomesLoaded();
+            await this.loadOutcomes();
             object outcomeObj = this.outcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
         }
@@ -1417,7 +1294,7 @@ public partial class myriad : PredictionExchange
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
         // outcome ids — and filter by the requested outcome client-side
-        object orders = this.parseOrders(data, null, null, null);
+        object orders = this.parsePredictionOrders(data);
         return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
     }
 
@@ -1637,7 +1514,7 @@ public partial class myriad : PredictionExchange
             { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
-            { "market", this.safeString(market, "outcome") },
+            { "market", this.safeString(market, "market") },
             { "type", "market" },
             { "side", side },
             { "price", this.safeNumber(quote, "priceAverage") },
@@ -1835,7 +1712,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
         object marketId = this.safeString(getValue(outcomeObj, "info"), "marketId");
@@ -1932,7 +1809,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> fetchTradingFee(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object request = new Dictionary<string, object>() {
@@ -2065,7 +1942,7 @@ public partial class myriad : PredictionExchange
             { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
-            { "market", this.safeString(market, "outcome") },
+            { "market", this.safeString(market, "market") },
             { "timestamp", now },
             { "datetime", this.iso8601(now) },
             { "high", null },
@@ -2101,7 +1978,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
         object marketId = this.safeString(getValue(outcomeObj, "info"), "marketId");
@@ -2306,7 +2183,7 @@ public partial class myriad : PredictionExchange
     {
         timeframe ??= "1d";
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
@@ -2457,7 +2334,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object result = new Dictionary<string, object>() {};
         if (isTrue(isEqual(outcomes, null)))
         {
@@ -2545,7 +2422,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
@@ -2600,7 +2477,7 @@ public partial class myriad : PredictionExchange
             }
             ((IList<object>)trades).Add(row);
         }
-        return this.parseTrades(trades, ((object)outcomeObj), since, limit);
+        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
 
     /**
@@ -2630,7 +2507,7 @@ public partial class myriad : PredictionExchange
             { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
-            { "market", this.safeString(market, "outcome") },
+            { "market", this.safeString(market, "market") },
             { "order", null },
             { "type", null },
             { "side", this.safeString(trade, "action") },
@@ -2657,21 +2534,17 @@ public partial class myriad : PredictionExchange
     public async override Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        this.requireEventQuery(parameters);
         object queries = this.parseSearchQueries(parameters);
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "sort", "searchIn", "eventId", "slug", "status"});
         object queriesLength = getArrayLength(queries);
         if (isTrue(isEqual(queriesLength, 0)))
         {
-            this.populateOutcomes();
-            // hoist Object.values to a local — inline as a call argument breaks the php regex transpiler
-            object existingEvents = (IList<object>)(new List<object>(((IDictionary<string,object>)this.events).Values));
+            // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
+            object existingEvents = this.eventsList();
             return this.applyEventFetchParams(existingEvents, parameters, queries);
         }
         object rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
-        if (!isTrue(this.events))
-        {
-            this.events = new Dictionary<string, object>() {};
-        }
         if (!isTrue(this.markets))
         {
             this.markets = this.createSafeDictionary();
@@ -2683,68 +2556,12 @@ public partial class myriad : PredictionExchange
             object m = this.parseMyriadMarket(raw);
             ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "symbol"))] = m;
             object ev = this.parseMarketToEvent(raw, m);
-            object evKey = this.safeString(ev, "event");
-            if (isTrue(!isEqual(evKey, null)))
-            {
-                ((IDictionary<string,object>)this.events)[(string)evKey] = ev;
-                ((IList<object>)result).Add(ev);
-            }
+            ((IList<object>)result).Add(ev);
         }
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents(result);
         this.populateOutcomes();
         return this.applyEventFetchParams(result, parameters, queries);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name myriad#ensureOutcomesLoaded
-     * @description rebuilds the outcome caches from the loaded markets when they are empty
-     * @returns {undefined}
-     */
-    public virtual void ensureOutcomesLoaded()
-    {
-        if (isTrue(isTrue((isEqual(this.outcomes, null))) || isTrue(this.isEmpty(this.outcomes))))
-        {
-            this.populateOutcomes();
-        }
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name myriad#populateOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
-     */
-    public virtual void populateOutcomes()
-    {
-        this.outcomes = new Dictionary<string, object>() {};
-        this.outcomes_by_id = new Dictionary<string, object>() {};
-        object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
-        {
-            object market = getValue(this.markets, getValue(marketKeys, i));
-            object outcomesList = (IList<object>)(this.safeList(market, "outcomes", new List<object>() {}));
-            for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
-            {
-                object oc = getValue(outcomesList, j);
-                // accept the legacy outcome/id keys too: in Go/C#/Java the prediction
-                // setMarkets override is not dispatched, so oc is not pre-normalized
-                object ocSymbol = this.safeString2(oc, "outcome", "symbol");
-                object ocId = this.safeString2(oc, "outcomeId", "id");
-                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
-                ((IDictionary<string,object>)oc)["outcomeId"] = ocId;
-                ((IDictionary<string,object>)oc)["market"] = this.safeString2(oc, "market", "marketSymbol");
-                if (isTrue(!isEqual(ocSymbol, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
-                }
-                if (isTrue(!isEqual(ocId, null)))
-                {
-                    ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
-                }
-            }
-        }
     }
 
     /**
@@ -2962,7 +2779,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> watchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
@@ -3061,7 +2878,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> watchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
@@ -3092,7 +2909,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
         }
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
@@ -3142,9 +2959,9 @@ public partial class myriad : PredictionExchange
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
             { "outcome", sym },
-            { "outcomeId", this.safeString(outcomeObj, "id") },
+            { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "order", this.safeString(taker, "orderHash") },
             { "type", null },
             { "side", this.safeStringLower(taker, "side") },
@@ -3199,7 +3016,7 @@ public partial class myriad : PredictionExchange
                         { "outcome", makerSym },
                         { "outcomeId", this.safeString(makerOutcomeObj, "id") },
                         { "label", this.safeString(makerOutcomeObj, "label") },
-                        { "market", this.safeString(makerOutcomeObj, "outcome") },
+                        { "market", this.safeString(makerOutcomeObj, "market") },
                         { "order", this.safeString(maker, "orderHash") },
                         { "type", null },
                         { "side", this.safeStringLower(maker, "side") },
@@ -3245,7 +3062,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> watchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
@@ -3268,7 +3085,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> watchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         if (isTrue(isEqual(outcomes, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
@@ -3358,9 +3175,9 @@ public partial class myriad : PredictionExchange
             object last = this.fromWei(this.safeString(oc, "last"));
             object ticker = this.safePredictionTicker(new Dictionary<string, object>() {
                 { "outcome", sym },
-                { "outcomeId", this.safeString(outcomeObj, "id") },
+                { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
                 { "label", this.safeString(outcomeObj, "label") },
-                { "market", this.safeString(outcomeObj, "outcome") },
+                { "market", this.safeString(outcomeObj, "market") },
                 { "timestamp", ts },
                 { "datetime", this.iso8601(ts) },
                 { "high", null },
@@ -3401,7 +3218,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> watchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object trader = this.walletAddressFromKeys();
         object networkId = this.safeString(this.options, "defaultNetworkId", "56");
         if (isTrue(!isEqual(outcome, null)))
@@ -3443,9 +3260,9 @@ public partial class myriad : PredictionExchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "outcome", sym },
-            { "outcomeId", this.safeString(outcomeObj, "id") },
+            { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "type", ((bool) isTrue(isMarketTif)) ? "market" : "limit" },
             { "timeInForce", tif },
             { "side", this.safeStringLower(data, "side") },
@@ -3482,7 +3299,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> watchPositions(object outcomes = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.ensureOutcomesLoaded();
+        await this.loadOutcomes();
         object trader = this.walletAddressFromKeys();
         object networkId = this.safeString(this.options, "defaultNetworkId", "56");
         object channel = add(add(add("positions:", networkId), ":"), trader);
@@ -3571,7 +3388,7 @@ public partial class myriad : PredictionExchange
             { "outcome", sym },
             { "outcomeId", posId },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
             { "side", "long" },

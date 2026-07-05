@@ -165,7 +165,7 @@ public class BitgetCore extends BitgetApi
             }} );
             put( "hostname", "bitget.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658" );
+                put( "logo", "https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://api.{hostname}" );
                     put( "mix", "https://api.{hostname}" );
@@ -3347,7 +3347,7 @@ final Object finalMinNotional = minNotional;
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -12352,8 +12352,10 @@ final Object finalMinNotional = minNotional;
                     }
                     url = Helpers.add(url, queryInner);
                     // bitget signs the raw (non-percent-encoded) query string, so the
-                    // signature must use the decoded values (e.g. non-ascii market ids)
-                    auth = Helpers.add(auth, Helpers.add("?", this.rawencode(sortedParams)));
+                    // signature must use the decoded values (e.g. non-ascii market ids).
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    auth = Helpers.add(auth, Helpers.add("?", this.rawencode(sortedParams, true)));
                 }
             }
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

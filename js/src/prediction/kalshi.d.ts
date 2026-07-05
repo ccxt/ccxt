@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/kalshi.js';
-import type { Int, Str, Num, Dict, Strings, Market, OrderBook, OHLCV, Balances, OpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
 /**
  * @class kalshi
  * @augments Exchange
@@ -9,27 +9,39 @@ export default class kalshi extends Exchange {
     /**
      * @method
      * @name kalshi#fetchMarkets
-     * @description fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+     * @description fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
      * @see https://trading-api.readme.io/reference/getmarkets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.query] a single query string to filter markets by (matches ticker/title)
-     * @param {string[]} [params.queries] multiple query strings (alternative to query)
-     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
+     * @param {string} [params.query] a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
+     * @param {string[]} [params.queries] multiple search queries (alternative to query); markets from any matching event are returned
+     * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseBinaryMarketToOutcomes(raw: Dict): Market[];
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcome
+     * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+     * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+     * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+     * @returns {object} the resolved outcome object
+     */
+    fetchOutcome(outcomeSymbol: string): Promise<any>;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     parseMarket(raw: Dict): Market;
     /**
      * @method
      * @name kalshi#fetchTicker
      * @description fetches the current market price and bid/ask for a single kalshi outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market
-     * @param {string} symbol the unified symbol like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
+     * @param {string} outcome the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(symbol: Str, params?: {}): Promise<PredictionTicker>;
+    fetchTicker(outcome: Str, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
      * @name kalshi#fetchStatus
@@ -44,12 +56,12 @@ export default class kalshi extends Exchange {
      * @name kalshi#fetchOpenInterest
      * @description fetches the open interest of a prediction market outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market
-     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} outcome unified outcome or outcome id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
     /**
      * @ignore
      * @method
@@ -65,47 +77,47 @@ export default class kalshi extends Exchange {
      * @name kalshi#fetchTickers
      * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
      * @see https://docs.kalshi.com/api-reference/market/get-markets
-     * @param {string[]} [symbols] unified outcome symbols, fetches tickers for all loaded outcomes when omitted
+     * @param {string[]} [outcomes] unified outcomes, fetches tickers for all loaded outcomes when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<PredictionTickers>;
+    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @method
      * @name kalshi#fetchOrderBook
      * @description fetches the order book for a single kalshi outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market-orderbook
-     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} outcome unified outcome or outcome id
      * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(symbol: Str, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @ignore
      * @method
      * @name kalshi#sortedOrders
      * @description sorts bids descending and asks ascending, then returns a CCXT-shaped order book object
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} timestamp timestamp in ms
      * @param {object[]} bids array of [price, size] bid levels
      * @param {object[]} asks array of [price, size] ask levels
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    sortedOrders(symbol: Str, timestamp: Int, bids: any[], asks: any[]): OrderBook;
+    sortedOrders(outcome: Str, timestamp: Int, bids: any[], asks: any[]): PredictionOrderBook;
     /**
      * @method
      * @name kalshi#fetchOHLCV
      * @description fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
      * @see https://docs.kalshi.com/api-reference/market/get-market-candlesticks
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: Str, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(outcome: Str, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     /**
      * @ignore
      * @method
@@ -121,13 +133,13 @@ export default class kalshi extends Exchange {
      * @name kalshi#fetchTrades
      * @description fetches public trade history for a single kalshi market ticker
      * @see https://docs.kalshi.com/api-reference/market/get-trades
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    fetchTrades(symbol: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchTrades(outcome: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -161,11 +173,11 @@ export default class kalshi extends Exchange {
      * @name kalshi#fetchPositions
      * @description fetches open market positions for the authenticated kalshi user
      * @see https://trading-api.readme.io/reference/getportfoliopositions
-     * @param {string[]} [symbols] filter by outcome ids or symbols
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
     /**
      * @ignore
      * @method
@@ -181,24 +193,24 @@ export default class kalshi extends Exchange {
      * @name kalshi#fetchOpenOrders
      * @description fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
      * @see https://trading-api.readme.io/reference/getorders
-     * @param {string} [symbol] filter by unified outcome symbol
+     * @param {string} [outcome] filter by unified outcome
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name kalshi#fetchOrder
      * @description fetches a single order by id from the kalshi portfolio endpoint
      * @see https://trading-api.readme.io/reference/getorder
      * @param {string} id order id
-     * @param {string} [symbol] unified outcome symbol
+     * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrder(id: Str, symbol?: Str, params?: {}): Promise<PredictionOrder>;
+    fetchOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -223,7 +235,7 @@ export default class kalshi extends Exchange {
      * @name kalshi#createOrder
      * @description places a limit or market order on kalshi for the given outcome token
      * @see https://trading-api.readme.io/reference/createorder
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount number of contracts
@@ -231,28 +243,28 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrder(outcome: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name kalshi#cancelOrder
      * @description cancels a single open order by id on kalshi
      * @see https://trading-api.readme.io/reference/cancelorder
      * @param {string} id order id
-     * @param {string} [symbol] unified outcome symbol
+     * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: Str, symbol?: Str, params?: {}): Promise<PredictionOrder>;
+    cancelOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name kalshi#cancelAllOrders
      * @description cancels all open orders on kalshi, optionally scoped to one outcome ticker
      * @see https://trading-api.readme.io/reference/cancelorders
-     * @param {string} [symbol] unified outcome symbol to scope the cancellation to
+     * @param {string} [outcome] unified outcome to scope the cancellation to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelAllOrders(outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name kalshi#fetchEvents
@@ -263,10 +275,10 @@ export default class kalshi extends Exchange {
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
      * @param {int} [params.limit] page size per request, defaults to 200
-     * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
+     * @param {int} [params.maxPages] maximum number of event pages to scan, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    fetchEvents(params?: {}): Promise<PredictionEvent[]>;
+    fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
     /**
      * @method
      * @name kalshi#fetchEvent

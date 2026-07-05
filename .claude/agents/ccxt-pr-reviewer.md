@@ -120,7 +120,7 @@ A fresh worktree (or a clone that hasn't been built recently) is missing depende
 [ -d vendor ]         || composer install                                # PHP deps for php/test/*
 [ -f exchanges.json ] || npm run export-exchanges                        # tsBuild reads this
 command -v tox >/dev/null 2>&1 || python3 -m pip install --user tox      # check-python-syntax needs it
-command -v ruff >/dev/null 2>&1 || python3 -m pip install --user ruff    # check-python-ruff needs it
+command -v ruff >/dev/null 2>&1 || python3 -m pip install --user ruff    # check-python-style needs it
 ```
 
 If any install step itself fails (e.g. `python3` missing, no network), record it in the run log and downgrade the affected check in Phase 3 from "non-zero = blocker" to "skipped — toolchain unavailable". Note the skipped step in the review checklist with the reason.

@@ -64,7 +64,7 @@ Prediction exchanges expose the same unified API as crypto exchanges. Discovery 
 
 **Discovery & markets**
 
-- `fetchEvents (queries?, params?)` — search or list events, caching their markets and outcomes
+- `fetchEvents (params?)` — search events (scope by `query`/`queries`/`tags`/`eventId`/`slug`), caching their markets and outcomes
 - `fetchEvent (id, params?)` — a single event by id, slug or ticker
 - `fetchMarkets (params?)` / `loadMarkets (reload?)` — every market (each carries `type: 'prediction'` and an `outcomes` list)
 - `fetchTime (params?)` — exchange server time
@@ -103,18 +103,18 @@ The rest of this page documents `fetchEvents` and `fetchEvent`, the two entry po
 ## fetchEvents
 
 ```javascript
-fetchEvents (queries = undefined, params = {})
+fetchEvents (params = {})
 ```
 
-- `queries` — an optional array of free-text search terms; when omitted, the active events listing is fetched
-- returns an **array of event structures** and caches the discovered markets and outcomes on the instance (`exchange.events`, `exchange.outcomes`)
+- `params` — a `fetchEventsParams` object; must be scoped by at least one of `query` (a search string), `queries` (a list of strings), `tags`, `eventId` or `slug`. Optional: `limit`, `sort` (`volume`/`liquidity`/`newest`), `status` (`active`/`inactive`/`closed`/`all`), `searchIn` (`title`/`description`/`both`)
+- returns an **array of event structures** and caches the discovered events, markets and outcomes on the instance (`exchange.events`, `exchange.outcomes`)
 
 ```javascript
 // event structure
 {
     'id': '903193',                       // exchange-specific event id
     'slug': 'will-x-happen-by-july',      // url slug of the event
-    'symbol': 'WILL_X_HAPPEN_JULY',       // shortened unified event key
+    'event': 'WILL_X_HAPPEN_JULY',        // shortened unified event handle (getEvent resolves this)
     'title': 'Will X happen by July?',    // human-readable title
     'markets': [ ... ],                   // a list of market structures, each with an outcomes list
     'active': true,                       // whether the event is still tradable
@@ -129,7 +129,7 @@ A typical workflow:
 
 ```javascript
 const exchange = new ccxt.prediction.polymarket ()
-const events = await exchange.fetchEvents ([ 'Trump' ])
+const events = await exchange.fetchEvents ({ 'query': 'Trump' })
 const outcome = events[0]['markets'][0]['outcomes'][0]
 const ticker = await exchange.fetchTicker (outcome['outcome'])
 const orderbook = await exchange.fetchOrderBook (outcome['outcome'])
@@ -138,7 +138,7 @@ const candles = await exchange.fetchOHLCV (outcome['outcome'], '1h')
 const order = await exchange.createOrder (outcome['outcome'], 'limit', 'buy', 5, 0.40)
 ```
 
-Calling a price method for an outcome that has not been loaded yet throws `ArgumentsRequired` — fetch the events (or `loadMarkets()`) first.
+Outcome-addressed methods (`fetchTicker`, `createOrder`, …) auto-load the outcome cache on first use — like `loadMarkets()` + `market(symbol)` in regular ccxt — so you don't need to `fetchEvents`/`loadMarkets` first. A genuinely unknown outcome throws `BadSymbol`. Call `loadOutcomes()` to warm the cache explicitly, or `getEvent(idOrHandle)` to read a cached event.
 
 ## fetchEvent
 
@@ -151,8 +151,29 @@ fetchEvent (id, params = {})
 
 ```javascript
 const exchange = new ccxt.prediction.polymarket ()
-const events = await exchange.fetchEvents ([ 'Trump' ])
+const events = await exchange.fetchEvents ({ 'query': 'Trump' })
 const event = await exchange.fetchEvent (events[0]['id'])
 ```
 
 Supported by `polymarket`, `kalshi`, `myriad` and `limitless` (check `exchange.has['fetchEvent']`); Hyperliquid has no single-event endpoint.
+
+## The outcome cache
+
+Prediction exchanges address an **outcome** (e.g. `TRUMP_WINS:YES`, or its raw `outcomeId`) the way regular ccxt addresses a `symbol`. The outcome cache (`exchange.outcomes` / `exchange.outcomes_by_id`) is loaded automatically on first use, so you rarely touch it directly:
+
+- **Auto-load** — the first outcome-addressed call (`fetchTicker`, `fetchOrderBook`, `createOrder`, …) loads and caches the outcomes; later calls hit the cache with no extra request. This mirrors `loadMarkets()` + `market(symbol)`.
+- **`loadOutcomes (reload = false, params = {})`** — warm the whole cache explicitly (the analogue of `loadMarkets`). `reload = true` refetches.
+- **`getEvent (idOrHandle)`** — read a cached event by its id, slug, or shortened handle (the `event` field). Cache-only; call `fetchEvents(...)` first.
+- **`options['loadAllOutcomes']`** — defaults to `true`: the first cache miss bulk-loads every outcome once. **Kalshi** sets it `false` (it has tens of thousands of markets), so a cache miss fetches just the one requested market on demand (~1s, then cached). Flip it to `true` to pay the full listing scan once.
+
+An unknown outcome throws `BadSymbol`; a genuinely cold cache accessed through the sync `outcome()` resolver (used inside parsers) throws `ExchangeError`. You never need to pre-load — just call the method.
+
+## CLI
+
+Every language CLI can target a prediction exchange with the `-p` / `--prediction` flag. Regular ids win for ids present in both namespaces (e.g. `hyperliquid`); `-p` forces the prediction namespace, and prediction-only ids (`polymarket`, `kalshi`, `limitless`, `myriad`) resolve there automatically:
+
+```bash
+npm run cli.ts -- -p polymarket fetchEvents '{"query":"trump"}'
+npm run cli.py -- --prediction kalshi fetchTicker KXBTC-25DEC31-B100000:YES --sandbox
+npm run cli.go -- -p hyperliquid fetchBalance
+```

@@ -16,7 +16,6 @@ function test_fetch_transfers($exchange, $skipped_properties, $code) {
         $method = 'fetchTransfers';
         $transfers = \React\Async\await($exchange->fetch_transfers($code));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $transfers, $code);
-        $now = $exchange->milliseconds();
         for ($i = 0; $i < count($transfers); $i++) {
             test_transfer($exchange, $skipped_properties, $method, $transfers[$i], $code);
         }

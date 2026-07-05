@@ -161,7 +161,7 @@ class onetrading(Exchange, ImplicitAPI):
                 '1M': '1/MONTHS',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
+                'logo': 'https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15',
                 'api': {
                     'public': 'https://api.onetrading.com/fast',
                     'private': 'https://api.onetrading.com/fast',
@@ -330,6 +330,7 @@ class onetrading(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
+                'mica': True,
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
@@ -906,7 +907,7 @@ class onetrading(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

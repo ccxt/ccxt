@@ -15,6 +15,14 @@ public class TestFetchTickers extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+        // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+        // is impractical and the "every active market has a ticker" check doesn't apply — test
+        // fetchTickers by the outcome handle instead
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            Object predictionResult = (fetchTickersHelperTest(exchange, skippedProperties, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(predictionResult));
+        }
         Object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
         Object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
         Object results = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(withoutSymbol, withSymbol)))).join();

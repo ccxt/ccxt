@@ -310,7 +310,7 @@ func  (this *HyperliquidCore) CancelOrderWs(id any, optionalArgs ...any) <- chan
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *HyperliquidCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -353,7 +353,7 @@ func  (this *HyperliquidCore) WatchOrderBook(symbol any, optionalArgs ...any) <-
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *HyperliquidCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1834,8 +1834,8 @@ func  (this *HyperliquidCore) HandleErrorMessage(client any, message any) any  {
     var channel any = this.SafeString(message, "channel", "")
     if ccxt.IsTrue(ccxt.IsEqual(channel, "error")) {
         var ret_msg any = this.SafeString(message, "data", "")
-        var errorMsg any = ccxt.Add(ccxt.Add(this.Id, " "), ret_msg)
-        client.(ccxt.ClientInterface).Reject(errorMsg)
+        error := ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id, " "), ret_msg))
+        client.(ccxt.ClientInterface).Reject(error)
         return true
     }
     var data any = this.SafeDict(message, "data", map[string]any {})
@@ -1847,13 +1847,13 @@ func  (this *HyperliquidCore) HandleErrorMessage(client any, message any) any  {
     var payload any = this.SafeDict(response, "payload", map[string]any {})
     var status any = this.SafeString(payload, "status")
     if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(status, nil)) && ccxt.IsTrue(!ccxt.IsEqual(status, "ok"))) {
-        var errorMsg any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(payload))
-        client.(ccxt.ClientInterface).Reject(errorMsg, id)
+        error := ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(payload)))
+        client.(ccxt.ClientInterface).Reject(error, id)
         return true
     }
     var typeVar any = this.SafeString(payload, "type")
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "error")) {
-        var error any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(payload))
+        error := ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(payload)))
         client.(ccxt.ClientInterface).Reject(error, id)
         return true
     }

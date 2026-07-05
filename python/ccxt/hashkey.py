@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -51,10 +51,10 @@ class hashkey(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': False,
+                'addMargin': True,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
                 'borrowMargin': False,
@@ -169,13 +169,13 @@ class hashkey(Exchange, ImplicitAPI):
                 'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
+                'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
                 'sandbox': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -197,7 +197,7 @@ class hashkey(Exchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98',
+                'logo': 'https://github.com/user-attachments/assets/3dd65db2-5da9-4ecc-93ac-6d420f36261c',
                 'api': {
                     'public': 'https://api-glb.hashkey.com',
                     'private': 'https://api-glb.hashkey.com',
@@ -246,10 +246,12 @@ class hashkey(Exchange, ImplicitAPI):
                         'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrder': 1,
+                        'api/v1/coinInfo': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1,
                         'api/v1/account/trades': 5,
                         'api/v1/account/type': 5,
+                        'api/v1/account/chainType': 1,
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 5,
                         'api/v1/spot/subAccount/openOrders': 1,
@@ -270,6 +272,8 @@ class hashkey(Exchange, ImplicitAPI):
                         'api/v1/spot/batchOrders': 5,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
+                        'api/v1/futures/marginType': 1,
+                        'api/v1/futures/positionMargin': 1,
                         'api/v1/futures/position/trading-stop': 3,
                         'api/v1/futures/batchOrders': 5,
                         'api/v1/account/assetTransfer': 1,
@@ -1251,7 +1255,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(maximum value is 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3905,6 +3909,115 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_leverage(response, market)
 
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}) -> dict:
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.load_markets()
+        marginMode = marginMode.upper()
+        if marginMode == 'CROSSED':
+            marginMode = 'CROSS'
+        if (marginMode != 'CROSS') and (marginMode != 'ISOLATED'):
+            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be either cross or isolated')
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap markets only')
+        request = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        }
+        return self.privatePostApiV1FuturesMarginType(self.extend(request, params))
+
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        add margin
+
+        https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['side']: position side, either 'long' or 'short'
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, amount, 'add', params)
+
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        remove margin from a position
+
+        https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['side']: position side, either 'long' or 'short'
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' modifyMarginHelper() supports swap markets only')
+        side = None
+        side, params = self.handle_param_string(params, 'side')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"')
+        side = side.upper()
+        if (side != 'LONG') and (side != 'SHORT'):
+            raise ArgumentsRequired(self.id + ' ' + type + 'Margin() params["side"] must be either long or short')
+        amountString = self.number_to_string(amount)
+        if type == 'reduce':
+            amountString = Precise.string_mul(amountString, '-1')
+        request = {
+            'symbol': market['id'],
+            'side': side,
+            'amount': amountString,
+        }
+        response = self.privatePostApiV1FuturesPositionMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0000",
+        #         "symbol": "BTCUSDT-PERPETUAL",
+        #         "margin": "12344.345",
+        #         "timestamp": "1726869763318"
+        #     }
+        #
+        return self.extend(self.parse_margin_modification(response, market), {
+            'type': type,
+            'amount': amount,
+        })
+
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
+        marketId = self.safe_string(data, 'symbol')
+        market = self.safe_market(marketId, market, None, 'swap')
+        timestamp = self.safe_integer(data, 'timestamp')
+        errorCode = self.safe_string(data, 'code')
+        success = errorCode == '0000'
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': self.safe_number(data, 'margin'),
+            'code': market['settle'],
+            'status': 'ok' if (success) else 'failed',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -4023,7 +4136,7 @@ class hashkey(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
 
-        https://developers.binance.com/docs/wallet/asset/trade-fee  # spot
+        https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information  # spot
         https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight  # swap
 
         :param str symbol: unified market symbol
@@ -4055,7 +4168,7 @@ class hashkey(Exchange, ImplicitAPI):
         """
         *for spot markets only* fetch the trading fees for multiple markets
 
-        https://developers.binance.com/docs/wallet/asset/trade-fee
+        https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols

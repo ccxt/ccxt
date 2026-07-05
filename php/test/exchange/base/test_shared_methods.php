@@ -47,7 +47,14 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
     $same_numeric = ((is_int($entry_key_val) || is_float($entry_key_val))) && ((is_int($format_key_val) || is_float($format_key_val)));
     $same_boolean = (($entry_key_val === true) || ($entry_key_val === false)) && (($format_key_val === true) || ($format_key_val === false));
     $same_array = gettype($entry_key_val) === 'array' && array_is_list($entry_key_val) && gettype($format_key_val) === 'array' && array_is_list($format_key_val);
-    $same_object = $exchange->is_dictionary($entry_key_val) && $exchange->is_dictionary($format_key_val);
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    $format_is_empty_array = false;
+    if (gettype($format_key_val) === 'array' && array_is_list($format_key_val)) {
+        $format_len = count($format_key_val);
+        $format_is_empty_array = ($format_len === 0);
+    }
+    $same_object = $exchange->is_dictionary($entry_key_val) && ($exchange->is_dictionary($format_key_val) || $format_is_empty_array);
     $result = ($entry_key_val === null) || $same_string || $same_numeric || $same_boolean || $same_array || $same_object;
     return $result;
 }

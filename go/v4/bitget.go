@@ -160,7 +160,7 @@ func (this *BitgetCore) Describe() any {
 		},
 		"hostname": "bitget.com",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658",
+			"logo": "https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45",
 			"api": map[string]any{
 				"spot":    "https://api.{hostname}",
 				"mix":     "https://api.{hostname}",
@@ -3300,7 +3300,7 @@ func (this *BitgetCore) ParseDepositAddress(depositAddress any, optionalArgs ...
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitgetCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -12504,8 +12504,10 @@ func (this *BitgetCore) Sign(path any, optionalArgs ...any) any {
 				}
 				url = Add(url, queryInner)
 				// bitget signs the raw (non-percent-encoded) query string, so the
-				// signature must use the decoded values (e.g. non-ascii market ids)
-				auth = Add(auth, Add("?", this.Rawencode(sortedParams)))
+				// signature must use the decoded values (e.g. non-ascii market ids).
+				// sort explicitly (true) so the signed order matches the url order in Go,
+				// where map iteration is not ordered (keysort's order is otherwise lost)
+				auth = Add(auth, Add("?", this.Rawencode(sortedParams, true)))
 			}
 		}
 		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")

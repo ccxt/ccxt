@@ -1,5 +1,6 @@
 {
     "exchange": "kalshi",
+    "asyncOnly": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {
@@ -7,7 +8,7 @@
             {
                 "description": "fetchTicker for a yes outcome",
                 "method": "fetchTicker",
-                "url": "https://api.elections.kalshi.com/trade-api/v2/markets/KXELONMARS-99",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/KXELONMARS-99",
                 "input": [
                     "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
                 ]
@@ -17,7 +18,7 @@
             {
                 "description": "fetchTickers with two outcome symbols",
                 "method": "fetchTickers",
-                "url": "https://api.elections.kalshi.com/trade-api/v2/markets?tickers=KXELONMARS-99%2CKXCOLONIZEMARS-50&limit=100",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets?tickers=KXELONMARS-99%2CKXCOLONIZEMARS-50&limit=100",
                 "input": [
                     [
                         "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
@@ -30,7 +31,7 @@
             {
                 "description": "fetchOrderBook for a yes outcome",
                 "method": "fetchOrderBook",
-                "url": "https://api.elections.kalshi.com/trade-api/v2/markets/KXELONMARS-99/orderbook",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/KXELONMARS-99/orderbook",
                 "input": [
                     "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
                 ]
@@ -40,7 +41,7 @@
             {
                 "description": "fetchTrades with limit",
                 "method": "fetchTrades",
-                "url": "https://api.elections.kalshi.com/trade-api/v2/markets/trades?ticker=KXELONMARS-99&limit=5",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/trades?ticker=KXELONMARS-99&limit=5",
                 "input": [
                     "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
                     null,
@@ -52,7 +53,7 @@
             {
                 "description": "fetchOHLCV with since and limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.elections.kalshi.com/trade-api/v2/series/KXELONMARS/markets/KXELONMARS-99/candlesticks?period_interval=60&start_ts=1740000000&end_ts=1740086400",
+                "url": "https://external-api.kalshi.com/trade-api/v2/series/KXELONMARS/markets/KXELONMARS-99/candlesticks?period_interval=60&start_ts=1740000000&end_ts=1740086400",
                 "input": [
                     "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
                     "1h",
@@ -61,5 +62,8 @@
                 ]
             }
         ]
+    },
+    "options": {
+        "loadAllOutcomes": true
     }
 }

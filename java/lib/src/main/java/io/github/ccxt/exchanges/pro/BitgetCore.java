@@ -633,7 +633,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOHLCV(Object symbol2, Object... optionalArgs)
     {
@@ -830,7 +830,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -855,7 +855,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -927,7 +927,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
@@ -1065,7 +1065,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             Object isSnapshot = Helpers.isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
-            if (Helpers.isTrue(!Helpers.isTrue(isSnapshot) && Helpers.isTrue(checksum)))
+            // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
+            // so only validate the checksum when the exchange actually sends one
+            Object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isSnapshot) && Helpers.isTrue(checksum)) && Helpers.isTrue((!Helpers.isEqual(responseChecksum, null)))))
             {
                 Object storedAsks = Helpers.GetValue(storedOrderBook, "asks");
                 Object storedBids = Helpers.GetValue(storedOrderBook, "bids");
@@ -1087,13 +1090,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 }
                 Object payload = String.join((String)":", (java.util.List<String>)payloadArray);
                 Object calculatedChecksum = this.crc32(payload, true);
-                Object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
                 if (Helpers.isTrue(!Helpers.isEqual(calculatedChecksum, responseChecksum)))
                 {
-                    // if (messageHash in client.subscriptions) {
-                    //     // delete client.subscriptions[messageHash];
-                    //     // delete this.orderbooks[symbol];
-                    // }
                     this.spawn(() -> { try { this.handleCheckSumError(client, symbol, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
                     return;
                 }
@@ -3197,10 +3195,14 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
+        // UTA
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
+        //
         Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object instType = this.safeStringLower(arg, "instType");
         Object type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
-        Object instId = this.safeString(arg, "instId");
+        Object instId = this.safeString2(arg, "instId", "symbol");
         Object market = this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("unsubscribe:orderbook:", Helpers.GetValue(market, "symbol"));

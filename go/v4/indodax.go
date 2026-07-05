@@ -476,8 +476,8 @@ func (this *IndodaxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes4648 := (<-this.LoadMarkets())
-		PanicOnError(retRes4648)
+		retRes4638 := (<-this.LoadMarkets())
+		PanicOnError(retRes4638)
 
 		response := (<-this.PrivatePostGetInfo(params))
 		PanicOnError(response)
@@ -527,7 +527,7 @@ func (this *IndodaxCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *IndodaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -539,8 +539,8 @@ func (this *IndodaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes5108 := (<-this.LoadMarkets())
-		PanicOnError(retRes5108)
+		retRes5098 := (<-this.LoadMarkets())
+		PanicOnError(retRes5098)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -616,8 +616,8 @@ func (this *IndodaxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes5718 := (<-this.LoadMarkets())
-		PanicOnError(retRes5718)
+		retRes5708 := (<-this.LoadMarkets())
+		PanicOnError(retRes5708)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -667,8 +667,8 @@ func (this *IndodaxCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes6058 := (<-this.LoadMarkets())
-		PanicOnError(retRes6058)
+		retRes6048 := (<-this.LoadMarkets())
+		PanicOnError(retRes6048)
 		//
 		// {
 		//     "tickers": {
@@ -750,8 +750,8 @@ func (this *IndodaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes6688 := (<-this.LoadMarkets())
-		PanicOnError(retRes6688)
+		retRes6678 := (<-this.LoadMarkets())
+		PanicOnError(retRes6678)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -808,8 +808,8 @@ func (this *IndodaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes7118 := (<-this.LoadMarkets())
-		PanicOnError(retRes7118)
+		retRes7108 := (<-this.LoadMarkets())
+		PanicOnError(retRes7108)
 		var market any = this.Market(symbol)
 		var selectedTimeframe any = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var now any = this.Seconds()
@@ -982,8 +982,8 @@ func (this *IndodaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes8688 := (<-this.LoadMarkets())
-		PanicOnError(retRes8688)
+		retRes8678 := (<-this.LoadMarkets())
+		PanicOnError(retRes8678)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":     GetValue(market, "id"),
@@ -1030,8 +1030,8 @@ func (this *IndodaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes8938 := (<-this.LoadMarkets())
-		PanicOnError(retRes8938)
+		retRes8928 := (<-this.LoadMarkets())
+		PanicOnError(retRes8928)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1100,8 +1100,8 @@ func (this *IndodaxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
 		}
 
-		retRes9388 := (<-this.LoadMarkets())
-		PanicOnError(retRes9388)
+		retRes9378 := (<-this.LoadMarkets())
+		PanicOnError(retRes9378)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -1142,8 +1142,8 @@ func (this *IndodaxCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9638 := (<-this.LoadMarkets())
-		PanicOnError(retRes9638)
+		retRes9628 := (<-this.LoadMarkets())
+		PanicOnError(retRes9628)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":  GetValue(market, "id"),
@@ -1231,8 +1231,8 @@ func (this *IndodaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires an extra \"side\" param")))
 		}
 
-		retRes10358 := (<-this.LoadMarkets())
-		PanicOnError(retRes10358)
+		retRes10348 := (<-this.LoadMarkets())
+		PanicOnError(retRes10348)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"order_id": id,
@@ -1287,8 +1287,8 @@ func (this *IndodaxCore) FetchTransactionFee(code any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10768 := (<-this.LoadMarkets())
-		PanicOnError(retRes10768)
+		retRes10758 := (<-this.LoadMarkets())
+		PanicOnError(retRes10758)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -1345,8 +1345,8 @@ func (this *IndodaxCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes11138 := (<-this.LoadMarkets())
-		PanicOnError(retRes11138)
+		retRes11128 := (<-this.LoadMarkets())
+		PanicOnError(retRes11128)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			var startTime any = this.Yyyymmdd(since)
@@ -1469,8 +1469,8 @@ func (this *IndodaxCore) Withdraw(code any, amount any, address any, optionalArg
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes12188 := (<-this.LoadMarkets())
-		PanicOnError(retRes12188)
+		retRes12178 := (<-this.LoadMarkets())
+		PanicOnError(retRes12178)
 		var currency any = this.Currency(code)
 		// Custom string you need to provide to identify each withdrawal.
 		// Will be passed to callback URL (assigned via website to the API key)
@@ -1618,8 +1618,8 @@ func (this *IndodaxCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes13508 := (<-this.LoadMarkets())
-		PanicOnError(retRes13508)
+		retRes13498 := (<-this.LoadMarkets())
+		PanicOnError(retRes13498)
 
 		response := (<-this.PrivatePostGetInfo(params))
 		PanicOnError(response)

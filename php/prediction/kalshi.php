@@ -7,18 +7,18 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\kalshi as Exchange;
+use ccxt\BadSymbol;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class kalshi extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kalshi',
             'name' => 'Kalshi',
             'countries' => array( 'US' ),
-            'rateLimit' => 100,
+            'rateLimit' => 200,
             'certified' => false,
             'pro' => false,
             'has' => array(
@@ -133,6 +133,7 @@ class kalshi extends Exchange {
                         ),
                         'post' => array(
                             'portfolio/orders' => 1,
+                            'portfolio/events/orders' => 1,
                             'portfolio/orders/batched' => 1,
                             'portfolio/orders/{order_id}/amend' => 1,
                             'portfolio/orders/{order_id}/decrease' => 1,
@@ -150,8 +151,8 @@ class kalshi extends Exchange {
                         ),
                         'delete' => array(
                             'portfolio/orders/{order_id}' => 1,
-                            'portfolio/orders' => 1,
                             'portfolio/orders/batched' => 1,
+                            'portfolio/events/orders/{order_id}' => 1, // v2 cancel (the non-v2 paths above are 410 Gone)
                             'portfolio/order_groups/{order_group_id}' => 1,
                         ),
                     ),
@@ -159,6 +160,7 @@ class kalshi extends Exchange {
             ),
             'requiredCredentials' => array(
                 'apiKey' => true,   // KALSHI-ACCESS-KEY (UUID)
+                'secret' => false,   // not used — signing is RSA with privateKey, override base default
                 'privateKey' => true,   // RSA PEM private key for signing
             ),
             'fees' => array(
@@ -169,69 +171,86 @@ class kalshi extends Exchange {
                     'taker' => 0.07,  // 7% fee on profit
                 ),
             ),
+            'exceptions' => array(
+                'exact' => array(
+                    'not_found' => '\\ccxt\\BadSymbol',   // 404 for an unknown market/ticker id — distinguish from an outage
+                ),
+                'broad' => array(),
+            ),
             'options' => array(
-                'defaultFetchEventsLimit' => 100,
-                'maxFetchMarketsLimit' => 1000,
+                'defaultFetchEventsLimit' => 200,   // events page size for the fetchEvents cursor scan
+                'maxFetchMarketsLimit' => 1000,      // markets page size / max markets collected per unscoped listing
                 'defaultEventStatus' => 'open',  // 'open' | 'closed' | 'settled'
+                // kalshi has tens of thousands of markets. false (default) = resolve each outcome on
+                // demand (~1s per market, cached) so hot paths are cheap; set true to bulk-load every
+                // outcome once up front (a multi-second listing scan) and make every later lookup a hit
+                'loadAllOutcomes' => false,
             ),
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches all kalshi markets via $cursor pagination and maps each binary market to YES and NO CCXT markets
+             * fetches kalshi markets; with a query it resolves the query via the $events endpoint and returns the matched events' markets, otherwise it pages the markets listing
              *
              * @see https://trading-api.readme.io/reference/getmarkets
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->query] a single query string to filter markets by ($matches ticker/title)
-             * @param {string[]} [$params->queries] multiple query strings (alternative to query)
-             * @param {int} [$params->limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the $cursor pagination once reached
+             * @param {string} [$params->query] a single search query; resolved against the $events endpoint (event title/ticker), then the matched events' markets are returned
+             * @param {string[]} [$params->queries] multiple search $queries (alternative to query); markets from any matching event are returned
+             * @param {int} [$params->limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
              * @return {array[]} an array of objects representing market data
              */
-            $queries = $this->parseSearchQueries ($params);
-            $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
-            // scope the listing => without a search query loadMarkets would otherwise page through
-            // every kalshi market via the $cursor-> Cap the total number of markets collected.
-            $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
-            $lowerQueries = array();
-            for ($qi = 0; $qi < count($queries); $qi++) {
-                $lowerQueries[] = strtolower($queries[$qi]);
+            $queries = $this->parse_search_queries($params);
+            $queriesLength = count($queries);
+            // kalshi's public markets endpoint has no free-text search, so a query would otherwise
+            // force a client-side scan of every open market (thousands, paged 1000 at a time, which
+            // hangs). Resolve the query against the $events endpoint instead — it is bounded by
+            // maxPages, scoped server-side, supports multiple topics, and returns each event's $parsed
+            // markets — then flatten those markets.
+            if ($queriesLength > 0) {
+                $eventParams = $this->omit($params, array( 'limit' ));
+                $events = Async\await($this->fetch_events($eventParams));
+                $eventsLength = count($events);
+                $queryMarkets = array();
+                for ($ei = 0; $ei < $eventsLength; $ei++) {
+                    $eventMarkets = $this->safe_list($events[$ei], 'markets', array());
+                    $eventMarketsLength = count($eventMarkets);
+                    for ($mi = 0; $mi < $eventMarketsLength; $mi++) {
+                        $queryMarkets[] = $eventMarkets[$mi];
+                    }
+                }
+                return $queryMarkets;
             }
-            $lowerQueriesLength = count($lowerQueries);
+            $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
+            // no query => page the markets listing directly. Cap the total collected so an unscoped
+            // loadMarkets cannot run away through every kalshi market via the $cursor->
+            $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'maxFetchMarketsLimit', 1000));
             $flatMarkets = array();
             $eventsDict = array();
             $cursor = null;
-            $limit = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 1000);
+            // don't $request a full 1000-market page (3+ MB) when the caller wants fewer
+            $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 1000);
+            $limit = min($maxMarkets, $pageLimit);
+            // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
+            // an unfiltered $cursor pages through those, so loadMarkets would otherwise return mostly
+            // closed markets. Pass $params->status(e.g. 'closed', 'settled', 'unopened') to override
+            $status = $this->safe_string($rest, 'status', 'open');
             while (true) {
-                $request = array( 'limit' => $limit );
+                $request = array( 'limit' => $limit, 'status' => $status );
                 if ($cursor !== null) {
                     $request['cursor'] = $cursor;
                 }
-                $response = Async\await($this->kalshiPublicGetMarkets ($this->extend($request, $rest)));
+                $response = Async\await($this->kalshiPublicGetMarkets($this->extend($request, $rest)));
                 $rawMarkets = $this->safe_list($response, 'markets', array());
                 $rawMarketsLength = count($rawMarkets);
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $raw = $rawMarkets[$i];
-                    if ($lowerQueriesLength > 0) {
-                        $ticker = strtolower($this->safe_string($raw, 'ticker', ''));
-                        $title = strtolower($this->safe_string($raw, 'title', ''));
-                        $matches = false;
-                        for ($mi = 0; $mi < count($lowerQueries); $mi++) {
-                            if (mb_strpos($ticker, $lowerQueries[$mi]) > -1 || mb_strpos($title, $lowerQueries[$mi]) > -1) {
-                                $matches = true;
-                                break;
-                            }
-                        }
-                        if (!$matches) {
-                            continue;
-                        }
-                    }
                     $parsed = $this->parse_binary_market_to_outcomes($raw);
                     $eventTicker = $this->safe_string($raw, 'event_ticker');
                     $eventTitle = $this->safe_string($raw, 'title', $eventTicker);
-                    $eventKey = $eventTitle ? $this->shortenSlug ($eventTitle) : null;
+                    $eventKey = $eventTitle ? $this->shorten_slug($eventTitle) : null;
                     for ($j = 0; $j < count($parsed); $j++) {
                         $m = $parsed[$j];
                         $flatMarkets[] = $m;
@@ -240,7 +259,7 @@ class kalshi extends Exchange {
                                 $eventsDict[$eventKey] = array(
                                     'id' => $eventTicker,
                                     'slug' => $eventTicker,
-                                    'symbol' => $eventKey,
+                                    'event' => $eventKey,
                                     'title' => $eventTitle,
                                     'markets' => array(),
                                 );
@@ -251,20 +270,78 @@ class kalshi extends Exchange {
                     }
                 }
                 $cursor = $this->safe_string($response, 'cursor');
-                if (!$cursor || $rawMarketsLength < $limit || strlen($flatMarkets) >= $maxMarkets) {
+                $collectedLength = count($flatMarkets);
+                if (!$cursor || $rawMarketsLength < $limit || $collectedLength >= $maxMarkets) {
                     break;
                 }
             }
             $this->events = $eventsDict;
-            if (strlen($flatMarkets) > $maxMarkets) {
-                return mb_substr($flatMarkets, 0, $maxMarkets - 0);
+            $flatMarketsLength = count($flatMarkets);
+            if ($flatMarketsLength > $maxMarkets) {
+                return $this->array_slice($flatMarkets, 0, $maxMarkets);
             }
             return $flatMarkets;
-        }) ();
+        })();
     }
 
     public function parse_binary_market_to_outcomes(array $raw): array {
         return array( $this->parse_market($raw) );
+    }
+
+    public function fetch_outcome(string $outcomeSymbol): PromiseInterface {
+        return Async\async(function () use ($outcomeSymbol) {
+            /**
+             * @ignore
+             * resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+             * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+             * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+             * @param {string} $outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' $suffix
+             * @return {array} the resolved outcome object
+             */
+            $symbolLength = count($outcomeSymbol);
+            $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
+            $isNo = ($suffix === '-NO');
+            $baseTicker = $isNo ? mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0) : $outcomeSymbol;
+            $response = null;
+            try {
+                $response = Async\await($this->kalshiPublicGetMarketsTicker(array( 'ticker' => $baseTicker )));
+            } catch (Exception $e) {
+                // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+                // which handleErrors maps to BadSymbol. surface a clear hint; $network failures propagate.
+                if ($e instanceof BadSymbol) {
+                    throw new BadSymbol($this->id . ' could not resolve outcome ' . $outcomeSymbol . ' — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first');
+                }
+                throw $e;
+            }
+            $rawMarket = $this->safe_dict($response, 'market', $response);
+            $parsed = $this->parse_market($rawMarket);
+            if ($this->markets === null) {
+                $this->markets = $this->create_safe_dictionary();
+            }
+            $this->markets[$parsed['symbol']] = $parsed;
+            // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+            // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+            $this->index_market_outcomes($parsed);
+            return $this->outcome($outcomeSymbol);
+        })();
+    }
+
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        // kalshi returns array( "error" => array( "code" => "...", ... ) ) with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> '\\ccxt\\BadSymbol') so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to the exchange-not-available $error). unmapped codes fall
+        // through to the base http-status handling.
+        if (!$response) {
+            return null;
+        }
+        $error = $this->safe_dict($response, 'error');
+        if ($error !== null) {
+            $errorCode = $this->safe_string($error, 'code');
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
+        }
+        return null;
     }
 
     public function parse_market(array $raw): array {
@@ -325,9 +402,9 @@ class kalshi extends Exchange {
         $status = $this->safe_string($raw, 'status');
         $active = ($status === 'active') || ($status === 'open');
         $endDate = $this->safe_string($raw, 'expiration_time');
-        $volume = $this->safe_number($raw, 'volume');
-        $liquidity = $this->safe_number($raw, 'liquidity');
-        $openInt = $this->safe_number($raw, 'open_interest');
+        $volume = $this->safe_number_2($raw, 'volume_fp', 'volume');
+        $liquidity = $this->safe_number_2($raw, 'liquidity_dollars', 'liquidity');
+        $openInt = $this->safe_number_2($raw, 'open_interest_fp', 'open_interest');
         // Derive series $ticker => drop last hyphen-segment from event_ticker
         $eventParts = array();
         if ($eventTicker) {
@@ -339,15 +416,22 @@ class kalshi extends Exchange {
             $seriesParts = $this->array_slice($eventParts, 0, $eventPartsLength - 1);
             $seriesTicker = implode('-', $seriesParts);
         }
-        // Market symbol (no outcome suffix)
+        // market symbol (no outcome suffix)
         $subtitleOrTicker = ($subtitle !== null) ? $subtitle : $ticker;
-        $marketSymbol = $this->slugToMarketSymbol ($eventTicker, $subtitleOrTicker);
-        // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents);
-        // convert it to a dollar price $precision (defaults to 1 cent). amount is a whole number of contracts
-        $tickSizeCents = $this->safe_string($raw, 'tick_size', '1');
+        $marketSymbol = $this->slug_to_market_symbol($eventTicker, $subtitleOrTicker);
+        // kalshi exposes the per-market price tick via price_rangesarray().step (a dollar value,
+        // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
+        // used tick_size (in cents). amount is a whole number of contracts
+        $priceRanges = $this->safe_list($raw, 'price_ranges', array());
+        $firstRange = $this->safe_dict($priceRanges, 0, array());
+        $stepDollars = $this->safe_string($firstRange, 'step');
+        $pricePrecision = $this->parse_number(Precise::string_div($this->safe_string($raw, 'tick_size', '1'), '100'));
+        if ($stepDollars !== null) {
+            $pricePrecision = $this->parse_number($stepDollars);
+        }
         $precision = array(
             'amount' => 1,
-            'price' => $this->parse_number(Precise::string_div($tickSizeCents, '100')),
+            'price' => $pricePrecision,
         );
         // Build $outcomes
         $outcomeLabels = array( 'YES', 'NO' );
@@ -359,9 +443,7 @@ class kalshi extends Exchange {
             $outcomes[] = array(
                 'id' => $outcomeIds[$oi],
                 'outcomeId' => $outcomeIds[$oi],
-                'symbol' => $outcomeHandle,
                 'outcome' => $outcomeHandle,
-                'marketSymbol' => $marketSymbol,
                 'market' => $marketSymbol,
                 'label' => $label,
                 'active' => $active,
@@ -431,26 +513,24 @@ class kalshi extends Exchange {
         );
     }
 
-    public function fetch_ticker(?string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * fetches the current market price and bid/ask for a single kalshi $outcome
              *
              * @see https://docs.kalshi.com/api-reference/market/get-market
              *
-             * @param {string} $symbol the unified $symbol like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
+             * @param {string} $outcome the unified $outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [$ticker structure](https://docs.ccxt.com/#/?id=$ticker-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $request = array(
                 'ticker' => $ticker,
             );
-            $response = Async\await($this->kalshiPublicGetMarketsTicker ($this->extend($request, $params)));
+            $response = Async\await($this->kalshiPublicGetMarketsTicker($this->extend($request, $params)));
             //
             //     {
             //         "market" => {
@@ -508,10 +588,10 @@ class kalshi extends Exchange {
             //
             $raw = $this->safe_value($response, 'market', $response);
             return $this->parse_ticker($raw, $outcomeObj);
-        }) ();
+        })();
     }
 
-    public function fetch_status($params = array ()): PromiseInterface {
+    public function fetch_status($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the kalshi exchange status
@@ -521,7 +601,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
              */
-            $response = Async\await($this->kalshiPublicGetExchangeStatus ($params));
+            $response = Async\await($this->kalshiPublicGetExchangeStatus($params));
             //
             //     array( "exchange_active" => true, "trading_active" => true )
             //
@@ -533,38 +613,36 @@ class kalshi extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_open_interest(string $outcome, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * fetches the open interest of a prediction market $outcome
              *
              * @see https://docs.kalshi.com/api-reference/market/get-market
              *
-             * @param {string} $symbol unified $outcome $symbol or $outcome id
+             * @param {string} $outcome unified $outcome or $outcome id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $request = array( 'ticker' => $ticker );
-            $response = Async\await($this->kalshiPublicGetMarketsTicker ($this->extend($request, $params)));
+            $response = Async\await($this->kalshiPublicGetMarketsTicker($this->extend($request, $params)));
             $raw = $this->safe_dict($response, 'market', $response);
             return $this->parse_open_interest($raw, $outcomeObj);
-        }) ();
+        })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null): OpenInterest {
+    public function parse_open_interest($interest, ?array $market = null): array {
         //
         //     array( "ticker" => "...", "open_interest_fp" => "60802.01", ... )   // open $interest in contracts
         //
         $timestamp = $this->milliseconds();
-        return $this->safe_open_interest(array(
+        $openInterest = $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol(null, $market),
             'openInterestAmount' => $this->safe_number_2($interest, 'open_interest_fp', 'open_interest'),
             'openInterestValue' => null,
@@ -574,6 +652,10 @@ class kalshi extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         ), $market);
+        $openInterest['outcome'] = $this->safe_outcome_symbol(null, $market);
+        $openInterest['outcomeId'] = $this->safe_string($market, 'outcomeId');
+        unset($openInterest['symbol']);
+        return $openInterest;
     }
 
     public function parse_ticker(array $raw, ?array $market = null): array {
@@ -581,7 +663,7 @@ class kalshi extends Exchange {
          * @ignore
          * parses a $raw kalshi $market object into a unified ticker object
          * @param {array} $raw the $raw $market object
-         * @param {array} [$market] the outcome object the ticker belongs to
+         * @param {array} [$market] the $outcome object the ticker belongs to
          * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
          */
         //
@@ -640,11 +722,11 @@ class kalshi extends Exchange {
         //     }
         //
         $marketAny = $market;
-        $outcomeObj = $this->safeOutcome ($this->safe_string($marketAny, 'symbol'), $marketAny);
+        $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
         $outcomeLabel = $market ? $this->safe_string($market, 'label', $this->safe_string($market['info'], 'outcomeLabel', 'YES')) : 'YES';
         $isNo = strtoupper($outcomeLabel) === 'NO';
         $now = $this->milliseconds();
-        $symbol = $this->safe_string($outcomeObj, 'symbol');
+        $outcome = $this->safe_string($outcomeObj, 'outcome');
         $yesAsk = $this->safe_number($raw, 'yes_ask_dollars');
         $yesBid = $this->safe_number($raw, 'yes_bid_dollars');
         $noAsk = $this->safe_number($raw, 'no_ask_dollars');
@@ -660,17 +742,27 @@ class kalshi extends Exchange {
             $close = $last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        $bidVolume = ($isNo) ? $this->safe_number($raw, 'yes_ask_size_fp') : $this->safe_number($raw, 'yes_bid_size_fp');
-        $askVolume = ($isNo) ? $this->safe_number($raw, 'yes_bid_size_fp') : $this->safe_number($raw, 'yes_ask_size_fp');
+        $bidSizeString = ($isNo) ? $this->safe_string($raw, 'yes_ask_size_fp') : $this->safe_string($raw, 'yes_bid_size_fp');
+        $askSizeString = ($isNo) ? $this->safe_string($raw, 'yes_bid_size_fp') : $this->safe_string($raw, 'yes_ask_size_fp');
+        // kalshi occasionally reports a negative size for settling/closed markets; a size
+        // can't be negative, so drop it rather than emit an invalid volume
+        $bidVolume = null;
+        if (($bidSizeString !== null) && Precise::string_ge($bidSizeString, '0')) {
+            $bidVolume = $this->parse_number($bidSizeString);
+        }
+        $askVolume = null;
+        if (($askSizeString !== null) && Precise::string_ge($askSizeString, '0')) {
+            $askVolume = $this->parse_number($askSizeString);
+        }
         $average = null;
         if (($bid !== null) && ($ask !== null)) {
             $average = $this->parse_number(Precise::string_div(Precise::string_add($this->number_to_string($bid), $this->number_to_string($ask)), '2'));
         }
-        return $this->safePredictionTicker (array(
-            'symbol' => $symbol,
+        return $this->safe_prediction_ticker(array(
+            'outcome' => $outcome,
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string_2($outcomeObj, 'market', 'marketSymbol'),
+            'market' => $this->safe_string_2($outcomeObj, 'market', 'outcome'),
             'timestamp' => $now,
             'datetime' => $this->iso8601($now),
             'high' => null,
@@ -693,36 +785,35 @@ class kalshi extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_tickers(?array $outcomes = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcomes, $params) {
             /**
-             * fetches $tickers for multiple outcomes at once, batching their market $tickers through the markets endpoint
+             * fetches $tickers for multiple $outcomes at once, batching their market $tickers through the markets endpoint
              *
              * @see https://docs.kalshi.com/api-reference/market/get-markets
              *
-             * @param {string[]} [$symbols] unified outcome $symbols, fetches $tickers for all loaded outcomes when omitted
+             * @param {string[]} [$outcomes] unified $outcomes, fetches $tickers for all loaded $outcomes when omitted
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome symbol
+             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
              */
-            Async\await($this->load_markets());
             $targets = array();
-            if ($symbols !== null) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $this->checkEventsAndMarkets ($symbols[$i]);
-                    $targets[] = $symbols[$i];
+            if ($outcomes !== null) {
+                for ($i = 0; $i < count($outcomes); $i++) {
+                    Async\await($this->load_outcome($outcomes[$i]));
+                    $targets[] = $outcomes[$i];
                 }
             } else {
-                $this->checkEventsAndMarkets ();
+                Async\await($this->load_outcomes());
                 $allKeys = is_array($this->outcomes) ? array_keys($this->outcomes) : array();
                 for ($i = 0; $i < count($allKeys); $i++) {
                     $targets[] = $allKeys[$i];
                 }
             }
-            // group requested outcomes by their market $ticker, yes and no outcomes share one market
+            // group requested $outcomes by their market $ticker, yes and no $outcomes share one market
             $outcomesByTicker = array();
             $tickers = array();
             for ($i = 0; $i < count($targets); $i++) {
-                $outcomeObj = $this->outcome ($targets[$i]);
+                $outcomeObj = $this->outcome($targets[$i]);
                 $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
                 if ($ticker === null) {
                     continue;
@@ -753,7 +844,7 @@ class kalshi extends Exchange {
                     'tickers' => implode(',', $chunk),
                     'limit' => $chunkSize,
                 );
-                $response = Async\await($this->kalshiPublicGetMarkets ($this->extend($request, $params)));
+                $response = Async\await($this->kalshiPublicGetMarkets($this->extend($request, $params)));
                 $rawMarkets = $this->safe_list($response, 'markets', array());
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $raw = $rawMarkets[$i];
@@ -773,31 +864,29 @@ class kalshi extends Exchange {
                 $startIndex = $this->sum($startIndex, $chunkSize);
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(?string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * fetches the order $book for a single kalshi $outcome
              *
              * @see https://docs.kalshi.com/api-reference/market/get-market-orderbook
              *
-             * @param {string} $symbol unified $outcome $symbol or $outcome id
+             * @param {string} $outcome unified $outcome or $outcome id
              * @param {int} [$limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order $book structure](https://docs.ccxt.com/#/?id=order-$book-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $isNo = $outcomeObj['label'] === 'NO';
             $request = array(
                 'ticker' => $ticker,
             );
-            $response = Async\await($this->kalshiPublicGetMarketsTickerOrderbook ($this->extend($request, $params)));
+            $response = Async\await($this->kalshiPublicGetMarketsTickerOrderbook($this->extend($request, $params)));
             //
             //     {
             //         "orderbook_fp" => {
@@ -822,34 +911,34 @@ class kalshi extends Exchange {
                 // NO perspective => NO $bids come from $rawNo, NO $asks invert $rawYes (NO ask = 1 - YES bid)
                 for ($bi = 0; $bi < count($rawNo); $bi++) {
                     $price = $this->safe_number($rawNo[$bi], 0);
-                    $bids[] = [ $price, $this->safe_number($rawNo[$bi], 1) ];
+                    $bids[] = array( $price, $this->safe_number($rawNo[$bi], 1) );
                 }
                 for ($ai = 0; $ai < count($rawYes); $ai++) {
                     $yesPrice = $this->safe_number($rawYes[$ai], 0);
                     $price = ($yesPrice !== null) ? $this->parse_number(Precise::string_sub('1', $this->number_to_string($yesPrice))) : null;
-                    $asks[] = [ $price, $this->safe_number($rawYes[$ai], 1) ];
+                    $asks[] = array( $price, $this->safe_number($rawYes[$ai], 1) );
                 }
             } else {
                 // YES perspective => YES $bids from $rawYes, YES $asks invert $rawNo (YES ask = 1 - NO bid)
                 for ($bi = 0; $bi < count($rawYes); $bi++) {
                     $price = $this->safe_number($rawYes[$bi], 0);
-                    $bids[] = [ $price, $this->safe_number($rawYes[$bi], 1) ];
+                    $bids[] = array( $price, $this->safe_number($rawYes[$bi], 1) );
                 }
                 for ($ai = 0; $ai < count($rawNo); $ai++) {
                     $noPrice = $this->safe_number($rawNo[$ai], 0);
                     $price = ($noPrice !== null) ? $this->parse_number(Precise::string_sub('1', $this->number_to_string($noPrice))) : null;
-                    $asks[] = [ $price, $this->safe_number($rawNo[$ai], 1) ];
+                    $asks[] = array( $price, $this->safe_number($rawNo[$ai], 1) );
                 }
             }
-            return $this->sorted_orders($this->safe_string($outcomeObj, 'symbol', $outcome), $timestamp, $bids, $asks);
-        }) ();
+            return $this->safe_prediction_order_book($this->sorted_orders($this->safe_string($outcomeObj, 'outcome', $outcome), $timestamp, $bids, $asks), $outcomeObj);
+        })();
     }
 
-    public function sorted_orders(?string $symbol, ?int $timestamp, array $bids, array $asks): array {
+    public function sorted_orders(?string $outcome, ?int $timestamp, array $bids, array $asks): array {
         /**
          * @ignore
          * sorts $bids descending and $asks ascending, then returns a CCXT-shaped order book object
-         * @param {string} $symbol unified outcome $symbol
+         * @param {string} $outcome unified $outcome
          * @param {int} $timestamp timestamp in ms
          * @param {array[]} $bids array of [price, size] bid levels
          * @param {array[]} $asks array of [price, size] ask levels
@@ -859,7 +948,7 @@ class kalshi extends Exchange {
         $bids = $this->sort_by($bids, 0, true);
         $asks = $this->sort_by($asks, 0);
         return array(
-            'symbol' => $symbol,
+            'outcome' => $outcome,
             'bids' => $bids,
             'asks' => $asks,
             'timestamp' => $timestamp,
@@ -868,24 +957,22 @@ class kalshi extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(?string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+    public function fetch_ohlcv(?string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $timeframe, $since, $limit, $params) {
             /**
              * fetches OHLCV candlesticks for a single kalshi $outcome from the candlesticks endpoint
              *
              * @see https://docs.kalshi.com/api-reference/market/get-market-candlesticks
              *
-             * @param {string} $symbol unified $outcome $symbol
+             * @param {string} $outcome unified $outcome
              * @param {string} $timeframe the length of time each $candle represents
              * @param {int} [$since] timestamp in ms of the earliest $candle to fetch
              * @param {int} [$limit] the maximum number of $candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $seriesTicker = $this->safe_string($outcomeObj['info'], 'seriesTicker', $ticker);
             $periodMin = $this->safe_integer($this->timeframes, $timeframe, 1);
@@ -902,6 +989,9 @@ class kalshi extends Exchange {
                 if ($limit !== null) {
                     $end = $this->sum($sinceS, $limit * $tf);
                     $request['end_ts'] = ($end < $now) ? $end : $now;
+                } else {
+                    // the candlesticks endpoint requires end_ts - default to $now
+                    $request['end_ts'] = $now;
                 }
             } else {
                 $defaultLimit = $this->safe_integer($this->options, 'defaultFetchOHLCVLimit', 200);
@@ -909,7 +999,7 @@ class kalshi extends Exchange {
                 $request['end_ts'] = $now;
                 $request['start_ts'] = $now - ($candlesCount * $tf);
             }
-            $response = Async\await($this->kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (
+            $response = Async\await($this->kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(
                 $this->extend($request, $params)
             ));
             //
@@ -958,7 +1048,7 @@ class kalshi extends Exchange {
                 }
             }
             return $this->parse_ohlcvs($usableCandles, $outcomeObj, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1011,29 +1101,27 @@ class kalshi extends Exchange {
         );
     }
 
-    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetches public $trade history for a single kalshi market $ticker
              *
              * @see https://docs.kalshi.com/api-reference/market/get-$trades
              *
-             * @param {string} $symbol unified $outcome $symbol
+             * @param {string} $outcome unified $outcome
              * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
              * @param {int} [$limit] the maximum number of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=public-$trades)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $request = array( 'ticker' => $ticker );
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->kalshiPublicGetMarketsTrades ($this->extend($request, $params)));
+            $response = Async\await($this->kalshiPublicGetMarketsTrades($this->extend($request, $params)));
             $trades = $this->safe_list($response, 'trades', array());
             $filteredTrades = array();
             for ($i = 0; $i < count($trades); $i++) {
@@ -1043,8 +1131,8 @@ class kalshi extends Exchange {
                     $filteredTrades[] = $trade;
                 }
             }
-            return $this->parse_trades($filteredTrades, $outcomeObj, $since, $limit);
-        }) ();
+            return $this->parse_prediction_trades($filteredTrades, $outcomeObj, $since, $limit);
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1069,10 +1157,10 @@ class kalshi extends Exchange {
         $amount = $this->safe_number($trade, 'count', $amountFp);
         $rawSide = $this->safe_string_lower($trade, 'taker_side');
         $marketAny = $market;
-        $outcomeObj = $this->safeOutcome ($this->safe_string($marketAny, 'symbol'), $marketAny);
+        $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
         $marketInfo = $this->safe_dict($outcomeObj, 'info', array());
         $requestedOutcomeLabel = $this->safe_string_lower($outcomeObj, 'label', $this->safe_string_lower($marketInfo, 'outcomeLabel'));
-        $outcomeSymbol = $this->safe_string($outcomeObj, 'symbol');
+        $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome');
         $outcomeId = $this->safe_string_2($outcomeObj, 'outcomeId', 'id');
         if ($rawSide === 'yes' || $rawSide === 'no') {
             if ($requestedOutcomeLabel === 'yes' || $requestedOutcomeLabel === 'no') {
@@ -1085,16 +1173,15 @@ class kalshi extends Exchange {
         if (($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
         }
-        return $this->safePredictionTrade (array(
+        return $this->safe_prediction_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
-            'symbol' => $outcomeSymbol,
             'outcome' => $outcomeSymbol,
             'outcomeId' => $outcomeId,
             'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string_2($outcomeObj, 'market', 'marketSymbol'),
+            'market' => $this->safe_string_2($outcomeObj, 'market', 'outcome'),
             'order' => null,
             'type' => null,
             'side' => $side,
@@ -1106,7 +1193,7 @@ class kalshi extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the authenticated user's USD portfolio balance from kalshi
@@ -1116,10 +1203,9 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
              */
-            $this->checkEventsAndMarkets ();
-            $response = Async\await($this->kalshiPrivateGetPortfolioBalance ($params));
+            $response = Async\await($this->kalshiPrivateGetPortfolioBalance($params));
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1137,36 +1223,59 @@ class kalshi extends Exchange {
             $total = $balanceCents / 100;
         }
         $result['USD'] = array( 'free' => $total, 'used' => 0, 'total' => $total );
-        return $result;
+        return $this->safe_balance($result);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_positions(?array $outcomes = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcomes, $params) {
             /**
              * fetches open market $positions for the authenticated kalshi user
              *
              * @see https://trading-api.readme.io/reference/getportfoliopositions
              *
-             * @param {string[]} [$symbols] filter by outcome ids or $symbols
+             * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+             * @return {array[]} a list of [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
              */
-            $outcomes = $symbols;
             $outcomesLength = 0;
             if ($outcomes !== null) {
                 $outcomesLength = count($outcomes);
             }
             if ($outcomesLength > 0) {
                 for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->checkEventsAndMarkets ($outcomes[$i]);
+                    Async\await($this->load_outcome($outcomes[$i]));
                 }
             } else {
-                $this->checkEventsAndMarkets ();
+                Async\await($this->load_outcomes());
             }
-            $response = Async\await($this->kalshiPrivateGetPortfolioPositions ($params));
+            $response = Async\await($this->kalshiPrivateGetPortfolioPositions($params));
             $positions = $this->safe_list($response, 'market_positions', array());
-            return $this->parse_positions($positions, $outcomes);
-        }) ();
+            // filter by the requested outcomes' market tickers — a kalshi $position is per market
+            // ticker and covers both the YES and the NO leg
+            $parsed = $this->parse_prediction_positions($positions);
+            if ($outcomesLength === 0) {
+                return $parsed;
+            }
+            $wantedTickers = array();
+            for ($i = 0; $i < count($outcomes); $i++) {
+                $outcomeObj = $this->outcome($outcomes[$i]);
+                $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
+                $marketTicker = $this->safe_string($outcomeInfo, 'ticker');
+                if ($marketTicker !== null) {
+                    $wantedTickers[$marketTicker] = true;
+                }
+            }
+            $result = array();
+            for ($i = 0; $i < count($parsed); $i++) {
+                $position = $parsed[$i];
+                $positionInfo = $this->safe_dict($position, 'info', array());
+                $positionTicker = $this->safe_string($positionInfo, 'ticker');
+                if (($positionTicker !== null) && (is_array($wantedTickers) && array_key_exists($positionTicker, $wantedTickers))) {
+                    $result[] = $position;
+                }
+            }
+            return $result;
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -1178,19 +1287,19 @@ class kalshi extends Exchange {
          * @return {array} a [$position structure](https://docs.ccxt.com/#/?id=$position-structure)
          */
         $ticker = $this->safe_string($position, 'ticker');
-        $outcomeObj = $this->safeOutcome ($ticker, $market);
+        $outcomeObj = $this->safe_outcome($ticker, $market);
         $yesContracts = $this->safe_number($position, 'position');  // positive = long YES
         $contractsValue = null;
         if ($yesContracts !== null) {
             $positionSide = ($yesContracts >= 0) ? 'long' : 'short';
             $contractsValue = $this->parse_number(Precise::string_abs($this->number_to_string($yesContracts)));
         }
-        return $this->safePredictionPosition (array(
+        return $this->safe_prediction_position(array(
             'id' => null,
-            'symbol' => $this->safe_string($outcomeObj, 'symbol', $ticker),
+            'outcome' => $this->safe_string($outcomeObj, 'outcome', $ticker),
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string_2($outcomeObj, 'market', 'marketSymbol'),
+            'market' => $this->safe_string_2($outcomeObj, 'market', 'outcome'),
             'timestamp' => null,
             'datetime' => null,
             'contracts' => $contractsValue,
@@ -1217,57 +1326,56 @@ class kalshi extends Exchange {
         ));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_open_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetches resting (open) $orders for the authenticated kalshi user, optionally filtered by ticker
              *
              * @see https://trading-api.readme.io/reference/getorders
              *
-             * @param {string} [$symbol] filter by unified $outcome $symbol
+             * @param {string} [$outcome] filter by unified $outcome
              * @param {int} [$since] timestamp in ms of the earliest order to fetch
              * @param {int} [$limit] the maximum number of $orders to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
             if ($outcome !== null) {
-                $this->checkEventsAndMarkets ($outcome);
+                Async\await($this->load_outcome($outcome));
             } else {
-                $this->checkEventsAndMarkets ();
+                Async\await($this->load_outcomes());
             }
             $request = array( 'status' => 'resting' );
             $outcomeObj = null;
             if ($outcome !== null) {
-                $outcomeObj = $this->outcome ($outcome);
+                $outcomeObj = $this->outcome($outcome);
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
-            $response = Async\await($this->kalshiPrivateGetPortfolioOrders ($this->extend($request, $params)));
+            $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
             $orders = $this->safe_list($response, 'orders', array());
-            return $this->parse_orders($orders, $outcomeObj, $since, $limit);
-        }) ();
+            return $this->parse_prediction_orders($orders, $outcomeObj, $since, $limit);
+        })();
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
+    public function fetch_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $params) {
             /**
              * fetches a single order by $id from the kalshi portfolio endpoint
              *
              * @see https://trading-api.readme.io/reference/getorder
              *
              * @param {string} $id order $id
-             * @param {string} [$symbol] unified outcome $symbol
+             * @param {string} [$outcome] unified $outcome
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
-            if ($symbol !== null) {
-                $this->checkEventsAndMarkets ($symbol);
-            } else {
-                $this->checkEventsAndMarkets ();
+            // $outcome is only a labelling hint here — the request needs just the $id, and
+            // parseOrder resolves identity cache-only, so don't force a full market scan
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
             }
-            $response = Async\await($this->kalshiPrivateGetPortfolioOrdersOrderId ($this->extend(array( 'order_id' => $id ), $params)));
+            $response = Async\await($this->kalshiPrivateGetPortfolioOrdersOrderId($this->extend(array( 'order_id' => $id ), $params)));
             return $this->parse_order($this->safe_value($response, 'order', $response));
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1280,23 +1388,38 @@ class kalshi extends Exchange {
          */
         $id = $this->safe_string($order, 'order_id');
         $ticker = $this->safe_string($order, 'ticker');
-        $mkt = $this->safeOutcome ($ticker, $market);
+        // a kalshi $order is leg-specific => the raw `$side` field says which leg ('yes'|'no');
+        // the bare $ticker is the YES outcome's $id, the NO leg is addressed as `<$ticker>-NO`
+        $sideLeg = $this->safe_string_lower($order, 'side');
+        $outcomeKey = $ticker;
+        if (($sideLeg === 'no') && ($ticker !== null)) {
+            $outcomeKey = $ticker . '-NO';
+        }
+        $mkt = $this->safe_outcome($outcomeKey, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $action = $this->safe_string($order, 'action');
         $side = ($action === 'buy') ? 'buy' : 'sell';
-        $priceCents = $this->safe_number($order, 'no_price', $this->safe_number($order, 'yes_price'));
-        $price = null;
-        if ($priceCents !== null) {
-            $price = $priceCents / 100;
+        // $price in the outcome's own leg => V2 returns *_price_dollars (already dollars),
+        // legacy returned yes_price/no_price in cents
+        $labelIsNo = ($this->safe_string_upper($mkt, 'label') === 'NO');
+        $dollarsKey = ($labelIsNo) ? 'no_price_dollars' : 'yes_price_dollars';
+        $centsKey = ($labelIsNo) ? 'no_price' : 'yes_price';
+        $price = $this->safe_number($order, $dollarsKey);
+        if ($price === null) {
+            $priceCents = $this->safe_number($order, $centsKey);
+            if ($priceCents !== null) {
+                $price = $priceCents / 100;
+            }
         }
-        $amount = $this->safe_number($order, 'count');
-        $filled = $this->safe_number($order, 'filled_count', 0);
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
+        // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
+        $amount = $this->safe_number_2($order, 'initial_count_fp', 'count');
+        $filled = $this->safe_number_2($order, 'fill_count_fp', 'filled_count', 0);
+        $remaining = $this->safe_number($order, 'remaining_count_fp');
+        if (($remaining === null) && ($amount !== null) && ($filled !== null)) {
             $remaining = $amount - $filled;
         }
         $ts = $this->parse8601($this->safe_string($order, 'created_time'));
-        return $this->safePredictionOrder (array(
+        return $this->safe_prediction_order(array(
             'id' => $id,
             'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'info' => $order,
@@ -1304,10 +1427,10 @@ class kalshi extends Exchange {
             'datetime' => $this->iso8601($ts),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $this->safe_string($mkt, 'symbol'),
+            'outcome' => $this->safe_string($mkt, 'outcome'),
             'outcomeId' => $this->safe_string_2($mkt, 'outcomeId', 'id'),
             'label' => $this->safe_string($mkt, 'label'),
-            'market' => $this->safe_string_2($mkt, 'market', 'marketSymbol'),
+            'market' => $this->safe_string_2($mkt, 'market', 'outcome'),
             'type' => $this->safe_string_lower($order, 'type', 'limit'),
             'timeInForce' => 'GTC',
             'postOnly' => null,
@@ -1341,98 +1464,140 @@ class kalshi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+    public function create_order(?string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $type, $side, $amount, $price, $params) {
             /**
-             * places a limit or market order on kalshi for the given $outcome token
+             * places a limit or market $order on kalshi for the given $outcome token
              *
              * @see https://trading-api.readme.io/reference/createorder
              *
-             * @param {string} $symbol unified $outcome $symbol
+             * @param {string} $outcome unified $outcome
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount number of contracts
              * @param {float} [$price] limit $price in dollars (0–1 range)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            Async\await($this->load_outcome($outcome));
+            $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
-            $outcomeLabel = $outcomeObj['label'];
-            $priceCents = null;
-            if ($price !== null) {
-                $priceCents = $this->parse_to_int($price * 100 + 0.5);
+            $isNo = ($outcomeObj['label'] === 'NO');
+            $isBuy = ($side === 'buy');
+            // kalshi V2 (/portfolio/events/orders) quotes the YES leg only => $side 'bid' = buy YES,
+            // 'ask' = sell YES, $price in dollars. a NO $order maps to the complementary YES $order
+            // buy NO @ q == sell YES @ 1-q - flip the book $side and the $price
+            $bookSide = ($isBuy) ? 'bid' : 'ask';
+            $yesPrice = $price;
+            if ($isNo) {
+                $bookSide = ($isBuy) ? 'ask' : 'bid';
+                if ($price !== null) {
+                    $yesPrice = $this->parse_number(Precise::string_sub('1', $this->number_to_string($price)));
+                }
             }
+            $isMarket = ($type === 'market');
+            $defaultTif = ($isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+            $timeInForce = null;
+            list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'time_in_force', $defaultTif);
+            $stp = null;
+            list($stp, $params) = $this->handle_option_and_params($params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
             $request = array(
-                'action' => ($side === 'buy') ? 'buy' : 'sell',
-                'count' => $amount,
-                'side' => ($outcomeLabel === 'NO') ? 'no' : 'yes',
                 'ticker' => $ticker,
-                'type' => $type,
+                'side' => $bookSide,
+                'count' => $this->number_to_string($amount),
+                'time_in_force' => $timeInForce,
+                'self_trade_prevention_type' => $stp,
             );
-            if ($priceCents !== null) {
-                $priceKey = ($outcomeLabel === 'NO') ? 'no_price' : 'yes_price';
-                $request[$priceKey] = $priceCents;
+            if ($yesPrice !== null) {
+                $request['price'] = $this->number_to_string($yesPrice);
             }
-            $response = Async\await($this->kalshiPrivatePostPortfolioOrders ($this->extend($request, $params)));
-            return $this->parse_order($this->safe_value($response, 'order', $response), $outcomeObj);
-        }) ();
+            $response = Async\await($this->kalshiPrivatePostPortfolioEventsOrders($this->extend($request, $params)));
+            // the V2 create $response is minimal (order_id, fill_count, remaining_count), so backfill
+            // the known $order details and resolve the status from the $remaining count
+            $order = $this->parse_order($response, $outcomeObj);
+            $order['side'] = $side;
+            $order['amount'] = $amount;
+            $order['price'] = $price;
+            if ($order['status'] === null) {
+                $remaining = $this->safe_number($response, 'remaining_count');
+                $resolvedStatus = 'open';
+                if (($remaining !== null) && ($remaining === 0)) {
+                    $resolvedStatus = 'closed';
+                }
+                $order['status'] = $resolvedStatus;
+            }
+            return $order;
+        })();
     }
 
-    public function cancel_order(?string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
+    public function cancel_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $params) {
             /**
-             * cancels a single open order by $id on kalshi
+             * cancels a single open $order by $id on kalshi
              *
              * @see https://trading-api.readme.io/reference/cancelorder
              *
-             * @param {string} $id order $id
-             * @param {string} [$symbol] unified outcome $symbol
+             * @param {string} $id $order $id
+             * @param {string} [$outcome] unified $outcome
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
              */
-            if ($symbol !== null) {
-                $this->checkEventsAndMarkets ($symbol);
-            } else {
-                $this->checkEventsAndMarkets ();
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
             }
-            $response = Async\await($this->kalshiPrivateDeletePortfolioOrdersOrderId ($this->extend(array( 'order_id' => $id ), $params)));
-            return $this->parse_order($this->safe_value($response, 'order', $response));
-        }) ();
+            // v2 cancel => DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{$id}
+            // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
+            $response = Async\await($this->kalshiPrivateDeletePortfolioEventsOrdersOrderId($this->extend(array( 'order_id' => $id ), $params)));
+            $order = $this->parse_order($this->safe_dict($response, 'order', $response));
+            // the delete $response carries no id/status - backfill the requested $id and the $outcome
+            if ($order['id'] === null) {
+                $order['id'] = $id;
+            }
+            if ($order['status'] === null) {
+                $order['status'] = 'canceled';
+            }
+            return $order;
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function cancel_all_orders(?string $outcome = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * cancels all open orders on kalshi, optionally scoped to one $outcome ticker
              *
              * @see https://trading-api.readme.io/reference/cancelorders
              *
-             * @param {string} [$symbol] unified $outcome $symbol to scope the cancellation to
+             * @param {string} [$outcome] unified $outcome to scope the cancellation to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
             if ($outcome !== null) {
-                $this->checkEventsAndMarkets ($outcome);
-            } else {
-                $this->checkEventsAndMarkets ();
+                Async\await($this->load_outcome($outcome));
             }
-            $request = array();
+            // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
+            // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
+            // cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}
+            $request = array( 'status' => 'resting' );
             if ($outcome !== null) {
-                Async\await($this->load_markets());
-                $outcomeObj = $this->outcome ($outcome);
+                $outcomeObj = $this->outcome($outcome);
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
-            $response = Async\await($this->kalshiPrivateDeletePortfolioOrders ($this->extend($request, $params)));
-            return $this->parse_orders($this->safe_list($response, 'orders', array()));
-        }) ();
+            $restingResponse = Async\await($this->kalshiPrivateGetPortfolioOrders($request));
+            $restingOrders = $this->safe_list($restingResponse, 'orders', array());
+            $restingOrdersLength = count($restingOrders);
+            $canceledOrders = array();
+            for ($i = 0; $i < $restingOrdersLength; $i++) {
+                $orderId = $this->safe_string($restingOrders[$i], 'order_id');
+                if ($orderId !== null) {
+                    $response = Async\await($this->kalshiPrivateDeletePortfolioEventsOrdersOrderId($this->extend(array( 'order_id' => $orderId ), $params)));
+                    $canceledOrders[] = $this->safe_dict($response, 'order', $response);
+                }
+            }
+            return $this->parse_prediction_orders($canceledOrders);
+        })();
     }
 
-    public function fetch_events($params = array ()): PromiseInterface {
+    public function fetch_events(array $params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches kalshi events via $cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in $this->events
@@ -1444,15 +1609,21 @@ class kalshi extends Exchange {
              * @param {string[]} [$params->queries] multiple query strings (alternative to query)
              * @param {string} [$params->status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
              * @param {int} [$params->limit] $page size per $request, defaults to 200
-             * @param {int} [$params->maxPages] maximum number of pages to scan, defaults to 5
+             * @param {int} [$params->maxPages] maximum number of event pages to scan, defaults to 50
              * @return {array[]} an array of event structures
              */
-            $queries = $this->parseSearchQueries ($params);
+            $this->require_event_query($params);
+            $queries = $this->parse_search_queries($params);
             $params = $this->omit($params, array( 'query', 'queries' ));
-            $status = $this->safe_string($params, 'status', $this->safe_string($this->options, 'defaultEventStatus', 'open'));
-            $pageLimit = $this->safe_integer($params, 'limit', 200);
+            // map the unified $status onto the kalshi event $status (open / closed) so it is pushed server-side
+            $requestedStatus = $this->safe_string($params, 'status', $this->safe_string($this->options, 'defaultEventStatus', 'active'));
+            $status = 'open';
+            if (($requestedStatus === 'closed') || ($requestedStatus === 'inactive')) {
+                $status = 'closed';
+            }
+            $pageLimit = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'defaultFetchEventsLimit', 200));
             $maxPages = $this->safe_integer($params, 'maxPages', 50);
-            $rest = $this->omit($params, array( 'status', 'limit', 'maxPages' ));
+            $rest = $this->omit($params, array( 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug' ));
             if (!$this->events) {
                 $this->events = array();
             }
@@ -1464,16 +1635,19 @@ class kalshi extends Exchange {
                 $lowerQueries[] = strtolower($queries[$qi]);
             }
             $lowerQueriesLength = count($lowerQueries);
-            // sequential $cursor scan with nested markets included, collecting the matching events directly
+            // sequential $cursor scan over events ONLY (no nested markets) => a nested $page is {2.6 MB
+            // 200 events . }1200 markets - scanning every open event that way transfers tens of MB
+            // and takes {100s. Event-only pages are }25x smaller; the few events that match the query
+            // then fetch their markets individually below (the per-event fallback). Net => seconds, not minutes.
             $matchedEvents = array();
             $cursor = null;
             $page = 0;
             while ($page < $maxPages) {
-                $request = array( 'status' => $status, 'limit' => $pageLimit, 'with_nested_markets' => true );
+                $request = array( 'status' => $status, 'limit' => $pageLimit, 'with_nested_markets' => false );
                 if ($cursor) {
                     $request['cursor'] = $cursor;
                 }
-                $response = Async\await($this->kalshiPublicGetEvents ($this->extend($request, $rest)));
+                $response = Async\await($this->kalshiPublicGetEvents($this->extend($request, $rest)));
                 $rawEvents = $this->safe_list($response, 'events', array());
                 $rawEventsLength = count($rawEvents);
                 $cursor = $this->safe_string($response, 'cursor');
@@ -1518,7 +1692,7 @@ class kalshi extends Exchange {
                             if ($marketCursor !== null) {
                                 $marketRequest['cursor'] = $marketCursor;
                             }
-                            $marketResponse = Async\await($this->kalshiPublicGetMarkets ($marketRequest));
+                            $marketResponse = Async\await($this->kalshiPublicGetMarkets($marketRequest));
                             $pageMarkets = $this->safe_list($marketResponse, 'markets', array());
                             $pageMarketsLength = count($pageMarkets);
                             for ($mi = 0; $mi < count($pageMarkets); $mi++) {
@@ -1534,9 +1708,10 @@ class kalshi extends Exchange {
                 }
                 $parsedEvent = $this->parse_event($fullEvent);
                 $eventTitle = $this->safe_string($fullEvent, 'title');
-                $eventKey = $eventTitle ? $this->shortenSlug ($eventTitle) : null;
+                $eventKey = $eventTitle ? $this->shorten_slug($eventTitle) : null;
                 if ($eventKey) {
-                    $this->events[$eventKey] = $parsedEvent;
+                    // the event handle keying happens in setEvents (via applyEventFetchParams);
+                    // register the parsed markets so populateOutcomes can index their outcomes
                     $result[] = $parsedEvent;
                     $parsedMarketsRaw = $parsedEvent['markets'];
                     $parsedMarkets = ($parsedMarketsRaw !== null) ? $parsedMarketsRaw : array();
@@ -1546,29 +1721,12 @@ class kalshi extends Exchange {
                     }
                 }
             }
-            $this->outcomes = array();
-            $this->outcomes_by_id = array();
-            $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
-            for ($i = 0; $i < count($marketKeys); $i++) {
-                $market = $this->markets[$marketKeys[$i]];
-                $outcomesList = $this->safe_list($market, 'outcomes', array());
-                for ($j = 0; $j < count($outcomesList); $j++) {
-                    $oc = $outcomesList[$j];
-                    $ocSymbol = $this->safe_string($oc, 'symbol');
-                    if ($ocSymbol !== null) {
-                        $this->outcomes[$ocSymbol] = $oc;
-                    }
-                    $ocId = $this->safe_string($oc, 'id');
-                    if ($ocId !== null) {
-                        $this->outcomes_by_id[$ocId] = $oc;
-                    }
-                }
-            }
-            return $result;
-        }) ();
+            $this->populate_outcomes();
+            return $this->apply_event_fetch_params($result, $params, $queries);
+        })();
     }
 
-    public function fetch_event(string $id, $params = array ()): PromiseInterface {
+    public function fetch_event(string $id, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $params) {
             /**
              * fetches a single prediction-market $event by its $event ticker
@@ -1580,7 +1738,7 @@ class kalshi extends Exchange {
              * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
              */
             $request = array( 'event_ticker' => $id, 'with_nested_markets' => true );
-            $response = Async\await($this->kalshiPublicGetEventsEventTicker ($this->extend($request, $params)));
+            $response = Async\await($this->kalshiPublicGetEventsEventTicker($this->extend($request, $params)));
             $fullEvent = $this->safe_dict($response, 'event', $response);
             $nestedMarkets = $this->safe_list($fullEvent, 'markets');
             if ($nestedMarkets === null) {
@@ -1588,7 +1746,7 @@ class kalshi extends Exchange {
             }
             $event = $this->parse_event($fullEvent);
             return $event;
-        }) ();
+        })();
     }
 
     public function parse_event(array $rawEvent): mixed {
@@ -1664,22 +1822,38 @@ class kalshi extends Exchange {
         // }
         $rawMarkets = $this->safe_list($rawEvent, 'markets', array());
         $marketsList = array();
+        // aggregate volume/liquidity from the markets and derive the creation time so sort works
+        $totalVolume = 0;
+        $totalLiquidity = 0;
+        $earliestCreated = null;
         for ($i = 0; $i < count($rawMarkets); $i++) {
             $rawMarket = $rawMarkets[$i];
             $parsed = $this->parse_market($rawMarket);
             $marketsList[] = $parsed;
+            $totalVolume = $this->sum($totalVolume, $this->safe_number_2($rawMarket, 'volume_fp', 'volume', 0));
+            $totalLiquidity = $this->sum($totalLiquidity, $this->safe_number_2($rawMarket, 'liquidity_dollars', 'liquidity', 0));
+            $marketCreated = $this->parse8601($this->safe_string($rawMarket, 'open_time'));
+            if (($marketCreated !== null) && (($earliestCreated === null) || ($marketCreated < $earliestCreated))) {
+                $earliestCreated = $marketCreated;
+            }
         }
         $ticker = $this->safe_string($rawEvent, 'event_ticker');
         $title = $this->safe_string($rawEvent, 'title');
+        $created = $this->parse8601($this->safe_string($rawEvent, 'created_date_iso'));
+        if ($created === null) {
+            $created = $earliestCreated;
+        }
         return $this->extend(array(
             'id' => $ticker,
             'slug' => $ticker,
-            'symbol' => $title ? $this->shortenSlug ($title) : null,
+            'event' => $title ? $this->shorten_slug($title) : null,
             'title' => $title,
             'markets' => $marketsList,
+            'volume' => $totalVolume,
+            'liquidity' => $totalLiquidity,
             'url' => $this->safe_string($rawEvent, 'url'),
             'image' => $this->safe_string($rawEvent, 'image_url'),
-            'created' => $this->parse8601($this->safe_string($rawEvent, 'created_date_iso')),
+            'created' => $created,
             'createdDatetime' => $this->safe_string($rawEvent, 'created_date_iso'),
             'end' => $this->parse8601($this->safe_string($rawEvent, 'end_date_iso')),
             'endDatetime' => $this->safe_string($rawEvent, 'end_date_iso'),
@@ -1692,7 +1866,7 @@ class kalshi extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'kalshi', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'kalshi', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches RSA-PSS SHA-256 authentication $headers for private endpoints
@@ -1708,7 +1882,8 @@ class kalshi extends Exchange {
         $access = gettype($api) === 'string' ? 'public' : $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['kalshi']);
-        $url = $baseUrl . '/' . $this->implode_params($path, $params);
+        $implodedPath = $this->implode_params($path, $params);
+        $url = $baseUrl . '/' . $implodedPath;
         $query = $this->omit($params, $this->extract_params($path));
         $querystring = $this->urlencode($query);
         if ($method === 'GET' && $querystring) {
@@ -1722,20 +1897,25 @@ class kalshi extends Exchange {
         if ($access === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            // Signing $payload => {$timestamp}{METHOD}/{path_without_base}
-            $pathForSigning = '/' . $path;
+            // Signing $payload => {$timestamp}{METHOD}{$path}, where $path is the full request $path
+            // INCLUDING the /trade-api/v2 prefix and any $path $params substituted in, but NOT
+            // the $query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
+            $tradeApiIndex = mb_strpos($baseUrl, '/trade-api');
+            $versionPrefix = mb_substr($baseUrl, $tradeApiIndex);
+            $pathForSigning = $versionPrefix . '/' . $implodedPath;
             $payload = $timestamp . $method . $pathForSigning;
             // RSA-PSS SHA-256 $signature with the private key PEM
             $keyParts = explode('\\n', $this->privateKey);
             $cleanPrivateKey = implode('\n', $keyParts);
-            $signature = $this->rsa($payload, $cleanPrivateKey, 'sha256');
+            $signature = $this->rsa($payload, $cleanPrivateKey, 'sha256', 'pss');
             $headers = $this->extend($headers, array(
                 'KALSHI-ACCESS-KEY' => $this->apiKey,
                 'KALSHI-ACCESS-SIGNATURE' => $signature,
                 'KALSHI-ACCESS-TIMESTAMP' => $timestamp,
             ));
             if ($method !== 'GET' && $querystring) {
-                $body = $query;
+                // kalshi expects a JSON $body; the $signature covers only $timestamp+$method+$path
+                $body = $this->json($query);
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

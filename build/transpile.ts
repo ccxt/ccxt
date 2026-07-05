@@ -505,7 +505,7 @@ class Transpiler {
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
             [ /([^'])\{\}/g, '$1array()' ],
-            [ /([^'])\[\](?!')/g, '$1array()' ],
+            [ /([^'])\[\s*\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
         ].concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
@@ -537,10 +537,13 @@ class Transpiler {
 
             [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode($2, array($1))" ],
 
-        // add []-array syntax conversions up to 20 levels deep
-        ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array($1)' ])).concat ([
+        // add []-array syntax conversions up to 20 levels deep. The inner alternation
+        // also allows a single level of nested brackets inside the literal so that
+        // string-index accesses survive, e.g. [ $currency['code'] ] -> array( $currency['code'] ).
+        ]).concat ([ ... Array (20) ].map (x => [ /\[(\s(?:[^\[\]]|\[[^\[\]]*\])+?\s)\]/g, 'array($1)' ])).concat ([
 
             [ /(\b)String(\b)/g, "$1'strval'$2"],
+            [ /JSON\.stringify\s*\(/g, 'json_encode(' ],
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
@@ -576,14 +579,27 @@ class Transpiler {
             [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
             [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
-            [ /Math\.(max|min)/g, '$1' ],
+            [ /Math\.(max|min)\s*\(/g, '$1(' ],
             [ /console\.log/g, 'var_dump'],
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
+            // PSR-12 / no_spaces_after_function_name: drop the space before "(" in
+            // constructor calls, e.g. new ArrayCache ($limit) -> new ArrayCache($limit).
+            // Placed after the "throw new ..." handlers above so it does not stop them
+            // from matching; the class name may be namespaced (e.g. new \ccxt\BadRequest()).
+            [ /new ([\\A-Za-z_][\\A-Za-z0-9_]*) \(/g, 'new $1(' ],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
             [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
+            // a method call directly on a $this property, e.g. this.orders.append (x): since
+            // "orders" is not a tracked local variable, variablePropertiesRegexes never turns
+            // the trailing ".append" into "->append", so do it here. "$this->" already exists
+            // (this. was rewritten above) and this runs after the specific .slice/.split/...
+            // conversions, so it only catches leftover property method calls. Transpiled
+            // concatenation always uses " . " with spaces, so the spaceless "." here is always
+            // member access, never a concat. Also drops the space before "(".
+            [ /(\$this->[A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*\(/g, '$1->$2(' ],
         ])
     }
 
@@ -821,14 +837,16 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         // WS infrastructure imports (ArrayCache, order-book sides) needed when watch*
-        // methods live in the (async) exchange file — e.g. prediction exchanges merge REST+WS
+        // methods live in the (async) exchange file — prediction exchanges merge REST+WS.
+        // regular pro files get these imports from transpileWS's createPythonClassHeader,
+        // so emitting them here too would duplicate the import line
         const wsAsyncString = (async ? '.async_support' : '')
-        const wsCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
+        const wsCacheClasses = this.isPrediction ? bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g) : undefined
         if (wsCacheClasses) {
             const uniqueCacheClasses = unique (wsCacheClasses).sort ()
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.cache import ' + uniqueCacheClasses.join (', '))
         }
-        const wsOrderBookSides = bodyAsString.match (/\s(Asks|Bids|CountedAsks|CountedBids|IndexedAsks|IndexedBids)\(/g)
+        const wsOrderBookSides = this.isPrediction ? bodyAsString.match (/\s(Asks|Bids|CountedAsks|CountedBids|IndexedAsks|IndexedBids)\(/g) : undefined
         if (wsOrderBookSides) {
             const uniqueSides = unique (wsOrderBookSides.map (m => m.trim ().replace ('(', ''))).sort ()
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))
@@ -907,6 +925,7 @@ class Transpiler {
             'PredictionPosition': /-> (?:List\[)?PredictionPosition\b/,
             'PredictionOpenInterest': /-> (?:List\[)?PredictionOpenInterest\b/,
             'PredictionTradingFee': /-> (?:List\[)?PredictionTradingFee\b/,
+            'PredictionOrderRequest': /: (?:List\[)?PredictionOrderRequest\b/,
         }
         const matches: string[] = []
         let match
@@ -1081,13 +1100,13 @@ class Transpiler {
 
         if (async) {
             if (bodyAsString.match (/Async\\await/)) {
-                libraryImports.push ('use \\React\\Async;')
+                libraryImports.push ('use React\\Async;')
             }
             if (bodyAsString.match (/Promise\\all/)) {
-                libraryImports.push ('use \\React\\Promise;')
+                libraryImports.push ('use React\\Promise;')
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
-                libraryImports.push ('use \\React\\Promise\\PromiseInterface;')
+                libraryImports.push ('use React\\Promise\\PromiseInterface;')
             }
         }
 
@@ -1136,7 +1155,9 @@ class Transpiler {
             "}\n",
         ]
 
-        const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
+        // strip any leading blank line(s) so there is no empty line right after the
+        // class opening brace (PSR-12 no_blank_lines_after_class_opening)
+        const result = header.join ("\n") + "\n" + bodyAsString.replace (/^\n+/, '') + "\n" + footer.join ('\n')
         return result
     }
 
@@ -1241,7 +1262,15 @@ class Transpiler {
         allVariables = allVariables.map ((error:any) => this.regexAll (error, this.getCommonRegexes ()))
 
         // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-        let phpVariablesRegexes = allVariables.map ((x:any) => [ "(^|[^$$a-zA-Z0-9\\.\\>'\"_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
+        // some exchange/base methods use a parameter named like a php language construct
+        // (e.g. filterBySinceLimit (array, ...), coinsph). For those we must NOT prefix the
+        // construct call form "array(" -> "$array(", otherwise array() literals inside the
+        // method get corrupted; we still prefix the variable in every other position.
+        const phpConstructNames = [ 'array', 'list', 'isset', 'empty', 'unset', 'print', 'eval', 'exit', 'die', 'echo' ]
+        let phpVariablesRegexes = allVariables.map ((x:any) => {
+            const noCallLookahead = (phpConstructNames.indexOf (x) !== -1) ? '(?!\\()' : ''
+            return [ "(^|[^$$a-zA-Z0-9\\.\\>'\"_/])" + x + noCallLookahead + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ]
+        })
 
         // support for php syntax for object-pointer dereference
         // convert all $variable.property to $variable->property
@@ -1249,11 +1278,21 @@ class Transpiler {
 
         // transpile JS → PHP
         const phpRegexes = this.getPHPRegexes ()
-        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
+        // PSR-12 / no_spaces_after_function_name: drop the space before "(" in object
+        // ("->") and static ("::") method calls, e.g. implicit api calls like
+        // $this->publicGetFooBar (), local-variable calls like $client->resolve () and
+        // dynamic calls like $this->$method (). It runs last because local-variable
+        // calls only get their "->" from variablePropertiesRegexes above; control
+        // structures never follow "->"/"::" so collapsing the space here is safe.
+        const noSpaceBeforeCallParen = [ /(->|::)(\$?[A-Za-z_][A-Za-z0-9_]*) \(/g, '$1$2(' ]
+        // same idea for dynamic constructor calls, e.g. new $broad[$broadKey] ($error);
+        // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
+        const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
+        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
         // indent async php
         if (async && js.indexOf (' await ') > -1) {
-            const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
-            phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
+            const closure = variables && variables.length ? ' use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
+            phpBody = '        return Async\\async(function ()' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        })();'
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -1790,7 +1829,8 @@ class Transpiler {
                     }
                 }).join (', ').trim ()
                     .replace (/undefined/g, 'null')
-                    .replace (/\{\}/g, 'array ()')
+                    .replace (/\{\}/g, 'array()')
+                    .replace (/\[\]/g, 'array()')
                 phpArgs = phpArgs.length ? (phpArgs) : ''
                 let syncPhpReturnType = ''
                 let asyncPhpReturnType = ''
@@ -2728,7 +2768,8 @@ class Transpiler {
                 phpHeaderAsync.push ('use React\\Promise;');
             }
 
-            phpAsync = phpAsync.replace (/\\ccxt\\Exchange/g, '\\ccxt\\async\\Exchange');
+            phpAsync = phpAsync.replace (/\\ccxt\\Exchange/g, '\\ccxt\\async\\Exchange').
+                                replace (/\\ccxt\\coinbase/g, '\\ccxt\\async\\coinbase'); // an exclusion to base tests
 
             const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
             for (const propName of decimalProps) {
@@ -3376,8 +3417,12 @@ if (isMainEntry(metaFileUrl)) {
         transpiler.addGeneratedHeaderToJs ('./js/')
     } else {
         (async () => {
-            // --prediction transpiles the given exchange(s) from ts/src/prediction/
-            const prediction = process.argv.includes ('--prediction')
+            // --prediction transpiles the given exchange(s) from ts/src/prediction/; bare
+            // prediction-only ids (e.g. `transpile.ts kalshi`) auto-route there so scoped
+            // CI steps don't need to know the namespace
+            const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+            const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => exchangesPredictionIds.includes (x) && !exchangeIds.includes (x))
+            const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
             await transpiler.transpileEverything (force, child, prediction)
         })()
     }
