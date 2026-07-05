@@ -432,6 +432,7 @@ export default class Exchange {
     setFetchProxyOptions(params: any, httpProxy: any, httpsProxy: any, socksProxy: any): void;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     jsonStringifyWithNull(obj: any): string;
+    hasUnsafeInteger(value: any): boolean;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;

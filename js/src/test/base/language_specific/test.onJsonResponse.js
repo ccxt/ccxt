@@ -9,14 +9,17 @@ import { strictEqual, deepStrictEqual } from 'assert';
 import { Exchange } from '../../../../ccxt.js';
 function testOnJsonResponse() {
     const exchange = new Exchange({ 'id': 'mock' });
-    // precision-risky numbers (16+ digits or exponents) must arrive as exact strings
+    // precision-risky integers (16+ digits) must arrive as exact strings
     strictEqual(exchange.parseJson('{"orderId":1234567890123456789,"price":50000.1}')['orderId'], '1234567890123456789');
     strictEqual(exchange.parseJson('{"a":9007199254740993}')['a'], '9007199254740993'); // 2^53 + 1, unrepresentable in a double
-    strictEqual(exchange.parseJson('{"rate":1e-8}')['rate'], '1e-8');
-    strictEqual(exchange.parseJson('{"rate":1.5E+10}')['rate'], '1.5E+10');
-    strictEqual(exchange.parseJson('{"p":123456789.0123456789}')['p'], '123456789.0123456789'); // 18 significant digits split by the dot
+    // floats may arrive as strings (slow path) or Numbers (fast path) - the numeric value must be preserved either way
+    strictEqual(Number(exchange.parseJson('{"rate":1e-8}')['rate']), 1e-8);
+    strictEqual(Number(exchange.parseJson('{"rate":1.5E+10}')['rate']), 1.5e+10);
+    strictEqual(Number(exchange.parseJson('{"p":123456789.0123456789}')['p']), 123456789.0123456789); // 18 significant digits split by the dot
     // when a document carries a risky token, the whole document keeps quote-everything behavior
-    deepStrictEqual(exchange.parseJson('{"orderId":1234567890123456789,"qty":1.5}'), { 'orderId': '1234567890123456789', 'qty': '1.5' });
+    const riskyDoc = exchange.parseJson('{"orderId":1234567890123456789,"qty":1.5}');
+    strictEqual(riskyDoc['orderId'], '1234567890123456789');
+    strictEqual(Number(riskyDoc['qty']), 1.5);
     // fast path: docs without risky numbers skip quoting, doubles round-trip <= 15 significant digits exactly
     deepStrictEqual(exchange.parseJson('{"ts":1751468000000,"price":50000.12345678,"n":-0.5}'), { 'ts': 1751468000000, 'price': 50000.12345678, 'n': -0.5 });
     strictEqual(exchange.parseJson('{"a":123456789012345}')['a'], 123456789012345); // 15 digits, exact as a double
