@@ -564,7 +564,7 @@ class poloniex(ccxt.async_support.poloniex):
         messageHash = channel + '::' + symbol
         parsed = self.parse_ws_ohlcv(data, market)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = None if (timeframe is None) else self.safe_value(self.ohlcvs[symbol], timeframe)
         if symbol is not None:
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -601,7 +601,7 @@ class poloniex(ccxt.async_support.poloniex):
                 symbol = trade['symbol']
                 type = 'trades'
                 messageHash = type + '::' + symbol
-                tradesArray = self.safe_value(self.trades, symbol)
+                tradesArray = None if (symbol is None) else self.safe_value(self.trades, symbol)
                 if tradesArray is None:
                     tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
                     tradesArray = ArrayCache(tradesLimit)
@@ -789,8 +789,8 @@ class poloniex(ccxt.async_support.poloniex):
             eventType = self.safe_string(order, 'eventType')
             if marketId is not None:
                 symbol = self.safe_symbol(marketId)
-                orderId = self.safe_string(order, 'orderId')
-                clientOrderId = self.safe_string(order, 'clientOrderId')
+                orderId = self.safe_string(order, 'orderId', '')
+                clientOrderId = self.safe_string(order, 'clientOrderId', '')
                 if eventType == 'place' or eventType == 'canceled':
                     parsed = self.parse_ws_order(order)
                     orders.append(parsed)
@@ -1157,7 +1157,7 @@ class poloniex(ccxt.async_support.poloniex):
             'cancelAllOrders': self.handle_order_request,
             'auth': self.handle_authenticate,
         }
-        method = self.safe_value(methods, type)
+        method = None if (type is None) else self.safe_value(methods, type)
         if type == 'auth':
             self.handle_authenticate(client, message)
         elif type is None:

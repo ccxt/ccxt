@@ -112,7 +112,7 @@ function testSafeMethods () {
     assert (exchange.safeList (inputDict, 'dict') === undefined);
     assert (exchange.safeList (inputList, 1) === undefined);
     const arrayOfDicts = exchange.safeList (inputDict, 'listOfDicts');
-    assert (equals (arrayOfDicts[0], { 'a': 1 }));
+    assert (equals ((arrayOfDicts as any[])[0], { 'a': 1 }));
 
     // safeList2
     listObject = exchange.safeList2 (inputDict, 'a', 'list');

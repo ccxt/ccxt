@@ -458,7 +458,7 @@ export default class bitteam extends Exchange {
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'name');
         const numericId = this.safeInteger (market, 'id');
-        const parts = id.split ('_');
+        const parts = (id as string).split ('_');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
@@ -678,7 +678,7 @@ export default class bitteam extends Exchange {
         } else {
             feesByNetworkId = withdrawCommissionFixed;
         }
-        const statuses = this.safeValue (statusesResponse, numericId, {});
+        const statuses = this.safeValue (statusesResponse, numericId as number, {});
         const deposit = this.safeValue (statuses, 'depositStatus');
         const withdraw = this.safeValue (statuses, 'withdrawStatus');
         const networkIds = Object.keys (feesByNetworkId);
@@ -1369,7 +1369,7 @@ export default class bitteam extends Exchange {
             'executing': 'open',
             'created': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrderType (status) {
@@ -2388,7 +2388,7 @@ export default class bitteam extends Exchange {
             'approving': 'pending',
             'success': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {

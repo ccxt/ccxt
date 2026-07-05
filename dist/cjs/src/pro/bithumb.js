@@ -74,6 +74,9 @@ class bithumb extends bithumb$1["default"] {
         const marketIds = [];
         const messageHashes = [];
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);

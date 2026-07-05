@@ -4156,7 +4156,7 @@
                     "entryPrice": 95.61,
                     "unrealizedPnl": 0.0005,
                     "realizedPnl": -0.0048,
-                    "percentage": null,
+                    "percentage": 0.02,
                     "contracts": 0.1,
                     "contractSize": 1,
                     "markPrice": 95.62,

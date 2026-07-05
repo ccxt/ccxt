@@ -1021,7 +1021,7 @@ export default class bitopro extends Exchange {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status);
+        return (status === undefined) ? undefined : this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1748,7 +1748,7 @@ export default class bitopro extends Exchange {
             const networks = this.safeDict(this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper(params, 'network');
             params = this.omit(params, ['network']);
-            const networkId = this.safeString(networks, requestedNetwork);
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, requestedNetwork);
             if (networkId === undefined) {
                 throw new ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }

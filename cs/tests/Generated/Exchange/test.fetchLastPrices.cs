@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchLastprices";
         // log ('fetching all tickers at once...')
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         object checkedSymbol = null;
         try
         {
@@ -28,7 +28,7 @@ public partial class testMainClass : BaseTest
         for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             // todo: symbol check here
-            testLastPrice(exchange, skippedProperties, method, getValue(values, i), checkedSymbol);
+            testLastPrice(exchange, skippedProperties, method, getValue(values, i), ((string)checkedSymbol));
             atLeastOnePassed = isTrue(atLeastOnePassed) || isTrue((isGreaterThan(exchange.safeNumber(getValue(values, i), "price"), 0)));
         }
         assert(atLeastOnePassed, add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));

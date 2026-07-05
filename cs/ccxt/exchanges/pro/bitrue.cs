@@ -359,7 +359,7 @@ public partial class bitrue : ccxt.bitrue
             } },
         };
         object request = this.deepExtend(message, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(((string)url), messageHash, request, messageHash);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -397,14 +397,14 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object channelKind = this.safeString(parts, 1);
         object isFutures = (isEqual(channelKind, "e"));
         object market = null;
         if (isTrue(isFutures))
         {
             object wsBaseQuote = this.safeStringLower(parts, 2);
-            market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+            market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
         } else
         {
             object marketId = this.safeStringUpper(parts, 1);
@@ -446,7 +446,7 @@ public partial class bitrue : ccxt.bitrue
             }
             object baseId = this.safeStringLower(candidate, "baseId", "");
             object quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (isTrue(isEqual(add(baseId, quoteId), wsBaseQuote)))
+            if (isTrue(isEqual(add(((string)baseId), ((string)quoteId)), wsBaseQuote)))
             {
                 return candidate;
             }
@@ -549,9 +549,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -677,9 +677,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -698,12 +698,12 @@ public partial class bitrue : ccxt.bitrue
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), ((string)timeframe)))))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         callDynamically(stored, "append", new object[] {parsed});
         object messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -778,9 +778,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -879,16 +879,16 @@ public partial class bitrue : ccxt.bitrue
         if (isTrue(inOp(message, "channel")))
         {
             object channel = this.safeString(message, "channel");
-            if (isTrue(isGreaterThan(getIndexOf(channel, "_depth_step"), -1)))
+            if (isTrue(isGreaterThan(getIndexOf(((string)channel), "_depth_step"), -1)))
             {
                 this.handleOrderBook(client as WebSocketClient, message);
-            } else if (isTrue(isGreaterThan(getIndexOf(channel, "_trade_ticker"), -1)))
+            } else if (isTrue(isGreaterThan(getIndexOf(((string)channel), "_trade_ticker"), -1)))
             {
                 this.handleTrades(client as WebSocketClient, message);
-            } else if (isTrue(isGreaterThan(getIndexOf(channel, "_kline_"), -1)))
+            } else if (isTrue(isGreaterThan(getIndexOf(((string)channel), "_kline_"), -1)))
             {
                 this.handleOHLCV(client as WebSocketClient, message);
-            } else if (isTrue(isGreaterThan(getIndexOf(channel, "_ticker"), -1)))
+            } else if (isTrue(isGreaterThan(getIndexOf(((string)channel), "_ticker"), -1)))
             {
                 this.handleTicker(client as WebSocketClient, message);
             }
@@ -902,7 +902,7 @@ public partial class bitrue : ccxt.bitrue
                 { "BALANCE", this.handleBalance },
                 { "ORDER", this.handleOrder },
             };
-            object handler = this.safeValue(handlers, eventVar);
+            object handler = this.safeValue(handlers, ((string)eventVar));
             if (isTrue(!isEqual(handler, null)))
             {
                 DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

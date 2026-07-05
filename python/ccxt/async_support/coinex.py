@@ -3003,7 +3003,7 @@ class coinex(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             entry = data[i]
             code = self.safe_string(entry, 'code')
-            message = self.safe_string(entry, 'message')
+            message = self.safe_string(entry, 'message', '')
             if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
                 feedback = self.id + ' ' + message
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
@@ -3849,7 +3849,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "memo": ""
         #     }
         #
-        coinAddress = self.safe_string(depositAddress, 'address')
+        coinAddress = self.safe_string(depositAddress, 'address', '')
         parts = coinAddress.split(':')
         address = None
         tag = None
@@ -5801,7 +5801,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue: Any = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5918,7 +5918,7 @@ class coinex(Exchange, ImplicitAPI):
             return None
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
-        message = self.safe_string(response, 'message')
+        message = self.safe_string(response, 'message', '')
         if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
             feedback = self.id + ' ' + message
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

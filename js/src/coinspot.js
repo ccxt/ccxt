@@ -425,7 +425,7 @@ export default class coinspot extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.publicGetLatest(params);
-        let id = market['id'];
+        let id = this.safeString(market, 'id', '');
         id = id.toLowerCase();
         const prices = this.safeDict(response, 'prices', {});
         //
@@ -440,7 +440,7 @@ export default class coinspot extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeDict(prices, id);
+        const ticker = this.safeDict(prices, id, {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -659,6 +659,9 @@ export default class coinspot extends Exchange {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');

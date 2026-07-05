@@ -1523,6 +1523,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
         {
             parsed = this.parseWsOrder(data, market);
+            Object sendTime = this.safeInteger(message, "sendTime");
+            if (Helpers.isTrue(!Helpers.isEqual(sendTime, null)))
+            {
+                Helpers.addElementToObject(parsed, "lastTradeTimestamp", sendTime);
+            }
         } else
         {
             parsed = this.parseOrder(data, market);

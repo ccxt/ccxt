@@ -1464,7 +1464,7 @@ class bullish(Exchange, ImplicitAPI):
             request['_pageSize'] = self.get_closest_limit(limit)
         method = 'privateGetV2HistoryOrders'
         method, params = self.handle_option_and_params(params, 'fetchOrders', 'method', method)
-        response = None
+        response = []
         if method == 'privateGetV2Orders':
             #
             #     [

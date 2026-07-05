@@ -115,13 +115,13 @@ class xt extends xt$1["default"] {
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDelta = this.safeValue(cache, 0);
         const firstDeltaNonce = this.safeInteger2(firstDelta, 'i', 'u');
-        if (nonce < firstDeltaNonce - 1) {
+        if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
             const deltaNonce = this.safeInteger2(delta, 'i', 'u');
-            if (deltaNonce >= nonce) {
+            if ((deltaNonce !== undefined) && (nonce !== undefined) && (deltaNonce >= nonce)) {
                 return i;
             }
         }
@@ -609,7 +609,7 @@ class xt extends xt$1["default"] {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }
@@ -739,7 +739,9 @@ class xt extends xt$1["default"] {
             const isSpot = cv !== undefined;
             const ticker = this.parseTicker(data);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const event = this.safeString(message, 'event');
             const messageHashTail = isSpot ? 'spot' : 'contract';
             const messageHash = event + '::' + messageHashTail;
@@ -824,7 +826,9 @@ class xt extends xt$1["default"] {
             const tickerData = data[i];
             const ticker = this.parseTicker(tickerData);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             newTickers.push(ticker);
         }
         const messageHashStart = this.safeString(message, 'topic') + '::' + tradeType;
@@ -885,7 +889,7 @@ class xt extends xt$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         if (marketId !== undefined) {
-            const timeframe = this.safeString(data, 'i');
+            const timeframe = this.safeString(data, 'i', '');
             const tradeType = ('q' in data) ? 'spot' : 'contract';
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
@@ -1019,10 +1023,13 @@ class xt extends xt$1["default"] {
         const data = this.safeDict(message, 'data');
         const marketId = this.safeString(data, 's');
         if (marketId !== undefined) {
-            let event = this.safeString(message, 'event');
+            let event = this.safeString(message, 'event', '');
             const splitEvent = event.split(',');
-            event = this.safeString(splitEvent, 0);
-            const tradeType = ('fu' in data) ? 'contract' : 'spot';
+            event = this.safeString(splitEvent, 0, '');
+            let tradeType = 'spot';
+            if ((data !== undefined) && ('fu' in data)) {
+                tradeType = 'contract';
+            }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const obAsks = this.safeList(data, 'a');
@@ -1353,7 +1360,11 @@ class xt extends xt$1["default"] {
             this.myTrades = stored;
         }
         const parsedTrade = this.parseTrade(data);
-        const market = this.market(parsedTrade['symbol']);
+        const tradeSymbol = parsedTrade['symbol'];
+        if (tradeSymbol === undefined) {
+            return;
+        }
+        const market = this.market(tradeSymbol);
         stored.append(parsedTrade);
         const tradeType = market['contract'] ? 'contract' : 'spot';
         client.resolve(stored, 'trade::' + tradeType);
@@ -1377,10 +1388,10 @@ class xt extends xt$1["default"] {
                 'order': this.handleOrder,
                 'position': this.handlePosition,
             };
-            let method = this.safeValue(methods, topic);
+            let method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
             if (topic === 'trade') {
                 const data = this.safeDict(message, 'data');
-                if (('oi' in data) || ('orderId' in data)) {
+                if ((data !== undefined) && (('oi' in data) || ('orderId' in data))) {
                     method = this.handleMyTrades;
                 }
                 else {

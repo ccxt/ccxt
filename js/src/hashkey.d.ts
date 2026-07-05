@@ -1,5 +1,5 @@
 import Exchange from './abstract/hashkey.js';
-import type { Account, Balances, Currencies, Currency, Dict, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
 /**
  * @class hashkey
  * @augments Exchange
@@ -498,7 +498,7 @@ export default class hashkey extends Exchange {
      */
     fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     checkTypeParam(methodName: any, params: any): void;
-    handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: any): any[];
+    handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: Bool): [Bool, object];
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderSideAndReduceOnly(unparsed: any): any[];
     parseOrderStatus(status: any): string;

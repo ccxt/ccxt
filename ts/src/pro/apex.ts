@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Bool, Dict, Int, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
 
@@ -132,7 +132,7 @@ export default class apex extends apexRest {
         const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
         const trades = data;
-        const parts = topic.split ('.');
+        const parts = (topic as string).split ('.');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId, undefined, undefined);
         const symbol = market['symbol'];
@@ -152,7 +152,7 @@ export default class apex extends apexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // public
         //    {
@@ -397,8 +397,8 @@ export default class apex extends apexRest {
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const symbol = (symbols as string[])[i];
             const market = this.market (symbol);
             const topic = 'instrumentInfo' + '.H.' + market['id2'];
             topics.push (topic);
@@ -440,7 +440,7 @@ export default class apex extends apexRest {
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         let symbol: Str = undefined;
-        let parsed: Ticker = undefined;
+        let parsed: Ticker = this.parseTicker (data);
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
@@ -458,9 +458,9 @@ export default class apex extends apexRest {
         const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601 (timestamp);
-        this.tickers[symbol] = parsed;
+        this.tickers[symbol as string] = parsed;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (this.tickers[symbol as string], messageHash);
     }
 
     /**
@@ -500,7 +500,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString);
+            const market = this.market (symbolString as string);
             symbolString = market['id2'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -540,7 +540,7 @@ export default class apex extends apexRest {
         //
         const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
-        const topicParts = topic.split ('.');
+        const topicParts = (topic as string).split ('.');
         const topicLength = topicParts.length;
         const timeframeId = this.safeString (topicParts, 1);
         const timeframe = this.findTimeframe (timeframeId);
@@ -552,11 +552,11 @@ export default class apex extends apexRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][timeframe as string];
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
@@ -634,9 +634,9 @@ export default class apex extends apexRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let messageHash = '';
-        if (!this.isEmpty (symbols)) {
+        if (!this.isEmpty (symbols as any[])) {
             symbols = this.marketSymbols (symbols);
-            messageHash = '::' + symbols.join (',');
+            messageHash = '::' + (symbols as string[]).join (',');
         }
         const url = this.getWsPrivateUrl ();
         messageHash = 'positions' + messageHash;
@@ -710,10 +710,9 @@ export default class apex extends apexRest {
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            let parsed: Trade = undefined;
-            parsed = this.parseWsTrade (rawTrade);
+            const parsed: Trade = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -763,10 +762,9 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            let parsed: Order = undefined;
-            parsed = this.parseOrder (lists[i]);
+            const parsed: Order = this.parseOrder (lists[i]);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             orders.append (parsed);
         }
         const symbolsArray = Object.keys (symbols);

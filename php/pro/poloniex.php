@@ -632,7 +632,7 @@ class poloniex extends \ccxt\async\poloniex {
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = ($timeframe === null) ? null : $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($symbol !== null) {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -672,7 +672,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $symbol = $trade['symbol'];
                 $type = 'trades';
                 $messageHash = $type . '::' . $symbol;
-                $tradesArray = $this->safe_value($this->trades, $symbol);
+                $tradesArray = ($symbol === null) ? null : $this->safe_value($this->trades, $symbol);
                 if ($tradesArray === null) {
                     $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                     $tradesArray = new ArrayCache($tradesLimit);
@@ -868,8 +868,8 @@ class poloniex extends \ccxt\async\poloniex {
             $eventType = $this->safe_string($order, 'eventType');
             if ($marketId !== null) {
                 $symbol = $this->safe_symbol($marketId);
-                $orderId = $this->safe_string($order, 'orderId');
-                $clientOrderId = $this->safe_string($order, 'clientOrderId');
+                $orderId = $this->safe_string($order, 'orderId', '');
+                $clientOrderId = $this->safe_string($order, 'clientOrderId', '');
                 if ($eventType === 'place' || $eventType === 'canceled') {
                     $parsed = $this->parse_ws_order($order);
                     $orders->append($parsed);
@@ -1271,7 +1271,7 @@ class poloniex extends \ccxt\async\poloniex {
             'cancelAllOrders' => array($this, 'handle_order_request'),
             'auth' => array($this, 'handle_authenticate'),
         );
-        $method = $this->safe_value($methods, $type);
+        $method = ($type === null) ? null : $this->safe_value($methods, $type);
         if ($type === 'auth') {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {

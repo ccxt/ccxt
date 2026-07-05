@@ -36,7 +36,7 @@ public class TestWatchBidsAsks extends BaseTest {
         {
             Object success = true;
             Object shouldReturn = false;
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 response = (exchange.watchBidsAsks(argSymbols, argParams)).join();

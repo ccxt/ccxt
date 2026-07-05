@@ -6,7 +6,7 @@ import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -498,7 +498,7 @@ export default class bitso extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'book');
-            const [ baseId, quoteId ] = id.split ('_');
+            const [ baseId, quoteId ] = (id as string).split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
@@ -516,8 +516,8 @@ export default class bitso extends Exchange {
                 'percentage': true,
                 'tierBased': true,
             };
-            const takerFees = [];
-            const makerFees = [];
+            const takerFees: List = [];
+            const makerFees: List = [];
             for (let j = 0; j < feeTiers.length; j++) {
                 const tier = feeTiers[j];
                 const volume = this.safeNumber (tier, 'volume');
@@ -526,8 +526,8 @@ export default class bitso extends Exchange {
                 takerFees.push ([ volume, takerFee ]);
                 makerFees.push ([ volume, makerFee ]);
                 if (j === 0) {
-                    fee['taker'] = takerFee;
-                    fee['maker'] = makerFee;
+                    fee['taker'] = takerFee as number;
+                    fee['maker'] = makerFee as number;
                 }
             }
             const tiers: Dict = {
@@ -1047,7 +1047,7 @@ export default class bitso extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1211,7 +1211,7 @@ export default class bitso extends Exchange {
             'queued': 'open',
             'completed': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1274,7 +1274,7 @@ export default class bitso extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1341,7 +1341,7 @@ export default class bitso extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'oid': id,
         };
@@ -1455,8 +1455,8 @@ export default class bitso extends Exchange {
         const response = await this.privateGetFundingDestination (this.extend (request, params));
         let address = this.safeString (response['payload'], 'account_identifier');
         let tag: Str = undefined;
-        if (address.indexOf ('?dt=') >= 0) {
-            const parts = address.split ('?dt=');
+        if ((address as string).indexOf ('?dt=') >= 0) {
+            const parts = (address as string).split ('?dt=');
             address = this.safeString (parts, 0);
             tag = this.safeString (parts, 1);
         }
@@ -1759,7 +1759,7 @@ export default class bitso extends Exchange {
         //
         const payload = this.safeValue (response, 'payload', []);
         const first = this.safeDict (payload, 0);
-        return this.parseTransaction (first, currency);
+        return this.parseTransaction (first as Dict, currency);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1841,7 +1841,7 @@ export default class bitso extends Exchange {
             'complete': 'ok',
             'failed': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     nonce () {

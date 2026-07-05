@@ -243,8 +243,8 @@ class btcbox extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $symbolParts = explode('_', $marketId);
-            $baseCurr = $this->safe_string($symbolParts, 0);
-            $quote = $this->safe_string($symbolParts, 1);
+            $baseCurr = $this->safe_string($symbolParts, 0, '');
+            $quote = $this->safe_string($symbolParts, 1, '');
             $quoteId = strtolower($quote);
             $id = strtolower($baseCurr);
             $res = $response1[$marketId];
@@ -413,7 +413,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $numSymbols = count($this->symbols);
+        $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
@@ -461,7 +461,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $numSymbols = count($this->symbols);
+        $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
@@ -532,7 +532,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $numSymbols = count($this->symbols);
+        $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
@@ -620,6 +620,9 @@ class btcbox extends Exchange {
             'closed' => 'closed', // never encountered, seems to be bug in the doc
             'no' => 'closed', // not clarified in the docs...
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -721,6 +724,9 @@ class btcbox extends Exchange {
     public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $this->load_markets();
         // a special case for btcbox – default $symbol is BTC/JPY
+        if ($symbol === null) {
+            $symbol = 'BTC/JPY';
+        }
         $market = $this->market($symbol);
         $request = array(
             'type' => $type, // 'open' or 'all'

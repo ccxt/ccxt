@@ -12,7 +12,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_last_price.php';
 function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
     $method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
-    $response = null;
+    $response = array();
     $checked_symbol = null;
     try {
         $response = $exchange->fetch_last_prices();
