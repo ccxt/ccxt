@@ -1,0 +1,322 @@
+{
+    "exchange": "hyperliquid",
+    "asyncOnly": true,
+    "skipKeys": [
+        "startTime",
+        "endTime",
+        "r",
+        "s",
+        "v",
+        "nonce",
+        "time"
+    ],
+    "outputType": "json",
+    "options": {
+        "loadAllOutcomes": true
+    },
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    null,
+                    1,
+                    {
+                        "address": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "#1720",
+                        "side": "A",
+                        "px": "0.00012",
+                        "sz": "84166.0",
+                        "time": "1783054567825",
+                        "hash": "0xcafa6af128412df8cc74043f18d0f902025f00d6c3444cca6ec31643e74507e3",
+                        "tid": "561715813668267",
+                        "users": [
+                            "0x266b41deb93bc93689d916982dd51cb1f8241b20",
+                            "0xf84a9bb19845f4d79a14e1deb475a311b4224ba9"
+                        ]
+                    },
+                    {
+                        "coin": "#1720",
+                        "side": "A",
+                        "px": "0.00014",
+                        "sz": "70385.0",
+                        "time": "1783054567825",
+                        "hash": "0xcafa6af128412df8cc74043f18d0f902025f00d6c3444cca6ec31643e74507e3",
+                        "tid": "1088712012385077",
+                        "users": [
+                            "0x266b41deb93bc93689d916982dd51cb1f8241b20",
+                            "0xf84a9bb19845f4d79a14e1deb475a311b4224ba9"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "561715813668267",
+                        "info": {
+                            "coin": "#1720",
+                            "side": "A",
+                            "px": "0.00012",
+                            "sz": "84166.0",
+                            "time": "1783054567825",
+                            "hash": "0xcafa6af128412df8cc74043f18d0f902025f00d6c3444cca6ec31643e74507e3",
+                            "tid": "561715813668267",
+                            "users": [
+                                "0x266b41deb93bc93689d916982dd51cb1f8241b20",
+                                "0xf84a9bb19845f4d79a14e1deb475a311b4224ba9"
+                            ]
+                        },
+                        "timestamp": 1783054567825,
+                        "datetime": "2026-07-03T04:56:07.825Z",
+                        "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                        "outcomeId": "#1720",
+                        "label": "YES",
+                        "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
+                        "type": "limit",
+                        "side": "sell",
+                        "takerOrMaker": "maker",
+                        "price": 0.00012,
+                        "amount": 84166,
+                        "cost": 10.09992,
+                        "fee": {},
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OB by outcome label",
+                "method": "fetchOrderBook",
+                "input": [
+                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES"
+                ],
+                "httpResponse": {
+                    "coin": "#1720",
+                    "time": "1783249257189",
+                    "levels": [
+                        [],
+                        [
+                            {
+                                "px": "0.00012",
+                                "sz": "997.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.0009",
+                                "sz": "12852.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.00292",
+                                "sz": "16228.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.011",
+                                "sz": "715.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.99997",
+                                "sz": "100000.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.99999",
+                                "sz": "2000000.0",
+                                "n": "1"
+                            }
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "bids": [],
+                    "asks": [
+                        [
+                            0.00012,
+                            997
+                        ],
+                        [
+                            0.0009,
+                            12852
+                        ],
+                        [
+                            0.00292,
+                            16228
+                        ],
+                        [
+                            0.011,
+                            715
+                        ],
+                        [
+                            0.99997,
+                            100000
+                        ],
+                        [
+                            0.99999,
+                            2000000
+                        ]
+                    ],
+                    "timestamp": 1783249257189,
+                    "datetime": "2026-07-05T11:00:57.189Z",
+                    "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "outcomeId": "#1720",
+                    "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172"
+                }
+            },
+            {
+                "description": "fetch orderbook by id",
+                "method": "fetchOrderBook",
+                "input": [
+                    "#1720"
+                ],
+                "httpResponse": {
+                    "coin": "#1720",
+                    "time": "1783249257696",
+                    "levels": [
+                        [],
+                        [
+                            {
+                                "px": "0.00012",
+                                "sz": "997.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.0009",
+                                "sz": "12852.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.00292",
+                                "sz": "16228.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.011",
+                                "sz": "715.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.99997",
+                                "sz": "100000.0",
+                                "n": "1"
+                            },
+                            {
+                                "px": "0.99999",
+                                "sz": "2000000.0",
+                                "n": "1"
+                            }
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "bids": [],
+                    "asks": [
+                        [
+                            0.00012,
+                            997
+                        ],
+                        [
+                            0.0009,
+                            12852
+                        ],
+                        [
+                            0.00292,
+                            16228
+                        ],
+                        [
+                            0.011,
+                            715
+                        ],
+                        [
+                            0.99997,
+                            100000
+                        ],
+                        [
+                            0.99999,
+                            2000000
+                        ]
+                    ],
+                    "timestamp": 1783249257696,
+                    "datetime": "2026-07-05T11:00:57.696Z",
+                    "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "outcomeId": "#1720",
+                    "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172"
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "input": [
+                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "market",
+                    "sell",
+                    21,
+                    0.52
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "order",
+                        "data": {
+                            "statuses": [
+                                {
+                                    "filled": {
+                                        "totalSz": "21.0",
+                                        "avgPx": "0.52",
+                                        "oid": "480263627979"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "480263627979",
+                    "info": {
+                        "status": "ok",
+                        "response": {
+                            "type": "order",
+                            "data": {
+                                "statuses": [
+                                    {
+                                        "filled": {
+                                            "totalSz": "21.0",
+                                            "avgPx": "0.52",
+                                            "oid": "480263627979"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "timestamp": 1783249421797,
+                    "datetime": "2026-07-05T11:03:41.797Z",
+                    "status": "closed",
+                    "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "outcomeId": "#1720",
+                    "label": "YES",
+                    "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
+                    "type": "market",
+                    "side": "sell",
+                    "price": 0.52,
+                    "amount": 21,
+                    "filled": 21,
+                    "remaining": 0,
+                    "cost": 10.92,
+                    "trades": [],
+                    "fees": [],
+                    "timeInForce": "IOC"
+                }
+            }
+        ]
+    }
+}

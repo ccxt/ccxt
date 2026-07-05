@@ -1,0 +1,67 @@
+{
+    "exchange": "hyperliquid",
+    "asyncOnly": true,
+    "skipKeys": [
+        "startTime",
+        "endTime",
+        "r",
+        "s",
+        "v",
+        "nonce",
+        "time"
+    ],
+    "outputType": "json",
+    "options": {
+        "loadAllOutcomes": true
+    },
+    "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel order by outcome",
+                "method": "cancelOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    480264497594,
+                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES"
+                ],
+                "output": "{\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":100001720,\"o\":480264497594}]},\"nonce\":1783249421740,\"signature\":{\"r\":\"0x4564058bb6ad2d4e4c757b8f6c49ad76b184cb50c1ea3e40111a4f385e967fa6\",\"s\":\"0x5085fbbb412d9338f4b0db463159ea5bef3d9ca2b3d7445ed45b0f270ab08837\",\"v\":28}}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OB by outcome label",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"#1720\"}"
+            },
+            {
+                "description": "fetch orderbook by id",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "#1720"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"#1720\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    null,
+                    1,
+                    {
+                        "address": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31"
+                    }
+                ],
+                "output": "{\"type\":\"recentTrades\",\"coin\":\"#1720\",\"address\":\"0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31\"}"
+            }
+        ]
+    }
+}
