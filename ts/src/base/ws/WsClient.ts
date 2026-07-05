@@ -95,18 +95,35 @@ export default class WsClient extends Client {
         this.onOpen ();
     }
 
-    // one message per async-iterator step: a microtask boundary between every
-    // two deliveries. the try/catch is required because deliverLoop is
-    // fire-and-forget - an iterator rejection on abrupt close would otherwise
-    // be an unhandled rejection (teardown itself propagates via the socket
-    // error/close handlers)
+    // one message per async-iterator step, plus one explicit microtask hop
+    // between deliveries: the hop lets a consumer awaiting a just-resolved
+    // future run its re-arm microtask chain ahead of the next delivery
+    // (restores full burst wakeups for shallow re-arm chains at ~zero cost)
     async deliverLoop () {
+        // discriminates errors escaping onMessage from iterator rejections
+        // caused by socket teardown (which are already handled by the
+        // error/close handlers above). connection state cannot be used for
+        // this: when the loop body throws, for-await first runs the implicit
+        // iterator.return (), which destroys the duplex and starts closing
+        // the socket before the catch executes
+        let dispatching = false;
         try {
             for await (const message of this.duplex) {
+                dispatching = true;
                 this.onMessage ({ 'data': message });
+                dispatching = false;
+                await Promise.resolve ();
             }
         } catch (e) {
-            // socket teardown propagates via the error/close handlers
+            if (dispatching) {
+                // an error escaped onMessage - apply the established WsClient
+                // error semantics: onError (normalize to NetworkError, set
+                // this.error so the follow-up onClose does not clobber it,
+                // reset, reject all pending futures), then close the
+                // connection
+                this.onError (e);
+                this.close ();
+            }
         }
     }
 
