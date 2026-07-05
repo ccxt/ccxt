@@ -354,6 +354,25 @@ public partial class myriad : PredictionExchange
      */
     public async override Task<object> fetchEvent(object id, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.fetchRawMarketById(id, parameters);
+        object market = this.parseMyriadMarket(response);
+        object eventVar = this.parseMarketToEvent(response, market);
+        this.indexEventOutcomes(eventVar);
+        return eventVar;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawMarketById
+     * @description fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+     * @param {string} id the unified event/market id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw myriad market object
+     */
+    public async virtual Task<object> fetchRawMarketById(object id, object parameters = null)
+    {
         // the unified event id is a composite networkId:marketId
         parameters ??= new Dictionary<string, object>();
         object parts = ((string)id).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
@@ -367,10 +386,7 @@ public partial class myriad : PredictionExchange
         {
             ((IDictionary<string,object>)request)["id"] = id;
         }
-        object response = await this.myriadPublicGetMarketsId(this.extend(request, parameters));
-        object market = this.parseMyriadMarket(response);
-        object eventVar = this.parseMarketToEvent(response, market);
-        return eventVar;
+        return await this.myriadPublicGetMarketsId(this.extend(request, parameters));
     }
 
     /**
@@ -837,7 +853,17 @@ public partial class myriad : PredictionExchange
      */
     public async virtual Task<object> createAmmOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
+        // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
+        // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
+        // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
+        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         parameters ??= new Dictionary<string, object>();
+        object sideLower = ((bool) isTrue((!isEqual(side, null)))) ? ((string)((string)side)).ToLower() : null;
+        object isCostDenominated = this.safeBool(parameters, "costDenominated", false);
+        if (isTrue(isTrue((isEqual(sideLower, "buy"))) && !isTrue(isCostDenominated)))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
+        }
         if (isTrue(isEqual(this.privateKey, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a privateKey to sign the on-chain transaction")) ;
@@ -856,8 +882,8 @@ public partial class myriad : PredictionExchange
         object predictionMarket = this.safeString(chainConfig, "predictionMarket");
         object tokenAddress = this.safeString2(parameters, "token", "tokenAddress", this.safeString(info, "tokenAddress"));
         object gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
-        object sideStr = ((string)((string)side)).ToLower();
-        object quoteParams = this.omit(parameters, new List<object>() {"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit"});
+        object sideStr = sideLower;
+        object quoteParams = this.omit(parameters, new List<object>() {"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated"});
         object quote = await this.fetchTradeQuote(outcome, sideStr, amount, quoteParams);
         object calldata = this.safeString(this.safeDict(quote, "info", new Dictionary<string, object>() {}), "calldata");
         object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
@@ -868,6 +894,27 @@ public partial class myriad : PredictionExchange
         }
         object txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit);
         return this.parseTradeTx(txHash, quote, ((object)outcomeObj), sideStr);
+    }
+
+    /**
+     * @method
+     * @name myriad#createMarketBuyOrderWithCost
+     * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost the collateral (USDC) amount to spend
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> createMarketBuyOrderWithCost(object outcome, object cost, object parameters = null)
+    {
+        // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
+        // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
+        parameters ??= new Dictionary<string, object>();
+        object request = this.extend(parameters, new Dictionary<string, object>() {
+            { "enableAmm", true },
+            { "costDenominated", true },
+        });
+        return await this.createOrder(outcome, "market", "buy", cost, null, request);
     }
 
     /**
@@ -1582,9 +1629,16 @@ public partial class myriad : PredictionExchange
         object endDate = this.safeString(raw, "expiresAt");
         object state = this.safeString(raw, "state", "open");
         object active = isEqual(state, "open");
+        // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
+        object resolvedOutcomeId = this.safeString(raw, "resolvedOutcomeId", "-1");
+        object voided = this.safeBool(raw, "voided", false);
+        object hasResolution = isTrue(isTrue((!isEqual(resolvedOutcomeId, "-1"))) && isTrue((!isEqual(resolvedOutcomeId, null)))) && isTrue((!isEqual(resolvedOutcomeId, "")));
+        object marketResolved = isTrue(hasResolution) || isTrue(voided);
+        object resolvedOutcome = null;
         object volume24h = this.safeNumber(raw, "volume24h");
-        object slugBase = ((bool) isTrue((!isEqual(eventSlug, null)))) ? eventSlug : networkId;
-        object marketSymbol = this.slugToMarketSymbol(slugBase, slug);
+        // qualify the handle only with a real event slug (when passed); myriad market slugs are
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle
+        object marketSymbol = this.slugToMarketSymbol(eventSlug, slug);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         object tokenObj = this.safeDict(raw, "token", new Dictionary<string, object>() {});
         object tokenAddress = this.safeString(tokenObj, "address");
@@ -1603,8 +1657,22 @@ public partial class myriad : PredictionExchange
             object outcomeId = this.safeString(outcome, "outcomeId", this.safeString(outcome, "id", ((object)i).ToString()));
             object outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             object price = this.safeNumber(outcome, "price");
-            object outcomeHandle = this.slugToOutcomeSymbol(slugBase, slug, outcomeLabel);
+            object outcomeHandle = this.slugToOutcomeSymbol(eventSlug, slug, outcomeLabel);
             object outcomeCompositeId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
+            object winner = null;
+            object settleFraction = null;
+            if (isTrue(hasResolution))
+            {
+                winner = (isEqual(outcomeId, resolvedOutcomeId));
+                settleFraction = ((bool) isTrue(winner)) ? 1 : 0;
+                if (isTrue(winner))
+                {
+                    resolvedOutcome = outcomeHandle;
+                }
+            } else if (isTrue(voided))
+            {
+                winner = false;
+            }
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
                 { "id", outcomeCompositeId },
                 { "outcomeId", outcomeCompositeId },
@@ -1612,6 +1680,8 @@ public partial class myriad : PredictionExchange
                 { "market", marketSymbol },
                 { "label", outcomeLabel },
                 { "active", active },
+                { "winner", winner },
+                { "settleFraction", settleFraction },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", 0.01 },
                     { "price", 0.001 },
@@ -1653,6 +1723,8 @@ public partial class myriad : PredictionExchange
             { "option", false },
             { "prediction", true },
             { "active", active },
+            { "resolved", marketResolved },
+            { "resolvedOutcome", resolvedOutcome },
             { "contract", false },
             { "linear", null },
             { "inverse", null },
@@ -1938,6 +2010,18 @@ public partial class myriad : PredictionExchange
             }
         }
         object now = this.milliseconds();
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
+        // percentage from it — setting percentage = the absolute change (as before) was wrong
+        object previousClose = null;
+        object percentage = null;
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(change, null)))))
+        {
+            previousClose = subtract(price, change);
+            if (isTrue(!isEqual(previousClose, 0)))
+            {
+                percentage = multiply(divide(change, previousClose), 100);
+            }
+        }
         return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
@@ -1952,15 +2036,15 @@ public partial class myriad : PredictionExchange
             { "ask", price },
             { "askVolume", null },
             { "vwap", null },
-            { "open", null },
+            { "open", previousClose },
             { "close", price },
             { "last", price },
-            { "previousClose", null },
+            { "previousClose", previousClose },
             { "change", change },
-            { "percentage", change },
+            { "percentage", percentage },
             { "average", price },
-            { "baseVolume", this.safeNumber(raw, "volume24h") },
-            { "quoteVolume", this.safeNumber(raw, "volumeNotional24h") },
+            { "baseVolume", this.safeNumber(raw, "volumeNotional24h") },
+            { "quoteVolume", this.safeNumber(raw, "volume24h") },
             { "info", raw },
         }, market);
     }
@@ -2525,8 +2609,9 @@ public partial class myriad : PredictionExchange
      * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
@@ -2538,19 +2623,29 @@ public partial class myriad : PredictionExchange
         object queries = this.parseSearchQueries(parameters);
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "sort", "searchIn", "eventId", "slug", "status"});
         object queriesLength = getArrayLength(queries);
-        if (isTrue(isEqual(queriesLength, 0)))
+        object eventId = this.safeString(parameters, "eventId");
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
+        // an eventId does a direct lookup, and any other scope (tags) pages the markets listing so
+        // applyEventFetchParams can filter it below
+        object rawMarkets = new List<object>() {};
+        if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
-            object existingEvents = this.eventsList();
-            return this.applyEventFetchParams(existingEvents, parameters, queries);
+            rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
+        } else if (isTrue(!isEqual(eventId, null)))
+        {
+            object rawMarket = await this.fetchRawMarketById(eventId, rest);
+            rawMarkets = new List<object>() {rawMarket};
+        } else
+        {
+            rawMarkets = await this.fetchRawMarketsList(rest);
         }
-        object rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
         if (!isTrue(this.markets))
         {
             this.markets = this.createSafeDictionary();
         }
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        object rawMarketsLength = getArrayLength(rawMarkets);
+        for (object i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
         {
             object raw = getValue(rawMarkets, i);
             object m = this.parseMyriadMarket(raw);

@@ -329,6 +329,50 @@ func (this *Kalshi) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.Pre
 }
 /**
  * @method
+ * @name kalshi#fetchSettlements
+ * @description fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
+ * @see https://trading-api.readme.io/reference/getportfoliosettlements
+ * @param {string} [outcome] filter to a single unified outcome
+ * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+ * @param {int} [limit] the maximum number of settlements to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of prediction settlement structures
+ */
+func (this *Kalshi) FetchSettlements(options ...FetchSettlementsOptions) ([]ccxt.PredictionSettlement, error) {
+
+    opts := FetchSettlementsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var outcome any = nil
+    if opts.Outcome != nil {
+        outcome = *opts.Outcome
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchSettlements(outcome, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPredictionSettlementArray(res), nil
+}
+/**
+ * @method
  * @name kalshi#fetchOpenOrders
  * @description fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
  * @see https://trading-api.readme.io/reference/getorders
@@ -508,18 +552,104 @@ func (this *Kalshi) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccxt.P
 /**
  * @method
  * @name kalshi#fetchEvents
- * @description fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in this.events
- * @see https://trading-api.readme.io/reference/getevents
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.query] a single query string to filter events by (matches event ticker/title)
- * @param {string[]} [params.queries] multiple query strings (alternative to query)
- * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
- * @param {int} [params.limit] page size per request, defaults to 200
- * @param {int} [params.maxPages] maximum number of event pages to scan, defaults to 50
+ * @description fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
+ * @see https://docs.kalshi.com/api-reference/events/get-events
+ * @param {object} [params] extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events)
+ * @param {string} [params.query] free-text search resolved server-side via kalshi's series search endpoint
+ * @param {string[]} [params.queries] multiple free-text searches (alternative to query, unioned)
+ * @param {string} [params.series_ticker] one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search
+ * @param {string[]} [params.tags] kalshi series tags (e.g. ['BTC']) — resolved to series via the /series listing
+ * @param {string} [params.category] a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing
+ * @param {string} [params.status] 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
+ * @param {int} [params.limit] max number of events to return
  * @returns {object[]} an array of event structures
  */
 func (this *Kalshi) FetchEvents(params map[string]interface{}) ([]map[string]any, error) {
     res := <- this.Core.FetchEvents(params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewMapArray(res), nil
+}
+/**
+ * @ignore
+ * @method
+ * @name kalshi#fetchEventsByQuery
+ * @description resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
+ * @param {string[]} queries free-text search strings
+ * @param {int} [limit] max number of events to fetch
+ * @param {object} [rest] extra params forwarded verbatim to the events endpoint
+ * @returns {object[]} raw kalshi event objects with nested markets
+ */
+func (this *Kalshi) FetchEventsByQuery(queries []string, limit int64, options ...FetchEventsByQueryOptions) ([]map[string]any, error) {
+
+    opts := FetchEventsByQueryOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var rest any = nil
+    if opts.Rest != nil {
+        rest = *opts.Rest
+    }
+    res := <- this.Core.FetchEventsByQuery(queries, limit, rest)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewMapArray(res), nil
+}
+/**
+ * @ignore
+ * @method
+ * @name kalshi#fetchRawEventByTicker
+ * @description fetches a single raw kalshi event object (with nested markets) by its event ticker
+ * @param {string} ticker the kalshi event ticker
+ * @param {object} [params] extra params forwarded verbatim to the events endpoint
+ * @returns {object} the raw kalshi event object with nested markets
+ */
+func (this *Kalshi) FetchRawEventByTicker(ticker string, options ...FetchRawEventByTickerOptions) (map[string]any, error) {
+
+    opts := FetchRawEventByTickerOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchRawEventByTicker(ticker, params)
+    if ccxt.IsError(res) {
+        return map[string]any{}, ccxt.CreateReturnError(res)
+    }
+    return res.(map[string]any), nil
+}
+/**
+ * @ignore
+ * @method
+ * @name kalshi#fetchSeriesEvents
+ * @description fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
+ * @param {string[]} seriesTickers the series to fetch events for
+ * @param {string} status the kalshi event status ('open' | 'closed')
+ * @param {int} [limit] stop fetching once this many events are gathered
+ * @param {object} [rest] extra params forwarded verbatim to the events endpoint
+ * @returns {object[]} raw kalshi event objects with nested markets
+ */
+func (this *Kalshi) FetchSeriesEvents(seriesTickers []string, status string, limit int64, options ...FetchSeriesEventsOptions) ([]map[string]any, error) {
+
+    opts := FetchSeriesEventsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var rest any = nil
+    if opts.Rest != nil {
+        rest = *opts.Rest
+    }
+    res := <- this.Core.FetchSeriesEvents(seriesTickers, status, limit, rest)
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }

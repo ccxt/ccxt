@@ -2,12 +2,12 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
-import { BadSymbol, ArgumentsRequired } from '../base/errors.js';
+import { BadSymbol, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import type {
     Int, int, Str, Num, Dict, Strings,
     Market, PredictionOrderBook, OHLCV,
     Balances, PredictionOpenInterest,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement,
     fetchEventsParams,
 } from '../base/types.js';
 
@@ -47,6 +47,7 @@ export default class kalshi extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPositions': true,
+                'fetchSettlements': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -54,11 +55,10 @@ export default class kalshi extends Exchange {
                 'prediction': true,
             },
             'timeframes': {
+                // kalshi's candlesticks period_interval accepts ONLY 1 (minute), 60 (hour) or
+                // 1440 (day) — advertising 5m/15m/6h would 400 at the API
                 '1m': 1,
-                '5m': 5,
-                '15m': 15,
                 '1h': 60,
-                '6h': 360,
                 '1d': 1440,
             },
             'urls': {
@@ -362,6 +362,24 @@ export default class kalshi extends Exchange {
         return undefined;
     }
 
+    calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
+        // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
+        // peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
+        // coefficient; compute the real per-contract formula here so fee estimates are accurate
+        const priceStr = this.numberToString (price);
+        const amountStr = this.numberToString (amount);
+        const oneMinusP = Precise.stringSub ('1', priceStr);
+        let feeCost = Precise.stringMul ('0.07', amountStr);
+        feeCost = Precise.stringMul (feeCost, priceStr);
+        feeCost = Precise.stringMul (feeCost, oneMinusP);
+        return {
+            'type': takerOrMaker,
+            'currency': 'USD',
+            'rate': 0.07,
+            'cost': this.parseNumber (feeCost),
+        };
+    }
+
     parseMarket (raw: Dict): Market {
         // {
         //    "can_close_early":true,
@@ -419,6 +437,9 @@ export default class kalshi extends Exchange {
         // markets use status 'active' while events use 'open'
         const status = this.safeString (raw, 'status');
         const active = (status === 'active') || (status === 'open');
+        // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
+        const result = this.safeStringLower (raw, 'result');
+        const resolved = (status === 'settled') || ((result !== undefined) && (result !== ''));
         const endDate = this.safeString (raw, 'expiration_time');
         const volume = this.safeNumber2 (raw, 'volume_fp', 'volume');
         const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
@@ -455,9 +476,19 @@ export default class kalshi extends Exchange {
         const outcomeLabels = [ 'YES', 'NO' ];
         const outcomeIds = [ ticker, ticker + '-NO' ];
         const outcomes: any[] = [];
+        let resolvedOutcome = undefined;
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = marketSymbol + ':' + label;
+            let winner = undefined;
+            let settleFraction = undefined;
+            if (resolved && (result !== undefined) && (result !== '')) {
+                winner = (label.toLowerCase () === result);
+                settleFraction = (winner) ? 1 : 0;
+                if (winner) {
+                    resolvedOutcome = outcomeHandle;
+                }
+            }
             outcomes.push ({
                 'id': outcomeIds[oi],
                 'outcomeId': outcomeIds[oi],
@@ -465,6 +496,8 @@ export default class kalshi extends Exchange {
                 'market': marketSymbol,
                 'label': label,
                 'active': active,
+                'winner': winner,
+                'settleFraction': settleFraction,
                 'precision': precision,
                 'info': {
                     'ticker': ticker,
@@ -497,6 +530,8 @@ export default class kalshi extends Exchange {
             'option': false,
             'prediction': true,
             'active': active,
+            'resolved': resolved,
+            'resolvedOutcome': resolvedOutcome,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -989,7 +1024,14 @@ export default class kalshi extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const seriesTicker = this.safeString (outcomeObj['info'], 'seriesTicker', ticker);
-        const periodMin = this.safeInteger (this.timeframes, timeframe, 1);
+        const periodMin = this.safeInteger (this.timeframes, timeframe);
+        if (periodMin === undefined) {
+            // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
+            // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
+            const tfKeys = Object.keys (this.timeframes);
+            const supported = tfKeys.join (', ');
+            throw new BadRequest (this.id + ' fetchOHLCV() does not support the ' + timeframe + ' timeframe (supported: ' + supported + ')');
+        }
         const request: Dict = {
             'series_ticker': seriesTicker,
             'ticker': ticker,
@@ -1293,6 +1335,112 @@ export default class kalshi extends Exchange {
     }
 
     /**
+     * @method
+     * @name kalshi#fetchSettlements
+     * @description fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
+     * @see https://trading-api.readme.io/reference/getportfoliosettlements
+     * @param {string} [outcome] filter to a single unified outcome
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of prediction settlement structures
+     */
+    async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionSettlement[]> {
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        } else {
+            await this.loadOutcomes ();
+        }
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.kalshiPrivateGetPortfolioSettlements (this.extend (request, params));
+        const rawSettlements = this.safeList (response, 'settlements', []) as any[];
+        const rawSettlementsLength = rawSettlements.length;
+        const parsed: any[] = [];
+        for (let i = 0; i < rawSettlementsLength; i++) {
+            parsed.push (this.parseSettlement (rawSettlements[i]));
+        }
+        let wantedOutcome: Str = undefined;
+        if (outcome !== undefined) {
+            wantedOutcome = this.safeString (this.outcome (outcome), 'outcome');
+        }
+        const result: any[] = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const settlement = parsed[i];
+            if ((wantedOutcome === undefined) || (this.safeString (settlement, 'outcome') === wantedOutcome)) {
+                result.push (settlement);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionSettlement[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseSettlement
+     * @description parses one raw kalshi settlement into the unified prediction settlement shape
+     * @param {object} settlement the raw kalshi settlement
+     * @param {object} [market] a resolved outcome/market hint
+     * @returns {object} a prediction settlement structure
+     */
+    parseSettlement (settlement: Dict, market: Market = undefined): any {
+        const ticker = this.safeString (settlement, 'ticker');
+        // the leg the user actually held (kalshi reports separate yes/no counts + costs)
+        const yesCount = this.safeNumber2 (settlement, 'yes_count_fp', 'yes_count', 0);
+        const noCount = this.safeNumber2 (settlement, 'no_count_fp', 'no_count', 0);
+        const heldYes = (yesCount >= noCount);
+        const heldLabel = (heldYes) ? 'YES' : 'NO';
+        const tickerMissing = (ticker === undefined);
+        const useHeldYesTicker = (heldYes || tickerMissing);
+        const heldTicker = (useHeldYesTicker) ? ticker : (ticker + '-NO');
+        const mkt = this.safeOutcome (heldTicker, market as any);
+        // which leg won; market_result is yes or no
+        const marketResult = this.safeStringUpper (settlement, 'market_result');
+        const won = (marketResult === heldLabel);
+        // kalshi reports money as dollar keys on V2, else cents
+        let payout = this.safeNumber (settlement, 'revenue_dollars');
+        if (payout === undefined) {
+            const revenueCents = this.safeNumber (settlement, 'revenue');
+            if (revenueCents !== undefined) {
+                payout = revenueCents / 100;
+            }
+        }
+        const costKey = (heldYes) ? 'yes_total_cost' : 'no_total_cost';
+        const costDollarsKey = (heldYes) ? 'yes_total_cost_dollars' : 'no_total_cost_dollars';
+        let cost = this.safeNumber (settlement, costDollarsKey);
+        if (cost === undefined) {
+            const costCents = this.safeNumber (settlement, costKey);
+            if (costCents !== undefined) {
+                cost = costCents / 100;
+            }
+        }
+        let pnl = undefined;
+        if ((payout !== undefined) && (cost !== undefined)) {
+            pnl = payout - cost;
+        }
+        const ts = this.parse8601 (this.safeString (settlement, 'settled_time'));
+        return {
+            'info': settlement,
+            'id': ticker,
+            'timestamp': ts,
+            'datetime': this.iso8601 (ts),
+            'outcome': this.safeString (mkt, 'outcome', heldTicker),
+            'outcomeId': this.safeString2 (mkt, 'outcomeId', 'id', heldTicker),
+            'market': this.safeString2 (mkt, 'market', 'outcome'),
+            'event': undefined,
+            'result': marketResult,
+            'won': won,
+            'amount': (heldYes) ? yesCount : noCount,
+            'price': (won) ? 1 : 0,
+            'cost': cost,
+            'payout': payout,
+            'pnl': pnl,
+        };
+    }
+
+    /**
      * @ignore
      * @method
      * @name kalshi#parsePosition
@@ -1516,7 +1664,16 @@ export default class kalshi extends Exchange {
             }
         }
         const isMarket = (type === 'market');
-        const defaultTif = (isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+        // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
+        // `time_in_force` param (handled below) still overrides
+        const unifiedTif = this.safeStringUpper (params, 'timeInForce');
+        params = this.omit (params, 'timeInForce');
+        let defaultTif = (isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+        if ((unifiedTif === 'IOC') || (unifiedTif === 'FOK')) {
+            defaultTif = 'immediate_or_cancel';
+        } else if (unifiedTif === 'GTC') {
+            defaultTif = 'good_till_canceled';
+        }
         let timeInForce = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'time_in_force', defaultTif);
         let stp = undefined;
@@ -1638,11 +1795,17 @@ export default class kalshi extends Exchange {
         if (userLimit !== undefined) {
             fetchCap = userLimit;
         }
-        // map the unified status onto the kalshi event status (open / closed) so it is pushed server-side
-        const requestedStatus = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
-        let status = 'open';
-        if ((requestedStatus === 'closed') || (requestedStatus === 'inactive')) {
+        // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
+        // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
+        // silently rewritten to 'open'); 'all' sends no filter
+        const requestedStatus = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
+        let status = undefined;
+        if ((requestedStatus === 'active') || (requestedStatus === 'open')) {
+            status = 'open';
+        } else if ((requestedStatus === 'closed') || (requestedStatus === 'inactive')) {
             status = 'closed';
+        } else if ((requestedStatus === 'settled') || (requestedStatus === 'resolved')) {
+            status = 'settled';
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         const rest = this.omit (params, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ]);
@@ -1887,6 +2050,7 @@ export default class kalshi extends Exchange {
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
         const fullEvent = await this.fetchRawEventByTicker (id, params);
         const event: any = this.parseEvent (fullEvent);
+        this.indexEventOutcomes (event);
         return event;
     }
 

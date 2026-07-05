@@ -7,6 +7,8 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest
 from typing import List
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.precise import Precise
 
@@ -42,6 +44,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPositions': True,
+                'fetchSettlements': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -49,20 +52,24 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'prediction': True,
             },
             'timeframes': {
+                # kalshi's candlesticks period_interval accepts ONLY 1(minute), 60(hour) or
+                # 1440(day) — advertising 5m/15m/6h would 400 at the API
                 '1m': 1,
-                '5m': 5,
-                '15m': 15,
                 '1h': 60,
-                '6h': 360,
                 '1d': 1440,
             },
             'urls': {
                 'logo': 'https://kalshi.com/favicon.ico',
                 'api': {
-                    'kalshi': 'https://api.elections.kalshi.com/trade-api/v2',
+                    'kalshi': 'https://external-api.kalshi.com/trade-api/v2',
+                    # free-text search(/v1/search/series) lives only on the elections web host —
+                    # external-api returns 404 for it. discovery-only, read-only, no auth.
+                    'elections': 'https://api.elections.kalshi.com/v1',
                 },
                 'test': {
-                    'kalshi': 'https://demo-api.kalshi.co/trade-api/v2',
+                    'kalshi': 'https://external-api.demo.kalshi.co/trade-api/v2',
+                    # demo has no synthetic search index; point discovery at the live elections host
+                    'elections': 'https://api.elections.kalshi.com/v1',
                 },
                 'www': 'https://kalshi.com',
                 'doc': ['https://trading-api.readme.io/reference/getting-started'],
@@ -157,6 +164,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
                         },
                     },
                 },
+                'elections': {
+                    'public': {
+                        'get': {
+                            'search/series': 1,   # free-text series/event search — elections web host only
+                        },
+                    },
+                },
             },
             'requiredCredentials': {
                 'apiKey': True,   # KALSHI-ACCESS-KEY(UUID)
@@ -178,8 +192,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'broad': {},
             },
             'options': {
-                'defaultFetchEventsLimit': 200,   # events page size for the fetchEvents cursor scan
+                'defaultFetchEventsLimit': 200,   # events page size for the per-series /events cursor scan
                 'maxFetchMarketsLimit': 1000,      # markets page size / max markets collected per unscoped listing
+                'searchSeriesLimit': 25,           # page_size for the free-text series search endpoint(used when no limit is given)
+                'maxFetchEventsResults': 100,      # default cap on events actually fetched when the caller gives no limit
+                'maxEventPagesPerSeries': 20,      # safety cap on /events pages fetched per resolved series
                 'defaultEventStatus': 'open',  # 'open' | 'closed' | 'settled'
                 # kalshi has tens of thousands of markets. False(default) = resolve each outcome on
                 # demand(~1s per market, cached) so hot paths are cheap; set True to bulk-load every
@@ -319,6 +336,23 @@ class kalshi(PredictionExchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
         return None
 
+    def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
+        # kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
+        # peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
+        # coefficient; compute the real per-contract formula here so fee estimates are accurate
+        priceStr = self.number_to_string(price)
+        amountStr = self.number_to_string(amount)
+        oneMinusP = Precise.string_sub('1', priceStr)
+        feeCost = Precise.string_mul('0.07', amountStr)
+        feeCost = Precise.string_mul(feeCost, priceStr)
+        feeCost = Precise.string_mul(feeCost, oneMinusP)
+        return {
+            'type': takerOrMaker,
+            'currency': 'USD',
+            'rate': 0.07,
+            'cost': self.parse_number(feeCost),
+        }
+
     def parse_market(self, raw: dict) -> Market:
         # {
         #    "can_close_early":true,
@@ -376,6 +410,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # markets use status 'active' while events use 'open'
         status = self.safe_string(raw, 'status')
         active = (status == 'active') or (status == 'open')
+        # resolution: kalshi sets `result` to 'yes'/'no' once the market settles(empty while trading)
+        result = self.safe_string_lower(raw, 'result')
+        resolved = (status == 'settled') or ((result is not None) and (result != ''))
         endDate = self.safe_string(raw, 'expiration_time')
         volume = self.safe_number_2(raw, 'volume_fp', 'volume')
         liquidity = self.safe_number_2(raw, 'liquidity_dollars', 'liquidity')
@@ -409,9 +446,17 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeLabels = ['YES', 'NO']
         outcomeIds = [ticker, ticker + '-NO']
         outcomes = []
+        resolvedOutcome = None
         for oi in range(0, len(outcomeLabels)):
             label = outcomeLabels[oi]
             outcomeHandle = marketSymbol + ':' + label
+            winner = None
+            settleFraction = None
+            if resolved and (result is not None) and (result != ''):
+                winner = (label.lower() == result)
+                settleFraction = 1 if (winner) else 0
+                if winner:
+                    resolvedOutcome = outcomeHandle
             outcomes.append({
                 'id': outcomeIds[oi],
                 'outcomeId': outcomeIds[oi],
@@ -419,6 +464,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'market': marketSymbol,
                 'label': label,
                 'active': active,
+                'winner': winner,
+                'settleFraction': settleFraction,
                 'precision': precision,
                 'info': {
                     'ticker': ticker,
@@ -450,6 +497,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'option': False,
             'prediction': True,
             'active': active,
+            'resolved': resolved,
+            'resolvedOutcome': resolvedOutcome,
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -907,7 +956,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         seriesTicker = self.safe_string(outcomeObj['info'], 'seriesTicker', ticker)
-        periodMin = self.safe_integer(self.timeframes, timeframe, 1)
+        periodMin = self.safe_integer(self.timeframes, timeframe)
+        if periodMin is None:
+            # reject an unsupported timeframe locally instead of silently returning 1-minute candles.
+            # hoist ....keys(.join(list(...))) to a local — inline in a raise mangles in PHP
+            tfKeys = list(self.timeframes.keys())
+            supported = ', '.join(tfKeys)
+            raise BadRequest(self.id + ' fetchOHLCV() does not support the ' + timeframe + ' timeframe(supported: ' + supported + ')')
         request = {
             'series_ticker': seriesTicker,
             'ticker': ticker,
@@ -1177,6 +1232,97 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 result.append(position)
         return result
 
+    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionSettlement]:
+        """
+        fetches the user's settled(resolved) positions, with the collateral paid out and realized pnl
+
+        https://trading-api.readme.io/reference/getportfoliosettlements
+
+        :param str [outcome]: filter to a single unified outcome
+        :param int [since]: timestamp in ms of the earliest settlement to fetch
+        :param int [limit]: the maximum number of settlements to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of prediction settlement structures
+        """
+        if outcome is not None:
+            await self.load_outcome(outcome)
+        else:
+            await self.load_outcomes()
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.kalshiPrivateGetPortfolioSettlements(self.extend(request, params))
+        rawSettlements = self.safe_list(response, 'settlements', [])
+        rawSettlementsLength = len(rawSettlements)
+        parsed = []
+        for i in range(0, rawSettlementsLength):
+            parsed.append(self.parse_settlement(rawSettlements[i]))
+        wantedOutcome = None
+        if outcome is not None:
+            wantedOutcome = self.safe_string(self.outcome(outcome), 'outcome')
+        result = []
+        for i in range(0, len(parsed)):
+            settlement = parsed[i]
+            if (wantedOutcome is None) or (self.safe_string(settlement, 'outcome') == wantedOutcome):
+                result.append(settlement)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp')
+
+    def parse_settlement(self, settlement: dict, market: Market = None) -> Any:
+        """
+ @ignore
+        parses one raw kalshi settlement into the unified prediction settlement shape
+        :param dict settlement: the raw kalshi settlement
+        :param dict [market]: a resolved outcome/market hint
+        :returns dict: a prediction settlement structure
+        """
+        ticker = self.safe_string(settlement, 'ticker')
+        # the leg the user actually held(kalshi reports separate yes/no counts + costs)
+        yesCount = self.safe_number_2(settlement, 'yes_count_fp', 'yes_count', 0)
+        noCount = self.safe_number_2(settlement, 'no_count_fp', 'no_count', 0)
+        heldYes = (yesCount >= noCount)
+        heldLabel = 'YES' if (heldYes) else 'NO'
+        tickerMissing = (ticker is None)
+        useHeldYesTicker = (heldYes or tickerMissing)
+        heldTicker = ticker if (useHeldYesTicker) else (ticker + '-NO')
+        mkt = self.safe_outcome(heldTicker, market)
+        # which leg won; market_result is yes or no
+        marketResult = self.safe_string_upper(settlement, 'market_result')
+        won = (marketResult == heldLabel)
+        # kalshi reports money keys on V2, else cents
+        payout = self.safe_number(settlement, 'revenue_dollars')
+        if payout is None:
+            revenueCents = self.safe_number(settlement, 'revenue')
+            if revenueCents is not None:
+                payout = revenueCents / 100
+        costKey = 'yes_total_cost' if (heldYes) else 'no_total_cost'
+        costDollarsKey = 'yes_total_cost_dollars' if (heldYes) else 'no_total_cost_dollars'
+        cost = self.safe_number(settlement, costDollarsKey)
+        if cost is None:
+            costCents = self.safe_number(settlement, costKey)
+            if costCents is not None:
+                cost = costCents / 100
+        pnl = None
+        if (payout is not None) and (cost is not None):
+            pnl = payout - cost
+        ts = self.parse8601(self.safe_string(settlement, 'settled_time'))
+        return {
+            'info': settlement,
+            'id': ticker,
+            'timestamp': ts,
+            'datetime': self.iso8601(ts),
+            'outcome': self.safe_string(mkt, 'outcome', heldTicker),
+            'outcomeId': self.safe_string_2(mkt, 'outcomeId', 'id', heldTicker),
+            'market': self.safe_string_2(mkt, 'market', 'outcome'),
+            'event': None,
+            'result': marketResult,
+            'won': won,
+            'amount': yesCount if (heldYes) else noCount,
+            'price': 1 if (won) else 0,
+            'cost': cost,
+            'payout': payout,
+            'pnl': pnl,
+        }
+
     def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
  @ignore
@@ -1361,6 +1507,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
+        # kalshi has no market orders — every order is a limit order and the price is required
+        if price is None:
+            raise ArgumentsRequired(self.id + " createOrder() requires a price - kalshi has only limit orders(no market orders). For immediate execution pass an aggressive price with params {'time_in_force': 'immediate_or_cancel'}")
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
@@ -1376,7 +1525,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
             if price is not None:
                 yesPrice = self.parse_number(Precise.string_sub('1', self.number_to_string(price)))
         isMarket = (type == 'market')
+        # accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
+        # `time_in_force` param(handled below) still overrides
+        unifiedTif = self.safe_string_upper(params, 'timeInForce')
+        params = self.omit(params, 'timeInForce')
         defaultTif = 'immediate_or_cancel' if (isMarket) else 'good_till_canceled'
+        if (unifiedTif == 'IOC') or (unifiedTif == 'FOK'):
+            defaultTif = 'immediate_or_cancel'
+        elif unifiedTif == 'GTC':
+            defaultTif = 'good_till_canceled'
         timeInForce = None
         timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'time_in_force', defaultTif)
         stp = None
@@ -1461,109 +1618,225 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
         """
-        fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in self.events
+        fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache(it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched(broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
 
-        https://trading-api.readme.io/reference/getevents
+        https://docs.kalshi.com/api-reference/events/get-events
 
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.query]: a single query string to filter events by(matches event ticker/title)
-        :param str[] [params.queries]: multiple query strings(alternative to query)
-        :param str [params.status]: 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
-        :param int [params.limit]: page size per request, defaults to 200
-        :param int [params.maxPages]: maximum number of event pages to scan, defaults to 50
+        :param dict [params]: extra parameters specific to the exchange API endpoint(unrecognised keys are forwarded to GET /events)
+        :param str [params.query]: free-text search resolved server-side via kalshi's series search endpoint
+        :param str[] [params.queries]: multiple free-text searches(alternative to query, unioned)
+        :param str [params.series_ticker]: one or more comma-separated kalshi series tickers(e.g. 'KXBTC') — used verbatim, no search
+        :param str[] [params.tags]: kalshi series tags(e.g. ['BTC']) — resolved to series via the /series listing
+        :param str [params.category]: a kalshi series category(e.g. 'Crypto') — resolved to series via the /series listing
+        :param str [params.status]: 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
+        :param int [params.limit]: max number of events to return
         :returns dict[]: an array of event structures
         """
-        self.require_event_query(params)
         queries = self.parse_search_queries(params)
+        queriesLength = len(queries)
         params = self.omit(params, ['query', 'queries'])
-        # map the unified status onto the kalshi event status(open / closed) so it is pushed server-side
-        requestedStatus = self.safe_string(params, 'status', self.safe_string(self.options, 'defaultEventStatus', 'active'))
-        status = 'open'
-        if (requestedStatus == 'closed') or (requestedStatus == 'inactive'):
+        userLimit = self.safe_integer(params, 'limit')
+        # bound how many events are actually FETCHED(not just returned) so a broad scope like
+        # category='Crypto'(hundreds of series) doesn't page every one of them
+        fetchCap = self.safe_integer(self.options, 'maxFetchEventsResults', 100)
+        if userLimit is not None:
+            fetchCap = userLimit
+        # map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
+        # map to kalshi's 'settled'(so resolved events ARE discoverable — previously they were
+        # silently rewritten to 'open'); 'all' sends no filter
+        requestedStatus = self.safe_string(params, 'status', self.safe_string(self.options, 'defaultEventStatus', 'open'))
+        status = None
+        if (requestedStatus == 'active') or (requestedStatus == 'open'):
+            status = 'open'
+        elif (requestedStatus == 'closed') or (requestedStatus == 'inactive'):
             status = 'closed'
-        pageLimit = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'defaultFetchEventsLimit', 200))
-        maxPages = self.safe_integer(params, 'maxPages', 50)
-        rest = self.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug'])
-        if not self.events:
-            self.events = {}
+        elif (requestedStatus == 'settled') or (requestedStatus == 'resolved'):
+            status = 'settled'
+        # anything beyond the unified keys is forwarded verbatim to the events endpoint(kalshi filters)
+        rest = self.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker'])
         if not self.markets:
             self.markets = self.create_safe_dictionary()
-        lowerQueries = []
-        for qi in range(0, len(queries)):
-            lowerQueries.append(queries[qi].lower())
-        lowerQueriesLength = len(lowerQueries)
-        # sequential cursor scan over events ONLY(no nested markets): a nested page is ~2.6 MB
-        # 200 events + ~1200 markets - scanning every open event that way transfers tens of MB
-        # and takes ~100s. Event-only pages are ~25x smaller; the few events that match the query
-        # then fetch their markets individually below(the per-event fallback). Net: seconds, not minutes.
-        matchedEvents = []
-        cursor = None
-        page = 0
-        while(page < maxPages):
-            request = {'status': status, 'limit': pageLimit, 'with_nested_markets': False}
-            if cursor:
-                request['cursor'] = cursor
-            response = await self.kalshiPublicGetEvents(self.extend(request, rest))
-            rawEvents = self.safe_list(response, 'events', [])
-            rawEventsLength = len(rawEvents)
-            cursor = self.safe_string(response, 'cursor')
-            for rei in range(0, len(rawEvents)):
-                rawEvent = rawEvents[rei]
-                ticker = self.safe_string(rawEvent, 'event_ticker', '')
-                tickerLower = ticker.lower()
-                title = self.safe_string(rawEvent, 'title', '').lower()
-                matches = (lowerQueriesLength == 0)
-                for li in range(0, len(lowerQueries)):
-                    if tickerLower.find(lowerQueries[li]) > -1 or title.find(lowerQueries[li]) > -1:
-                        matches = True
-                        break
-                if matches and ticker:
-                    matchedEvents.append(rawEvent)
-            page = self.sum(page, 1)
-            if not cursor or rawEventsLength < pageLimit:
-                break
+        eventId = self.safe_string_2(params, 'eventId', 'slug')
+        rawEvents = []
+        if queriesLength > 0:
+            # free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
+            rawEvents = await self.fetch_events_by_query(queries, fetchCap, rest)
+        elif eventId is not None:
+            # kalshi's event id(and slug) is the event_ticker — fetch it directly
+            fullEvent = await self.fetch_raw_event_by_ticker(eventId, rest)
+            rawEvents = [fullEvent]
+        else:
+            # tags / category / series_ticker resolve to a set of series; fetch their events, capped
+            seriesTickers = await self.resolve_event_series_tickers(params)
+            seriesTickersLength = len(seriesTickers)
+            if seriesTickersLength == 0:
+                self.require_event_query(params)
+            rawEvents = await self.fetch_series_events(seriesTickers, status, fetchCap, rest)
+        rawEventsLength = len(rawEvents)
         result = []
-        for di in range(0, len(matchedEvents)):
-            fullEvent = matchedEvents[di]
-            rawNestedMarkets = self.safe_list(fullEvent, 'markets', [])
-            rawNestedMarketsLength = len(rawNestedMarkets)
-            if rawNestedMarketsLength == 0:
-                eventTicker = self.safe_string(fullEvent, 'event_ticker')
-                if eventTicker is not None:
-                    eventMarkets = []
-                    marketCursor = None
-                    marketsLimit = self.safe_integer(self.options, 'maxFetchMarketsLimit', 1000)
-                    maxMarketPages = self.safe_integer(self.options, 'maxMarketPages', 1000)
-                    for mp in range(0, maxMarketPages):
-                        marketRequest = {
-                            'event_ticker': eventTicker,
-                            'limit': marketsLimit,
-                        }
-                        if marketCursor is not None:
-                            marketRequest['cursor'] = marketCursor
-                        marketResponse = await self.kalshiPublicGetMarkets(marketRequest)
-                        pageMarkets = self.safe_list(marketResponse, 'markets', [])
-                        pageMarketsLength = len(pageMarkets)
-                        for mi in range(0, len(pageMarkets)):
-                            eventMarkets.append(pageMarkets[mi])
-                        marketCursor = self.safe_string(marketResponse, 'cursor')
-                        if (marketCursor is None) or (marketCursor == '') or (pageMarketsLength < marketsLimit):
-                            break
-                    fullEvent['markets'] = eventMarkets
-            parsedEvent = self.parse_event(fullEvent)
-            eventTitle = self.safe_string(fullEvent, 'title')
-            eventKey = self.shorten_slug(eventTitle) if eventTitle else None
-            if eventKey:
-                # the event handle keying happens in setEvents(via applyEventFetchParams)
-                # register the parsed markets so populateOutcomes can index their outcomes
-                result.append(parsedEvent)
-                parsedMarketsRaw = parsedEvent['markets']
-                parsedMarkets = parsedMarketsRaw if (parsedMarketsRaw is not None) else []
-                for mi in range(0, len(parsedMarkets)):
-                    m = parsedMarkets[mi]
-                    self.markets[m['symbol']] = m
+        for di in range(0, rawEventsLength):
+            parsedEvent = self.parse_event(rawEvents[di])
+            result.append(parsedEvent)
+            # register the parsed markets so populateOutcomes can index their outcomes
+            parsedMarketsRaw = parsedEvent['markets']
+            parsedMarkets = parsedMarketsRaw if (parsedMarketsRaw is not None) else []
+            parsedMarketsLength = len(parsedMarkets)
+            for mi in range(0, parsedMarketsLength):
+                m = parsedMarkets[mi]
+                self.markets[m['symbol']] = m
         self.populate_outcomes()
-        return self.apply_event_fetch_params(result, params, queries)
+        # scoping already happened server-side, so strip the resolved scopes before the client-side
+        # pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
+        # and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
+        postParams = self.omit(params, ['tags', 'category', 'series_ticker'])
+        return self.apply_event_fetch_params(result, postParams, [])
+
+    async def fetch_events_by_query(self, queries: List[str], limit: Int, rest={}) -> List[Any]:
+        """
+ @ignore
+        resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically(with nested markets)
+        :param str[] queries: free-text search strings
+        :param int [limit]: max number of events to fetch
+        :param dict [rest]: extra params forwarded verbatim to the events endpoint
+        :returns dict[]: raw kalshi event objects with nested markets
+        """
+        pageSize = limit if (limit is not None) else self.safe_integer(self.options, 'searchSeriesLimit', 25)
+        # free-text query -> kalshi's series search endpoint(elections web host, ranked server-side)
+        seen = {}
+        eventTickers = []
+        queriesLength = len(queries)
+        for qi in range(0, queriesLength):
+            searchResponse = await self.electionsPublicGetSearchSeries({
+                'query': queries[qi],
+                'order_by': 'querymatch',
+                'page_size': pageSize,
+            })
+            page = self.safe_list(searchResponse, 'current_page', [])
+            pageLength = len(page)
+            for pi in range(0, pageLength):
+                et = self.safe_string(page[pi], 'event_ticker')
+                if et is not None:
+                    already = self.safe_string(seen, et)
+                    if already is None:
+                        seen[et] = et
+                        eventTickers.append(et)
+        rawEvents = []
+        eventTickersLength = len(eventTickers)
+        for ei in range(0, eventTickersLength):
+            if (limit is not None) and (len(rawEvents) >= limit):
+                break
+            fullEvent = await self.fetch_raw_event_by_ticker(eventTickers[ei], rest)
+            rawEvents.append(fullEvent)
+        return rawEvents
+
+    async def fetch_raw_event_by_ticker(self, ticker: str, params={}) -> Any:
+        """
+ @ignore
+        fetches a single raw kalshi event object(with nested markets) by its event ticker
+        :param str ticker: the kalshi event ticker
+        :param dict [params]: extra params forwarded verbatim to the events endpoint
+        :returns dict: the raw kalshi event object with nested markets
+        """
+        request = {'event_ticker': ticker, 'with_nested_markets': True}
+        response = await self.kalshiPublicGetEventsEventTicker(self.extend(request, params))
+        fullEvent = self.safe_dict(response, 'event', response)
+        nestedMarkets = self.safe_list(fullEvent, 'markets')
+        if nestedMarkets is None:
+            fullEvent['markets'] = self.safe_list(response, 'markets', [])
+        return fullEvent
+
+    async def resolve_event_series_tickers(self, params={}) -> List[str]:
+        """
+ @ignore
+        resolves a fetchEvents scope(tags, category or series_ticker) to a deduplicated list of kalshi series tickers, preserving discovery order
+        :param dict [params]: the fetchEvents params carrying tags / category / series_ticker
+        :returns str[]: deduplicated series tickers
+        """
+        collected = []
+        # tags / category -> documented /series listing
+        tags = self.safe_list(params, 'tags', [])
+        tagsLength = len(tags)
+        for ti in range(0, tagsLength):
+            seriesResponse = await self.kalshiPublicGetSeries({'tags': tags[ti]})
+            seriesList = self.safe_list(seriesResponse, 'series', [])
+            seriesListLength = len(seriesList)
+            for si in range(0, seriesListLength):
+                st = self.safe_string(seriesList[si], 'ticker')
+                if st is not None:
+                    collected.append(st)
+        category = self.safe_string(params, 'category')
+        if category is not None:
+            seriesResponse = await self.kalshiPublicGetSeries({'category': category})
+            seriesList = self.safe_list(seriesResponse, 'series', [])
+            seriesListLength = len(seriesList)
+            for si in range(0, seriesListLength):
+                st = self.safe_string(seriesList[si], 'ticker')
+                if st is not None:
+                    collected.append(st)
+        # explicit series_ticker(s) — comma-separated accepted, used verbatim
+        seriesParam = self.safe_string(params, 'series_ticker')
+        if seriesParam is not None:
+            parts = seriesParam.split(',')
+            partsLength = len(parts)
+            for pi in range(0, partsLength):
+                collected.append(parts[pi])
+        # deduplicate preserving order
+        seen = {}
+        ordered = []
+        collectedLength = len(collected)
+        for ci in range(0, collectedLength):
+            st = collected[ci]
+            already = self.safe_string(seen, st)
+            if (st is not None) and (st != '') and (already is None):
+                seen[st] = st
+                ordered.append(st)
+        return ordered
+
+    async def fetch_series_events(self, seriesTickers: List[str], status: Str, limit: Int, rest={}) -> List[Any]:
+        """
+ @ignore
+        fetches the canonical events(with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
+        :param str[] seriesTickers: the series to fetch events for
+        :param str status: the kalshi event status('open' | 'closed')
+        :param int [limit]: stop fetching once self many events are gathered
+        :param dict [rest]: extra params forwarded verbatim to the events endpoint
+        :returns dict[]: raw kalshi event objects with nested markets
+        """
+        rawEvents = []
+        seriesTickersLength = len(seriesTickers)
+        pageLimit = self.safe_integer(self.options, 'defaultFetchEventsLimit', 200)
+        maxPages = self.safe_integer(self.options, 'maxEventPagesPerSeries', 20)
+        for si in range(0, seriesTickersLength):
+            if (limit is not None) and (len(rawEvents) >= limit):
+                break
+            cursor = None
+            for page in range(0, maxPages):
+                reqLimit = pageLimit
+                if limit is not None:
+                    remaining = limit - len(rawEvents)
+                    if remaining < reqLimit:
+                        reqLimit = remaining
+                    if reqLimit <= 0:
+                        break
+                request = {
+                    'series_ticker': seriesTickers[si],
+                    'status': status,
+                    'with_nested_markets': True,
+                    'limit': reqLimit,
+                }
+                if cursor is not None:
+                    request['cursor'] = cursor
+                response = await self.kalshiPublicGetEvents(self.extend(request, rest))
+                pageEvents = self.safe_list(response, 'events', [])
+                pageEventsLength = len(pageEvents)
+                for ei in range(0, pageEventsLength):
+                    rawEvents.append(pageEvents[ei])
+                cursor = self.safe_string(response, 'cursor')
+                if (limit is not None) and (len(rawEvents) >= limit):
+                    break
+                if (cursor is None) or (cursor == '') or (pageEventsLength < reqLimit):
+                    break
+        return rawEvents
 
     async def fetch_event(self, id: str, params={}) -> PredictionEvent:
         """
@@ -1575,13 +1848,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
-        request = {'event_ticker': id, 'with_nested_markets': True}
-        response = await self.kalshiPublicGetEventsEventTicker(self.extend(request, params))
-        fullEvent = self.safe_dict(response, 'event', response)
-        nestedMarkets = self.safe_list(fullEvent, 'markets')
-        if nestedMarkets is None:
-            fullEvent['markets'] = self.safe_list(response, 'markets', [])
+        fullEvent = await self.fetch_raw_event_by_ticker(id, params)
         event = self.parse_event(fullEvent)
+        self.index_event_outcomes(event)
         return event
 
     def parse_event(self, rawEvent: dict) -> Any:

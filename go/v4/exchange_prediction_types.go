@@ -147,6 +147,59 @@ func NewPredictionPositionArray(data any) []PredictionPosition {
 	return result
 }
 
+// PredictionSettlement is a standalone record (it does not embed a base unified struct):
+// one settled outcome the user held, with the collateral paid in and paid out. Mirrors the
+// PredictionSettlement interface in ts/src/base/types.ts.
+type PredictionSettlement struct {
+	Info      map[string]any
+	Id        *string
+	Timestamp *int64
+	Datetime  *string
+	Outcome   *string
+	OutcomeId *string
+	Market    *string
+	Event     *string
+	Result    *string
+	Won       *bool
+	Amount    *float64
+	Price     *float64
+	Cost      *float64
+	Payout    *float64
+	Pnl       *float64
+}
+
+func NewPredictionSettlement(data any) PredictionSettlement {
+	m := data.(map[string]any)
+	return PredictionSettlement{
+		Info:      GetInfo(m),
+		Id:        SafeStringTyped(m, "id"),
+		Timestamp: SafeInt64Typed(m, "timestamp"),
+		Datetime:  SafeStringTyped(m, "datetime"),
+		Outcome:   SafeStringTyped(m, "outcome"),
+		OutcomeId: SafeStringTyped(m, "outcomeId"),
+		Market:    SafeStringTyped(m, "market"),
+		Event:     SafeStringTyped(m, "event"),
+		Result:    SafeStringTyped(m, "result"),
+		Won:       SafeBoolTyped(m, "won"),
+		Amount:    SafeFloatTyped(m, "amount"),
+		Price:     SafeFloatTyped(m, "price"),
+		Cost:      SafeFloatTyped(m, "cost"),
+		Payout:    SafeFloatTyped(m, "payout"),
+		Pnl:       SafeFloatTyped(m, "pnl"),
+	}
+}
+
+func NewPredictionSettlementArray(data any) []PredictionSettlement {
+	arr := data.([]any)
+	result := make([]PredictionSettlement, 0, len(arr))
+	for _, item := range arr {
+		if itemMap, ok := item.(map[string]any); ok {
+			result = append(result, NewPredictionSettlement(itemMap))
+		}
+	}
+	return result
+}
+
 type PredictionOrderBook struct {
 	OrderBook
 	Outcome   *string

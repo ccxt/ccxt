@@ -376,4 +376,9 @@ public partial class kalshi : PredictionExchange
         return await this.callAsync ("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId",parameters);
     }
 
+    public async Task<object> electionsPublicGetSearchSeries (object parameters = null)
+    {
+        return await this.callAsync ("electionsPublicGetSearchSeries",parameters);
+    }
+
 }

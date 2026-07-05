@@ -87,7 +87,13 @@ class PredictionExchange(Exchange):
                 result = self.sort_by(result, sortKey, True, 0)
         limit = self.safe_integer(params, 'limit')
         if limit is not None:
-            result = self.array_slice(result, 0, limit)
+            # clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
+            #(reflect Slice) and throws in C#, unlike JS/Python which return the whole array
+            resultLength = len(result)
+            sliceEnd = limit
+            if sliceEnd > resultLength:
+                sliceEnd = resultLength
+            result = self.array_slice(result, 0, sliceEnd)
         return result
 
     def filter_events_by_status(self, events: List[Any], status: Str = None):
@@ -318,13 +324,22 @@ class PredictionExchange(Exchange):
         return joined.upper()
 
     def slug_to_market_symbol(self, eventSlug: str, marketSlug: str):
-        return self.shorten_slug(marketSlug)
+        # qualify the market handle with its event so two events that share a market label
+        #(e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
+        # to the same handle — a collision silently overwrites markets in self.markets and would
+        # resolve an outcome to the wrong event(wrong-market trade). skip the prefix when the
+        # event slug is absent or identical to the market slug(e.g. myriad's 1:1 markets), so
+        # already-unique handles stay clean.
+        marketPart = self.shorten_slug(marketSlug)
+        eventPart = self.shorten_slug(eventSlug)
+        if (eventPart is None) or (eventPart == '') or (eventPart == marketPart):
+            return marketPart
+        return eventPart + '_' + marketPart
 
     def slug_to_outcome_symbol(self, eventSlug: str, marketSlug: str, outcome: str):
-        return self.shorten_slug(marketSlug) + ':' + outcome.upper()
-
-    def slug_to_market_id(self, eventSlug: str, marketSlug: str, outcome: str):
-        return self.slug_to_outcome_symbol(eventSlug, marketSlug, outcome)
+        # build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
+        #(both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
+        return self.slug_to_market_symbol(eventSlug, marketSlug) + ':' + outcome.upper()
 
     def set_markets(self, markets, currencies=None):
         result = super(PredictionExchange, self).set_markets(markets, currencies)
@@ -385,6 +400,23 @@ class PredictionExchange(Exchange):
         marketKeys = list(self.markets.keys())
         for i in range(0, len(marketKeys)):
             self.index_market_outcomes(self.markets[marketKeys[i]])
+
+    def index_event_outcomes(self, event: Any):
+        # register a single event's markets into self.markets and rebuild the outcome cache so the
+        # handles fetchEvent() returns resolve immediately in outcome-addressed methods(fetchTicker,
+        # createOrder, ...). without self, on a cold instance or a loadAllOutcomes:false venue
+        #(kalshi) the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        # BadSymbols because the outcome was never cached
+        if self.markets is None:
+            self.markets = self.create_safe_dictionary()
+        markets = self.safe_list(event, 'markets', [])
+        marketsLength = len(markets)
+        for i in range(0, marketsLength):
+            m = markets[i]
+            symbol = self.safe_string(m, 'symbol')
+            if symbol is not None:
+                self.markets[symbol] = m
+        self.populate_outcomes()
 
     async def load_outcomes(self, reload=False, params={}):
         # outcome-addressed methods(fetchTicker/createOrder/...) call self first, mirroring how
@@ -637,7 +669,9 @@ class PredictionExchange(Exchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
+        # safeBool, not self.options['...'] — a raw missing-key access throws KeyError in Python/PHP
+        # when the option is undeclared(it is for every prediction exchange)
+        if self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', False) or self.safe_bool(self.has, 'createMarketBuyOrderWithCost', False):
             return await self.create_order(outcome, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
@@ -649,7 +683,7 @@ class PredictionExchange(Exchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        if self.options['createMarketSellOrderRequiresPrice'] or self.has['createMarketSellOrderWithCost']:
+        if self.safe_bool(self.options, 'createMarketSellOrderRequiresPrice', False) or self.safe_bool(self.has, 'createMarketSellOrderWithCost', False):
             return await self.create_order(outcome, 'market', 'sell', cost, 1, params)
         raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
 
@@ -694,6 +728,18 @@ class PredictionExchange(Exchange):
         :returns dict[]: a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
         """
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
+
+    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the user's settled(resolved) positions — the "close the loop" record after
+ markets resolve, with the collateral paid out and the realized pnl
+        :param str [outcome]: filter to a single unified outcome handle
+        :param int [since]: timestamp in ms of the earliest settlement to fetch
+        :param int [limit]: the maximum number of settlements to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction settlement structures
+        """
+        raise NotSupported(self.id + ' fetchSettlements() is not supported yet')
 
     def safe_prediction_order(self, order: dict, market=None):
         # the prediction identity is the `outcome` handle carried on the raw dict(read by
@@ -827,3 +873,104 @@ class PredictionExchange(Exchange):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.cost_to_precision(marketSymbol, cost)
+
+    def pad_hex_to_even(self, hex: str):
+        # prepend a nibble so the hex has an even number of characters(whole bytes)
+        hexLength = len(hex)
+        if (hexLength % 2) != 0:
+            return '0' + hex
+        return hex
+
+    def pad_hex_address(self, address: str):
+        # left-pads a 20-byte address to a 32-byte ABI word(24 leading zero bytes)
+        stripped = self.remove0x_prefix(address)
+        return '000000000000000000000000' + stripped
+
+    def rlp_encode_bytes(self, hex: str):
+        # RLP-encodes a single byte string(hex without 0x) per the Ethereum RLP spec
+        byteLength = self.parse_to_int(len(hex) / 2)
+        if byteLength == 0:
+            return '80'
+        if (byteLength == 1) and (hex < '80'):
+            return hex
+        if byteLength < 56:
+            return self.int_to_base16(128 + byteLength) + hex
+        lengthHex = self.int_to_base16(byteLength)
+        lengthHex = self.pad_hex_to_even(lengthHex)
+        lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
+        return self.int_to_base16(183 + lengthOfLength) + lengthHex + hex
+
+    def rlp_encode_list(self, items: List[str]):
+        concatenated = ''
+        for i in range(0, len(items)):
+            concatenated = concatenated + items[i]
+        byteLength = self.parse_to_int(len(concatenated) / 2)
+        if byteLength < 56:
+            return self.int_to_base16(192 + byteLength) + concatenated
+        lengthHex = self.int_to_base16(byteLength)
+        lengthHex = self.pad_hex_to_even(lengthHex)
+        lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
+        return self.int_to_base16(247 + lengthOfLength) + lengthHex + concatenated
+
+    def int_to_rlp_hex(self, value: float):
+        # an integer minimal big-endian byte hex; 0 is the empty byte string
+        if value == 0:
+            return ''
+        hex = self.int_to_base16(value)
+        hex = self.pad_hex_to_even(hex)
+        return hex
+
+    def hex_to_rlp_bytes(self, hexValue: str):
+        # a hex value(e.g. an RPC result) big-endian byte hex; leading zero bytes
+        # are stripped and 0 becomes the empty byte string(RLP integer encoding)
+        h = self.remove0x_prefix(hexValue)
+        start = 0
+        total = len(h)
+        while((start < total) and (h[start:start + 1] == '0')):
+            start = start + 1
+        h = h[start:]
+        if h == '':
+            return ''
+        h = self.pad_hex_to_even(h)
+        return h
+
+    def sign_evm_transaction(self, tx: dict, privateKey: str):
+        # per-exchange override — needs the noble crypto imports. the base declares it so
+        # sendEvmTransaction below can call it; a call on the base itself is unsupported
+        raise NotSupported(self.id + ' signEvmTransaction() must be overridden by the exchange')
+
+    async def eth_rpc(self, rpcUrl: str, method: str, rpcParams: List[Any]):
+        payload = {'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams}
+        headers = {'Content-Type': 'application/json'}
+        response = await self.fetch(rpcUrl, 'POST', headers, self.json(payload))
+        rpcError = self.safe_value(response, 'error')
+        if rpcError is not None:
+            raise ExchangeError(self.id + ' rpc ' + method + ' error: ' + self.json(rpcError))
+        # the result is either a hex string(nonce/gasPrice/txhash) or an object(receipt) —
+        # safeString would coerce a receipt object to "[object Object]"
+        return self.safe_value(response, 'result')
+
+    async def send_evm_transaction(self, rpcUrl: str, chainId: float, fromAddress: str, to: str, value: str, data: str, gasLimit: str):
+        nonce = await self.eth_rpc(rpcUrl, 'eth_getTransactionCount', [fromAddress, 'pending'])
+        gasPrice = await self.eth_rpc(rpcUrl, 'eth_gasPrice', [])
+        tx = {
+            'chainId': chainId,
+            'nonce': nonce,
+            'maxPriorityFeePerGas': gasPrice,
+            'maxFeePerGas': gasPrice,
+            'gasLimit': gasLimit,
+            'to': to,
+            'value': value,
+            'data': data,
+        }
+        signed = self.sign_evm_transaction(tx, self.privateKey)
+        return await self.eth_rpc(rpcUrl, 'eth_sendRawTransaction', [signed])
+
+    async def wait_for_transaction_receipt(self, rpcUrl: str, txHash: str, timeout=60000):
+        start = self.milliseconds()
+        while((self.milliseconds() - start) < timeout):
+            receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
+            if receipt:
+                return receipt
+            await self.sleep(2000)
+        raise ExchangeError(self.id + ' transaction ' + txHash + ' not mined within timeout')

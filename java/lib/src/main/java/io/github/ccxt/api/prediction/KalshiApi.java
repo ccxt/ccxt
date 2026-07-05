@@ -384,4 +384,9 @@ public class KalshiApi extends PredictionExchange
         return this.callAsync ("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  electionsPublicGetSearchSeries (Object... optionalArgs)
+    {
+        return this.callAsync ("electionsPublicGetSearchSeries", optionalArgs);
+    }
+
 }

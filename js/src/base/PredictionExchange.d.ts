@@ -1,5 +1,5 @@
 import { Exchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments Exchange
@@ -35,6 +35,7 @@ export default class PredictionExchange extends Exchange {
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
+    indexEventOutcomes(event: any): void;
     loadOutcomes(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadOutcome(outcomeSymbol: string): Promise<any>;
     fetchOutcome(outcomeSymbol: string): Promise<any>;
@@ -286,6 +287,18 @@ export default class PredictionExchange extends Exchange {
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     watchPositions(outcomes?: Strings, since?: Int, limit?: Int, params?: {}): Promise<PredictionPosition[]>;
+    /**
+     * @method
+     * @name fetchSettlements
+     * @description fetches the user's settled (resolved) positions — the "close the loop" record after
+     * markets resolve, with the collateral paid out and the realized pnl
+     * @param {string} [outcome] filter to a single unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction settlement structures
+     */
+    fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionSettlement[]>;
     safePredictionOrder(order: Dict, market?: any): PredictionOrder;
     safePredictionTrade(trade: Dict, market?: any): PredictionTrade;
     safePredictionTicker(ticker: Dict, market?: any): PredictionTicker;

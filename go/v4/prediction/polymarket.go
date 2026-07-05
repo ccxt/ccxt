@@ -261,6 +261,24 @@ func  (this *PolymarketCore) Describe() any  {
                 },
             },
         },
+        "exceptions": map[string]any {
+            "exact": map[string]any {
+                "not enough balance / allowance": ccxt.InsufficientFunds,
+                "invalid signature": ccxt.AuthenticationError,
+                "api key not found": ccxt.AuthenticationError,
+            },
+            "broad": map[string]any {
+                "No orderbook exists": ccxt.BadSymbol,
+                "not enough balance": ccxt.InsufficientFunds,
+                "allowance": ccxt.InsufficientFunds,
+                "invalid amount": ccxt.InvalidOrder,
+                "invalid price": ccxt.InvalidOrder,
+                "minimum tick size": ccxt.InvalidOrder,
+                "geoblocked": ccxt.PermissionDenied,
+                "restricted jurisdiction": ccxt.PermissionDenied,
+                "Unauthorized": ccxt.AuthenticationError,
+            },
+        },
         "requiredCredentials": map[string]any {
             "apiKey": false,
             "secret": false,
@@ -278,6 +296,8 @@ func  (this *PolymarketCore) Describe() any  {
         },
         "options": map[string]any {
             "defaultFetchEventsLimit": 100,
+            "eventsPageSize": 100,
+            "fetchMarketsLimit": 200,
             "maxFetchEventsLimit": 500,
             "defaultEventStatus": "active",
             "chainId": 137,
@@ -298,7 +318,7 @@ func  (this *PolymarketCore) Describe() any  {
  * @param {string} [params.query] a single search term used to filter the fetched events
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
  * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
- * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+ * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
  * @returns {object[]} an array of objects representing market data
  */
 func  (this *PolymarketCore) FetchMarkets(optionalArgs ...any) <- chan any {
@@ -362,7 +382,10 @@ func  (this *PolymarketCore) FetchRawEventsBySearch(queries any, optionalArgs ..
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            var pageSize any = this.SafeInteger(params, "limit", 50)
+            var resultLimit any = this.SafeInteger(params, "limit")
+            // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
+            // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event)
+            var pageSize any = this.SafeInteger(this.Options, "searchPageSize", 100)
             // map the unified sort/status onto the gamma search params
             var sort any = this.SafeString(params, "sort")
             var sortParam any = "volume"
@@ -404,6 +427,19 @@ func  (this *PolymarketCore) FetchRawEventsBySearch(queries any, optionalArgs ..
                 var pagination any = this.SafeDict(first, "pagination", map[string]any {})
                 var totalResults any = this.SafeInteger(pagination, "totalResults", firstEventsLength)
                 var totalPages any = ccxt.MathCeil(ccxt.Divide(totalResults, pageSize))
+                // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards)
+                // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
+                if ccxt.IsTrue(!ccxt.IsEqual(resultLimit, nil)) {
+                    var limitPages any = ccxt.MathCeil(ccxt.Divide(resultLimit, pageSize))
+                    if ccxt.IsTrue(ccxt.IsLessThan(limitPages, totalPages)) {
+                        totalPages = limitPages
+                    }
+                } else {
+                    var maxSearchPages any = this.SafeInteger(this.Options, "maxSearchPages", 5)
+                    if ccxt.IsTrue(ccxt.IsLessThan(maxSearchPages, totalPages)) {
+                        totalPages = maxSearchPages
+                    }
+                }
                 var remainingPages any = []any{}
                 for p := 2; ccxt.IsLessThanOrEqual(p, totalPages); p++ {
                     ccxt.AppendToArray(&remainingPages, p)
@@ -461,12 +497,14 @@ func  (this *PolymarketCore) FetchRawEventsList(optionalArgs ...any) <- chan any
             go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+                    // gamma hard-caps each response at 100 events regardless of the requested limit, so the
+            // page size must be that cap or pagination never advances (the > check below stays false)
+            params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            var pageSize any = this.SafeInteger(this.Options, "maxFetchEventsLimit", 500)
+            var pageSize any = this.SafeInteger(this.Options, "eventsPageSize", 100)
             // scope the listing: without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
-            var limit any = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "fetchMarketsLimit", 1000))
+            var limit any = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "fetchMarketsLimit", 200))
             var maxPages any = ccxt.MathCeil(ccxt.Divide(limit, pageSize))
             var status any = this.SafeString(params, "status", this.SafeString(this.Options, "defaultEventStatus", "active"))
             // sort maps to the gamma `order` field; 'volume' is the default ranking
@@ -477,13 +515,21 @@ func  (this *PolymarketCore) FetchRawEventsList(optionalArgs ...any) <- chan any
             } else if ccxt.IsTrue(ccxt.IsEqual(sort, "newest")) {
                 order = "startDate"
             }
-            var rest any = this.Omit(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries"})
+            var rest any = this.Omit(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"})
             var baseRequest any = map[string]any {
                 "limit": pageSize,
                 "order": order,
                 "ascending": false,
             }
             baseRequest = this.Extend(baseRequest, rest)
+            // push a requested tag server-side (gamma accepts tag_slug) so a tags-only fetchEvents returns
+            // the tagged events rather than filtering the top-volume listing down to nothing; the base
+            // filterEventsByTags then narrows further client-side when multiple tags are requested
+            var requestedTags any = this.SafeList(params, "tags", []any{})
+            var requestedTagsLength any =     ccxt.GetArrayLength(requestedTags)
+            if ccxt.IsTrue(ccxt.IsGreaterThan(requestedTagsLength, 0)) {
+                ccxt.AddElementToObject(baseRequest, "tag_slug", this.SafeString(requestedTags, 0))
+            }
             if ccxt.IsTrue(ccxt.IsEqual(status, "active")) {
                 ccxt.AddElementToObject(baseRequest, "active", true)
                 ccxt.AddElementToObject(baseRequest, "closed", false)
@@ -640,8 +686,14 @@ func  (this *PolymarketCore) ParseEventToMarkets(event any) any  {
         var marketSlug any = this.SafeString(market, "slug", conditionId)
         var active any = this.SafeBool(market, "active", false)
         var closed any = this.SafeBool(market, "closed", false)
+        // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
+        var marketResolved any = ccxt.IsTrue(closed) || ccxt.IsTrue((ccxt.IsEqual(this.SafeStringLower(market, "umaResolutionStatus"), "resolved")))
+        var resolvedOutcome any = nil
         // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
         var tickSize any = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
+        // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
+        var orderMinSize any = this.SafeNumber(market, "orderMinSize", 1)
+        var priceMax any = this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize)))
         var negRisk any = this.SafeBool(market, "negRisk", false)
         var endDate any = this.SafeString(market, "endDate", this.SafeString(market, "end_date_iso"))
         // Gamma API returns these arrays as JSON-encoded strings
@@ -688,13 +740,26 @@ func  (this *PolymarketCore) ParseEventToMarkets(event any) any  {
             if !ccxt.IsTrue(clobTokenId) {
                 continue
             }
+            var outcomeHandle any = ccxt.Add(ccxt.Add(marketSymbol, ":"), ccxt.ToUpper(outcomeLabel))
+            var winner any = nil
+            var settleFraction any = nil
+            if ccxt.IsTrue(ccxt.IsTrue(marketResolved) && ccxt.IsTrue((!ccxt.IsEqual(outcomePrice, nil)))) {
+                // a resolved polymarket outcome settles to 1 (won) or 0 (lost)
+                winner = (ccxt.IsGreaterThanOrEqual(outcomePrice, 0.99))
+                settleFraction = outcomePrice
+                if ccxt.IsTrue(winner) {
+                    resolvedOutcome = outcomeHandle
+                }
+            }
             ccxt.AppendToArray(&outcomes, map[string]any {
-                "outcome": ccxt.Add(ccxt.Add(marketSymbol, ":"), ccxt.ToUpper(outcomeLabel)),
+                "outcome": outcomeHandle,
                 "outcomeId": clobTokenId,
                 "market": marketSymbol,
                 "label": outcomeLabel,
                 "price": outcomePrice,
                 "active": ccxt.IsTrue(active) && !ccxt.IsTrue(closed),
+                "winner": winner,
+                "settleFraction": settleFraction,
                 "precision": map[string]any {
                     "amount": tickSize,
                     "price": tickSize,
@@ -726,6 +791,8 @@ func  (this *PolymarketCore) ParseEventToMarkets(event any) any  {
             "option": false,
             "prediction": true,
             "active": ccxt.IsTrue(active) && !ccxt.IsTrue(closed),
+            "resolved": marketResolved,
+            "resolvedOutcome": resolvedOutcome,
             "contract": false,
             "linear": nil,
             "inverse": nil,
@@ -749,12 +816,12 @@ func  (this *PolymarketCore) ParseEventToMarkets(event any) any  {
                     "max": 1,
                 },
                 "amount": map[string]any {
-                    "min": 1,
+                    "min": orderMinSize,
                     "max": nil,
                 },
                 "price": map[string]any {
-                    "min": 0.01,
-                    "max": 0.99,
+                    "min": tickSize,
+                    "max": priceMax,
                 },
                 "cost": map[string]any {
                     "min": nil,
@@ -768,6 +835,61 @@ func  (this *PolymarketCore) ParseEventToMarkets(event any) any  {
     }
     return result
 }
+/**
+ * @ignore
+ * @method
+ * @name polymarket#fetchOutcome
+ * @description resolves a single outcome by its CLOB token id in one request, so a cache miss
+ * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+ * instead of throwing ccxt.BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+ * falls back to the base bulk load
+ * @param {string} outcomeSymbol the outcome token id or handle
+ * @returns {object} the resolved outcome object
+ */
+func  (this *PolymarketCore) FetchOutcome(outcomeSymbol any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+            if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(outcomeSymbol, ":"), ccxt.OpNeg(1))) {
+        
+                response:= (<-this.GammaPublicGetMarkets(map[string]any {
+            "clob_token_ids": outcomeSymbol,
+        }))
+                ccxt.PanicOnError(response)
+                var rawMarkets any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(response, nil))), response, []any{})
+                var rawMarketsLength any =         ccxt.GetArrayLength(rawMarkets)
+                if ccxt.IsTrue(ccxt.IsGreaterThan(rawMarketsLength, 0)) {
+                    if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+                        this.Markets = this.CreateSafeDictionary()
+                    }
+                    var ccxtMarkets any = this.ParseEventToMarkets(map[string]any {
+                        "markets": rawMarkets,
+                    })
+                    var ccxtMarketsLength any =             ccxt.GetArrayLength(ccxtMarkets)
+                    for i := 0; ccxt.IsLessThan(i, ccxtMarketsLength); i++ {
+                        var mkt any = ccxt.GetValue(ccxtMarkets, i)
+                        ccxt.AddElementToObject(this.Markets, ccxt.GetValue(mkt, "symbol"), mkt)
+                    }
+                    this.PopulateOutcomes()
+                    var byId any = this.SafeValue(this.Outcomes_by_id, outcomeSymbol)
+                    if ccxt.IsTrue(!ccxt.IsEqual(byId, nil)) {
+        
+                        ch <- byId
+                        return nil
+                    }
+                }
+            }
+        
+                retRes82015 :=  (<-this.Exchange.FetchOutcome(outcomeSymbol))
+                ccxt.PanicOnError(retRes82015)
+                ch <- retRes82015
+                return nil
+        
+            }()
+            return ch
+        }
 /**
  * @method
  * @name polymarket#fetchTicker
@@ -857,8 +979,8 @@ func  (this *PolymarketCore) FetchTickers(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes7808 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes7808)
+            retRes8888 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes8888)
             var outcomesMap any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(this.Outcomes, nil))), this.Outcomes, map[string]any {})
             var targets any = []any{}
             if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
@@ -1004,7 +1126,7 @@ func  (this *PolymarketCore) ParseTicker(ticker any, optionalArgs ...any) any  {
         "askVolume": this.SafeNumber(bestAsk, "size"),
         "vwap": nil,
         "open": nil,
-        "close": mid,
+        "close": last,
         "last": last,
         "previousClose": nil,
         "change": nil,
@@ -1402,13 +1524,15 @@ func  (this *PolymarketCore) FetchTrades(outcome any, optionalArgs ...any) <- ch
             if ccxt.IsTrue(ccxt.IsEqual(conditionId, nil)) {
                 panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id, " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)))
             }
-            // the endpoint requires a market conditionId, then its filtered down to the requested outcome
+            // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
+            // to the requested token client-side below. applying the user's `limit` to this request and
+            // THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
+            // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
+            // token filter by parsePredictionTrades
             var request any = map[string]any {
                 "market": conditionId,
             }
-            if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-                ccxt.AddElementToObject(request, "limit", limit)
-            }
+            ccxt.AddElementToObject(request, "limit", this.SafeInteger(this.Options, "tradesPageSize", 500))
         
             response:= (<-this.DataPublicGetTrades(this.Extend(request, params)))
             ccxt.PanicOnError(response)
@@ -1422,11 +1546,9 @@ func  (this *PolymarketCore) FetchTrades(outcome any, optionalArgs ...any) <- ch
                 }
             }
         
-                // the trades are already narrowed to this outcome by asset id above; pass no market so the
-            // base parseTrades doesn't apply its outcome filter (prediction trades carry `outcome`, not
-            // `symbol`, so a outcome-bearing outcome object would drop them all). parseTrade resolves the
-            // outcome from each trade's asset id.
-        ch <- this.ParseTrades(filteredTrades, nil, since, limit)
+                // the trades are already narrowed to this outcome by asset id above
+            // parseTrade resolves the outcome from each trade's asset id
+        ch <- this.ParsePredictionTrades(filteredTrades, nil, since, limit)
             return nil
         
             }()
@@ -1457,8 +1579,8 @@ func  (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes12398 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes12398)
+            retRes13508 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes13508)
             var request any = map[string]any {}
             var outcomeObj any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -1472,7 +1594,7 @@ func  (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <- chan any {
             ccxt.PanicOnError(response)
             var rawTrades any = ccxt.Ternary(ccxt.IsTrue(ccxt.IsArray(response)), response, this.SafeList(response, "data", []any{}))
         
-            ch <- this.ParseTrades(rawTrades, outcomeObj, since, limit)
+            ch <- this.ParsePredictionTrades(rawTrades, outcomeObj, since, limit)
             return nil
         
             }()
@@ -1602,8 +1724,8 @@ func  (this *PolymarketCore) FetchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes13498 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes13498)
+            retRes14608 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes14608)
             // the collateral balance is tied to the signature type / funder that holds the USDC
             var signatureType any = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
             var rest any = this.Omit(params, []any{"signatureType", "signature_type"})
@@ -1669,8 +1791,8 @@ func  (this *PolymarketCore) FetchPositions(optionalArgs ...any) <- chan any {
                 outcomesLength = ccxt.GetArrayLength(outcomes)
             }
         
-            retRes13998 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes13998)
+            retRes15108 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes15108)
             if ccxt.IsTrue(ccxt.IsEqual(this.WalletAddress, nil)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " walletAddress is required to fetchPositions")))
             }
@@ -1683,7 +1805,7 @@ func  (this *PolymarketCore) FetchPositions(optionalArgs ...any) <- chan any {
             var positions any = this.SafeList(response, "data", []any{})
             // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
-            var parsed any = this.ParsePositions(positions, nil)
+            var parsed any = this.ParsePredictionPositions(positions)
             if ccxt.IsTrue(ccxt.IsEqual(outcomesLength, 0)) {
         
                 ch <- parsed
@@ -1759,11 +1881,11 @@ func  (this *PolymarketCore) ParsePosition(position any, optionalArgs ...any) an
     }
     return this.SafePredictionPosition(map[string]any {
         "id": this.SafeString(position, "id"),
-        "outcome": ccxt.GetValue(marketData, "outcome"),
-        "outcomeId": ccxt.GetValue(marketData, "outcomeId"),
-        "market": ccxt.GetValue(marketData, "market"),
-        "label": ccxt.GetValue(marketData, "label"),
-        "event": ccxt.GetValue(marketData, "event"),
+        "outcome": this.SafeString(marketData, "outcome"),
+        "outcomeId": this.SafeString(marketData, "outcomeId"),
+        "market": this.SafeString(marketData, "market"),
+        "label": this.SafeString(marketData, "label"),
+        "event": this.SafeString(marketData, "event"),
         "timestamp": nil,
         "datetime": nil,
         "contracts": size,
@@ -1814,8 +1936,8 @@ func  (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes15098 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes15098)
+            retRes16228 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes16228)
             var request any = map[string]any {}
             var outcomeObj any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -1829,7 +1951,7 @@ func  (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <- chan any {
             ccxt.PanicOnError(response)
             var orders any = this.SafeList(response, "data", []any{})
         
-            ch <- this.ParseOrders(orders, outcomeObj, since, limit)
+            ch <- this.ParsePredictionOrders(orders, outcomeObj, since, limit)
             return nil
         
             }()
@@ -1857,8 +1979,8 @@ func  (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <- chan any
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes15348 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes15348)
+            retRes16478 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes16478)
             var request any = map[string]any {
                 "id": id,
             }
@@ -1988,11 +2110,11 @@ func  (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amo
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes16468 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes16468)
+            retRes17598 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes17598)
         
-            retRes16478 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes16478)
+            retRes17608 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes17608)
             var built any = this.BuildClobOrderBody(outcome, typeVar, side, amount, price, params)
         
             response:= (<-this.ClobPrivatePostOrder(this.SafeDict(built, "body")))
@@ -2021,11 +2143,11 @@ func  (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <- ch
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes16638 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes16638)
+            retRes17768 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes17768)
         
-            retRes16648 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes16648)
+            retRes17778 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes17778)
             var bodies any = []any{}
             var outcomes any = []any{}
             var batchSalt any = this.Milliseconds()
@@ -2081,8 +2203,21 @@ func  (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side a
     var sideStr any = ccxt.ToUpper(side)
     var isMarket any =     (ccxt.IsEqual(typeVar, "market"))
     // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
-    // callers can override with params.orderType (GTC, GTD, FOK or FAK)
+    // native override: params.orderType (GTC, GTD, FOK or FAK)
     var orderTypeStr any = this.SafeStringUpper(params, "orderType")
+    if ccxt.IsTrue(ccxt.IsEqual(orderTypeStr, nil)) {
+        // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
+        var unifiedTif any = this.SafeStringUpper(params, "timeInForce")
+        if ccxt.IsTrue(ccxt.IsEqual(unifiedTif, "GTC")) {
+            orderTypeStr = "GTC"
+        } else if ccxt.IsTrue(ccxt.IsEqual(unifiedTif, "FOK")) {
+            orderTypeStr = "FOK"
+        } else if ccxt.IsTrue(ccxt.IsEqual(unifiedTif, "IOC")) {
+            orderTypeStr = "FAK" // fill-and-kill == immediate-or-cancel
+        } else if ccxt.IsTrue(ccxt.IsEqual(unifiedTif, "GTD")) {
+            orderTypeStr = "GTD"
+        }
+    }
     if ccxt.IsTrue(ccxt.IsEqual(orderTypeStr, nil)) {
         orderTypeStr = ccxt.Ternary(ccxt.IsTrue(isMarket), "FOK", "GTC")
     }
@@ -2113,7 +2248,7 @@ func  (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side a
     var expiration any = this.SafeString(params, "expiration", "0")
     // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
     var cost any = this.SafeNumber(params, "cost")
-    var rest any = this.Omit(params, []any{"signatureType", "signature_type", "funder", "maker", "orderType", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost"})
+    var rest any = this.Omit(params, []any{"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost"})
     var amounts any = this.PolymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost)
     var makerAmount any = this.SafeString(amounts, "makerAmount")
     var takerAmount any = this.SafeString(amounts, "takerAmount")
@@ -2166,7 +2301,7 @@ func  (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side a
         "orderType": orderTypeStr,
     }
     return map[string]any {
-        "body": this.Extend(orderBody, rest),
+        "body": this.Extend(rest, orderBody),
         "outcome": outcomeObj,
     }
 }
@@ -2191,9 +2326,9 @@ func  (this *PolymarketCore) CreateMarketBuyOrderWithCost(outcome any, cost any,
                 "cost": cost,
             })
         
-                retRes181015 :=  (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
-                ccxt.PanicOnError(retRes181015)
-                ch <- retRes181015
+                retRes193915 :=  (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
+                ccxt.PanicOnError(retRes193915)
+                ch <- retRes193915
                 return nil
         
             }()
@@ -2321,7 +2456,7 @@ func  (this *PolymarketCore) SignClobOrder(message any, exchangeAddress any, dom
     }
     // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
     // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
-    // (raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs)
+    // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
     var orderTypeHash any = this.Hash(this.Encode(orderTypeString), ccxt.Keccak, "binary")
     var contentsData any = this.EthAbiEncode([]any{"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, []any{orderTypeHash, this.ConvertToBigInt(ccxt.GetValue(message, "salt")), ccxt.GetValue(message, "maker"), ccxt.GetValue(message, "signer"), this.ConvertToBigInt(ccxt.GetValue(message, "tokenId")), this.ConvertToBigInt(ccxt.GetValue(message, "makerAmount")), this.ConvertToBigInt(ccxt.GetValue(message, "takerAmount")), ccxt.GetValue(message, "side"), ccxt.GetValue(message, "signatureType"), this.ConvertToBigInt(ccxt.GetValue(message, "timestamp")), this.Base16ToBinary(this.Remove0xPrefix(ccxt.GetValue(message, "metadata"))), this.Base16ToBinary(this.Remove0xPrefix(ccxt.GetValue(message, "builder")))})
     var contentsHash any = ccxt.Add("0x", this.Hash(contentsData, ccxt.Keccak, "hex"))
@@ -2397,8 +2532,8 @@ func  (this *PolymarketCore) CancelOrder(id any, optionalArgs ...any) <- chan an
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes19508 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes19508)
+            retRes20798 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes20798)
             // cancelling by id needs no market data, so events do not have to be loaded first
             var request any = map[string]any {
                 "orderID": id,
@@ -2442,8 +2577,8 @@ func  (this *PolymarketCore) CancelOrders(ids any, optionalArgs ...any) <- chan 
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes19738 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes19738)
+            retRes21028 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes21028)
             // the request body is the bare array of order ids (DELETE /orders), so params are not merged
         
             response:= (<-this.ClobPrivateDeleteOrders(ids))
@@ -2484,8 +2619,8 @@ func  (this *PolymarketCore) CancelAllOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes19958 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes19958)
+            retRes21248 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes21248)
             var response any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
@@ -2542,9 +2677,10 @@ func  (this *PolymarketCore) FetchEvents(optionalArgs ...any) <- chan any {
             go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+                    // no requireEventQuery: polymarket has a bounded gamma listing (fetchRawEventsList), so an
+            // unscoped call returns the most-active events (matching this method's documented contract)
+            params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            this.RequireEventQuery(params)
             var requestedEventId any = this.SafeString(params, "eventId")
             var requestedSlug any = this.SafeString(params, "slug")
             var queries any = this.ParseSearchQueries(params)
@@ -2613,44 +2749,24 @@ func  (this *PolymarketCore) FetchEvents(optionalArgs ...any) <- chan any {
                     ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "symbol"), m)
                 }
                 var parsedEvent any = this.ParseEvent(eventForParsing)
-                var eventSlug any = this.SafeString(eventForParsing, "slug", this.SafeString(rawEvent, "slug"))
-                if ccxt.IsTrue(eventSlug) {
-                    var eventKey any = this.ShortenSlug(eventSlug)
-                    ccxt.AddElementToObject(this.Events, eventKey, parsedEvent)
-                }
                 ccxt.AppendToArray(&result, parsedEvent)
             }
-            this.Outcomes = map[string]any {}
-            this.Outcomes_by_id = map[string]any {}
-            var marketKeys any = ccxt.ObjectKeys(this.Markets)
-            for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marketKeys)); i++ {
-                var market any = ccxt.GetValue(this.Markets, ccxt.GetValue(marketKeys, i))
-                var outcomesList any = this.SafeList(market, "outcomes", []any{})
-                for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(outcomesList)); j++ {
-                    var oc any = ccxt.GetValue(outcomesList, j)
-                    var ocSymbol any = this.SafeString(oc, "outcome")
-                    if ccxt.IsTrue(!ccxt.IsEqual(ocSymbol, nil)) {
-                        ccxt.AddElementToObject(this.Outcomes, ocSymbol, oc)
-                    }
-                    var ocId any = this.SafeString(oc, "outcomeId")
-                    if ccxt.IsTrue(!ccxt.IsEqual(ocId, nil)) {
-                        ccxt.AddElementToObject(this.Outcomes_by_id, ocId, oc)
-                    }
-                }
-            }
-            // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
-            // client-side (searchIn defaults to 'title', matching the reference behaviour)
-            var filtered any = result
+            // populateOutcomes rebuilds the outcome cache from the markets registered above; the
+            // shared applyEventFetchParams then caches (setEvents) and applies the unified
+            // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
+            this.PopulateOutcomes()
+            var effectiveParams any = params
             if ccxt.IsTrue(ccxt.IsGreaterThan(queriesLength, 0)) {
-                filtered = this.FilterEventsByStatus(filtered, this.SafeString(params, "status", "active"))
-                filtered = this.FilterEventsBySearchIn(filtered, queries, this.SafeString(params, "searchIn", "title"))
-            }
-            var finalLimit any = this.SafeInteger(params, "limit")
-            if ccxt.IsTrue(!ccxt.IsEqual(finalLimit, nil)) {
-                filtered = this.ArraySlice(filtered, 0, finalLimit)
+                // the gamma search endpoint is fuzzy, so default to refining by active status and a
+                // title match (the caller can override); the other venues search exactly and need no
+                // such default. inject the defaults as explicit params so the shared pipeline stays
+                // the single behaviour definition
+                effectiveParams = this.Extend(map[string]any {}, params)
+                ccxt.AddElementToObject(effectiveParams, "status", this.SafeString(params, "status", "active"))
+                ccxt.AddElementToObject(effectiveParams, "searchIn", this.SafeString(params, "searchIn", "title"))
             }
         
-            ch <- filtered
+            ch <- this.ApplyEventFetchParams(result, effectiveParams, queries)
             return nil
         
             }()
@@ -2689,6 +2805,7 @@ func  (this *PolymarketCore) FetchEvent(id any, optionalArgs ...any) <- chan any
             }
             var eventForParsing any = this.SafeDict(response, "event", response)
             var event any = this.ParseEvent(eventForParsing)
+            this.IndexEventOutcomes(event)
         
             ch <- event
             return nil
@@ -2758,23 +2875,47 @@ func  (this *PolymarketCore) ParseEvent(rawEvent any) any  {
     // }
     var marketsList any = this.ParseEventToMarkets(rawEvent)
     var slug any = this.SafeString(rawEvent, "slug")
+    // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed)
+    // the snake_case fallbacks cover older payload shapes
+    var createdAt any = this.SafeString2(rawEvent, "createdAt", "created_date_iso")
+    var endDate any = this.SafeString2(rawEvent, "endDate", "end_date_iso")
+    var updatedAt any = this.SafeString2(rawEvent, "updatedAt", "last_updated_date_iso")
+    var rawActive any = this.SafeBool(rawEvent, "active")
+    var closed any = this.SafeBool(rawEvent, "closed", false)
+    var active any = nil
+    if ccxt.IsTrue(!ccxt.IsEqual(rawActive, nil)) {
+        active = ccxt.IsTrue(rawActive) && !ccxt.IsTrue(closed)
+    }
+    // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
+    // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+    var rawTags any = this.SafeList(rawEvent, "tags", []any{})
+    var rawTagsLength any =     ccxt.GetArrayLength(rawTags)
+    var parsedTags any = []any{}
+    for ti := 0; ccxt.IsLessThan(ti, rawTagsLength); ti++ {
+        var tagLabel any = this.SafeString2(ccxt.GetValue(rawTags, ti), "slug", "label")
+        if ccxt.IsTrue(!ccxt.IsEqual(tagLabel, nil)) {
+            ccxt.AppendToArray(&parsedTags, tagLabel)
+        }
+    }
     return this.Extend(map[string]any {
         "id": this.SafeString(rawEvent, "id"),
         "slug": slug,
         "event": ccxt.Ternary(ccxt.IsTrue(slug), this.ShortenSlug(slug), nil),
         "title": this.SafeString(rawEvent, "title"),
+        "tags": parsedTags,
         "markets": marketsList,
+        "active": active,
         "url": this.SafeString(rawEvent, "url"),
-        "image": this.SafeString(rawEvent, "image_url"),
-        "created": this.Parse8601(this.SafeString(rawEvent, "created_date_iso")),
-        "createdDatetime": this.SafeString(rawEvent, "created_date_iso"),
-        "end": this.Parse8601(this.SafeString(rawEvent, "end_date_iso")),
-        "endDatetime": this.SafeString(rawEvent, "end_date_iso"),
+        "image": this.SafeString2(rawEvent, "image", "image_url"),
+        "created": this.Parse8601(createdAt),
+        "createdDatetime": createdAt,
+        "end": this.Parse8601(endDate),
+        "endDatetime": endDate,
         "category": this.SafeString(rawEvent, "category"),
-        "lastUpdatedAt": this.Parse8601(this.SafeString(rawEvent, "last_updated_date_iso")),
-        "lastUpdatedAtDatetime": this.SafeString(rawEvent, "last_updated_date_iso"),
-        "resolutionSource": this.SafeString(rawEvent, "resolution_source"),
-        "resolved": this.SafeBool(rawEvent, "resolved"),
+        "lastUpdatedAt": this.Parse8601(updatedAt),
+        "lastUpdatedAtDatetime": updatedAt,
+        "resolutionSource": this.SafeString2(rawEvent, "resolutionSource", "resolution_source"),
+        "resolved": this.SafeBool2(rawEvent, "closed", "resolved"),
         "info": rawEvent,
     })
 }
@@ -2793,6 +2934,21 @@ func  (this *PolymarketCore) ParseEvents(rawEvents any) any  {
         ccxt.AppendToArray(&result, this.ParseEvent(rawEvent))
     }
     return result
+}
+func  (this *PolymarketCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any  {
+    // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg")
+    // map the known messages so callers can distinguish a dead book or a rejected order
+    // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+    if !ccxt.IsTrue(response) {
+        return nil
+    }
+    var errorMessage any = this.SafeString2(response, "error", "errorMsg")
+    if ccxt.IsTrue(!ccxt.IsEqual(errorMessage, nil)) {
+        var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), body)
+        this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), errorMessage, feedback)
+        this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions, "broad"), errorMessage, feedback)
+    }
+    return nil
 }
 /**
  * @ignore
@@ -2824,7 +2980,14 @@ func  (this *PolymarketCore) Sign(path any, optionalArgs ...any) any  {
     var baseUrls any = ccxt.GetValue(this.Urls, "api")
     var baseUrl any = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
     var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), this.ImplodeParams(path, params))
-    var isArrayBody any = ccxt.IsArray(params)
+    // an empty params container must not become a body: in PHP an empty array is
+    // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
+    var isArrayBody any = false
+    if ccxt.IsTrue(ccxt.IsArray(params)) {
+        var paramsList any = params
+        var paramsListLength any =         ccxt.GetArrayLength(paramsList)
+        isArrayBody = ccxt.IsGreaterThan(paramsListLength, 0)
+    }
     var query any = map[string]any {}
     if !ccxt.IsTrue(isArrayBody) {
         query = this.Omit(params, this.ExtractParams(path))
@@ -3119,8 +3282,8 @@ func  (this *PolymarketCore) LoadApiCredentials() <- chan any {
             var alreadyDerived any = this.SafeString(this.Options, "l2ApiKey")
             if ccxt.IsTrue(ccxt.IsEqual(alreadyDerived, nil)) {
         
-                retRes249916 := (<-this.CreateOrDeriveApiKey())
-                ccxt.PanicOnError(retRes249916)
+                retRes265716 := (<-this.CreateOrDeriveApiKey())
+                ccxt.PanicOnError(retRes265716)
             }
         
             return nil
@@ -3283,7 +3446,7 @@ func  (this *PolymarketCore) HandleTrade(client any, event any)  {
  * @method
  * @name polymarket#watchOrderBook
  * @description streams live order-book updates for a single Polymarket outcome token
- * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
+ * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
  * @param {int} [limit] optional depth limit applied after resolving
  * @param {object} [params] extra params (currently unused)
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
@@ -3297,7 +3460,9 @@ func  (this *PolymarketCore) WatchOrderBook(outcome any, optionalArgs ...any) <-
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = this.SafeString(outcomeObj, "outcomeId")
             outcome = this.SafeString(outcomeObj, "outcome")
             var messageHash any = ccxt.Add("orderbook::", outcome)
@@ -3338,7 +3503,9 @@ func  (this *PolymarketCore) WatchTrades(outcome any, optionalArgs ...any) <- ch
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = this.SafeString(outcomeObj, "outcomeId")
             outcome = this.SafeString(outcomeObj, "outcome")
             var messageHash any = ccxt.Add("trades::", outcome)
@@ -3373,7 +3540,9 @@ func  (this *PolymarketCore) WatchTicker(outcome any, optionalArgs ...any) <- ch
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = this.SafeString(outcomeObj, "outcomeId")
             outcome = this.SafeString(outcomeObj, "outcome")
             var messageHash any = ccxt.Add("ticker::", outcome)
@@ -3478,11 +3647,13 @@ func  (this *PolymarketCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes27958 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes27958)
+            retRes29538 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes29538)
             var messageHash any = "orders"
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
-                var outcomeObj any = this.Outcome(outcome)
+        
+                outcomeObj:= (<-this.LoadOutcome(outcome))
+                ccxt.PanicOnError(outcomeObj)
                 outcome = this.SafeString(outcomeObj, "outcome")
                 messageHash = ccxt.Add("orders::", outcome)
             }
@@ -3524,11 +3695,13 @@ func  (this *PolymarketCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes28218 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes28218)
+            retRes29798 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes29798)
             var messageHash any = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
-                var outcomeObj any = this.Outcome(outcome)
+        
+                outcomeObj:= (<-this.LoadOutcome(outcome))
+                ccxt.PanicOnError(outcomeObj)
                 outcome = this.SafeString(outcomeObj, "outcome")
                 messageHash = ccxt.Add("myTrades::", outcome)
             }
@@ -3570,9 +3743,9 @@ func  (this *PolymarketCore) SubscribeUserChannel(messageHash any, optionalArgs 
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
             var subscribeHash any = "user"
         
-                retRes284515 :=  (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
-                ccxt.PanicOnError(retRes284515)
-                ch <- retRes284515
+                retRes300315 :=  (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
+                ccxt.PanicOnError(retRes300315)
+                ch <- retRes300315
                 return nil
         
             }()

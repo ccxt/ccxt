@@ -260,6 +260,26 @@ export interface PredictionOpenInterest extends OpenInterest {
     market?: Str;
 }
 
+// a settled/resolved position — the "close the loop" record after a market resolves.
+// standalone (settlements have no ccxt base analogue). amounts are shares, collateral is USDC-ish.
+export interface PredictionSettlement {
+    info: any;
+    id?: Str;
+    timestamp?: Int;             // when the market settled
+    datetime?: Str;
+    outcome?: Str;               // the outcome handle the user held
+    outcomeId?: Str;
+    market?: Str;                // parent market handle
+    event?: Str;
+    result?: Str;                // the winning outcome label
+    won?: Bool;                  // did the held position win
+    amount?: Num;                // shares/contracts settled
+    price?: Num;                 // settlement price per share (0..1)
+    cost?: Num;                  // collateral originally paid
+    payout?: Num;                // collateral received at settlement
+    pnl?: Num;                   // realized profit/loss (payout - cost)
+}
+
 // extra params accepted by fetchEvents on prediction exchanges; the [key] index
 // signature keeps it open for exchange-specific passthrough params
 export interface fetchEventsParams {

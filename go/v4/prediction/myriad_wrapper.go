@@ -121,6 +121,33 @@ func (this *Myriad) FetchEvent(id string, options ...FetchEventOptions) (map[str
     return res.(map[string]any), nil
 }
 /**
+ * @ignore
+ * @method
+ * @name myriad#fetchRawMarketById
+ * @description fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+ * @param {string} id the unified event/market id
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the raw myriad market object
+ */
+func (this *Myriad) FetchRawMarketById(id string, options ...FetchRawMarketByIdOptions) (map[string]any, error) {
+
+    opts := FetchRawMarketByIdOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchRawMarketById(id, params)
+    if ccxt.IsError(res) {
+        return map[string]any{}, ccxt.CreateReturnError(res)
+    }
+    return res.(map[string]any), nil
+}
+/**
  * @method
  * @name myriad#fetchPositions
  * @description fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
@@ -348,6 +375,33 @@ func (this *Myriad) CreateAmmOrder(outcome string, typeVar string, side string, 
         params = *opts.Params
     }
     res := <- this.Core.CreateAmmOrder(outcome, typeVar, side, amount, price, params)
+    if ccxt.IsError(res) {
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPredictionOrder(res), nil
+}
+/**
+ * @method
+ * @name myriad#createMarketBuyOrderWithCost
+ * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+ * @param {string} outcome unified outcome handle
+ * @param {float} cost the collateral (USDC) amount to spend
+ * @param {object} [params] extra exchange-specific parameters
+ * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func (this *Myriad) CreateMarketBuyOrderWithCost(outcome string, cost float64, options ...ccxt.CreateMarketBuyOrderWithCostOptions) (ccxt.PredictionOrder, error) {
+
+    opts := ccxt.CreateMarketBuyOrderWithCostOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CreateMarketBuyOrderWithCost(outcome, cost, params)
     if ccxt.IsError(res) {
         return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
@@ -933,8 +987,9 @@ func (this *Myriad) FetchTrades(outcome string, options ...ccxt.FetchTradesOptio
  * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
  * @see https://docs.myriad.markets/builders/myriad-api-reference
  * @param {object} [params] extra exchange-specific parameters
- * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+ * @param {string} [params.query] a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
  * @param {int} [params.limit] maximum number of markets per query, defaults to 50
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
  * @returns {object[]} an array of event structures
@@ -1268,24 +1323,6 @@ func (this *Myriad) CreateLimitBuyOrder(symbol string, amount float64, price flo
 func (this *Myriad) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...ccxt.CreateLimitOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)}
 func (this *Myriad) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...ccxt.CreateLimitSellOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)}
 func (this *Myriad) CreateMarketBuyOrder(symbol string, amount float64, options ...ccxt.CreateMarketBuyOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)}
-func (this *Myriad) CreateMarketBuyOrderWithCost(outcome string, cost float64, options ...ccxt.CreateMarketBuyOrderWithCostOptions) (ccxt.PredictionOrder, error) {
-
-    opts := ccxt.CreateMarketBuyOrderWithCostOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var params any = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.CreateMarketBuyOrderWithCost(outcome, cost, params)
-    if ccxt.IsError(res) {
-        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewPredictionOrder(res), nil
-}
 func (this *Myriad) CreateMarketOrder(symbol string, side string, amount float64, options ...ccxt.CreateMarketOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)}
 func (this *Myriad) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...ccxt.CreateMarketOrderWithCostOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)}
 func (this *Myriad) CreateMarketSellOrder(symbol string, amount float64, options ...ccxt.CreateMarketSellOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)}

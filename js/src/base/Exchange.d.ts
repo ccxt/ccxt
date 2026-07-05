@@ -674,6 +674,7 @@ export default class Exchange {
     marketCodes(codes?: Strings): any[];
     parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    filterByKey(objects: any, key: IndexType, value?: Str): any;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     safeNetwork(network: any): {

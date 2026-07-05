@@ -98,7 +98,14 @@ export default class PredictionExchange extends Exchange {
         }
         const limit = this.safeInteger(params, 'limit');
         if (limit !== undefined) {
-            result = this.arraySlice(result, 0, limit);
+            // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
+            // (reflect Slice) and throws in C#, unlike JS/Python which return the whole array
+            const resultLength = result.length;
+            let sliceEnd = limit;
+            if (sliceEnd > resultLength) {
+                sliceEnd = resultLength;
+            }
+            result = this.arraySlice(result, 0, sliceEnd);
         }
         return result;
     }
@@ -377,10 +384,23 @@ export default class PredictionExchange extends Exchange {
         return joined.toUpperCase();
     }
     slugToMarketSymbol(eventSlug, marketSlug) {
-        return this.shortenSlug(marketSlug);
+        // qualify the market handle with its event so two events that share a market label
+        // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
+        // to the same handle — a collision silently overwrites markets in this.markets and would
+        // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
+        // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
+        // already-unique handles stay clean.
+        const marketPart = this.shortenSlug(marketSlug);
+        const eventPart = this.shortenSlug(eventSlug);
+        if ((eventPart === undefined) || (eventPart === '') || (eventPart === marketPart)) {
+            return marketPart;
+        }
+        return eventPart + '_' + marketPart;
     }
     slugToOutcomeSymbol(eventSlug, marketSlug, outcome) {
-        return this.shortenSlug(marketSlug) + ':' + outcome.toUpperCase();
+        // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
+        // (both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
+        return this.slugToMarketSymbol(eventSlug, marketSlug) + ':' + outcome.toUpperCase();
     }
     setMarkets(markets, currencies = undefined) {
         const result = super.setMarkets(markets, currencies);
@@ -452,6 +472,26 @@ export default class PredictionExchange extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             this.indexMarketOutcomes(this.markets[marketKeys[i]]);
         }
+    }
+    indexEventOutcomes(event) {
+        // register a single event's markets into this.markets and rebuild the outcome cache so the
+        // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
+        // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
+        // (kalshi) the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // BadSymbols because the outcome was never cached
+        if (this.markets === undefined) {
+            this.markets = this.createSafeDictionary();
+        }
+        const markets = this.safeList(event, 'markets', []);
+        const marketsLength = markets.length;
+        for (let i = 0; i < marketsLength; i++) {
+            const m = markets[i];
+            const symbol = this.safeString(m, 'symbol');
+            if (symbol !== undefined) {
+                this.markets[symbol] = m;
+            }
+        }
+        this.populateOutcomes();
     }
     async loadOutcomes(reload = false, params = {}) {
         // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
@@ -826,6 +866,20 @@ export default class PredictionExchange extends Exchange {
     async watchPositions(outcomes = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchPositions() is not supported yet');
     }
+    /**
+     * @method
+     * @name fetchSettlements
+     * @description fetches the user's settled (resolved) positions — the "close the loop" record after
+     * markets resolve, with the collateral paid out and the realized pnl
+     * @param {string} [outcome] filter to a single unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction settlement structures
+     */
+    async fetchSettlements(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchSettlements() is not supported yet');
+    }
     safePredictionOrder(order, market = undefined) {
         // the prediction identity is the `outcome` handle carried on the raw dict (read by
         // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
@@ -1045,6 +1099,7 @@ export default class PredictionExchange extends Exchange {
         h = this.padHexToEven(h);
         return h;
     }
+    // eslint-disable-next-line no-unused-vars
     signEvmTransaction(tx, privateKey) {
         // per-exchange override — needs the noble crypto imports. the base declares it so
         // sendEvmTransaction below can call it; a call on the base itself is unsupported

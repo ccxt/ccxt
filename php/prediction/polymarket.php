@@ -10,6 +10,7 @@ use ccxt\abstract\prediction\polymarket as Exchange;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\BadSymbol;
 use ccxt\Precise;
 use const ccxt\ROUND;
 use const ccxt\TRUNCATE;
@@ -338,7 +339,7 @@ class polymarket extends Exchange {
              * @param {string} [$params->query] a single search term used to filter the fetched events
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
              * @param {string} [$params->status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
-             * @param {int} [$params->limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+             * @param {int} [$params->limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
              * @return {array[]} an array of objects representing market data
              */
             $queries = $this->parse_search_queries($params);
@@ -383,7 +384,10 @@ class polymarket extends Exchange {
              * @param {int} [$params->limit] page size per search query, defaults to 50
              * @return {array[]} an array of raw gamma event objects
              */
-            $pageSize = $this->safe_integer($params, 'limit', 50);
+            $resultLimit = $this->safe_integer($params, 'limit');
+            // fixed page size (gamma's limit_per_type). do NOT tie it to `limit` => that made a small
+            // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event)
+            $pageSize = $this->safe_integer($this->options, 'searchPageSize', 100);
             // map the unified sort/status onto the gamma search $params
             $sort = $this->safe_string($params, 'sort');
             $sortParam = 'volume';
@@ -416,6 +420,19 @@ class polymarket extends Exchange {
                 $pagination = $this->safe_dict($first, 'pagination', array());
                 $totalResults = $this->safe_integer($pagination, 'totalResults', $firstEventsLength);
                 $totalPages = (int) ceil($totalResults / $pageSize);
+                // only page as `limit` needs (applyEventFetchParams slices to it afterwards);
+                // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
+                if ($resultLimit !== null) {
+                    $limitPages = (int) ceil($resultLimit / $pageSize);
+                    if ($limitPages < $totalPages) {
+                        $totalPages = $limitPages;
+                    }
+                } else {
+                    $maxSearchPages = $this->safe_integer($this->options, 'maxSearchPages', 5);
+                    if ($maxSearchPages < $totalPages) {
+                        $totalPages = $maxSearchPages;
+                    }
+                }
                 $remainingPages = array();
                 for ($p = 2; $p <= $totalPages; $p++) {
                     $remainingPages[] = $p;
@@ -479,9 +496,17 @@ class polymarket extends Exchange {
             } elseif ($sort === 'newest') {
                 $order = 'startDate';
             }
-            $rest = $this->omit($params, array( 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries' ));
+            $rest = $this->omit($params, array( 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'tags' ));
             $baseRequest = array( 'limit' => $pageSize, 'order' => $order, 'ascending' => false );
             $baseRequest = $this->extend($baseRequest, $rest);
+            // push a requested tag server-side (gamma accepts tag_slug) so a tags-only fetchEvents returns
+            // the tagged events rather than filtering the top-volume listing down to nothing; the base
+            // filterEventsByTags then narrows further client-side when multiple tags are requested
+            $requestedTags = $this->safe_list($params, 'tags', array());
+            $requestedTagsLength = count($requestedTags);
+            if ($requestedTagsLength > 0) {
+                $baseRequest['tag_slug'] = $this->safe_string($requestedTags, 0);
+            }
             if ($status === 'active') {
                 $baseRequest['active'] = true;
                 $baseRequest['closed'] = false;
@@ -625,8 +650,14 @@ class polymarket extends Exchange {
             $marketSlug = $this->safe_string($market, 'slug', $conditionId);
             $active = $this->safe_bool($market, 'active', false);
             $closed = $this->safe_bool($market, 'closed', false);
+            // resolution => a closed/uma-resolved $market settles each outcome price to 0 or 1
+            $marketResolved = $closed || ($this->safe_string_lower($market, 'umaResolutionStatus') === 'resolved');
+            $resolvedOutcome = null;
             // gamma exposes the order-book tick; minimumTickSize is the clob alias
             $tickSize = $this->safe_number_2($market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
+            // real per-$market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
+            $orderMinSize = $this->safe_number($market, 'orderMinSize', 1);
+            $priceMax = $this->parse_number(Precise::string_sub('1', $this->number_to_string($tickSize)));
             $negRisk = $this->safe_bool($market, 'negRisk', false);
             $endDate = $this->safe_string($market, 'endDate', $this->safe_string($market, 'end_date_iso'));
             // Gamma API returns these arrays-encoded strings
@@ -673,13 +704,26 @@ class polymarket extends Exchange {
                 if (!$clobTokenId) {
                     continue;
                 }
+                $outcomeHandle = $marketSymbol . ':' . strtoupper($outcomeLabel);
+                $winner = null;
+                $settleFraction = null;
+                if ($marketResolved && ($outcomePrice !== null)) {
+                    // a resolved polymarket outcome settles to 1 (won) or 0 (lost)
+                    $winner = ($outcomePrice >= 0.99);
+                    $settleFraction = $outcomePrice;
+                    if ($winner) {
+                        $resolvedOutcome = $outcomeHandle;
+                    }
+                }
                 $outcomes[] = array(
-                    'outcome' => $marketSymbol . ':' . strtoupper($outcomeLabel),
+                    'outcome' => $outcomeHandle,
                     'outcomeId' => $clobTokenId,
                     'market' => $marketSymbol,
                     'label' => $outcomeLabel,
                     'price' => $outcomePrice,
                     'active' => $active && !$closed,
+                    'winner' => $winner,
+                    'settleFraction' => $settleFraction,
                     // carry the order precision so createOrder needs no extra request
                     'precision' => array(
                         'amount' => $tickSize,
@@ -712,6 +756,8 @@ class polymarket extends Exchange {
                 'option' => false,
                 'prediction' => true,
                 'active' => $active && !$closed,
+                'resolved' => $marketResolved,
+                'resolvedOutcome' => $resolvedOutcome,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -731,8 +777,8 @@ class polymarket extends Exchange {
                 ),
                 'limits' => array(
                     'leverage' => array( 'min' => 1, 'max' => 1 ),
-                    'amount' => array( 'min' => 1, 'max' => null ),
-                    'price' => array( 'min' => 0.01, 'max' => 0.99 ),
+                    'amount' => array( 'min' => $orderMinSize, 'max' => null ),
+                    'price' => array( 'min' => $tickSize, 'max' => $priceMax ),
                     'cost' => array( 'min' => null, 'max' => null ),
                 ),
                 'outcomes' => $outcomes,
@@ -741,6 +787,43 @@ class polymarket extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_outcome(string $outcomeSymbol): PromiseInterface {
+        return Async\async(function () use ($outcomeSymbol) {
+            /**
+             * @ignore
+             * resolves a single outcome by its CLOB token id in one request, so a cache miss
+             * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+             * instead of throwing BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+             * falls back to the base bulk load
+             * @param {string} $outcomeSymbol the outcome token id or handle
+             * @return {array} the resolved outcome object
+             */
+            // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+            if (mb_strpos($outcomeSymbol, ':') === -1) {
+                $response = Async\await($this->gammaPublicGetMarkets(array( 'clob_token_ids' => $outcomeSymbol )));
+                $rawMarkets = ($response !== null) ? $response : array();
+                $rawMarketsLength = count($rawMarkets);
+                if ($rawMarketsLength > 0) {
+                    if ($this->markets === null) {
+                        $this->markets = $this->create_safe_dictionary();
+                    }
+                    $ccxtMarkets = $this->parse_event_to_markets(array( 'markets' => $rawMarkets ));
+                    $ccxtMarketsLength = count($ccxtMarkets);
+                    for ($i = 0; $i < $ccxtMarketsLength; $i++) {
+                        $mkt = $ccxtMarkets[$i];
+                        $this->markets[$mkt['symbol']] = $mkt;
+                    }
+                    $this->populate_outcomes();
+                    $byId = $this->safe_value($this->outcomes_by_id, $outcomeSymbol);
+                    if ($byId !== null) {
+                        return $byId;
+                    }
+                }
+            }
+            return Async\await(parent::fetch_outcome($outcomeSymbol));
+        })();
     }
 
     public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
@@ -944,7 +1027,10 @@ class polymarket extends Exchange {
             'askVolume' => $this->safe_number($bestAsk, 'size'),
             'vwap' => null,
             'open' => null,
-            'close' => $mid,
+            // close must be the $last TRADE price, not the midpoint — base safeTicker derives `$last`
+            // from `close` (safeString2('close','last')), so close:$mid would clobber $last with the $mid->
+            // the midpoint lives in `average`
+            'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
@@ -1247,11 +1333,13 @@ class polymarket extends Exchange {
             if ($conditionId === null) {
                 throw new BadRequest($this->id . ' fetchTrades() requires $outcome->info.conditionId for an $outcome ' . $tokenId);
             }
-            // the endpoint requires a market $conditionId, then its filtered down to the requested $outcome
+            // the endpoint filters by market $conditionId (which spans BOTH $outcome tokens), then we narrow
+            // to the requested token client-side below. applying the user's `$limit` to this $request and
+            // THEN filtering can return 0 rows on an active $outcome (if the top `$limit` market trades are
+            // all the other token). over-fetch a large page here; the user's `$limit` is applied AFTER the
+            // token filter by parsePredictionTrades
             $request = array( 'market' => $conditionId );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
+            $request['limit'] = $this->safe_integer($this->options, 'tradesPageSize', 500);
             $response = Async\await($this->dataPublicGetTrades($this->extend($request, $params)));
             $rawTrades = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : $this->safe_list($response, 'data', array());
             $filteredTrades = array();
@@ -1757,8 +1845,21 @@ class polymarket extends Exchange {
         $sideStr = strtoupper($side);
         $isMarket = ($type === 'market');
         // CCXT $type (limit/market) maps to a polymarket time-in-force => limit -> GTC, market -> FOK.
-        // callers can override with $params->orderType(GTC, GTD, FOK or FAK)
+        // native override => $params->orderType(GTC, GTD, FOK or FAK)
         $orderTypeStr = $this->safe_string_upper($params, 'orderType');
+        if ($orderTypeStr === null) {
+            // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
+            $unifiedTif = $this->safe_string_upper($params, 'timeInForce');
+            if ($unifiedTif === 'GTC') {
+                $orderTypeStr = 'GTC';
+            } elseif ($unifiedTif === 'FOK') {
+                $orderTypeStr = 'FOK';
+            } elseif ($unifiedTif === 'IOC') {
+                $orderTypeStr = 'FAK';   // fill-and-kill == immediate-or-cancel
+            } elseif ($unifiedTif === 'GTD') {
+                $orderTypeStr = 'GTD';
+            }
+        }
         if ($orderTypeStr === null) {
             $orderTypeStr = $isMarket ? 'FOK' : 'GTC';
         }
@@ -1789,7 +1890,7 @@ class polymarket extends Exchange {
         $expiration = $this->safe_string($params, 'expiration', '0');
         // a market buy can be sized by USDC $cost instead of shares (see createMarketBuyOrderWithCost)
         $cost = $this->safe_number($params, 'cost');
-        $rest = $this->omit($params, array( 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ));
+        $rest = $this->omit($params, array( 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ));
         $amounts = $this->polymarket_order_raw_amounts($sideStr, $amount, $price, $tickSize, $cost);
         $makerAmount = $this->safe_string($amounts, 'makerAmount');
         $takerAmount = $this->safe_string($amounts, 'takerAmount');
@@ -1842,7 +1943,10 @@ class polymarket extends Exchange {
             'orderType' => $orderTypeStr,
         );
         return array(
-            'body' => $this->extend($orderBody, $rest),
+            // $orderBody LAST so its authoritative fields (order/owner/orderType/postOnly/deferExec)
+            // can't be clobbered by leftover $params — a stray postOnly/orderType would otherwise
+            // silently override the signed intent
+            'body' => $this->extend($rest, $orderBody),
             'outcome' => $outcomeObj,
         );
     }
@@ -2090,7 +2194,8 @@ class polymarket extends Exchange {
              * @param {string} [$params->slug] direct $lookup by event slug
              * @return {array[]} an array of event structures
              */
-            $this->require_event_query($params);
+            // no requireEventQuery => polymarket has a bounded gamma listing (fetchRawEventsList), so an
+            // unscoped call returns the most-active events (matching this method's documented contract)
             $requestedEventId = $this->safe_string($params, 'eventId');
             $requestedSlug = $this->safe_string($params, 'slug');
             $queries = $this->parse_search_queries($params);
@@ -2185,6 +2290,7 @@ class polymarket extends Exchange {
             }
             $eventForParsing = $this->safe_dict($response, 'event', $response);
             $event = $this->parse_event($eventForParsing);
+            $this->index_event_outcomes($event);
             return $event;
         })();
     }
@@ -2262,11 +2368,23 @@ class polymarket extends Exchange {
         if ($rawActive !== null) {
             $active = $rawActive && !$closed;
         }
+        // surface gamma's tag objects top-level stringarray() so the unified `tags` filter
+        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        $rawTags = $this->safe_list($rawEvent, 'tags', array());
+        $rawTagsLength = count($rawTags);
+        $parsedTags = array();
+        for ($ti = 0; $ti < $rawTagsLength; $ti++) {
+            $tagLabel = $this->safe_string_2($rawTags[$ti], 'slug', 'label');
+            if ($tagLabel !== null) {
+                $parsedTags[] = $tagLabel;
+            }
+        }
         return $this->extend(array(
             'id' => $this->safe_string($rawEvent, 'id'),
             'slug' => $slug,
             'event' => $slug ? $this->shorten_slug($slug) : null,
             'title' => $this->safe_string($rawEvent, 'title'),
+            'tags' => $parsedTags,
             'markets' => $marketsList,
             'active' => $active,
             'url' => $this->safe_string($rawEvent, 'url'),

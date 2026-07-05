@@ -350,6 +350,22 @@ export default class myriad extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent(id, params = {}) {
+        const response = await this.fetchRawMarketById(id, params);
+        const market = this.parseMyriadMarket(response);
+        const event = this.parseMarketToEvent(response, market);
+        this.indexEventOutcomes(event);
+        return event;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawMarketById
+     * @description fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+     * @param {string} id the unified event/market id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw myriad market object
+     */
+    async fetchRawMarketById(id, params = {}) {
         // the unified event id is a composite networkId:marketId
         const parts = id.split(':');
         const partsLength = parts.length;
@@ -361,10 +377,7 @@ export default class myriad extends Exchange {
         else {
             request['id'] = id;
         }
-        const response = await this.myriadPublicGetMarketsId(this.extend(request, params));
-        const market = this.parseMyriadMarket(response);
-        const event = this.parseMarketToEvent(response, market);
-        return event;
+        return await this.myriadPublicGetMarketsId(this.extend(request, params));
     }
     /**
      * @method
@@ -767,6 +780,15 @@ export default class myriad extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createAmmOrder(outcome, type, side, amount, price = undefined, params = {}) {
+        // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
+        // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
+        // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
+        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
+        const sideLower = (side !== undefined) ? side.toLowerCase() : undefined;
+        const isCostDenominated = this.safeBool(params, 'costDenominated', false);
+        if ((sideLower === 'buy') && !isCostDenominated) {
+            throw new NotSupported(this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
+        }
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a privateKey to sign the on-chain transaction');
         }
@@ -783,8 +805,8 @@ export default class myriad extends Exchange {
         const predictionMarket = this.safeString(chainConfig, 'predictionMarket');
         const tokenAddress = this.safeString2(params, 'token', 'tokenAddress', this.safeString(info, 'tokenAddress'));
         const gasLimit = this.safeString(params, 'gasLimit', '0xaae60');
-        const sideStr = side.toLowerCase();
-        const quoteParams = this.omit(params, ['rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit']);
+        const sideStr = sideLower;
+        const quoteParams = this.omit(params, ['rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated']);
         const quote = await this.fetchTradeQuote(outcome, sideStr, amount, quoteParams);
         const calldata = this.safeString(this.safeDict(quote, 'info', {}), 'calldata');
         const fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
@@ -794,6 +816,21 @@ export default class myriad extends Exchange {
         }
         const txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         return this.parseTradeTx(txHash, quote, outcomeObj, sideStr);
+    }
+    /**
+     * @method
+     * @name myriad#createMarketBuyOrderWithCost
+     * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost the collateral (USDC) amount to spend
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createMarketBuyOrderWithCost(outcome, cost, params = {}) {
+        // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
+        // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
+        const request = this.extend(params, { 'enableAmm': true, 'costDenominated': true });
+        return await this.createOrder(outcome, 'market', 'buy', cost, undefined, request);
     }
     /**
      * @ignore
@@ -1380,9 +1417,16 @@ export default class myriad extends Exchange {
         const endDate = this.safeString(raw, 'expiresAt');
         const state = this.safeString(raw, 'state', 'open');
         const active = state === 'open';
+        // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
+        const resolvedOutcomeId = this.safeString(raw, 'resolvedOutcomeId', '-1');
+        const voided = this.safeBool(raw, 'voided', false);
+        const hasResolution = (resolvedOutcomeId !== '-1') && (resolvedOutcomeId !== undefined) && (resolvedOutcomeId !== '');
+        const marketResolved = hasResolution || voided;
+        let resolvedOutcome = undefined;
         const volume24h = this.safeNumber(raw, 'volume24h');
-        const slugBase = (eventSlug !== undefined) ? eventSlug : networkId;
-        const marketSymbol = this.slugToMarketSymbol(slugBase, slug);
+        // qualify the handle only with a real event slug (when passed); myriad market slugs are
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle
+        const marketSymbol = this.slugToMarketSymbol(eventSlug, slug);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         const tokenObj = this.safeDict(raw, 'token', {});
         const tokenAddress = this.safeString(tokenObj, 'address');
@@ -1400,8 +1444,20 @@ export default class myriad extends Exchange {
             const outcomeId = this.safeString(outcome, 'outcomeId', this.safeString(outcome, 'id', i.toString()));
             const outcomeLabel = this.safeString(outcome, 'label', this.safeString(outcome, 'title', outcomeId));
             const price = this.safeNumber(outcome, 'price');
-            const outcomeHandle = this.slugToOutcomeSymbol(slugBase, slug, outcomeLabel);
+            const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, slug, outcomeLabel);
             const outcomeCompositeId = networkId + ':' + marketId + '/' + outcomeId;
+            let winner = undefined;
+            let settleFraction = undefined;
+            if (hasResolution) {
+                winner = (outcomeId === resolvedOutcomeId);
+                settleFraction = winner ? 1 : 0;
+                if (winner) {
+                    resolvedOutcome = outcomeHandle;
+                }
+            }
+            else if (voided) {
+                winner = false;
+            }
             outcomes.push({
                 'id': outcomeCompositeId,
                 'outcomeId': outcomeCompositeId,
@@ -1409,6 +1465,8 @@ export default class myriad extends Exchange {
                 'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'winner': winner,
+                'settleFraction': settleFraction,
                 'precision': {
                     'amount': 0.01,
                     'price': 0.001,
@@ -1450,6 +1508,8 @@ export default class myriad extends Exchange {
             'option': false,
             'prediction': true,
             'active': active,
+            'resolved': marketResolved,
+            'resolvedOutcome': resolvedOutcome,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -1713,6 +1773,16 @@ export default class myriad extends Exchange {
             }
         }
         const now = this.milliseconds();
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
+        // percentage from it — setting percentage = the absolute change (as before) was wrong
+        let previousClose = undefined;
+        let percentage = undefined;
+        if ((price !== undefined) && (change !== undefined)) {
+            previousClose = price - change;
+            if (previousClose !== 0) {
+                percentage = change / previousClose * 100;
+            }
+        }
         return this.safePredictionTicker({
             'outcome': this.safeString(market, 'outcome'),
             'outcomeId': this.safeString(market, 'id'),
@@ -1727,15 +1797,18 @@ export default class myriad extends Exchange {
             'ask': price,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': previousClose,
             'close': price,
             'last': price,
-            'previousClose': undefined,
+            'previousClose': previousClose,
             'change': change,
-            'percentage': change,
+            'percentage': percentage,
             'average': price,
-            'baseVolume': this.safeNumber(raw, 'volume24h'), // 24h volume in outcome shares
-            'quoteVolume': this.safeNumber(raw, 'volumeNotional24h'), // 24h volume in USDC notional
+            // myriad's `volume*` fields are collateral (USDC); `volumeNotional*` is the share count —
+            // so baseVolume (shares) = volumeNotional24h and quoteVolume (USDC) = volume24h. These were
+            // swapped, producing vwap > 1 on a 0..1 market
+            'baseVolume': this.safeNumber(raw, 'volumeNotional24h'),
+            'quoteVolume': this.safeNumber(raw, 'volume24h'),
             'info': raw,
         }, market);
     }
@@ -2253,8 +2326,9 @@ export default class myriad extends Exchange {
      * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
@@ -2264,17 +2338,27 @@ export default class myriad extends Exchange {
         const queries = this.parseSearchQueries(params);
         const rest = this.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status']);
         const queriesLength = queries.length;
-        if (queriesLength === 0) {
-            // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
-            const existingEvents = this.eventsList();
-            return this.applyEventFetchParams(existingEvents, params, queries);
+        const eventId = this.safeString(params, 'eventId');
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
+        // an eventId does a direct lookup, and any other scope (tags) pages the markets listing so
+        // applyEventFetchParams can filter it below
+        let rawMarkets = [];
+        if (queriesLength > 0) {
+            rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
         }
-        const rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
+        else if (eventId !== undefined) {
+            const rawMarket = await this.fetchRawMarketById(eventId, rest);
+            rawMarkets = [rawMarket];
+        }
+        else {
+            rawMarkets = await this.fetchRawMarketsList(rest);
+        }
         if (!this.markets) {
             this.markets = this.createSafeDictionary();
         }
         const result = [];
-        for (let i = 0; i < rawMarkets.length; i++) {
+        const rawMarketsLength = rawMarkets.length;
+        for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
             const m = this.parseMyriadMarket(raw);
             this.markets[m['symbol']] = m;

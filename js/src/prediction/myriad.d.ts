@@ -54,6 +54,16 @@ export default class myriad extends Exchange {
      */
     fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
     /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawMarketById
+     * @description fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+     * @param {string} id the unified event/market id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw myriad market object
+     */
+    fetchRawMarketById(id: string, params?: {}): Promise<any>;
+    /**
      * @method
      * @name myriad#fetchPositions
      * @description fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
@@ -168,6 +178,16 @@ export default class myriad extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     createAmmOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    /**
+     * @method
+     * @name myriad#createMarketBuyOrderWithCost
+     * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost the collateral (USDC) amount to spend
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    createMarketBuyOrderWithCost(outcome: string, cost: number, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -463,8 +483,9 @@ export default class myriad extends Exchange {
      * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures

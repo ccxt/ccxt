@@ -1872,13 +1872,8 @@ export default class hyperliquid extends Exchange {
             const event = this.parseEvent({ 'parentSymbol': key, 'markets': groupMarkets });
             events.push(event);
         }
-        if (!this.events) {
-            this.events = {};
-        }
-        for (let i = 0; i < events.length; i++) {
-            const ev = events[i];
-            this.events[ev['event']] = ev;
-        }
+        // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
+        // so getEvent() resolves these events by any of the three keys
         return this.applyEventFetchParams(events, params, queries);
     }
     /**

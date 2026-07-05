@@ -320,12 +320,23 @@ export default class limitless extends Exchange {
      * @description fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.limitless.exchange/api-reference/markets/search
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by market address or slug
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
     fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
+    /**
+     * @ignore
+     * @method
+     * @name limitless#fetchRawActiveMarkets
+     * @description pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] max number of raw markets to collect
+     * @returns {object[]} raw limitless market objects
+     */
+    fetchRawActiveMarkets(params?: {}): Promise<any[]>;
     /**
      * @ignore
      * @method

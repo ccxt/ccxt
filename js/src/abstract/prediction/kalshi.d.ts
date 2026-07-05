@@ -74,6 +74,7 @@ interface Exchange {
     kalshiPrivateDeletePortfolioOrdersBatched(params?: {}): Promise<implicitReturnType>;
     kalshiPrivateDeletePortfolioEventsOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(params?: {}): Promise<implicitReturnType>;
+    electionsPublicGetSearchSeries(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

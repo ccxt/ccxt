@@ -138,6 +138,7 @@ public partial class limitless : PredictionExchange
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", true },
                 { "secret", true },
+                { "privateKey", true },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
@@ -408,6 +409,10 @@ public partial class limitless : PredictionExchange
         object active = this.safeBool(raw, "active", true);
         object endDate = this.safeString(raw, "deadline", this.safeString(raw, "expiresAt"));
         object volume24h = this.safeNumber(raw, "volume24h");
+        // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
+        object winningOutcomeIndex = this.safeInteger(raw, "winningOutcomeIndex");
+        object marketResolved = (!isEqual(winningOutcomeIndex, null));
+        object resolvedOutcome = null;
         object marketSymbol = this.slugToMarketSymbol(groupId, slug);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
@@ -424,12 +429,26 @@ public partial class limitless : PredictionExchange
             object outcomeLabel = getValue(tokenEntries, i);
             object tokenData = getValue(tokens, outcomeLabel);
             object tokenId = tokenData;
+            object outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
+            object winner = null;
+            object settleFraction = null;
+            if (isTrue(marketResolved))
+            {
+                winner = (isEqual(i, winningOutcomeIndex));
+                settleFraction = ((bool) isTrue(winner)) ? 1 : 0;
+                if (isTrue(winner))
+                {
+                    resolvedOutcome = outcomeHandle;
+                }
+            }
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
-                { "outcome", this.slugToOutcomeSymbol(groupId, slug, outcomeLabel) },
+                { "outcome", outcomeHandle },
                 { "outcomeId", tokenId },
                 { "market", marketSymbol },
                 { "label", outcomeLabel },
                 { "active", active },
+                { "winner", winner },
+                { "settleFraction", settleFraction },
                 { "precision", precision },
                 { "info", new Dictionary<string, object>() {
                     { "slug", slug },
@@ -462,6 +481,8 @@ public partial class limitless : PredictionExchange
             { "option", false },
             { "prediction", true },
             { "active", active },
+            { "resolved", marketResolved },
+            { "resolvedOutcome", resolvedOutcome },
             { "contract", false },
             { "linear", null },
             { "inverse", null },
@@ -526,6 +547,7 @@ public partial class limitless : PredictionExchange
             { "markets", new List<object>() {response} },
         });
         object eventVar = this.parseEvent(wrapped);
+        this.indexEventOutcomes(eventVar);
         return eventVar;
     }
 
@@ -775,7 +797,9 @@ public partial class limitless : PredictionExchange
                 ((IList<object>)markets).Add(this.parseMarket(rawMarket));
             }
             object marketInfo = this.safeDict(rawMarket, "info", rawMarket);
-            totalVolume = this.sum(totalVolume, this.safeNumber2(marketInfo, "volume24h", "volume", 0));
+            // use volumeFormatted (human units) — the raw `volume` is 1e-6 fixed-point, which would
+            // make the event volume 1,000,000x too big and useless for cross-venue ranking
+            totalVolume = this.sum(totalVolume, this.safeNumber(marketInfo, "volumeFormatted", 0));
         }
         return ((object)this.extend(new Dictionary<string, object>() {
             { "id", groupId },
@@ -1432,9 +1456,11 @@ public partial class limitless : PredictionExchange
                 });
             }
         }
-        // the endpoint returns chronological points - keep input order (a re-sort breaks
-        // timestamp ties differently across languages and skews open/close within a bucket)
-        object sorted = pseudoTrades;
+        // the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
+        // otherwise candles come back descending and open/close are inverted within each bucket
+        // (the first point seen would be the latest, not the earliest). sortBy is stable, so equal
+        // timestamps keep their relative order consistently across languages
+        object sorted = this.sortBy(pseudoTrades, "timestamp");
         object ms = multiply(this.parseTimeframe(timeframe), 1000);
         object candles = new Dictionary<string, object>() {};
         object bucketOrder = new List<object>() {};
@@ -2981,8 +3007,9 @@ public partial class limitless : PredictionExchange
      * @description fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.limitless.exchange/api-reference/markets/search
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by market address or slug
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
@@ -2991,22 +3018,18 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
         object queries = this.parseSearchQueries(parameters);
-        object result = new List<object>() {};
         object queriesLength = getArrayLength(queries);
-        if (isTrue(!isTrue(queries) || isTrue(isEqual(queriesLength, 0))))
-        {
-            // no query - serve the eventId/slug/tags-only scope from the cache (empty on a
-            // cold instance); applyEventFetchParams filters it below
-            result = this.eventsList();
-        } else
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"});
+        object eventId = this.safeString2(parameters, "eventId", "slug");
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
+        // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
+        object rawMarkets = new List<object>() {};
+        if (isTrue(isGreaterThan(queriesLength, 0)))
         {
             object requestedLimit = this.safeInteger(parameters, "limit", 50);
-            // the search endpoint rejects limit > 50 - cap the per-query request and let
-            // maxMarkets bound the overall collection
+            // the search endpoint rejects limit > 50 - cap the per-query request
             object limit = mathMin(requestedLimit, 50);
-            object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"});
             object seen = new Dictionary<string, object>() {};
-            object rawMarkets = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
             {
                 object q = getValue(queries, i);
@@ -3026,51 +3049,114 @@ public partial class limitless : PredictionExchange
                     }
                 }
             }
-            if (!isTrue(this.events))
+        } else if (isTrue(!isEqual(eventId, null)))
+        {
+            object response = await this.limitlessPublicGetMarketsAddressOrSlug(this.extend(new Dictionary<string, object>() {
+                { "addressOrSlug", eventId },
+            }, rest));
+            ((IList<object>)rawMarkets).Add(response);
+        } else
+        {
+            object listRaw = await this.fetchRawActiveMarkets(parameters);
+            object listRawLength = getArrayLength(listRaw);
+            for (object i = 0; isLessThan(i, listRawLength); postFixIncrement(ref i))
             {
-                this.events = new Dictionary<string, object>() {};
+                ((IList<object>)rawMarkets).Add(getValue(listRaw, i));
             }
-            if (!isTrue(this.markets))
+        }
+        if (!isTrue(this.events))
+        {
+            this.events = new Dictionary<string, object>() {};
+        }
+        if (!isTrue(this.markets))
+        {
+            this.markets = this.createSafeDictionary();
+        }
+        object eventGroups = new Dictionary<string, object>() {};
+        object rawMarketsLength = getArrayLength(rawMarkets);
+        for (object i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
+        {
+            object raw = getValue(rawMarkets, i);
+            object groupId = this.safeString(raw, "groupId", this.safeString(raw, "slug"));
+            object eventKey = ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null;
+            object m = this.parseMarket(raw);
+            ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "symbol"))] = m;
+            if (isTrue(eventKey))
             {
-                this.markets = this.createSafeDictionary();
-            }
-            object eventGroups = new Dictionary<string, object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
-            {
-                object raw = getValue(rawMarkets, i);
-                object groupId = this.safeString(raw, "groupId", this.safeString(raw, "slug"));
-                object eventKey = ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null;
-                object m = this.parseMarket(raw);
-                ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "symbol"))] = m;
-                if (isTrue(eventKey))
+                if (!isTrue((inOp(eventGroups, eventKey))))
                 {
-                    if (!isTrue((inOp(eventGroups, eventKey))))
-                    {
-                        ((IDictionary<string,object>)eventGroups)[(string)eventKey] = new Dictionary<string, object>() {
-                            { "groupId", groupId },
-                            { "title", this.safeString(raw, "title", groupId) },
-                            { "raw", raw },
-                            { "markets", new List<object>() {} },
-                        };
-                    }
-                    object eventGroup = getValue(eventGroups, eventKey);
-                    ((IList<object>)getValue(eventGroup, "markets")).Add(m);
+                    ((IDictionary<string,object>)eventGroups)[(string)eventKey] = new Dictionary<string, object>() {
+                        { "groupId", groupId },
+                        { "title", this.safeString(raw, "title", groupId) },
+                        { "raw", raw },
+                        { "markets", new List<object>() {} },
+                    };
                 }
+                object eventGroup = getValue(eventGroups, eventKey);
+                ((IList<object>)getValue(eventGroup, "markets")).Add(m);
             }
-            result = new List<object>() {};
-            object eventKeys = new List<object>(((IDictionary<string,object>)eventGroups).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(eventKeys)); postFixIncrement(ref i))
-            {
-                object eventKey = getValue(eventKeys, i);
-                object g = getValue(eventGroups, eventKey);
-                object ev = this.parseEvent(g);
-                ((IList<object>)result).Add(ev);
-            }
+        }
+        object result = new List<object>() {};
+        object eventKeys = new List<object>(((IDictionary<string,object>)eventGroups).Keys);
+        object eventKeysLength = getArrayLength(eventKeys);
+        for (object i = 0; isLessThan(i, eventKeysLength); postFixIncrement(ref i))
+        {
+            object g = getValue(eventGroups, getValue(eventKeys, i));
+            object ev = this.parseEvent(g);
+            ((IList<object>)result).Add(ev);
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         this.setEvents(result);
         this.populateOutcomes();
         return this.applyEventFetchParams(result, parameters, queries);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#fetchRawActiveMarkets
+     * @description pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] max number of raw markets to collect
+     * @returns {object[]} raw limitless market objects
+     */
+    public async virtual Task<object> fetchRawActiveMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
+        object pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"});
+        object allRaw = new List<object>() {};
+        object page = 1;
+        object collected = 0;
+        while (true)
+        {
+            object request = new Dictionary<string, object>() {
+                { "page", page },
+                { "limit", pageSize },
+            };
+            object response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
+            object data = (IList<object>)(this.safeList(response, "data", new List<object>() {}));
+            object dataLength = getArrayLength(data);
+            if (isTrue(isEqual(dataLength, 0)))
+            {
+                break;
+            }
+            for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+            {
+                if (isTrue(isLessThan(collected, maxMarkets)))
+                {
+                    ((IList<object>)allRaw).Add(getValue(data, i));
+                    collected = this.sum(collected, 1);
+                }
+            }
+            page = this.sum(page, 1);
+            if (isTrue(isTrue(isLessThan(dataLength, pageSize)) || isTrue(isGreaterThanOrEqual(collected, maxMarkets))))
+            {
+                break;
+            }
+        }
+        return allRaw;
     }
 
     /**

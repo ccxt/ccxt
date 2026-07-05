@@ -37,7 +37,7 @@ func NewPolymarketFromCore(core *PolymarketCore) *Polymarket {
  * @param {string} [params.query] a single search term used to filter the fetched events
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
  * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
- * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+ * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Polymarket) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) {
@@ -93,6 +93,24 @@ func (this *Polymarket) FetchRawEventsList(params ...any) ([]map[string]any, err
         return nil, ccxt.CreateReturnError(res)
     }
     return ccxt.NewMapArray(res), nil
+}
+/**
+ * @ignore
+ * @method
+ * @name polymarket#fetchOutcome
+ * @description resolves a single outcome by its CLOB token id in one request, so a cache miss
+ * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+ * instead of throwing ccxt.BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+ * falls back to the base bulk load
+ * @param {string} outcomeSymbol the outcome token id or handle
+ * @returns {object} the resolved outcome object
+ */
+func (this *Polymarket) FetchOutcome(outcomeSymbol string) (map[string]any, error) {
+    res := <- this.Core.FetchOutcome(outcomeSymbol)
+    if ccxt.IsError(res) {
+        return map[string]any{}, ccxt.CreateReturnError(res)
+    }
+    return res.(map[string]any), nil
 }
 /**
  * @method
@@ -882,7 +900,7 @@ func (this *Polymarket) CreateOrDeriveApiKey(params ...any) (map[string]any, err
  * @method
  * @name polymarket#watchOrderBook
  * @description streams live order-book updates for a single Polymarket outcome token
- * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
+ * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
  * @param {int} [limit] optional depth limit applied after resolving
  * @param {object} [params] extra params (currently unused)
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}

@@ -24,7 +24,7 @@
             {
                 "description": "fetchTrades with limit",
                 "method": "fetchTrades",
-                "url": "https://data-api.polymarket.com/trades?market=0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422&limit=5",
+                "url": "https://data-api.polymarket.com/trades?market=0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422&limit=500",
                 "input": [
                     "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
                     null,

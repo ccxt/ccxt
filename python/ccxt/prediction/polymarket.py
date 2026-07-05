@@ -341,7 +341,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str [params.query]: a single search term used to filter the fetched events
         :param str[] [params.queries]: multiple search terms(alternative to query)
         :param str [params.status]: 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
-        :param int [params.limit]: max number of events to fetch when no query is given(defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+        :param int [params.limit]: max number of events to fetch when no query is given(defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id(fetchOutcome)
         :returns dict[]: an array of objects representing market data
         """
         queries = self.parse_search_queries(params)
@@ -379,7 +379,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [params.limit]: page size per search query, defaults to 50
         :returns dict[]: an array of raw gamma event objects
         """
-        pageSize = self.safe_integer(params, 'limit', 50)
+        resultLimit = self.safe_integer(params, 'limit')
+        # fixed page size(gamma's limit_per_type). do NOT tie it to `limit`: that made a small
+        # limit fan out into many tiny-page requests(limit:1 -> ~one request per matching event)
+        pageSize = self.safe_integer(self.options, 'searchPageSize', 100)
         # map the unified sort/status onto the gamma search params
         sort = self.safe_string(params, 'sort')
         sortParam = 'volume'
@@ -409,6 +412,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
             pagination = self.safe_dict(first, 'pagination', {})
             totalResults = self.safe_integer(pagination, 'totalResults', firstEventsLength)
             totalPages = int(math.ceil(totalResults / pageSize))
+            # only page as `limit` needs(applyEventFetchParams slices to it afterwards)
+            # with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
+            if resultLimit is not None:
+                limitPages = int(math.ceil(resultLimit / pageSize))
+                if limitPages < totalPages:
+                    totalPages = limitPages
+            else:
+                maxSearchPages = self.safe_integer(self.options, 'maxSearchPages', 5)
+                if maxSearchPages < totalPages:
+                    totalPages = maxSearchPages
             remainingPages = []
             for p in range(2, totalPages):
                 remainingPages.append(p)
@@ -460,9 +473,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
             order = 'liquidity'
         elif sort == 'newest':
             order = 'startDate'
-        rest = self.omit(params, ['status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries'])
+        rest = self.omit(params, ['status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'tags'])
         baseRequest = {'limit': pageSize, 'order': order, 'ascending': False}
         baseRequest = self.extend(baseRequest, rest)
+        # push a requested tag server-side(gamma accepts tag_slug) so a tags-only fetchEvents returns
+        # the tagged events rather than filtering the top-volume listing down to nothing; the base
+        # filterEventsByTags then narrows further client-side when multiple tags are requested
+        requestedTags = self.safe_list(params, 'tags', [])
+        requestedTagsLength = len(requestedTags)
+        if requestedTagsLength > 0:
+            baseRequest['tag_slug'] = self.safe_string(requestedTags, 0)
         if status == 'active':
             baseRequest['active'] = True
             baseRequest['closed'] = False
@@ -596,8 +616,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
             marketSlug = self.safe_string(market, 'slug', conditionId)
             active = self.safe_bool(market, 'active', False)
             closed = self.safe_bool(market, 'closed', False)
+            # resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
+            marketResolved = closed or (self.safe_string_lower(market, 'umaResolutionStatus') == 'resolved')
+            resolvedOutcome = None
             # gamma exposes the order-book tick; minimumTickSize is the clob alias
             tickSize = self.safe_number_2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01)
+            # real per-market min order size(shares) and price tick — don't hardcode 1 / 0.01..0.99
+            orderMinSize = self.safe_number(market, 'orderMinSize', 1)
+            priceMax = self.parse_number(Precise.string_sub('1', self.number_to_string(tickSize)))
             negRisk = self.safe_bool(market, 'negRisk', False)
             endDate = self.safe_string(market, 'endDate', self.safe_string(market, 'end_date_iso'))
             # Gamma API returns these arrays-encoded strings
@@ -636,13 +662,24 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 outcomePrice = self.safe_number(outcomePrices, oi)
                 if not clobTokenId:
                     continue
+                outcomeHandle = marketSymbol + ':' + outcomeLabel.upper()
+                winner = None
+                settleFraction = None
+                if marketResolved and (outcomePrice is not None):
+                    # a resolved polymarket outcome settles to 1(won) or 0(lost)
+                    winner = (outcomePrice >= 0.99)
+                    settleFraction = outcomePrice
+                    if winner:
+                        resolvedOutcome = outcomeHandle
                 outcomes.append({
-                    'outcome': marketSymbol + ':' + outcomeLabel.upper(),
+                    'outcome': outcomeHandle,
                     'outcomeId': clobTokenId,
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
                     'active': active and not closed,
+                    'winner': winner,
+                    'settleFraction': settleFraction,
                     # carry the order precision so createOrder needs no extra request
                     'precision': {
                         'amount': tickSize,
@@ -674,6 +711,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'option': False,
                 'prediction': True,
                 'active': active and not closed,
+                'resolved': marketResolved,
+                'resolvedOutcome': resolvedOutcome,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -693,8 +732,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 },
                 'limits': {
                     'leverage': {'min': 1, 'max': 1},
-                    'amount': {'min': 1, 'max': None},
-                    'price': {'min': 0.01, 'max': 0.99},
+                    'amount': {'min': orderMinSize, 'max': None},
+                    'price': {'min': tickSize, 'max': priceMax},
                     'cost': {'min': None, 'max': None},
                 },
                 'outcomes': outcomes,
@@ -702,6 +741,35 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'created': None,
             })
         return result
+
+    async def fetch_outcome(self, outcomeSymbol: str) -> Any:
+        """
+ @ignore
+        resolves a single outcome by its CLOB token id in one request, so a cache miss
+ (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+ instead of throwing BadSymbol. an outcome HANDLE("MARKET:LABEL") carries no token id, so it
+ falls back to the base bulk load
+        :param str outcomeSymbol: the outcome token id or handle
+        :returns dict: the resolved outcome object
+        """
+        # a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+        if outcomeSymbol.find(':') == -1:
+            response = await self.gammaPublicGetMarkets({'clob_token_ids': outcomeSymbol})
+            rawMarkets = response if (response is not None) else []
+            rawMarketsLength = len(rawMarkets)
+            if rawMarketsLength > 0:
+                if self.markets is None:
+                    self.markets = self.create_safe_dictionary()
+                ccxtMarkets = self.parse_event_to_markets({'markets': rawMarkets})
+                ccxtMarketsLength = len(ccxtMarkets)
+                for i in range(0, ccxtMarketsLength):
+                    mkt = ccxtMarkets[i]
+                    self.markets[mkt['symbol']] = mkt
+                self.populate_outcomes()
+                byId = self.safe_value(self.outcomes_by_id, outcomeSymbol)
+                if byId is not None:
+                    return byId
+        return await super(polymarket, self).fetch_outcome(outcomeSymbol)
 
     async def fetch_ticker(self, outcome: str, params={}) -> PredictionTicker:
         """
@@ -887,7 +955,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'askVolume': self.safe_number(bestAsk, 'size'),
             'vwap': None,
             'open': None,
-            'close': mid,
+            # close must be the last TRADE price, not the midpoint — base safeTicker derives `last`
+            # from `close`(safeString2('close','last')), so close:mid would clobber last with the mid.
+            # the midpoint lives in `average`
+            'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
@@ -1158,10 +1229,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
         conditionId = self.safe_string(outcomeInfo, 'conditionId')
         if conditionId is None:
             raise BadRequest(self.id + ' fetchTrades() requires outcome.info.conditionId for an outcome ' + tokenId)
-        # the endpoint requires a market conditionId, then its filtered down to the requested outcome
+        # the endpoint filters by market conditionId(which spans BOTH outcome tokens), then we narrow
+        # to the requested token client-side below. applying the user's `limit` to self request and
+        # THEN filtering can return 0 rows on an active outcome(if the top `limit` market trades are
+        # all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
+        # token filter by parsePredictionTrades
         request = {'market': conditionId}
-        if limit is not None:
-            request['limit'] = limit
+        request['limit'] = self.safe_integer(self.options, 'tradesPageSize', 500)
         response = await self.dataPublicGetTrades(self.extend(request, params))
         rawTrades = response if isinstance(response, list) else self.safe_list(response, 'data', [])
         filteredTrades = []
@@ -1611,8 +1685,19 @@ class polymarket(PredictionExchange, ImplicitAPI):
         sideStr = side.upper()
         isMarket = (type == 'market')
         # CCXT type(limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
-        # callers can override with params.orderType(GTC, GTD, FOK or FAK)
+        # native override: params.orderType(GTC, GTD, FOK or FAK)
         orderTypeStr = self.safe_string_upper(params, 'orderType')
+        if orderTypeStr is None:
+            # otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
+            unifiedTif = self.safe_string_upper(params, 'timeInForce')
+            if unifiedTif == 'GTC':
+                orderTypeStr = 'GTC'
+            elif unifiedTif == 'FOK':
+                orderTypeStr = 'FOK'
+            elif unifiedTif == 'IOC':
+                orderTypeStr = 'FAK'   # fill-and-kill == immediate-or-cancel
+            elif unifiedTif == 'GTD':
+                orderTypeStr = 'GTD'
         if orderTypeStr is None:
             orderTypeStr = 'FOK' if isMarket else 'GTC'
         if price is None:
@@ -1639,7 +1724,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         expiration = self.safe_string(params, 'expiration', '0')
         # a market buy can be sized by USDC cost instead of shares(see createMarketBuyOrderWithCost)
         cost = self.safe_number(params, 'cost')
-        rest = self.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost'])
+        rest = self.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost'])
         amounts = self.polymarket_order_raw_amounts(sideStr, amount, price, tickSize, cost)
         makerAmount = self.safe_string(amounts, 'makerAmount')
         takerAmount = self.safe_string(amounts, 'takerAmount')
@@ -1692,7 +1777,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'orderType': orderTypeStr,
         }
         return {
-            'body': self.extend(orderBody, rest),
+            # orderBody LAST so its authoritative fields(order/owner/orderType/postOnly/deferExec)
+            # can't be clobbered by leftover params — a stray postOnly/orderType would otherwise
+            # silently override the signed intent
+            'body': self.extend(rest, orderBody),
             'outcome': outcomeObj,
         }
 
@@ -1919,7 +2007,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str [params.slug]: direct lookup by event slug
         :returns dict[]: an array of event structures
         """
-        self.require_event_query(params)
+        # no requireEventQuery: polymarket has a bounded gamma listing(fetchRawEventsList), so an
+        # unscoped call returns the most-active events(matching self method's documented contract)
         requestedEventId = self.safe_string(params, 'eventId')
         requestedSlug = self.safe_string(params, 'slug')
         queries = self.parse_search_queries(params)
@@ -2000,6 +2089,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             response = await self.gammaPublicGetEventsId(self.extend({'id': id}, params))
         eventForParsing = self.safe_dict(response, 'event', response)
         event = self.parse_event(eventForParsing)
+        self.index_event_outcomes(event)
         return event
 
     def parse_event(self, rawEvent: dict) -> dict:
@@ -2074,11 +2164,21 @@ class polymarket(PredictionExchange, ImplicitAPI):
         active = None
         if rawActive is not None:
             active = rawActive and not closed
+        # surface gamma's tag objects top-level string[] so the unified `tags` filter
+        #(filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        rawTags = self.safe_list(rawEvent, 'tags', [])
+        rawTagsLength = len(rawTags)
+        parsedTags = []
+        for ti in range(0, rawTagsLength):
+            tagLabel = self.safe_string_2(rawTags[ti], 'slug', 'label')
+            if tagLabel is not None:
+                parsedTags.append(tagLabel)
         return self.extend({
             'id': self.safe_string(rawEvent, 'id'),
             'slug': slug,
             'event': self.shorten_slug(slug) if slug else None,
             'title': self.safe_string(rawEvent, 'title'),
+            'tags': parsedTags,
             'markets': marketsList,
             'active': active,
             'url': self.safe_string(rawEvent, 'url'),

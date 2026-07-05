@@ -1692,6 +1692,17 @@ class Transpiler {
             while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
                 lines.shift ()
             }
+            // strip leading blank / line-comment lines so a standalone section-divider comment
+            // block (or a method preceded by // comments) isn't mistaken for the signature. the
+            // main Exchange base has neither, so this is a no-op there; the prediction base uses
+            // section dividers between method groups.
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
+                lines.shift ()
+            }
+            if (lines.length === 0) {
+                // comment-only / blank chunk — not a method, skip it
+                continue
+            }
             part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')

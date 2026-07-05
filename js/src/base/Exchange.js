@@ -403,7 +403,9 @@ export default class Exchange {
         const nameBytes = new TextEncoder().encode(name);
         const data = new Uint8Array([...nsBytes, ...nameBytes]);
         const nsHash = sha1(data);
+        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
+        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [...nsHash.slice(0, 16)]
             .map((b) => b.toString(16).padStart(2, '0'))
@@ -500,7 +502,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
                     }
                     catch (err) {
                         // TODO: handle error
@@ -2565,7 +2567,9 @@ export default class Exchange {
             result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                const entryFiledEqualValue = entry[field] === value;
+                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // KeyError in python/php — prediction structures key on outcome, not symbol
+                const entryFiledEqualValue = this.safeValue(entry, field) === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
                 const entryKeyValue = this.safeValue(entry, key);
                 const entryKeyGESince = (entryKeyValue) && (since !== undefined) && (entryKeyValue >= since);
@@ -3959,7 +3963,7 @@ export default class Exchange {
             }
         }
         results = this.sortBy(results, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
     calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker = 'taker', feeRate = undefined, params = {}) {
@@ -4602,18 +4606,21 @@ export default class Exchange {
             'bids': this.sortBy(this.aggregate(orderbook['bids']), 0, true),
         });
     }
-    filterBySymbol(objects, symbol = undefined) {
-        if (symbol === undefined) {
+    filterByKey(objects, key, value = undefined) {
+        if (value === undefined) {
             return objects;
         }
         const result = [];
         for (let i = 0; i < objects.length; i++) {
-            const objectSymbol = this.safeString(objects[i], 'symbol');
-            if (objectSymbol === symbol) {
+            const objectValue = this.safeString(objects[i], key);
+            if (objectValue === value) {
                 result.push(objects[i]);
             }
         }
         return result;
+    }
+    filterBySymbol(objects, symbol = undefined) {
+        return this.filterByKey(objects, 'symbol', symbol);
     }
     parseOHLCV(ohlcv, market = undefined) {
         if (Array.isArray(ohlcv)) {
@@ -4982,7 +4989,7 @@ export default class Exchange {
             result.push(trade);
         }
         result = this.sortBy2(result, 'timestamp', 'id');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {

@@ -149,6 +149,7 @@ class limitless extends Exchange {
             'requiredCredentials' => array(
                 'apiKey' => true,   // Limitless API key
                 'secret' => true,
+                'privateKey' => true,   // embedded/trading wallet key — createOrder signs with it (env-$loading needs this true)
             ),
             'fees' => array(
                 'trading' => array(
@@ -392,6 +393,10 @@ class limitless extends Exchange {
         $active = $this->safe_bool($raw, 'active', true);
         $endDate = $this->safe_string($raw, 'deadline', $this->safe_string($raw, 'expiresAt'));
         $volume24h = $this->safe_number($raw, 'volume24h');
+        // resolution => $winningOutcomeIndex is null until the market resolves, then the winning outcome index
+        $winningOutcomeIndex = $this->safe_integer($raw, 'winningOutcomeIndex');
+        $marketResolved = ($winningOutcomeIndex !== null);
+        $resolvedOutcome = null;
         $marketSymbol = $this->slug_to_market_symbol($groupId, $slug);
         // amount $precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
@@ -407,12 +412,24 @@ class limitless extends Exchange {
             $outcomeLabel = $tokenEntries[$i];
             $tokenData = $tokens[$outcomeLabel];
             $tokenId = $tokenData;
+            $outcomeHandle = $this->slug_to_outcome_symbol($groupId, $slug, $outcomeLabel);
+            $winner = null;
+            $settleFraction = null;
+            if ($marketResolved) {
+                $winner = ($i === $winningOutcomeIndex);
+                $settleFraction = $winner ? 1 : 0;
+                if ($winner) {
+                    $resolvedOutcome = $outcomeHandle;
+                }
+            }
             $outcomes[] = array(
-                'outcome' => $this->slug_to_outcome_symbol($groupId, $slug, $outcomeLabel),
+                'outcome' => $outcomeHandle,
                 'outcomeId' => $tokenId,
                 'market' => $marketSymbol,
                 'label' => $outcomeLabel,
                 'active' => $active,
+                'winner' => $winner,
+                'settleFraction' => $settleFraction,
                 'precision' => $precision,
                 'info' => array(
                     'slug' => $slug,
@@ -445,6 +462,8 @@ class limitless extends Exchange {
             'option' => false,
             'prediction' => true,
             'active' => $active,
+            'resolved' => $marketResolved,
+            'resolvedOutcome' => $resolvedOutcome,
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -492,6 +511,7 @@ class limitless extends Exchange {
             // listing), so wrap it for parseEvent — its loop then parses this market into the $event
             $wrapped = $this->extend($response, array( 'markets' => array( $response ) ));
             $event = $this->parse_event($wrapped);
+            $this->index_event_outcomes($event);
             return $event;
         })();
     }
@@ -738,7 +758,9 @@ class limitless extends Exchange {
                 $markets[] = $this->parse_market($rawMarket);
             }
             $marketInfo = $this->safe_dict($rawMarket, 'info', $rawMarket);
-            $totalVolume = $this->sum($totalVolume, $this->safe_number_2($marketInfo, 'volume24h', 'volume', 0));
+            // use volumeFormatted (human units) — the raw `volume` is 1e-6 fixed-point, which would
+            // make the $event volume 1,000,000x too big and useless for cross-venue ranking
+            $totalVolume = $this->sum($totalVolume, $this->safe_number($marketInfo, 'volumeFormatted', 0));
         }
         return $this->extend(array(
             'id' => $groupId,
@@ -1338,9 +1360,11 @@ class limitless extends Exchange {
                     $pseudoTrades[] = array( 'timestamp' => $pointTs, 'price' => $pointPrice, 'amount' => 0 );
                 }
             }
-            // the endpoint returns chronological points - keep input order (a re-sort breaks
-            // timestamp ties differently across languages and skews open/close within a $bucket)
-            $sorted = $pseudoTrades;
+            // the endpoint returns points NEWEST-$first, so sort ascending by timestamp before bucketing —
+            // otherwise $candles come back descending and open/close are inverted within each $bucket
+            // (the $first $point seen would be the latest, not the earliest). sortBy is stable, so equal
+            // timestamps keep their relative order consistently across languages
+            $sorted = $this->sort_by($pseudoTrades, 'timestamp');
             $ms = $this->parse_timeframe($timeframe) * 1000;
             $candles = array();
             $bucketOrder = array();
@@ -2748,26 +2772,25 @@ class limitless extends Exchange {
              * @see https://docs.limitless.exchange/api-reference/markets/search
              *
              * @param {array} [$params] extra exchange-specific parameters
-             * @param {string} [$params->query] a single search term; when omitted (and no $queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+             * @param {string} [$params->query] a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
+             * @param {string} [$params->eventId] direct lookup by market address or slug
              * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
              * @return {array[]} an array of event structures
              */
             $this->require_event_query($params);
             $queries = $this->parse_search_queries($params);
-            $result = array();
             $queriesLength = count($queries);
-            if (!$queries || $queriesLength === 0) {
-                // no query - serve the eventId/slug/tags-only scope from the cache (empty on a
-                // cold instance); applyEventFetchParams filters it below
-                $result = $this->events_list();
-            } else {
+            $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
+            $eventId = $this->safe_string_2($params, 'eventId', 'slug');
+            // always fetch fresh from the API (never serve the possibly-cold cache) => a query searches, an
+            // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
+            $rawMarkets = array();
+            if ($queriesLength > 0) {
                 $requestedLimit = $this->safe_integer($params, 'limit', 50);
-                // the search endpoint rejects $limit > 50 - cap the per-query request and             // maxMarkets bound the overall collection
+                // the search endpoint rejects $limit > 50 - cap the per-query request
                 $limit = min($requestedLimit, 50);
-                $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
                 $seen = array();
-                $rawMarkets = array();
                 for ($i = 0; $i < count($queries); $i++) {
                     $q = $queries[$i];
                     $response = Async\await($this->limitlessPublicGetMarketsSearch($this->extend(array(
@@ -2784,40 +2807,88 @@ class limitless extends Exchange {
                         }
                     }
                 }
-                if (!$this->events) {
-                    $this->events = array();
+            } elseif ($eventId !== null) {
+                $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend(array( 'addressOrSlug' => $eventId ), $rest)));
+                $rawMarkets[] = $response;
+            } else {
+                $listRaw = Async\await($this->fetch_raw_active_markets($params));
+                $listRawLength = count($listRaw);
+                for ($i = 0; $i < $listRawLength; $i++) {
+                    $rawMarkets[] = $listRaw[$i];
                 }
-                if (!$this->markets) {
-                    $this->markets = $this->create_safe_dictionary();
-                }
-                $eventGroups = array();
-                for ($i = 0; $i < count($rawMarkets); $i++) {
-                    $raw = $rawMarkets[$i];
-                    $groupId = $this->safe_string($raw, 'groupId', $this->safe_string($raw, 'slug'));
-                    $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
-                    $m = $this->parse_market($raw);
-                    $this->markets[$m['symbol']] = $m;
-                    if ($eventKey) {
-                        if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
-                            $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string($raw, 'title', $groupId), 'raw' => $raw, 'markets' => array() );
-                        }
-                        $eventGroup = $eventGroups[$eventKey];
-                        $eventGroup['markets'][] = $m;
+            }
+            if (!$this->events) {
+                $this->events = array();
+            }
+            if (!$this->markets) {
+                $this->markets = $this->create_safe_dictionary();
+            }
+            $eventGroups = array();
+            $rawMarketsLength = count($rawMarkets);
+            for ($i = 0; $i < $rawMarketsLength; $i++) {
+                $raw = $rawMarkets[$i];
+                $groupId = $this->safe_string($raw, 'groupId', $this->safe_string($raw, 'slug'));
+                $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
+                $m = $this->parse_market($raw);
+                $this->markets[$m['symbol']] = $m;
+                if ($eventKey) {
+                    if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
+                        $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string($raw, 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                     }
+                    $eventGroup = $eventGroups[$eventKey];
+                    $eventGroup['markets'][] = $m;
                 }
-                $result = array();
-                $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
-                for ($i = 0; $i < count($eventKeys); $i++) {
-                    $eventKey = $eventKeys[$i];
-                    $g = $eventGroups[$eventKey];
-                    $ev = $this->parse_event($g);
-                    $result[] = $ev;
-                }
+            }
+            $result = array();
+            $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
+            $eventKeysLength = count($eventKeys);
+            for ($i = 0; $i < $eventKeysLength; $i++) {
+                $g = $eventGroups[$eventKeys[$i]];
+                $ev = $this->parse_event($g);
+                $result[] = $ev;
             }
             // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
             $this->set_events($result);
             $this->populate_outcomes();
             return $this->apply_event_fetch_params($result, $params, $queries);
+        })();
+    }
+
+    public function fetch_raw_active_markets($params = array()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * @ignore
+             * pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+             * @param {array} [$params] extra exchange-specific parameters
+             * @param {int} [$params->limit] max number of raw markets to collect
+             * @return {array[]} raw limitless market objects
+             */
+            $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
+            $pageSize = $this->safe_integer($this->options, 'marketsPageSize', 25);
+            $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ));
+            $allRaw = array();
+            $page = 1;
+            $collected = 0;
+            while (true) {
+                $request = array( 'page' => $page, 'limit' => $pageSize );
+                $response = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
+                $data = $this->safe_list($response, 'data', array());
+                $dataLength = count($data);
+                if ($dataLength === 0) {
+                    break;
+                }
+                for ($i = 0; $i < $dataLength; $i++) {
+                    if ($collected < $maxMarkets) {
+                        $allRaw[] = $data[$i];
+                        $collected = $this->sum($collected, 1);
+                    }
+                }
+                $page = $this->sum($page, 1);
+                if ($dataLength < $pageSize || $collected >= $maxMarkets) {
+                    break;
+                }
+            }
+            return $allRaw;
         })();
     }
 

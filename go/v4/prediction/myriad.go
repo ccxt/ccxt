@@ -23,7 +23,7 @@ func  (this *MyriadCore) Describe() any  {
         "countries": []any{},
         "rateLimit": 200,
         "certified": false,
-        "pro": false,
+        "pro": true,
         "has": map[string]any {
             "CORS": nil,
             "spot": false,
@@ -385,6 +385,35 @@ func  (this *MyriadCore) FetchEvent(id any, optionalArgs ...any) <- chan any {
             go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+        
+            response:= (<-this.FetchRawMarketById(id, params))
+            ccxt.PanicOnError(response)
+            var market any = this.ParseMyriadMarket(response)
+            var event any = this.ParseMarketToEvent(response, market)
+            this.IndexEventOutcomes(event)
+        
+            ch <- event
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @ignore
+ * @method
+ * @name myriad#fetchRawMarketById
+ * @description fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+ * @param {string} id the unified event/market id
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the raw myriad market object
+ */
+func  (this *MyriadCore) FetchRawMarketById(id any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
                     // the unified event id is a composite networkId:marketId
             params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
@@ -398,13 +427,10 @@ func  (this *MyriadCore) FetchEvent(id any, optionalArgs ...any) <- chan any {
                 ccxt.AddElementToObject(request, "id", id)
             }
         
-            response:= (<-this.MyriadPublicGetMarketsId(this.Extend(request, params)))
-            ccxt.PanicOnError(response)
-            var market any = this.ParseMyriadMarket(response)
-            var event any = this.ParseMarketToEvent(response, market)
-        
-            ch <- event
-            return nil
+                retRes38615 :=  (<-this.MyriadPublicGetMarketsId(this.Extend(request, params)))
+                ccxt.PanicOnError(retRes38615)
+                ch <- retRes38615
+                return nil
         
             }()
             return ch
@@ -515,8 +541,8 @@ func  (this *MyriadCore) FetchTradeQuote(outcome any, side any, amount any, opti
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes4578 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes4578)
+            retRes4718 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes4718)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(info, "networkId")
@@ -573,70 +599,6 @@ func  (this *MyriadCore) ParseTradeQuote(quote any, optionalArgs ...any) any  {
         "info": quote,
     }
 }
-func  (this *MyriadCore) RlpEncodeBytes(hex any) any  {
-    // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-    var byteLength any = this.ParseToInt(ccxt.Divide(ccxt.GetLength(hex), 2))
-    if ccxt.IsTrue(ccxt.IsEqual(byteLength, 0)) {
-        return "80"
-    }
-    if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(byteLength, 1))) && ccxt.IsTrue((ccxt.IsLessThan(hex, "80")))) {
-        return hex
-    }
-    if ccxt.IsTrue(ccxt.IsLessThan(byteLength, 56)) {
-        return ccxt.Add(this.IntToBase16(ccxt.Add(128, byteLength)), hex)
-    }
-    var lengthHex any = this.IntToBase16(byteLength)
-    if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetLength(lengthHex), 2)), 0)) {
-        lengthHex = ccxt.Add("0", lengthHex)
-    }
-    var lengthOfLength any = this.ParseToInt(ccxt.Divide(ccxt.GetLength(lengthHex), 2))
-    return ccxt.Add(ccxt.Add(this.IntToBase16(ccxt.Add(183, lengthOfLength)), lengthHex), hex)
-}
-func  (this *MyriadCore) RlpEncodeList(items any) any  {
-    var concatenated any = ""
-    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(items)); i++ {
-        concatenated = ccxt.Add(concatenated, ccxt.GetValue(items, i))
-    }
-    var byteLength any = this.ParseToInt(ccxt.Divide(ccxt.GetLength(concatenated), 2))
-    if ccxt.IsTrue(ccxt.IsLessThan(byteLength, 56)) {
-        return ccxt.Add(this.IntToBase16(ccxt.Add(192, byteLength)), concatenated)
-    }
-    var lengthHex any = this.IntToBase16(byteLength)
-    if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetLength(lengthHex), 2)), 0)) {
-        lengthHex = ccxt.Add("0", lengthHex)
-    }
-    var lengthOfLength any = this.ParseToInt(ccxt.Divide(ccxt.GetLength(lengthHex), 2))
-    return ccxt.Add(ccxt.Add(this.IntToBase16(ccxt.Add(247, lengthOfLength)), lengthHex), concatenated)
-}
-func  (this *MyriadCore) IntToRlpHex(value any) any  {
-    // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-    if ccxt.IsTrue(ccxt.IsEqual(value, 0)) {
-        return ""
-    }
-    var hex any = this.IntToBase16(value)
-    if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetLength(hex), 2)), 0)) {
-        hex = ccxt.Add("0", hex)
-    }
-    return hex
-}
-func  (this *MyriadCore) HexToRlpBytes(hexValue any) any  {
-    // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-    // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-    var h any = this.Remove0xPrefix(hexValue)
-    var start any = 0
-    var total any =     ccxt.GetArrayLength(h)
-    for ccxt.IsTrue((ccxt.IsLessThan(start, total))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.Slice(h, start, ccxt.Add(start, 1)), "0"))) {
-        start = ccxt.Add(start, 1)
-    }
-    h = ccxt.Slice(h, start, nil)
-    if ccxt.IsTrue(ccxt.IsEqual(h, "")) {
-        return ""
-    }
-    if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetArrayLength(h), 2)), 0)) {
-        h = ccxt.Add("0", h)
-    }
-    return h
-}
 func  (this *MyriadCore) SignEvmTransaction(tx any, privateKey any) any  {
     // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
     // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -686,70 +648,10 @@ func  (this *MyriadCore) EthRpc(rpcUrl any, method any, rpcParams any) <- chan a
                 panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " rpc "), method), " error: "), this.Json(rpcError))))
             }
         
-            ch <- this.SafeString(response, "result")
+                // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+            // safeString would coerce a receipt object to "[object Object]"
+        ch <- this.SafeValue(response, "result")
             return nil
-        
-            }()
-            return ch
-        }
-func  (this *MyriadCore) PadHexAddress(address any) any  {
-    // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-    var stripped any = this.Remove0xPrefix(address)
-    return ccxt.Add("000000000000000000000000", stripped)
-}
-func  (this *MyriadCore) SendEvmTransaction(rpcUrl any, networkId any, fromAddress any, to any, value any, data any, gasLimit any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ccxt.ReturnPanicError(ch)
-                
-            nonce:= (<-this.EthRpc(rpcUrl, "eth_getTransactionCount", []any{fromAddress, "pending"}))
-            ccxt.PanicOnError(nonce)
-        
-            gasPrice:= (<-this.EthRpc(rpcUrl, "eth_gasPrice", []any{}))
-            ccxt.PanicOnError(gasPrice)
-            var tx any = map[string]any {
-                "chainId": this.ParseToInt(networkId),
-                "nonce": nonce,
-                "maxPriorityFeePerGas": gasPrice,
-                "maxFeePerGas": gasPrice,
-                "gasLimit": gasLimit,
-                "to": to,
-                "value": value,
-                "data": data,
-            }
-            var signed any = this.SignEvmTransaction(tx, this.PrivateKey)
-        
-                retRes64415 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-                ccxt.PanicOnError(retRes64415)
-                ch <- retRes64415
-                return nil
-        
-            }()
-            return ch
-        }
-func  (this *MyriadCore) WaitForTransactionReceipt(rpcUrl any, txHash any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ccxt.ReturnPanicError(ch)
-                    timeout := ccxt.GetArg(optionalArgs, 0, 60000)
-            _ = timeout
-            var start any = this.Milliseconds()
-            for ccxt.IsLessThan((ccxt.Subtract(this.Milliseconds(), start)), timeout) {
-        
-                receipt:= (<-this.EthRpc(rpcUrl, "eth_getTransactionReceipt", []any{txHash}))
-                ccxt.PanicOnError(receipt)
-                if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(receipt, nil))) && ccxt.IsTrue((!ccxt.IsEqual(receipt, nil)))) {
-        
-                    ch <- receipt
-                    return nil
-                }
-        
-                retRes65412 := (<-this.Sleep(2000))
-                ccxt.PanicOnError(retRes65412)
-            }
-            panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " transaction "), txHash), " not mined within timeout")))
         
             }()
             return ch
@@ -777,11 +679,11 @@ func  (this *MyriadCore) EnsureErc20Allowance(rpcUrl any, networkId any, token a
             var maxUint any = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
             var approveData any = ccxt.Add(ccxt.Add("0x095ea7b3", this.PadHexAddress(spender)), maxUint)
         
-            approveHash:= (<-this.SendEvmTransaction(rpcUrl, networkId, owner, token, "0x0", approveData, "0x186a0"))
+            approveHash:= (<-this.SendEvmTransaction(rpcUrl, this.ParseToInt(networkId), owner, token, "0x0", approveData, "0x186a0"))
             ccxt.PanicOnError(approveHash)
         
-            retRes6728 := (<-this.WaitForTransactionReceipt(rpcUrl, approveHash))
-            ccxt.PanicOnError(retRes6728)
+            retRes5858 := (<-this.WaitForTransactionReceipt(rpcUrl, approveHash))
+            ccxt.PanicOnError(retRes5858)
         
             return nil
         
@@ -814,8 +716,8 @@ func  (this *MyriadCore) CreateOrder(outcome any, typeVar any, side any, amount 
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes6938 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes6938)
+            retRes6068 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes6068)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var defaultModel any = this.SafeString(info, "tradingModel", "amm")
@@ -823,9 +725,9 @@ func  (this *MyriadCore) CreateOrder(outcome any, typeVar any, side any, amount 
             var rest any = this.Omit(params, []any{"tradingModel"})
             if ccxt.IsTrue(ccxt.IsEqual(tradingModel, "ob")) {
         
-                    retRes70019 :=  (<-this.CreateOrderbookOrder(outcome, typeVar, side, amount, price, rest))
-                    ccxt.PanicOnError(retRes70019)
-                    ch <- retRes70019
+                    retRes61319 :=  (<-this.CreateOrderbookOrder(outcome, typeVar, side, amount, price, rest))
+                    ccxt.PanicOnError(retRes61319)
+                    ch <- retRes61319
                     return nil
             }
             // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
@@ -835,9 +737,9 @@ func  (this *MyriadCore) CreateOrder(outcome any, typeVar any, side any, amount 
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")))
             }
         
-                retRes70815 :=  (<-this.CreateAmmOrder(outcome, typeVar, side, amount, price, this.Omit(rest, []any{"enableAmm", "enableAmmOrders"})))
-                ccxt.PanicOnError(retRes70815)
-                ch <- retRes70815
+                retRes62115 :=  (<-this.CreateAmmOrder(outcome, typeVar, side, amount, price, this.Omit(rest, []any{"enableAmm", "enableAmmOrders"})))
+                ccxt.PanicOnError(retRes62115)
+                ch <- retRes62115
                 return nil
         
             }()
@@ -880,7 +782,7 @@ func  (this *MyriadCore) CreateOrderbookOrder(outcome any, typeVar any, side any
             var outcomeObj any = this.Outcome(outcome)
             var parsed any = this.ParseOrder(wrapper, outcomeObj)
             // the POST /orders response is minimal (hash + status), so backfill the known request values
-            // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+            // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
             var sideStr any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(side, nil))), nil, ccxt.ToLower(side))
             var typeStr any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, nil))), "limit", ccxt.ToLower(typeVar))
             if ccxt.IsTrue(ccxt.IsEqual(this.SafeString(parsed, "side"), nil)) {
@@ -1001,8 +903,8 @@ func  (this *MyriadCore) CreateOrders(orders any, optionalArgs ...any) <- chan a
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes8418 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes8418)
+            retRes7548 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes7548)
             var ordersLength any =     ccxt.GetArrayLength(orders)
             var result any = []any{}
             for i := 0; ccxt.IsLessThan(i, ordersLength); i++ {
@@ -1052,15 +954,15 @@ func  (this *MyriadCore) EditOrder(id any, outcome any, typeVar any, side any, o
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes8748 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes8748)
+            retRes7878 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes7878)
         
-            retRes8758 := (<-this.CancelOrder(id, outcome))
-            ccxt.PanicOnError(retRes8758)
+            retRes7888 := (<-this.CancelOrder(id, outcome))
+            ccxt.PanicOnError(retRes7888)
         
-                retRes87615 :=  (<-this.CreateOrderbookOrder(outcome, typeVar, side, amount, price, params))
-                ccxt.PanicOnError(retRes87615)
-                ch <- retRes87615
+                retRes78915 :=  (<-this.CreateOrderbookOrder(outcome, typeVar, side, amount, price, params))
+                ccxt.PanicOnError(retRes78915)
+                ch <- retRes78915
                 return nil
         
             }()
@@ -1078,16 +980,25 @@ func  (this *MyriadCore) CreateAmmOrder(outcome any, typeVar any, side any, amou
             go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    price := ccxt.GetArg(optionalArgs, 0, nil)
+                    // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
+            // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
+            // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
+            // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
+            price := ccxt.GetArg(optionalArgs, 0, nil)
             _ = price
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            var sideLower any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(side, nil))), ccxt.ToLower(side), nil)
+            var isCostDenominated any = this.SafeBool(params, "costDenominated", false)
+            if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(sideLower, "buy"))) && !ccxt.IsTrue(isCostDenominated)) {
+                panic(ccxt.NotSupported(ccxt.Add(this.Id, " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")))
+            }
             if ccxt.IsTrue(ccxt.IsEqual(this.PrivateKey, nil)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " createOrder() requires a privateKey to sign the on-chain transaction")))
             }
         
-            retRes8908 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes8908)
+            retRes8128 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes8128)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(info, "networkId")
@@ -1100,8 +1011,8 @@ func  (this *MyriadCore) CreateAmmOrder(outcome any, typeVar any, side any, amou
             var predictionMarket any = this.SafeString(chainConfig, "predictionMarket")
             var tokenAddress any = this.SafeString2(params, "token", "tokenAddress", this.SafeString(info, "tokenAddress"))
             var gasLimit any = this.SafeString(params, "gasLimit", "0xaae60")
-            var sideStr any = ccxt.ToLower(side)
-            var quoteParams any = this.Omit(params, []any{"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit"})
+            var sideStr any = sideLower
+            var quoteParams any = this.Omit(params, []any{"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated"})
         
             quote:= (<-this.FetchTradeQuote(outcome, sideStr, amount, quoteParams))
             ccxt.PanicOnError(quote)
@@ -1110,15 +1021,46 @@ func  (this *MyriadCore) CreateAmmOrder(outcome any, typeVar any, side any, amou
             // a buy spends the collateral token, so the prediction-market contract must be approved first
             if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(sideStr, "buy"))) && ccxt.IsTrue((!ccxt.IsEqual(tokenAddress, nil)))) {
         
-                retRes91012 := (<-this.EnsureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket))
-                ccxt.PanicOnError(retRes91012)
+                retRes83212 := (<-this.EnsureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket))
+                ccxt.PanicOnError(retRes83212)
             }
         
-            txHash:= (<-this.SendEvmTransaction(rpcUrl, networkId, fromAddress, predictionMarket, "0x0", calldata, gasLimit))
+            txHash:= (<-this.SendEvmTransaction(rpcUrl, this.ParseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit))
             ccxt.PanicOnError(txHash)
         
             ch <- this.ParseTradeTx(txHash, quote, outcomeObj, sideStr)
             return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name myriad#createMarketBuyOrderWithCost
+ * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+ * @param {string} outcome unified outcome handle
+ * @param {float} cost the collateral (USDC) amount to spend
+ * @param {object} [params] extra exchange-specific parameters
+ * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func  (this *MyriadCore) CreateMarketBuyOrderWithCost(outcome any, cost any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
+            // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
+            params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            var request any = this.Extend(params, map[string]any {
+                "enableAmm": true,
+                "costDenominated": true,
+            })
+        
+                retRes85115 :=  (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
+                ccxt.PanicOnError(retRes85115)
+                ch <- retRes85115
+                return nil
         
             }()
             return ch
@@ -1309,9 +1251,9 @@ func  (this *MyriadCore) ParseOrder(order any, optionalArgs ...any) any  {
         "datetime": this.Iso8601(timestamp),
         "lastTradeTimestamp": nil,
         "outcome": outcome,
-        "outcomeId": this.SafeString(outcomeObj, "id"),
+        "outcomeId": this.SafeString2(outcomeObj, "outcomeId", "id"),
         "label": this.SafeString(outcomeObj, "label"),
-        "market": this.SafeString(outcomeObj, "outcome"),
+        "market": this.SafeString(outcomeObj, "market"),
         "type": ccxt.Ternary(ccxt.IsTrue(isMarketTif), "market", "limit"),
         "timeInForce": tif,
         "postOnly": (ccxt.IsEqual(tif, "PO")),
@@ -1376,8 +1318,8 @@ func  (this *MyriadCore) CancelOrder(id any, optionalArgs ...any) <- chan any {
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes113012 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes113012)
+                retRes106812 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes106812)
                 market = this.Outcome(outcome)
             }
         
@@ -1413,8 +1355,8 @@ func  (this *MyriadCore) CancelAllOrders(optionalArgs ...any) <- chan any {
             var networkId any = this.SafeString(params, "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes115312 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes115312)
+                retRes109112 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes109112)
                 var outcomeObj any = this.Outcome(outcome)
                 var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
                 marketId = this.SafeString(info, "marketId", marketId)
@@ -1436,9 +1378,9 @@ func  (this *MyriadCore) CancelAllOrders(optionalArgs ...any) <- chan any {
                 "network_id": this.ParseToInt(networkId),
             }
         
-                retRes117415 :=  (<-this.MyriadPublicPostOrdersCancelAll(request))
-                ccxt.PanicOnError(retRes117415)
-                ch <- retRes117415
+                retRes111215 :=  (<-this.MyriadPublicPostOrdersCancelAll(request))
+                ccxt.PanicOnError(retRes111215)
+                ch <- retRes111215
                 return nil
         
             }()
@@ -1495,10 +1437,10 @@ func  (this *MyriadCore) CancelOrders(ids any, optionalArgs ...any) <- chan any 
                 "network_id": this.ParseToInt(networkId),
             }
         
-            retRes12098 := (<-this.MyriadPublicPostOrdersCancelBatch(this.Extend(request, params)))
-            ccxt.PanicOnError(retRes12098)
+            retRes11478 := (<-this.MyriadPublicPostOrdersCancelBatch(this.Extend(request, params)))
+            ccxt.PanicOnError(retRes11478)
         
-            ch <- this.ParseOrders(wrappers, nil, nil, nil)
+            ch <- this.ParsePredictionOrders(wrappers)
             return nil
         
             }()
@@ -1531,8 +1473,8 @@ func  (this *MyriadCore) FetchOrder(id any, optionalArgs ...any) <- chan any {
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes122712 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes122712)
+                retRes116512 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes116512)
                 market = this.Outcome(outcome)
             }
         
@@ -1580,8 +1522,8 @@ func  (this *MyriadCore) FetchOrders(optionalArgs ...any) <- chan any {
             var outcomeSymbol any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes125812 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes125812)
+                retRes119612 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes119612)
                 var outcomeObj any = this.Outcome(outcome)
                 outcomeSymbol = this.SafeString(outcomeObj, "outcome", outcome)
             }
@@ -1592,7 +1534,7 @@ func  (this *MyriadCore) FetchOrders(optionalArgs ...any) <- chan any {
             // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
             // valid market), so parse every order — each self-resolves its outcome from the network/market/
             // outcome ids — and filter by the requested outcome client-side
-            var orders any = this.ParseOrders(data, nil, nil, nil)
+            var orders any = this.ParsePredictionOrders(data)
         
             ch <- this.FilterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit)
             return nil
@@ -1628,9 +1570,9 @@ func  (this *MyriadCore) FetchOpenOrders(optionalArgs ...any) <- chan any {
                 "status": "open",
             }
         
-                retRes128615 :=  (<-this.FetchOrders(outcome, since, limit, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes128615)
-                ch <- retRes128615
+                retRes122415 :=  (<-this.FetchOrders(outcome, since, limit, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes122415)
+                ch <- retRes122415
                 return nil
         
             }()
@@ -1664,9 +1606,9 @@ func  (this *MyriadCore) FetchClosedOrders(optionalArgs ...any) <- chan any {
                 "status": "filled",
             }
         
-                retRes130415 :=  (<-this.FetchOrders(outcome, since, limit, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes130415)
-                ch <- retRes130415
+                retRes124215 :=  (<-this.FetchOrders(outcome, since, limit, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes124215)
+                ch <- retRes124215
                 return nil
         
             }()
@@ -1700,9 +1642,9 @@ func  (this *MyriadCore) FetchCanceledOrders(optionalArgs ...any) <- chan any {
                 "status": "cancelled",
             }
         
-                retRes132215 :=  (<-this.FetchOrders(outcome, since, limit, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes132215)
-                ch <- retRes132215
+                retRes126015 :=  (<-this.FetchOrders(outcome, since, limit, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes126015)
+                ch <- retRes126015
                 return nil
         
             }()
@@ -1875,7 +1817,7 @@ func  (this *MyriadCore) ParseTradeTx(txHash any, quote any, market any, side an
         "outcome": this.SafeString(market, "outcome"),
         "outcomeId": this.SafeString(market, "id"),
         "label": this.SafeString(market, "label"),
-        "market": this.SafeString(market, "outcome"),
+        "market": this.SafeString(market, "market"),
         "type": "market",
         "side": side,
         "price": this.SafeNumber(quote, "priceAverage"),
@@ -1941,9 +1883,16 @@ func  (this *MyriadCore) ParseMyriadMarket(raw any, optionalArgs ...any) any  {
     var endDate any = this.SafeString(raw, "expiresAt")
     var state any = this.SafeString(raw, "state", "open")
     var active any = ccxt.IsEqual(state, "open")
+    // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
+    var resolvedOutcomeId any = this.SafeString(raw, "resolvedOutcomeId", "-1")
+    var voided any = this.SafeBool(raw, "voided", false)
+    var hasResolution any = ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(resolvedOutcomeId, "-1"))) && ccxt.IsTrue((!ccxt.IsEqual(resolvedOutcomeId, nil)))) && ccxt.IsTrue((!ccxt.IsEqual(resolvedOutcomeId, "")))
+    var marketResolved any = ccxt.IsTrue(hasResolution) || ccxt.IsTrue(voided)
+    var resolvedOutcome any = nil
     var volume24h any = this.SafeNumber(raw, "volume24h")
-    var slugBase any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(eventSlug, nil))), eventSlug, networkId)
-    var marketSymbol any = this.SlugToMarketSymbol(slugBase, slug)
+    // qualify the handle only with a real event slug (when passed); myriad market slugs are
+    // globally unique, so do NOT fall back to networkId — that would prefix every handle
+    var marketSymbol any = this.SlugToMarketSymbol(eventSlug, slug)
     // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
     var tokenObj any = this.SafeDict(raw, "token", map[string]any {})
     var tokenAddress any = this.SafeString(tokenObj, "address")
@@ -1961,8 +1910,19 @@ func  (this *MyriadCore) ParseMyriadMarket(raw any, optionalArgs ...any) any  {
         var outcomeId any = this.SafeString(outcome, "outcomeId", this.SafeString(outcome, "id", ccxt.ToString(i)))
         var outcomeLabel any = this.SafeString(outcome, "label", this.SafeString(outcome, "title", outcomeId))
         var price any = this.SafeNumber(outcome, "price")
-        var outcomeHandle any = this.SlugToOutcomeSymbol(slugBase, slug, outcomeLabel)
+        var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, slug, outcomeLabel)
         var outcomeCompositeId any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), outcomeId)
+        var winner any = nil
+        var settleFraction any = nil
+        if ccxt.IsTrue(hasResolution) {
+            winner = (ccxt.IsEqual(outcomeId, resolvedOutcomeId))
+            settleFraction = ccxt.Ternary(ccxt.IsTrue(winner), 1, 0)
+            if ccxt.IsTrue(winner) {
+                resolvedOutcome = outcomeHandle
+            }
+        } else if ccxt.IsTrue(voided) {
+            winner = false
+        }
         ccxt.AppendToArray(&outcomes, map[string]any {
             "id": outcomeCompositeId,
             "outcomeId": outcomeCompositeId,
@@ -1970,6 +1930,8 @@ func  (this *MyriadCore) ParseMyriadMarket(raw any, optionalArgs ...any) any  {
             "market": marketSymbol,
             "label": outcomeLabel,
             "active": active,
+            "winner": winner,
+            "settleFraction": settleFraction,
             "precision": map[string]any {
                 "amount": 0.01,
                 "price": 0.001,
@@ -2011,6 +1973,8 @@ func  (this *MyriadCore) ParseMyriadMarket(raw any, optionalArgs ...any) any  {
         "option": false,
         "prediction": true,
         "active": active,
+        "resolved": marketResolved,
+        "resolvedOutcome": resolvedOutcome,
         "contract": false,
         "linear": nil,
         "inverse": nil,
@@ -2074,8 +2038,8 @@ func  (this *MyriadCore) FetchTicker(outcome any, optionalArgs ...any) <- chan a
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes16378 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes16378)
+            retRes15978 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes15978)
             var outcomeObj any = this.Outcome(outcome)
             var networkId any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "networkId")
             var marketId any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketId")
@@ -2183,8 +2147,8 @@ func  (this *MyriadCore) FetchTradingFee(outcome any, optionalArgs ...any) <- ch
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes17328 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes17328)
+            retRes16928 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes16928)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var request any = map[string]any {
@@ -2318,11 +2282,21 @@ func  (this *MyriadCore) ParseTicker(raw any, optionalArgs ...any) any  {
         }
     }
     var now any = this.Milliseconds()
+    // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
+    // percentage from it — setting percentage = the absolute change (as before) was wrong
+    var previousClose any = nil
+    var percentage any = nil
+    if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(price, nil))) && ccxt.IsTrue((!ccxt.IsEqual(change, nil)))) {
+        previousClose = ccxt.Subtract(price, change)
+        if ccxt.IsTrue(!ccxt.IsEqual(previousClose, 0)) {
+            percentage = ccxt.Multiply(ccxt.Divide(change, previousClose), 100)
+        }
+    }
     return this.SafePredictionTicker(map[string]any {
         "outcome": this.SafeString(market, "outcome"),
         "outcomeId": this.SafeString(market, "id"),
         "label": this.SafeString(market, "label"),
-        "market": this.SafeString(market, "outcome"),
+        "market": this.SafeString(market, "market"),
         "timestamp": now,
         "datetime": this.Iso8601(now),
         "high": nil,
@@ -2332,15 +2306,15 @@ func  (this *MyriadCore) ParseTicker(raw any, optionalArgs ...any) any  {
         "ask": price,
         "askVolume": nil,
         "vwap": nil,
-        "open": nil,
+        "open": previousClose,
         "close": price,
         "last": price,
-        "previousClose": nil,
+        "previousClose": previousClose,
         "change": change,
-        "percentage": change,
+        "percentage": percentage,
         "average": price,
-        "baseVolume": this.SafeNumber(raw, "volume24h"),
-        "quoteVolume": this.SafeNumber(raw, "volumeNotional24h"),
+        "baseVolume": this.SafeNumber(raw, "volumeNotional24h"),
+        "quoteVolume": this.SafeNumber(raw, "volume24h"),
         "info": raw,
     }, market)
 }
@@ -2364,8 +2338,8 @@ func  (this *MyriadCore) FetchOrderBook(outcome any, optionalArgs ...any) <- cha
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes18968 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes18968)
+            retRes18698 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes18698)
             var outcomeObj any = this.Outcome(outcome)
             var networkId any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "networkId")
             var marketId any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "marketId")
@@ -2578,8 +2552,8 @@ func  (this *MyriadCore) FetchOHLCV(outcome any, optionalArgs ...any) <- chan an
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes20878 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes20878)
+            retRes20608 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes20608)
             var outcomeObj any = this.Outcome(outcome)
             var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "networkId")
@@ -2733,8 +2707,8 @@ func  (this *MyriadCore) FetchTickers(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes22328 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes22328)
+            retRes22058 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes22058)
             var result any = map[string]any {}
             if ccxt.IsTrue(ccxt.IsEqual(outcomes, nil)) {
         
@@ -2831,8 +2805,8 @@ func  (this *MyriadCore) FetchTrades(outcome any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes23088 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes23088)
+            retRes22818 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes22818)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(info, "networkId")
@@ -2886,7 +2860,7 @@ func  (this *MyriadCore) FetchTrades(outcome any, optionalArgs ...any) <- chan a
                 ccxt.AppendToArray(&trades, row)
             }
         
-            ch <- this.ParseTrades(trades, outcomeObj, since, limit)
+            ch <- this.ParsePredictionTrades(trades, outcomeObj, since, limit)
             return nil
         
             }()
@@ -2919,7 +2893,7 @@ func  (this *MyriadCore) ParseTrade(trade any, optionalArgs ...any) any  {
         "outcome": this.SafeString(market, "outcome"),
         "outcomeId": this.SafeString(market, "id"),
         "label": this.SafeString(market, "label"),
-        "market": this.SafeString(market, "outcome"),
+        "market": this.SafeString(market, "market"),
         "order": nil,
         "type": nil,
         "side": this.SafeString(trade, "action"),
@@ -2936,8 +2910,9 @@ func  (this *MyriadCore) ParseTrade(trade any, optionalArgs ...any) any  {
  * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
  * @see https://docs.myriad.markets/builders/myriad-api-reference
  * @param {object} [params] extra exchange-specific parameters
- * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+ * @param {string} [params.query] a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
  * @param {int} [params.limit] maximum number of markets per query, defaults to 50
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
  * @returns {object[]} an array of event structures
@@ -2953,35 +2928,39 @@ func  (this *MyriadCore) FetchEvents(optionalArgs ...any) <- chan any {
             var queries any = this.ParseSearchQueries(params)
             var rest any = this.Omit(params, []any{"query", "queries", "sort", "searchIn", "eventId", "slug", "status"})
             var queriesLength any =     ccxt.GetArrayLength(queries)
-            if ccxt.IsTrue(ccxt.IsEqual(queriesLength, 0)) {
-                this.PopulateOutcomes()
-                // hoist Object.values to a local — inline as a call argument breaks the php regex transpiler
-                var existingEvents any = ccxt.ObjectValues(this.Events)
+            var eventId any = this.SafeString(params, "eventId")
+            // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
+            // an eventId does a direct lookup, and any other scope (tags) pages the markets listing so
+            // applyEventFetchParams can filter it below
+            var rawMarkets any = []any{}
+            if ccxt.IsTrue(ccxt.IsGreaterThan(queriesLength, 0)) {
+                
+            rawMarkets = (<-this.FetchRawMarketsBySearch(queries, rest))
+                    ccxt.PanicOnError(rawMarkets)
+            } else if ccxt.IsTrue(!ccxt.IsEqual(eventId, nil)) {
         
-                ch <- this.ApplyEventFetchParams(existingEvents, params, queries)
-                return nil
-            }
-        
-            rawMarkets:= (<-this.FetchRawMarketsBySearch(queries, rest))
-            ccxt.PanicOnError(rawMarkets)
-            if !ccxt.IsTrue(this.Events) {
-                this.Events = map[string]any {}
+                rawMarket:= (<-this.FetchRawMarketById(eventId, rest))
+                ccxt.PanicOnError(rawMarket)
+                rawMarkets = []any{rawMarket}
+            } else {
+                
+            rawMarkets = (<-this.FetchRawMarketsList(rest))
+                    ccxt.PanicOnError(rawMarkets)
             }
             if !ccxt.IsTrue(this.Markets) {
                 this.Markets = this.CreateSafeDictionary()
             }
             var result any = []any{}
-            for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawMarkets)); i++ {
+            var rawMarketsLength any =     ccxt.GetArrayLength(rawMarkets)
+            for i := 0; ccxt.IsLessThan(i, rawMarketsLength); i++ {
                 var raw any = ccxt.GetValue(rawMarkets, i)
                 var m any = this.ParseMyriadMarket(raw)
                 ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "symbol"), m)
                 var ev any = this.ParseMarketToEvent(raw, m)
-                var evKey any = this.SafeString(ev, "event")
-                if ccxt.IsTrue(!ccxt.IsEqual(evKey, nil)) {
-                    ccxt.AddElementToObject(this.Events, evKey, ev)
-                    ccxt.AppendToArray(&result, ev)
-                }
+                ccxt.AppendToArray(&result, ev)
             }
+            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+            this.SetEvents(result)
             this.PopulateOutcomes()
         
             ch <- this.ApplyEventFetchParams(result, params, queries)
@@ -3079,9 +3058,9 @@ func  (this *MyriadCore) ConnectCentrifugo(url any) <- chan any {
                     "id": requestId,
                 }
         
-                    retRes252819 :=  (<-this.Watch(url, "centrifugoConnected", connectMsg, "connect"))
-                    ccxt.PanicOnError(retRes252819)
-                    ch <- retRes252819
+                    retRes250419 :=  (<-this.Watch(url, "centrifugoConnected", connectMsg, "connect"))
+                    ccxt.PanicOnError(retRes250419)
+                    ch <- retRes250419
                     return nil
             }
             if ccxt.IsTrue(this.SafeBool(this.Options, "wsConnected", false)) {
@@ -3090,10 +3069,10 @@ func  (this *MyriadCore) ConnectCentrifugo(url any) <- chan any {
         return nil
             }
         
-                retRes253515 :=  (<-client.(ccxt.ClientInterface).Future("centrifugoConnected"))
-                ccxt.PanicOnError(retRes253515)
+                retRes251115 :=  (<-client.(ccxt.ClientInterface).Future("centrifugoConnected"))
+                ccxt.PanicOnError(retRes251115)
                     // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
-        ch <- retRes253515
+        ch <- retRes251115
                 return nil
         
             }()
@@ -3108,8 +3087,8 @@ func  (this *MyriadCore) Pong(client any, optionalArgs ...any) <- chan any {
             message := ccxt.GetArg(optionalArgs, 0, nil)
             _ = message
         
-            retRes25408 := (<-client.(ccxt.ClientInterface).Send("{}"))
-            ccxt.PanicOnError(retRes25408)
+            retRes25168 := (<-client.(ccxt.ClientInterface).Send("{}"))
+            ccxt.PanicOnError(retRes25168)
                 return nil
             }()
             return ch
@@ -3124,8 +3103,8 @@ func  (this *MyriadCore) SubscribeMyriadChannel(messageHash any, channel any, op
             var url any = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
             // finish the connect handshake first so the subscribe frame is sent after the connect reply
         
-            retRes25468 := (<-this.ConnectCentrifugo(url))
-            ccxt.PanicOnError(retRes25468)
+            retRes25228 := (<-this.ConnectCentrifugo(url))
+            ccxt.PanicOnError(retRes25228)
             var requestId any = this.RequestId(url)
             var subscribeMsg any = map[string]any {
                 "subscribe": map[string]any {
@@ -3134,9 +3113,9 @@ func  (this *MyriadCore) SubscribeMyriadChannel(messageHash any, channel any, op
                 "id": requestId,
             }
         
-                retRes254915 :=  (<-this.Watch(url, messageHash, subscribeMsg, channel))
-                ccxt.PanicOnError(retRes254915)
-                ch <- retRes254915
+                retRes252515 :=  (<-this.Watch(url, messageHash, subscribeMsg, channel))
+                ccxt.PanicOnError(retRes252515)
+                ch <- retRes252515
                 return nil
         
             }()
@@ -3217,8 +3196,8 @@ func  (this *MyriadCore) WatchOrderBook(outcome any, optionalArgs ...any) <- cha
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes26208 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes26208)
+            retRes25968 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes25968)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(info, "networkId")
@@ -3229,16 +3208,16 @@ func  (this *MyriadCore) WatchOrderBook(outcome any, optionalArgs ...any) <- cha
             var url any = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
             // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         
-            retRes26308 := (<-this.ConnectCentrifugo(url))
-            ccxt.PanicOnError(retRes26308)
+            retRes26068 := (<-this.ConnectCentrifugo(url))
+            ccxt.PanicOnError(retRes26068)
             var client any = this.Client(url)
             var isNewSubscription any = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel), nil)
             if ccxt.IsTrue(isNewSubscription) {
                 // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
                 // fresh subscription (first call or after a reconnect that cleared client.(*ccxt.WSClient).Subscriptions)
         
-                retRes263612 := (<-this.SeedOrderBook(outcome, sym, limit))
-                ccxt.PanicOnError(retRes263612)
+                retRes261212 := (<-this.SeedOrderBook(outcome, sym, limit))
+                ccxt.PanicOnError(retRes261212)
             }
             var requestId any = this.RequestId(url)
             var subscribeMsg any = map[string]any {
@@ -3337,8 +3316,8 @@ func  (this *MyriadCore) WatchTrades(outcome any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes27048 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes27048)
+            retRes26808 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes26808)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(info, "networkId")
@@ -3385,8 +3364,8 @@ func  (this *MyriadCore) WatchMyTrades(optionalArgs ...any) <- chan any {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchMyTrades() requires a outcome (the trades channel is per-market)")))
             }
         
-            retRes27328 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes27328)
+            retRes27088 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes27088)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(info, "networkId")
@@ -3436,9 +3415,9 @@ func  (this *MyriadCore) HandleTrades(client any, data any)  {
         "timestamp": ts,
         "datetime": this.Iso8601(ts),
         "outcome": sym,
-        "outcomeId": this.SafeString(outcomeObj, "id"),
+        "outcomeId": this.SafeString2(outcomeObj, "outcomeId", "id"),
         "label": this.SafeString(outcomeObj, "label"),
-        "market": this.SafeString(outcomeObj, "outcome"),
+        "market": this.SafeString(outcomeObj, "market"),
         "order": this.SafeString(taker, "orderHash"),
         "type": nil,
         "side": this.SafeStringLower(taker, "side"),
@@ -3487,7 +3466,7 @@ func  (this *MyriadCore) HandleTrades(client any, data any)  {
                     "outcome": makerSym,
                     "outcomeId": this.SafeString(makerOutcomeObj, "id"),
                     "label": this.SafeString(makerOutcomeObj, "label"),
-                    "market": this.SafeString(makerOutcomeObj, "outcome"),
+                    "market": this.SafeString(makerOutcomeObj, "market"),
                     "order": this.SafeString(maker, "orderHash"),
                     "type": nil,
                     "side": this.SafeStringLower(maker, "side"),
@@ -3534,8 +3513,8 @@ func  (this *MyriadCore) WatchTicker(outcome any, optionalArgs ...any) <- chan a
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes28698 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes28698)
+            retRes28458 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes28458)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var networkId any = this.SafeString(info, "networkId")
@@ -3544,9 +3523,9 @@ func  (this *MyriadCore) WatchTicker(outcome any, optionalArgs ...any) <- chan a
             var channel any = ccxt.Add(ccxt.Add(ccxt.Add("prices:", networkId), ":"), marketId)
             var messageHash any = ccxt.Add("ticker::", sym)
         
-                retRes287715 :=  (<-this.SubscribeMyriadChannel(messageHash, channel, params))
-                ccxt.PanicOnError(retRes287715)
-                ch <- retRes287715
+                retRes285315 :=  (<-this.SubscribeMyriadChannel(messageHash, channel, params))
+                ccxt.PanicOnError(retRes285315)
+                ch <- retRes285315
                 return nil
         
             }()
@@ -3571,16 +3550,16 @@ func  (this *MyriadCore) WatchTickers(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes28908 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes28908)
+            retRes28668 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes28668)
             if ccxt.IsTrue(ccxt.IsEqual(outcomes, nil)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTickers() requires a list of outcomes (the prices channel is per-market)")))
             }
             var symbolsLength any =     ccxt.GetArrayLength(outcomes)
             var url any = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
         
-            retRes28968 := (<-this.ConnectCentrifugo(url))
-            ccxt.PanicOnError(retRes28968)
+            retRes28728 := (<-this.ConnectCentrifugo(url))
+            ccxt.PanicOnError(retRes28728)
             var client any = this.Client(url)
             var seenChannels any = map[string]any {}
             var resolvedSymbols any = []any{}
@@ -3677,9 +3656,9 @@ func  (this *MyriadCore) HandleTicker(client any, data any)  {
         var last any = this.FromWei(this.SafeString(oc, "last"))
         var ticker any = this.SafePredictionTicker(map[string]any {
             "outcome": sym,
-            "outcomeId": this.SafeString(outcomeObj, "id"),
+            "outcomeId": this.SafeString2(outcomeObj, "outcomeId", "id"),
             "label": this.SafeString(outcomeObj, "label"),
-            "market": this.SafeString(outcomeObj, "outcome"),
+            "market": this.SafeString(outcomeObj, "market"),
             "timestamp": ts,
             "datetime": this.Iso8601(ts),
             "high": nil,
@@ -3730,8 +3709,8 @@ func  (this *MyriadCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes30058 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes30058)
+            retRes29818 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes29818)
             var trader any = this.WalletAddressFromKeys()
             var networkId any = this.SafeString(this.Options, "defaultNetworkId", "56")
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -3776,9 +3755,9 @@ func  (this *MyriadCore) HandleOrder(client any, data any)  {
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
         "outcome": sym,
-        "outcomeId": this.SafeString(outcomeObj, "id"),
+        "outcomeId": this.SafeString2(outcomeObj, "outcomeId", "id"),
         "label": this.SafeString(outcomeObj, "label"),
-        "market": this.SafeString(outcomeObj, "outcome"),
+        "market": this.SafeString(outcomeObj, "market"),
         "type": ccxt.Ternary(ccxt.IsTrue(isMarketTif), "market", "limit"),
         "timeInForce": tif,
         "side": this.SafeStringLower(data, "side"),
@@ -3824,24 +3803,24 @@ func  (this *MyriadCore) WatchPositions(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes30808 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes30808)
+            retRes30568 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes30568)
             var trader any = this.WalletAddressFromKeys()
             var networkId any = this.SafeString(this.Options, "defaultNetworkId", "56")
             var channel any = ccxt.Add(ccxt.Add(ccxt.Add("positions:", networkId), ":"), trader)
             var messageHash any = "positions"
             var url any = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
         
-            retRes30868 := (<-this.ConnectCentrifugo(url))
-            ccxt.PanicOnError(retRes30868)
+            retRes30628 := (<-this.ConnectCentrifugo(url))
+            ccxt.PanicOnError(retRes30628)
             var client any = this.Client(url)
             var isNewSubscription any = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel), nil)
             if ccxt.IsTrue(isNewSubscription) {
                 // the channel pushes only signed deltas; seed absolute share balances from REST so
                 // handlePosition can maintain a running contracts figure
         
-                retRes309212 := (<-this.SeedPositionBalances(trader))
-                ccxt.PanicOnError(retRes309212)
+                retRes306812 := (<-this.SeedPositionBalances(trader))
+                ccxt.PanicOnError(retRes306812)
             }
             var requestId any = this.RequestId(url)
             var subscribeMsg any = map[string]any {
@@ -3925,7 +3904,7 @@ func  (this *MyriadCore) HandlePosition(client any, data any)  {
         "outcome": sym,
         "outcomeId": posId,
         "label": this.SafeString(outcomeObj, "label"),
-        "market": this.SafeString(outcomeObj, "outcome"),
+        "market": this.SafeString(outcomeObj, "market"),
         "timestamp": ts,
         "datetime": this.Iso8601(ts),
         "side": "long",

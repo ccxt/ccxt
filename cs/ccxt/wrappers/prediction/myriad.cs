@@ -123,6 +123,25 @@ public partial class myriad
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw myriad market object.</returns>
+    public async Task<Dictionary<string, object>> FetchRawMarketById(string id, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRawMarketById(id, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
     /// </summary>
     /// <remarks>
@@ -293,6 +312,25 @@ public partial class myriad
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createAmmOrder(outcome, type, side, amount, price, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra exchange-specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
+    public async Task<PredictionOrder> CreateMarketBuyOrderWithCost(string outcome, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketBuyOrderWithCost(outcome, cost, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -807,7 +845,13 @@ public partial class myriad
     /// <item>
     /// <term>params.query</term>
     /// <description>
-    /// string : a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+    /// string : a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.eventId</term>
+    /// <description>
+    /// string : direct lookup by unified event id (composite networkId:marketId)
     /// </description>
     /// </item>
     /// <item>

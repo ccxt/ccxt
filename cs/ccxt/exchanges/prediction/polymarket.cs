@@ -310,7 +310,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
-     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -363,7 +363,10 @@ public partial class polymarket : PredictionExchange
     public async virtual Task<object> fetchRawEventsBySearch(object queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object pageSize = this.safeInteger(parameters, "limit", 50);
+        object resultLimit = this.safeInteger(parameters, "limit");
+        // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
+        // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event)
+        object pageSize = this.safeInteger(this.options, "searchPageSize", 100);
         // map the unified sort/status onto the gamma search params
         object sort = this.safeString(parameters, "sort");
         object sortParam = "volume";
@@ -409,6 +412,23 @@ public partial class polymarket : PredictionExchange
             object pagination = this.safeDict(first, "pagination", new Dictionary<string, object>() {});
             object totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
             object totalPages = Math.Ceiling(Convert.ToDouble(divide(totalResults, pageSize)));
+            // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
+            // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
+            if (isTrue(!isEqual(resultLimit, null)))
+            {
+                object limitPages = Math.Ceiling(Convert.ToDouble(divide(resultLimit, pageSize)));
+                if (isTrue(isLessThan(limitPages, totalPages)))
+                {
+                    totalPages = limitPages;
+                }
+            } else
+            {
+                object maxSearchPages = this.safeInteger(this.options, "maxSearchPages", 5);
+                if (isTrue(isLessThan(maxSearchPages, totalPages)))
+                {
+                    totalPages = maxSearchPages;
+                }
+            }
             object remainingPages = new List<object>() {};
             for (object p = 2; isLessThanOrEqual(p, totalPages); postFixIncrement(ref p))
             {
@@ -483,13 +503,22 @@ public partial class polymarket : PredictionExchange
         {
             order = "startDate";
         }
-        object rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries"});
+        object rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"});
         object baseRequest = new Dictionary<string, object>() {
             { "limit", pageSize },
             { "order", order },
             { "ascending", false },
         };
         baseRequest = this.extend(baseRequest, rest);
+        // push a requested tag server-side (gamma accepts tag_slug) so a tags-only fetchEvents returns
+        // the tagged events rather than filtering the top-volume listing down to nothing; the base
+        // filterEventsByTags then narrows further client-side when multiple tags are requested
+        object requestedTags = this.safeList(parameters, "tags", new List<object>() {});
+        object requestedTagsLength = getArrayLength(requestedTags);
+        if (isTrue(isGreaterThan(requestedTagsLength, 0)))
+        {
+            ((IDictionary<string,object>)baseRequest)["tag_slug"] = this.safeString(requestedTags, 0);
+        }
         if (isTrue(isEqual(status, "active")))
         {
             ((IDictionary<string,object>)baseRequest)["active"] = true;
@@ -647,8 +676,14 @@ public partial class polymarket : PredictionExchange
             object marketSlug = this.safeString(market, "slug", conditionId);
             object active = this.safeBool(market, "active", false);
             object closed = this.safeBool(market, "closed", false);
+            // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
+            object marketResolved = isTrue(closed) || isTrue((isEqual(this.safeStringLower(market, "umaResolutionStatus"), "resolved")));
+            object resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             object tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
+            // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
+            object orderMinSize = this.safeNumber(market, "orderMinSize", 1);
+            object priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
             object negRisk = this.safeBool(market, "negRisk", false);
             object endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
@@ -704,13 +739,28 @@ public partial class polymarket : PredictionExchange
                 {
                     continue;
                 }
+                object outcomeHandle = add(add(marketSymbol, ":"), ((string)outcomeLabel).ToUpper());
+                object winner = null;
+                object settleFraction = null;
+                if (isTrue(isTrue(marketResolved) && isTrue((!isEqual(outcomePrice, null)))))
+                {
+                    // a resolved polymarket outcome settles to 1 (won) or 0 (lost)
+                    winner = (isGreaterThanOrEqual(outcomePrice, 0.99));
+                    settleFraction = outcomePrice;
+                    if (isTrue(winner))
+                    {
+                        resolvedOutcome = outcomeHandle;
+                    }
+                }
                 ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
-                    { "outcome", add(add(marketSymbol, ":"), ((string)outcomeLabel).ToUpper()) },
+                    { "outcome", outcomeHandle },
                     { "outcomeId", clobTokenId },
                     { "market", marketSymbol },
                     { "label", outcomeLabel },
                     { "price", outcomePrice },
                     { "active", isTrue(active) && !isTrue(closed) },
+                    { "winner", winner },
+                    { "settleFraction", settleFraction },
                     { "precision", new Dictionary<string, object>() {
                         { "amount", tickSize },
                         { "price", tickSize },
@@ -742,6 +792,8 @@ public partial class polymarket : PredictionExchange
                 { "option", false },
                 { "prediction", true },
                 { "active", isTrue(active) && !isTrue(closed) },
+                { "resolved", marketResolved },
+                { "resolvedOutcome", resolvedOutcome },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -765,12 +817,12 @@ public partial class polymarket : PredictionExchange
                         { "max", 1 },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", 1 },
+                        { "min", orderMinSize },
                         { "max", null },
                     } },
                     { "price", new Dictionary<string, object>() {
-                        { "min", 0.01 },
-                        { "max", 0.99 },
+                        { "min", tickSize },
+                        { "max", priceMax },
                     } },
                     { "cost", new Dictionary<string, object>() {
                         { "min", null },
@@ -783,6 +835,53 @@ public partial class polymarket : PredictionExchange
             });
         }
         return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchOutcome
+     * @description resolves a single outcome by its CLOB token id in one request, so a cache miss
+     * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+     * instead of throwing BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+     * falls back to the base bulk load
+     * @param {string} outcomeSymbol the outcome token id or handle
+     * @returns {object} the resolved outcome object
+     */
+    public async override Task<object> fetchOutcome(object outcomeSymbol)
+    {
+        // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+        if (isTrue(isEqual(getIndexOf(outcomeSymbol, ":"), -1)))
+        {
+            object response = await this.gammaPublicGetMarkets(new Dictionary<string, object>() {
+                { "clob_token_ids", outcomeSymbol },
+            });
+            object rawMarkets = ((bool) isTrue((!isEqual(response, null)))) ? response : new List<object>() {};
+            object rawMarketsLength = getArrayLength(rawMarkets);
+            if (isTrue(isGreaterThan(rawMarketsLength, 0)))
+            {
+                if (isTrue(isEqual(this.markets, null)))
+                {
+                    this.markets = this.createSafeDictionary();
+                }
+                object ccxtMarkets = this.parseEventToMarkets(new Dictionary<string, object>() {
+                    { "markets", rawMarkets },
+                });
+                object ccxtMarketsLength = getArrayLength(ccxtMarkets);
+                for (object i = 0; isLessThan(i, ccxtMarketsLength); postFixIncrement(ref i))
+                {
+                    object mkt = getValue(ccxtMarkets, i);
+                    ((IDictionary<string,object>)this.markets)[(string)((string)getValue(mkt, "symbol"))] = mkt;
+                }
+                this.populateOutcomes();
+                object byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
+                if (isTrue(!isEqual(byId, null)))
+                {
+                    return byId;
+                }
+            }
+        }
+        return await base.fetchOutcome(outcomeSymbol);
     }
 
     /**
@@ -1008,7 +1107,7 @@ public partial class polymarket : PredictionExchange
             { "askVolume", this.safeNumber(bestAsk, "size") },
             { "vwap", null },
             { "open", null },
-            { "close", mid },
+            { "close", last },
             { "last", last },
             { "previousClose", null },
             { "change", null },
@@ -1333,14 +1432,15 @@ public partial class polymarket : PredictionExchange
         {
             throw new BadRequest ((string)add(add(this.id, " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
         }
-        // the endpoint requires a market conditionId, then its filtered down to the requested outcome
+        // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
+        // to the requested token client-side below. applying the user's `limit` to this request and
+        // THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
+        // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
+        // token filter by parsePredictionTrades
         object request = new Dictionary<string, object>() {
             { "market", conditionId },
         };
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = limit;
-        }
+        ((IDictionary<string,object>)request)["limit"] = this.safeInteger(this.options, "tradesPageSize", 500);
         object response = await this.dataPublicGetTrades(this.extend(request, parameters));
         object rawTrades = ((bool) isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? response : this.safeList(response, "data", new List<object>() {});
         object filteredTrades = new List<object>() {};
@@ -1892,8 +1992,26 @@ public partial class polymarket : PredictionExchange
         object sideStr = ((string)((string)side)).ToUpper();
         object isMarket = (isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
-        // callers can override with params.orderType (GTC, GTD, FOK or FAK)
+        // native override: params.orderType (GTC, GTD, FOK or FAK)
         object orderTypeStr = this.safeStringUpper(parameters, "orderType");
+        if (isTrue(isEqual(orderTypeStr, null)))
+        {
+            // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
+            object unifiedTif = this.safeStringUpper(parameters, "timeInForce");
+            if (isTrue(isEqual(unifiedTif, "GTC")))
+            {
+                orderTypeStr = "GTC";
+            } else if (isTrue(isEqual(unifiedTif, "FOK")))
+            {
+                orderTypeStr = "FOK";
+            } else if (isTrue(isEqual(unifiedTif, "IOC")))
+            {
+                orderTypeStr = "FAK"; // fill-and-kill == immediate-or-cancel
+            } else if (isTrue(isEqual(unifiedTif, "GTD")))
+            {
+                orderTypeStr = "GTD";
+            }
+        }
         if (isTrue(isEqual(orderTypeStr, null)))
         {
             orderTypeStr = ((bool) isTrue(isMarket)) ? "FOK" : "GTC";
@@ -1928,7 +2046,7 @@ public partial class polymarket : PredictionExchange
         object expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         object cost = this.safeNumber(parameters, "cost");
-        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost"});
+        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost"});
         object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         object makerAmount = this.safeString(amounts, "makerAmount");
         object takerAmount = this.safeString(amounts, "takerAmount");
@@ -1981,7 +2099,7 @@ public partial class polymarket : PredictionExchange
             { "orderType", orderTypeStr },
         };
         return new Dictionary<string, object>() {
-            { "body", this.extend(orderBody, rest) },
+            { "body", this.extend(rest, orderBody) },
             { "outcome", outcomeObj },
         };
     }
@@ -2309,8 +2427,9 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<object> fetchEvents(object parameters = null)
     {
+        // no requireEventQuery: polymarket has a bounded gamma listing (fetchRawEventsList), so an
+        // unscoped call returns the most-active events (matching this method's documented contract)
         parameters ??= new Dictionary<string, object>();
-        this.requireEventQuery(parameters);
         object requestedEventId = this.safeString(parameters, "eventId");
         object requestedSlug = this.safeString(parameters, "slug");
         object queries = this.parseSearchQueries(parameters);
@@ -2429,6 +2548,7 @@ public partial class polymarket : PredictionExchange
         }
         object eventForParsing = this.safeDict(response, "event", response);
         object eventVar = this.parseEvent(eventForParsing);
+        this.indexEventOutcomes(eventVar);
         return eventVar;
     }
 
@@ -2507,11 +2627,25 @@ public partial class polymarket : PredictionExchange
         {
             active = isTrue(rawActive) && !isTrue(closed);
         }
+        // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
+        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        object rawTags = this.safeList(rawEvent, "tags", new List<object>() {});
+        object rawTagsLength = getArrayLength(rawTags);
+        object parsedTags = new List<object>() {};
+        for (object ti = 0; isLessThan(ti, rawTagsLength); postFixIncrement(ref ti))
+        {
+            object tagLabel = this.safeString2(getValue(rawTags, ti), "slug", "label");
+            if (isTrue(!isEqual(tagLabel, null)))
+            {
+                ((IList<object>)parsedTags).Add(tagLabel);
+            }
+        }
         return this.extend(new Dictionary<string, object>() {
             { "id", this.safeString(rawEvent, "id") },
             { "slug", slug },
             { "event", ((bool) isTrue(slug)) ? this.shortenSlug(slug) : null },
             { "title", this.safeString(rawEvent, "title") },
+            { "tags", parsedTags },
             { "markets", marketsList },
             { "active", active },
             { "url", this.safeString(rawEvent, "url") },

@@ -347,7 +347,24 @@ class myriad extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
              */
-            // the unified $event $id is a composite networkId:marketId
+            $response = Async\await($this->fetch_raw_market_by_id($id, $params));
+            $market = $this->parse_myriad_market($response);
+            $event = $this->parse_market_to_event($response, $market);
+            $this->index_event_outcomes($event);
+            return $event;
+        })();
+    }
+
+    public function fetch_raw_market_by_id(string $id, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $params) {
+            /**
+             * @ignore
+             * fetches a single raw myriad market object by its unified event $id (a composite networkId:marketId)
+             * @param {string} $id the unified event/market $id
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the raw myriad market object
+             */
+            // the unified event $id is a composite networkId:marketId
             $parts = explode(':', $id);
             $partsLength = count($parts);
             $request = array();
@@ -357,10 +374,7 @@ class myriad extends Exchange {
             } else {
                 $request['id'] = $id;
             }
-            $response = Async\await($this->myriadPublicGetMarketsId($this->extend($request, $params)));
-            $market = $this->parse_myriad_market($response);
-            $event = $this->parse_market_to_event($response, $market);
-            return $event;
+            return Async\await($this->myriadPublicGetMarketsId($this->extend($request, $params)));
         })();
     }
 
@@ -782,6 +796,15 @@ class myriad extends Exchange {
              * buys or sells $outcome shares by submitting the quote's $calldata on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
+            // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
+            // would silently size `$amount` (inconsistent with every other venue and the wiki).
+            // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
+            // plain createOrder buy on the AMM is rejected so it can't misinterpret shares
+            $sideLower = ($side !== null) ? strtolower($side) : null;
+            $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
+            if (($sideLower === 'buy') && !$isCostDenominated) {
+                throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost($outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
+            }
             if ($this->privateKey === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a privateKey to sign the on-chain transaction');
             }
@@ -798,8 +821,8 @@ class myriad extends Exchange {
             $predictionMarket = $this->safe_string($chainConfig, 'predictionMarket');
             $tokenAddress = $this->safe_string_2($params, 'token', 'tokenAddress', $this->safe_string($info, 'tokenAddress'));
             $gasLimit = $this->safe_string($params, 'gasLimit', '0xaae60');
-            $sideStr = strtolower($side);
-            $quoteParams = $this->omit($params, array( 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit' ));
+            $sideStr = $sideLower;
+            $quoteParams = $this->omit($params, array( 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated' ));
             $quote = Async\await($this->fetch_trade_quote($outcome, $sideStr, $amount, $quoteParams));
             $calldata = $this->safe_string($this->safe_dict($quote, 'info', array()), 'calldata');
             $fromAddress = $this->eth_get_address_from_private_key($this->privateKey);
@@ -809,6 +832,22 @@ class myriad extends Exchange {
             }
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
             return $this->parse_trade_tx($txHash, $quote, $outcomeObj, $sideStr);
+        })();
+    }
+
+    public function create_market_buy_order_with_cost(string $outcome, float $cost, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $cost, $params) {
+            /**
+             * buys an $outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+             * @param {string} $outcome unified $outcome handle
+             * @param {float} $cost the collateral (USDC) amount to spend
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            // myriad's AMM prices buys in COLLATERAL, so `$cost` maps directly onto the AMM value input.
+            // mark the order $cost-denominated so createAmmOrder spends exactly `$cost` (not `$cost` shares)
+            $request = $this->extend($params, array( 'enableAmm' => true, 'costDenominated' => true ));
+            return Async\await($this->create_order($outcome, 'market', 'buy', $cost, null, $request));
         })();
     }
 
@@ -1424,9 +1463,16 @@ class myriad extends Exchange {
         $endDate = $this->safe_string($raw, 'expiresAt');
         $state = $this->safe_string($raw, 'state', 'open');
         $active = $state === 'open';
+        // resolution => $resolvedOutcomeId is "-1" until the market resolves, then the winning $outcome id
+        $resolvedOutcomeId = $this->safe_string($raw, 'resolvedOutcomeId', '-1');
+        $voided = $this->safe_bool($raw, 'voided', false);
+        $hasResolution = ($resolvedOutcomeId !== '-1') && ($resolvedOutcomeId !== null) && ($resolvedOutcomeId !== '');
+        $marketResolved = $hasResolution || $voided;
+        $resolvedOutcome = null;
         $volume24h = $this->safe_number($raw, 'volume24h');
-        $slugBase = ($eventSlug !== null) ? $eventSlug : $networkId;
-        $marketSymbol = $this->slug_to_market_symbol($slugBase, $slug);
+        // qualify the handle only with a real event $slug (when passed); myriad market slugs are
+        // globally unique, so do NOT fall back to $networkId — that would prefix every handle
+        $marketSymbol = $this->slug_to_market_symbol($eventSlug, $slug);
         // the collateral token ($outcome . address . decimals) is per-market; carry it for on-chain trading
         $tokenObj = $this->safe_dict($raw, 'token', array());
         $tokenAddress = $this->safe_string($tokenObj, 'address');
@@ -1444,8 +1490,19 @@ class myriad extends Exchange {
             $outcomeId = $this->safe_string($outcome, 'outcomeId', $this->safe_string($outcome, 'id', (string) $i));
             $outcomeLabel = $this->safe_string($outcome, 'label', $this->safe_string($outcome, 'title', $outcomeId));
             $price = $this->safe_number($outcome, 'price');
-            $outcomeHandle = $this->slug_to_outcome_symbol($slugBase, $slug, $outcomeLabel);
+            $outcomeHandle = $this->slug_to_outcome_symbol($eventSlug, $slug, $outcomeLabel);
             $outcomeCompositeId = $networkId . ':' . $marketId . '/' . $outcomeId;
+            $winner = null;
+            $settleFraction = null;
+            if ($hasResolution) {
+                $winner = ($outcomeId === $resolvedOutcomeId);
+                $settleFraction = $winner ? 1 : 0;
+                if ($winner) {
+                    $resolvedOutcome = $outcomeHandle;
+                }
+            } elseif ($voided) {
+                $winner = false;
+            }
             $outcomes[] = array(
                 'id' => $outcomeCompositeId,
                 'outcomeId' => $outcomeCompositeId,
@@ -1453,6 +1510,8 @@ class myriad extends Exchange {
                 'market' => $marketSymbol,
                 'label' => $outcomeLabel,
                 'active' => $active,
+                'winner' => $winner,
+                'settleFraction' => $settleFraction,
                 'precision' => array(
                     'amount' => 0.01,
                     'price' => 0.001,
@@ -1494,6 +1553,8 @@ class myriad extends Exchange {
             'option' => false,
             'prediction' => true,
             'active' => $active,
+            'resolved' => $marketResolved,
+            'resolvedOutcome' => $resolvedOutcome,
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -1762,6 +1823,16 @@ class myriad extends Exchange {
             }
         }
         $now = $this->milliseconds();
+        // priceChange24h is an ABSOLUTE $price delta; derive the previous close and the TRUE
+        // $percentage from it — setting $percentage = the absolute $change (as before) was wrong
+        $previousClose = null;
+        $percentage = null;
+        if (($price !== null) && ($change !== null)) {
+            $previousClose = $price - $change;
+            if ($previousClose !== 0) {
+                $percentage = $change / $previousClose * 100;
+            }
+        }
         return $this->safe_prediction_ticker(array(
             'outcome' => $this->safe_string($market, 'outcome'),
             'outcomeId' => $this->safe_string($market, 'id'),
@@ -1776,15 +1847,18 @@ class myriad extends Exchange {
             'ask' => $price,
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $previousClose,
             'close' => $price,
             'last' => $price,
-            'previousClose' => null,
+            'previousClose' => $previousClose,
             'change' => $change,
-            'percentage' => $change,
+            'percentage' => $percentage,
             'average' => $price,
-            'baseVolume' => $this->safe_number($raw, 'volume24h'),          // 24h volume in outcome shares
-            'quoteVolume' => $this->safe_number($raw, 'volumeNotional24h'), // 24h volume in USDC notional
+            // myriad's `volume*` fields are collateral (USDC); `volumeNotional*` is the share count —
+            // so baseVolume (shares) = volumeNotional24h and quoteVolume (USDC) = volume24h. These were
+            // swapped, producing vwap > 1 on a 0..1 $market
+            'baseVolume' => $this->safe_number($raw, 'volumeNotional24h'),
+            'quoteVolume' => $this->safe_number($raw, 'volume24h'),
             'info' => $raw,
         ), $market);
     }
@@ -2313,8 +2387,9 @@ class myriad extends Exchange {
              * @see https://docs.myriad.markets/builders/myriad-api-reference
              *
              * @param {array} [$params] extra exchange-specific parameters
-             * @param {string} [$params->query] a single search term; when omitted (and no $queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+             * @param {string} [$params->query] a single search term; when omitted, an $eventId does a direct lookup and any other scope (tags) pages the markets listing
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
+             * @param {string} [$params->eventId] direct lookup by unified event id (composite networkId:marketId)
              * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
              * @param {string} [$params->state] 'open', 'closed' or 'resolved', defaults to 'open'
              * @return {array[]} an array of event structures
@@ -2323,17 +2398,25 @@ class myriad extends Exchange {
             $queries = $this->parse_search_queries($params);
             $rest = $this->omit($params, array( 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
             $queriesLength = count($queries);
-            if ($queriesLength === 0) {
-                // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
-                $existingEvents = $this->events_list();
-                return $this->apply_event_fetch_params($existingEvents, $params, $queries);
+            $eventId = $this->safe_string($params, 'eventId');
+            // always fetch fresh from the API (never serve the possibly-cold cache) => a query searches,
+            // an $eventId does a direct lookup, and any other scope (tags) pages the markets listing so
+            // applyEventFetchParams can filter it below
+            $rawMarkets = array();
+            if ($queriesLength > 0) {
+                $rawMarkets = Async\await($this->fetch_raw_markets_by_search($queries, $rest));
+            } elseif ($eventId !== null) {
+                $rawMarket = Async\await($this->fetch_raw_market_by_id($eventId, $rest));
+                $rawMarkets = array( $rawMarket );
+            } else {
+                $rawMarkets = Async\await($this->fetch_raw_markets_list($rest));
             }
-            $rawMarkets = Async\await($this->fetch_raw_markets_by_search($queries, $rest));
             if (!$this->markets) {
                 $this->markets = $this->create_safe_dictionary();
             }
             $result = array();
-            for ($i = 0; $i < count($rawMarkets); $i++) {
+            $rawMarketsLength = count($rawMarkets);
+            for ($i = 0; $i < $rawMarketsLength; $i++) {
                 $raw = $rawMarkets[$i];
                 $m = $this->parse_myriad_market($raw);
                 $this->markets[$m['symbol']] = $m;

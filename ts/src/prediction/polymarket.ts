@@ -338,7 +338,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
-     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -382,7 +382,10 @@ export default class polymarket extends Exchange {
      * @returns {object[]} an array of raw gamma event objects
      */
     async fetchRawEventsBySearch (queries: any[], params = {}): Promise<any[]> {
-        const pageSize = this.safeInteger (params, 'limit', 50);
+        const resultLimit = this.safeInteger (params, 'limit');
+        // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
+        // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event)
+        const pageSize = this.safeInteger (this.options, 'searchPageSize', 100);
         // map the unified sort/status onto the gamma search params
         const sort = this.safeString (params, 'sort');
         let sortParam = 'volume';
@@ -414,7 +417,20 @@ export default class polymarket extends Exchange {
             const firstEventsLength = firstEvents.length;
             const pagination = this.safeDict (first, 'pagination', {});
             const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
-            const totalPages = Math.ceil (totalResults / pageSize);
+            let totalPages = Math.ceil (totalResults / pageSize);
+            // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
+            // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
+            if (resultLimit !== undefined) {
+                const limitPages = Math.ceil (resultLimit / pageSize);
+                if (limitPages < totalPages) {
+                    totalPages = limitPages;
+                }
+            } else {
+                const maxSearchPages = this.safeInteger (this.options, 'maxSearchPages', 5);
+                if (maxSearchPages < totalPages) {
+                    totalPages = maxSearchPages;
+                }
+            }
             const remainingPages: number[] = [];
             for (let p = 2; p <= totalPages; p++) {
                 remainingPages.push (p);
@@ -476,9 +492,17 @@ export default class polymarket extends Exchange {
         } else if (sort === 'newest') {
             order = 'startDate';
         }
-        const rest = this.omit (params, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries' ]);
+        const rest = this.omit (params, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'tags' ]);
         let baseRequest: Dict = { 'limit': pageSize, 'order': order, 'ascending': false };
         baseRequest = this.extend (baseRequest, rest);
+        // push a requested tag server-side (gamma accepts tag_slug) so a tags-only fetchEvents returns
+        // the tagged events rather than filtering the top-volume listing down to nothing; the base
+        // filterEventsByTags then narrows further client-side when multiple tags are requested
+        const requestedTags = this.safeList (params, 'tags', []);
+        const requestedTagsLength = requestedTags.length;
+        if (requestedTagsLength > 0) {
+            baseRequest['tag_slug'] = this.safeString (requestedTags, 0);
+        }
         if (status === 'active') {
             baseRequest['active'] = true;
             baseRequest['closed'] = false;
@@ -621,8 +645,14 @@ export default class polymarket extends Exchange {
             const marketSlug = this.safeString (market, 'slug', conditionId);
             const active = this.safeBool (market, 'active', false);
             const closed = this.safeBool (market, 'closed', false);
+            // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
+            const marketResolved = closed || (this.safeStringLower (market, 'umaResolutionStatus') === 'resolved');
+            let resolvedOutcome = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2 (market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
+            // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
+            const orderMinSize = this.safeNumber (market, 'orderMinSize', 1);
+            const priceMax = this.parseNumber (Precise.stringSub ('1', this.numberToString (tickSize)));
             const negRisk = this.safeBool (market, 'negRisk', false);
             const endDate = this.safeString (market, 'endDate', this.safeString (market, 'end_date_iso'));
             // Gamma API returns these arrays as JSON-encoded strings
@@ -669,13 +699,26 @@ export default class polymarket extends Exchange {
                 if (!clobTokenId) {
                     continue;
                 }
+                const outcomeHandle = marketSymbol + ':' + outcomeLabel.toUpperCase ();
+                let winner = undefined;
+                let settleFraction = undefined;
+                if (marketResolved && (outcomePrice !== undefined)) {
+                    // a resolved polymarket outcome settles to 1 (won) or 0 (lost)
+                    winner = (outcomePrice >= 0.99);
+                    settleFraction = outcomePrice;
+                    if (winner) {
+                        resolvedOutcome = outcomeHandle;
+                    }
+                }
                 outcomes.push ({
-                    'outcome': marketSymbol + ':' + outcomeLabel.toUpperCase (),
+                    'outcome': outcomeHandle,
                     'outcomeId': clobTokenId,
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
                     'active': active && !closed,
+                    'winner': winner,
+                    'settleFraction': settleFraction,
                     // carry the order precision so createOrder needs no extra request
                     'precision': {
                         'amount': tickSize,
@@ -708,6 +751,8 @@ export default class polymarket extends Exchange {
                 'option': false,
                 'prediction': true,
                 'active': active && !closed,
+                'resolved': marketResolved,
+                'resolvedOutcome': resolvedOutcome,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -727,8 +772,8 @@ export default class polymarket extends Exchange {
                 },
                 'limits': {
                     'leverage': { 'min': 1, 'max': 1 },
-                    'amount': { 'min': 1, 'max': undefined },
-                    'price': { 'min': 0.01, 'max': 0.99 },
+                    'amount': { 'min': orderMinSize, 'max': undefined },
+                    'price': { 'min': tickSize, 'max': priceMax },
                     'cost': { 'min': undefined, 'max': undefined },
                 },
                 'outcomes': outcomes,
@@ -737,6 +782,43 @@ export default class polymarket extends Exchange {
             } as unknown as Market);
         }
         return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchOutcome
+     * @description resolves a single outcome by its CLOB token id in one request, so a cache miss
+     * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+     * instead of throwing BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+     * falls back to the base bulk load
+     * @param {string} outcomeSymbol the outcome token id or handle
+     * @returns {object} the resolved outcome object
+     */
+    async fetchOutcome (outcomeSymbol: string): Promise<any> {
+        // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+        if (outcomeSymbol.indexOf (':') === -1) {
+            const response = await this.gammaPublicGetMarkets ({ 'clob_token_ids': outcomeSymbol });
+            const rawMarkets = (response !== undefined) ? response : [];
+            const rawMarketsLength = rawMarkets.length;
+            if (rawMarketsLength > 0) {
+                if (this.markets === undefined) {
+                    this.markets = this.createSafeDictionary ();
+                }
+                const ccxtMarkets = this.parseEventToMarkets ({ 'markets': rawMarkets });
+                const ccxtMarketsLength = ccxtMarkets.length;
+                for (let i = 0; i < ccxtMarketsLength; i++) {
+                    const mkt = ccxtMarkets[i];
+                    this.markets[mkt['symbol'] as string] = mkt;
+                }
+                this.populateOutcomes ();
+                const byId = this.safeValue (this.outcomes_by_id, outcomeSymbol);
+                if (byId !== undefined) {
+                    return byId;
+                }
+            }
+        }
+        return await super.fetchOutcome (outcomeSymbol);
     }
 
     /**
@@ -938,7 +1020,10 @@ export default class polymarket extends Exchange {
             'askVolume': this.safeNumber (bestAsk, 'size'),
             'vwap': undefined,
             'open': undefined,
-            'close': mid,
+            // close must be the last TRADE price, not the midpoint — base safeTicker derives `last`
+            // from `close` (safeString2('close','last')), so close:mid would clobber last with the mid.
+            // the midpoint lives in `average`
+            'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
@@ -1229,11 +1314,13 @@ export default class polymarket extends Exchange {
         if (conditionId === undefined) {
             throw new BadRequest (this.id + ' fetchTrades() requires outcome.info.conditionId for an outcome ' + tokenId);
         }
-        // the endpoint requires a market conditionId, then its filtered down to the requested outcome
+        // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
+        // to the requested token client-side below. applying the user's `limit` to this request and
+        // THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
+        // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
+        // token filter by parsePredictionTrades
         const request: Dict = { 'market': conditionId };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        request['limit'] = this.safeInteger (this.options, 'tradesPageSize', 500);
         const response = await this.dataPublicGetTrades (this.extend (request, params));
         const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         const filteredTrades: any[] = [];
@@ -1732,8 +1819,21 @@ export default class polymarket extends Exchange {
         const sideStr = (side as string).toUpperCase ();
         const isMarket = (type === 'market');
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
-        // callers can override with params.orderType (GTC, GTD, FOK or FAK)
+        // native override: params.orderType (GTC, GTD, FOK or FAK)
         let orderTypeStr = this.safeStringUpper (params, 'orderType');
+        if (orderTypeStr === undefined) {
+            // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
+            const unifiedTif = this.safeStringUpper (params, 'timeInForce');
+            if (unifiedTif === 'GTC') {
+                orderTypeStr = 'GTC';
+            } else if (unifiedTif === 'FOK') {
+                orderTypeStr = 'FOK';
+            } else if (unifiedTif === 'IOC') {
+                orderTypeStr = 'FAK';   // fill-and-kill == immediate-or-cancel
+            } else if (unifiedTif === 'GTD') {
+                orderTypeStr = 'GTD';
+            }
+        }
         if (orderTypeStr === undefined) {
             orderTypeStr = isMarket ? 'FOK' : 'GTC';
         }
@@ -1764,7 +1864,7 @@ export default class polymarket extends Exchange {
         const expiration = this.safeString (params, 'expiration', '0');
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         const cost = this.safeNumber (params, 'cost');
-        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ]);
+        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ]);
         const amounts = this.polymarketOrderRawAmounts (sideStr, amount, price, tickSize, cost);
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
@@ -1817,7 +1917,10 @@ export default class polymarket extends Exchange {
             'orderType': orderTypeStr,
         };
         return {
-            'body': this.extend (orderBody, rest),
+            // orderBody LAST so its authoritative fields (order/owner/orderType/postOnly/deferExec)
+            // can't be clobbered by leftover params — a stray postOnly/orderType would otherwise
+            // silently override the signed intent
+            'body': this.extend (rest, orderBody),
             'outcome': outcomeObj,
         };
     }
@@ -2056,7 +2159,8 @@ export default class polymarket extends Exchange {
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
-        this.requireEventQuery (params);
+        // no requireEventQuery: polymarket has a bounded gamma listing (fetchRawEventsList), so an
+        // unscoped call returns the most-active events (matching this method's documented contract)
         const requestedEventId = this.safeString (params, 'eventId');
         const requestedSlug = this.safeString (params, 'slug');
         const queries = this.parseSearchQueries (params);
@@ -2149,6 +2253,7 @@ export default class polymarket extends Exchange {
         }
         const eventForParsing = this.safeDict (response, 'event', response);
         const event: any = this.parseEvent (eventForParsing);
+        this.indexEventOutcomes (event);
         return event;
     }
 
@@ -2225,11 +2330,23 @@ export default class polymarket extends Exchange {
         if (rawActive !== undefined) {
             active = rawActive && !closed;
         }
+        // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
+        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        const rawTags = this.safeList (rawEvent, 'tags', []);
+        const rawTagsLength = rawTags.length;
+        const parsedTags = [];
+        for (let ti = 0; ti < rawTagsLength; ti++) {
+            const tagLabel = this.safeString2 (rawTags[ti], 'slug', 'label');
+            if (tagLabel !== undefined) {
+                parsedTags.push (tagLabel);
+            }
+        }
         return this.extend ({
             'id': this.safeString (rawEvent, 'id'),
             'slug': slug,
             'event': slug ? this.shortenSlug (slug) : undefined,
             'title': this.safeString (rawEvent, 'title'),
+            'tags': parsedTags,
             'markets': marketsList,
             'active': active,
             'url': this.safeString (rawEvent, 'url'),

@@ -169,6 +169,7 @@ export default class limitless extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,   // Limitless API key
                 'secret': true,
+                'privateKey': true,   // embedded/trading wallet key — createOrder signs with it (env-var loading needs this true)
             },
             'fees': {
                 'trading': {
@@ -411,6 +412,10 @@ export default class limitless extends Exchange {
         const active = this.safeBool (raw, 'active', true);
         const endDate = this.safeString (raw, 'deadline', this.safeString (raw, 'expiresAt'));
         const volume24h = this.safeNumber (raw, 'volume24h');
+        // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
+        const winningOutcomeIndex = this.safeInteger (raw, 'winningOutcomeIndex');
+        const marketResolved = (winningOutcomeIndex !== undefined);
+        let resolvedOutcome = undefined;
         const marketSymbol = this.slugToMarketSymbol (groupId, slug);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
@@ -426,12 +431,24 @@ export default class limitless extends Exchange {
             const outcomeLabel = tokenEntries[i];
             const tokenData = tokens[outcomeLabel];
             const tokenId = tokenData;
+            const outcomeHandle = this.slugToOutcomeSymbol (groupId, slug, outcomeLabel);
+            let winner = undefined;
+            let settleFraction = undefined;
+            if (marketResolved) {
+                winner = (i === winningOutcomeIndex);
+                settleFraction = winner ? 1 : 0;
+                if (winner) {
+                    resolvedOutcome = outcomeHandle;
+                }
+            }
             outcomes.push ({
-                'outcome': this.slugToOutcomeSymbol (groupId, slug, outcomeLabel),
+                'outcome': outcomeHandle,
                 'outcomeId': tokenId,
                 'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'winner': winner,
+                'settleFraction': settleFraction,
                 'precision': precision,
                 'info': {
                     'slug': slug,
@@ -464,6 +481,8 @@ export default class limitless extends Exchange {
             'option': false,
             'prediction': true,
             'active': active,
+            'resolved': marketResolved,
+            'resolvedOutcome': resolvedOutcome,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -510,6 +529,7 @@ export default class limitless extends Exchange {
         // listing), so wrap it for parseEvent — its loop then parses this market into the event
         const wrapped = this.extend (response, { 'markets': [ response ] });
         const event: any = this.parseEvent (wrapped);
+        this.indexEventOutcomes (event);
         return event;
     }
 
@@ -755,7 +775,9 @@ export default class limitless extends Exchange {
                 markets.push (this.parseMarket (rawMarket));
             }
             const marketInfo = this.safeDict (rawMarket, 'info', rawMarket);
-            totalVolume = this.sum (totalVolume, this.safeNumber2 (marketInfo, 'volume24h', 'volume', 0));
+            // use volumeFormatted (human units) — the raw `volume` is 1e-6 fixed-point, which would
+            // make the event volume 1,000,000x too big and useless for cross-venue ranking
+            totalVolume = this.sum (totalVolume, this.safeNumber (marketInfo, 'volumeFormatted', 0));
         }
         return this.extend ({
             'id': groupId,
@@ -1348,9 +1370,11 @@ export default class limitless extends Exchange {
                 pseudoTrades.push ({ 'timestamp': pointTs, 'price': pointPrice, 'amount': 0 });
             }
         }
-        // the endpoint returns chronological points - keep input order (a re-sort breaks
-        // timestamp ties differently across languages and skews open/close within a bucket)
-        const sorted = pseudoTrades;
+        // the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
+        // otherwise candles come back descending and open/close are inverted within each bucket
+        // (the first point seen would be the latest, not the earliest). sortBy is stable, so equal
+        // timestamps keep their relative order consistently across languages
+        const sorted = this.sortBy (pseudoTrades, 'timestamp');
         const ms = this.parseTimeframe (timeframe) * 1000;
         const candles: Dict = {};
         const bucketOrder = [];

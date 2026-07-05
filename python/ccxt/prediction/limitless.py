@@ -151,6 +151,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'requiredCredentials': {
                 'apiKey': True,   # Limitless API key
                 'secret': True,
+                'privateKey': True,   # embedded/trading wallet key — createOrder signs with it(env-loading needs self True)
             },
             'fees': {
                 'trading': {
@@ -374,6 +375,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         active = self.safe_bool(raw, 'active', True)
         endDate = self.safe_string(raw, 'deadline', self.safe_string(raw, 'expiresAt'))
         volume24h = self.safe_number(raw, 'volume24h')
+        # resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
+        winningOutcomeIndex = self.safe_integer(raw, 'winningOutcomeIndex')
+        marketResolved = (winningOutcomeIndex is not None)
+        resolvedOutcome = None
         marketSymbol = self.slug_to_market_symbol(groupId, slug)
         # amount precision comes from the collateral token decimals(USDC, 6); limitless does not
         # expose a price tick, so 0.001 is the platform convention
@@ -389,12 +394,22 @@ class limitless(PredictionExchange, ImplicitAPI):
             outcomeLabel = tokenEntries[i]
             tokenData = tokens[outcomeLabel]
             tokenId = tokenData
+            outcomeHandle = self.slug_to_outcome_symbol(groupId, slug, outcomeLabel)
+            winner = None
+            settleFraction = None
+            if marketResolved:
+                winner = (i == winningOutcomeIndex)
+                settleFraction = 1 if winner else 0
+                if winner:
+                    resolvedOutcome = outcomeHandle
             outcomes.append({
-                'outcome': self.slug_to_outcome_symbol(groupId, slug, outcomeLabel),
+                'outcome': outcomeHandle,
                 'outcomeId': tokenId,
                 'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'winner': winner,
+                'settleFraction': settleFraction,
                 'precision': precision,
                 'info': {
                     'slug': slug,
@@ -426,6 +441,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             'option': False,
             'prediction': True,
             'active': active,
+            'resolved': marketResolved,
+            'resolvedOutcome': resolvedOutcome,
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -471,6 +488,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # listing), so wrap it for parseEvent — its loop then parses self market into the event
         wrapped = self.extend(response, {'markets': [response]})
         event = self.parse_event(wrapped)
+        self.index_event_outcomes(event)
         return event
 
     def parse_event(self, event: dict) -> Any:
@@ -714,7 +732,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             else:
                 markets.append(self.parse_market(rawMarket))
             marketInfo = self.safe_dict(rawMarket, 'info', rawMarket)
-            totalVolume = self.sum(totalVolume, self.safe_number_2(marketInfo, 'volume24h', 'volume', 0))
+            # use volumeFormatted(human units) — the raw `volume` is 1e-6 fixed-point, which would
+            # make the event volume 1,000,000x too big and useless for cross-venue ranking
+            totalVolume = self.sum(totalVolume, self.safe_number(marketInfo, 'volumeFormatted', 0))
         return self.extend({
             'id': groupId,
             'slug': groupId,
@@ -1261,9 +1281,11 @@ class limitless(PredictionExchange, ImplicitAPI):
                 pointTs = pointTs * 1000
             if (pointPrice is not None) and (pointTs is not None):
                 pseudoTrades.append({'timestamp': pointTs, 'price': pointPrice, 'amount': 0})
-        # the endpoint returns chronological points - keep input order(a re-sort breaks
-        # timestamp ties differently across languages and skews open/close within a bucket)
-        sorted = pseudoTrades
+        # the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
+        # otherwise candles come back descending and open/close are inverted within each bucket
+        #(the first point seen would be the latest, not the earliest). sortBy is stable, so equal
+        # timestamps keep their relative order consistently across languages
+        sorted = self.sort_by(pseudoTrades, 'timestamp')
         ms = self.parse_timeframe(timeframe) * 1000
         candles = {}
         bucketOrder = []
@@ -2548,26 +2570,25 @@ class limitless(PredictionExchange, ImplicitAPI):
         https://docs.limitless.exchange/api-reference/markets/search
 
         :param dict [params]: extra exchange-specific parameters
-        :param str [params.query]: a single search term; when omitted(and no queries) returns the events cached by loadMarkets(capped by options.fetchMarketsLimit)
+        :param str [params.query]: a single search term; when omitted, an eventId/slug does a direct lookup and any other scope(tags) pages the active-markets listing
         :param str[] [params.queries]: multiple search terms(alternative to query)
+        :param str [params.eventId]: direct lookup by market address or slug
         :param int [params.limit]: maximum number of markets per query, defaults to 50
         :returns dict[]: an array of event structures
         """
         self.require_event_query(params)
         queries = self.parse_search_queries(params)
-        result = []
         queriesLength = len(queries)
-        if not queries or queriesLength == 0:
-            # no query - serve the eventId/slug/tags-only scope from the cache(empty on a
-            # cold instance); applyEventFetchParams filters it below
-            result = self.events_list()
-        else:
+        rest = self.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status'])
+        eventId = self.safe_string_2(params, 'eventId', 'slug')
+        # always fetch fresh from the API(never serve the possibly-cold cache): a query searches, an
+        # eventId/slug does a direct lookup, and any other scope(tags) pages the active-markets listing
+        rawMarkets = []
+        if queriesLength > 0:
             requestedLimit = self.safe_integer(params, 'limit', 50)
-            # the search endpoint rejects limit > 50 - cap the per-query request and             # maxMarkets bound the overall collection
+            # the search endpoint rejects limit > 50 - cap the per-query request
             limit = min(requestedLimit, 50)
-            rest = self.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status'])
             seen = {}
-            rawMarkets = []
             for i in range(0, len(queries)):
                 q = queries[i]
                 response = await self.limitlessPublicGetMarketsSearch(self.extend({
@@ -2581,33 +2602,72 @@ class limitless(PredictionExchange, ImplicitAPI):
                     if rawSlug and not (rawSlug in seen):
                         seen[rawSlug] = True
                         rawMarkets.append(raw)
-            if not self.events:
-                self.events = {}
-            if not self.markets:
-                self.markets = self.create_safe_dictionary()
-            eventGroups = {}
-            for i in range(0, len(rawMarkets)):
-                raw = rawMarkets[i]
-                groupId = self.safe_string(raw, 'groupId', self.safe_string(raw, 'slug'))
-                eventKey = self.shorten_slug(groupId) if groupId else None
-                m = self.parse_market(raw)
-                self.markets[m['symbol']] = m
-                if eventKey:
-                    if not (eventKey in eventGroups):
-                        eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string(raw, 'title', groupId), 'raw': raw, 'markets': []}
-                    eventGroup = eventGroups[eventKey]
-                    eventGroup['markets'].append(m)
-            result = []
-            eventKeys = list(eventGroups.keys())
-            for i in range(0, len(eventKeys)):
-                eventKey = eventKeys[i]
-                g = eventGroups[eventKey]
-                ev = self.parse_event(g)
-                result.append(ev)
+        elif eventId is not None:
+            response = await self.limitlessPublicGetMarketsAddressOrSlug(self.extend({'addressOrSlug': eventId}, rest))
+            rawMarkets.append(response)
+        else:
+            listRaw = await self.fetch_raw_active_markets(params)
+            listRawLength = len(listRaw)
+            for i in range(0, listRawLength):
+                rawMarkets.append(listRaw[i])
+        if not self.events:
+            self.events = {}
+        if not self.markets:
+            self.markets = self.create_safe_dictionary()
+        eventGroups = {}
+        rawMarketsLength = len(rawMarkets)
+        for i in range(0, rawMarketsLength):
+            raw = rawMarkets[i]
+            groupId = self.safe_string(raw, 'groupId', self.safe_string(raw, 'slug'))
+            eventKey = self.shorten_slug(groupId) if groupId else None
+            m = self.parse_market(raw)
+            self.markets[m['symbol']] = m
+            if eventKey:
+                if not (eventKey in eventGroups):
+                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string(raw, 'title', groupId), 'raw': raw, 'markets': []}
+                eventGroup = eventGroups[eventKey]
+                eventGroup['markets'].append(m)
+        result = []
+        eventKeys = list(eventGroups.keys())
+        eventKeysLength = len(eventKeys)
+        for i in range(0, eventKeysLength):
+            g = eventGroups[eventKeys[i]]
+            ev = self.parse_event(g)
+            result.append(ev)
         # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         self.set_events(result)
         self.populate_outcomes()
         return self.apply_event_fetch_params(result, params, queries)
+
+    async def fetch_raw_active_markets(self, params={}) -> List[Any]:
+        """
+ @ignore
+        pages the active-markets listing, bounded by limit(or options.fetchMarketsLimit)
+        :param dict [params]: extra exchange-specific parameters
+        :param int [params.limit]: max number of raw markets to collect
+        :returns dict[]: raw limitless market objects
+        """
+        maxMarkets = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchMarketsLimit', 1000))
+        pageSize = self.safe_integer(self.options, 'marketsPageSize', 25)
+        rest = self.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags'])
+        allRaw = []
+        page = 1
+        collected = 0
+        while(True):
+            request = {'page': page, 'limit': pageSize}
+            response = await self.limitlessPublicGetMarketsActive(self.extend(request, rest))
+            data = self.safe_list(response, 'data', [])
+            dataLength = len(data)
+            if dataLength == 0:
+                break
+            for i in range(0, dataLength):
+                if collected < maxMarkets:
+                    allRaw.append(data[i])
+                    collected = self.sum(collected, 1)
+            page = self.sum(page, 1)
+            if dataLength < pageSize or collected >= maxMarkets:
+                break
+        return allRaw
 
     def sign(self, path: Any, section: Any = 'limitless', method='GET', params={}, headers: Any = None, body: Any = None):
         """

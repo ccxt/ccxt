@@ -360,6 +360,7 @@ export default class myriad extends Exchange {
         const response = await this.fetchRawMarketById (id, params);
         const market = this.parseMyriadMarket (response);
         const event: any = this.parseMarketToEvent (response, market);
+        this.indexEventOutcomes (event);
         return event;
     }
 
@@ -797,6 +798,15 @@ export default class myriad extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createAmmOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
+        // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
+        // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
+        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
+        const sideLower = (side !== undefined) ? (side as string).toLowerCase () : undefined;
+        const isCostDenominated = this.safeBool (params, 'costDenominated', false);
+        if ((sideLower === 'buy') && !isCostDenominated) {
+            throw new NotSupported (this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
+        }
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign the on-chain transaction');
         }
@@ -813,8 +823,8 @@ export default class myriad extends Exchange {
         const predictionMarket = this.safeString (chainConfig, 'predictionMarket');
         const tokenAddress = this.safeString2 (params, 'token', 'tokenAddress', this.safeString (info, 'tokenAddress'));
         const gasLimit = this.safeString (params, 'gasLimit', '0xaae60');
-        const sideStr = (side as string).toLowerCase ();
-        const quoteParams = this.omit (params, [ 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit' ]);
+        const sideStr = sideLower;
+        const quoteParams = this.omit (params, [ 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated' ]);
         const quote = await this.fetchTradeQuote (outcome, sideStr, amount, quoteParams);
         const calldata = this.safeString (this.safeDict (quote, 'info', {}), 'calldata');
         const fromAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
@@ -824,6 +834,22 @@ export default class myriad extends Exchange {
         }
         const txHash = await this.sendEvmTransaction (rpcUrl, this.parseToInt (networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         return this.parseTradeTx (txHash, quote, outcomeObj as any, sideStr);
+    }
+
+    /**
+     * @method
+     * @name myriad#createMarketBuyOrderWithCost
+     * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost the collateral (USDC) amount to spend
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
+        // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
+        // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
+        const request = this.extend (params, { 'enableAmm': true, 'costDenominated': true });
+        return await this.createOrder (outcome, 'market', 'buy', cost, undefined, request);
     }
 
     /**
@@ -1432,9 +1458,16 @@ export default class myriad extends Exchange {
         const endDate = this.safeString (raw, 'expiresAt');
         const state = this.safeString (raw, 'state', 'open');
         const active = state === 'open';
+        // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
+        const resolvedOutcomeId = this.safeString (raw, 'resolvedOutcomeId', '-1');
+        const voided = this.safeBool (raw, 'voided', false);
+        const hasResolution = (resolvedOutcomeId !== '-1') && (resolvedOutcomeId !== undefined) && (resolvedOutcomeId !== '');
+        const marketResolved = hasResolution || voided;
+        let resolvedOutcome = undefined;
         const volume24h = this.safeNumber (raw, 'volume24h');
-        const slugBase = (eventSlug !== undefined) ? eventSlug : networkId;
-        const marketSymbol = this.slugToMarketSymbol (slugBase, slug);
+        // qualify the handle only with a real event slug (when passed); myriad market slugs are
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle
+        const marketSymbol = this.slugToMarketSymbol (eventSlug, slug);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         const tokenObj = this.safeDict (raw, 'token', {});
         const tokenAddress = this.safeString (tokenObj, 'address');
@@ -1452,8 +1485,19 @@ export default class myriad extends Exchange {
             const outcomeId = this.safeString (outcome, 'outcomeId', this.safeString (outcome, 'id', i.toString ()));
             const outcomeLabel = this.safeString (outcome, 'label', this.safeString (outcome, 'title', outcomeId));
             const price = this.safeNumber (outcome, 'price');
-            const outcomeHandle = this.slugToOutcomeSymbol (slugBase, slug, outcomeLabel);
+            const outcomeHandle = this.slugToOutcomeSymbol (eventSlug, slug, outcomeLabel);
             const outcomeCompositeId = networkId + ':' + marketId + '/' + outcomeId;
+            let winner = undefined;
+            let settleFraction = undefined;
+            if (hasResolution) {
+                winner = (outcomeId === resolvedOutcomeId);
+                settleFraction = winner ? 1 : 0;
+                if (winner) {
+                    resolvedOutcome = outcomeHandle;
+                }
+            } else if (voided) {
+                winner = false;
+            }
             outcomes.push ({
                 'id': outcomeCompositeId,
                 'outcomeId': outcomeCompositeId,
@@ -1461,6 +1505,8 @@ export default class myriad extends Exchange {
                 'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'winner': winner,
+                'settleFraction': settleFraction,
                 'precision': {
                     'amount': 0.01,
                     'price': 0.001,
@@ -1502,6 +1548,8 @@ export default class myriad extends Exchange {
             'option': false,
             'prediction': true,
             'active': active,
+            'resolved': marketResolved,
+            'resolvedOutcome': resolvedOutcome,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -1768,6 +1816,16 @@ export default class myriad extends Exchange {
             }
         }
         const now = this.milliseconds ();
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
+        // percentage from it — setting percentage = the absolute change (as before) was wrong
+        let previousClose = undefined;
+        let percentage = undefined;
+        if ((price !== undefined) && (change !== undefined)) {
+            previousClose = price - change;
+            if (previousClose !== 0) {
+                percentage = change / previousClose * 100;
+            }
+        }
         return this.safePredictionTicker ({
             'outcome': this.safeString (market, 'outcome'),
             'outcomeId': this.safeString (market, 'id'),
@@ -1782,15 +1840,18 @@ export default class myriad extends Exchange {
             'ask': price,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': previousClose,
             'close': price,
             'last': price,
-            'previousClose': undefined,
+            'previousClose': previousClose,
             'change': change,
-            'percentage': change,
+            'percentage': percentage,
             'average': price,
-            'baseVolume': this.safeNumber (raw, 'volume24h'),          // 24h volume in outcome shares
-            'quoteVolume': this.safeNumber (raw, 'volumeNotional24h'), // 24h volume in USDC notional
+            // myriad's `volume*` fields are collateral (USDC); `volumeNotional*` is the share count —
+            // so baseVolume (shares) = volumeNotional24h and quoteVolume (USDC) = volume24h. These were
+            // swapped, producing vwap > 1 on a 0..1 market
+            'baseVolume': this.safeNumber (raw, 'volumeNotional24h'),
+            'quoteVolume': this.safeNumber (raw, 'volume24h'),
             'info': raw,
         }, market);
     }

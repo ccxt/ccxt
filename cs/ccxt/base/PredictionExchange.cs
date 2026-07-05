@@ -109,7 +109,15 @@ public partial class PredictionExchange : Exchange
         object limit = this.safeInteger(parameters, "limit");
         if (isTrue(!isEqual(limit, null)))
         {
-            result = this.arraySlice(result, 0, limit);
+            // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
+            // (reflect Slice) and throws in C#, unlike JS/Python which return the whole array
+            object resultLength = getArrayLength(result);
+            object sliceEnd = limit;
+            if (isTrue(isGreaterThan(sliceEnd, resultLength)))
+            {
+                sliceEnd = resultLength;
+            }
+            result = this.arraySlice(result, 0, sliceEnd);
         }
         return result;
     }
@@ -472,12 +480,26 @@ public partial class PredictionExchange : Exchange
 
     public virtual object slugToMarketSymbol(object eventSlug, object marketSlug)
     {
-        return this.shortenSlug(marketSlug);
+        // qualify the market handle with its event so two events that share a market label
+        // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
+        // to the same handle — a collision silently overwrites markets in this.markets and would
+        // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
+        // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
+        // already-unique handles stay clean.
+        object marketPart = this.shortenSlug(marketSlug);
+        object eventPart = this.shortenSlug(eventSlug);
+        if (isTrue(isTrue(isTrue((isEqual(eventPart, null))) || isTrue((isEqual(eventPart, "")))) || isTrue((isEqual(eventPart, marketPart)))))
+        {
+            return marketPart;
+        }
+        return add(add(eventPart, "_"), marketPart);
     }
 
     public virtual object slugToOutcomeSymbol(object eventSlug, object marketSlug, object outcome)
     {
-        return add(add(this.shortenSlug(marketSlug), ":"), ((string)outcome).ToUpper());
+        // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
+        // (both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
+        return add(add(this.slugToMarketSymbol(eventSlug, marketSlug), ":"), ((string)outcome).ToUpper());
     }
 
     public override object setMarkets(object markets, object currencies = null)
@@ -565,6 +587,31 @@ public partial class PredictionExchange : Exchange
         {
             this.indexMarketOutcomes(getValue(this.markets, getValue(marketKeys, i)));
         }
+    }
+
+    public virtual void indexEventOutcomes(object eventVar)
+    {
+        // register a single event's markets into this.markets and rebuild the outcome cache so the
+        // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
+        // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
+        // (kalshi) the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // BadSymbols because the outcome was never cached
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            this.markets = this.createSafeDictionary();
+        }
+        object markets = this.safeList(eventVar, "markets", new List<object>() {});
+        object marketsLength = getArrayLength(markets);
+        for (object i = 0; isLessThan(i, marketsLength); postFixIncrement(ref i))
+        {
+            object m = getValue(markets, i);
+            object symbol = this.safeString(m, "symbol");
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.markets)[(string)symbol] = m;
+            }
+        }
+        this.populateOutcomes();
     }
 
     public async virtual Task<object> loadOutcomes(object reload = null, object parameters = null)
@@ -1035,6 +1082,23 @@ public partial class PredictionExchange : Exchange
         throw new NotSupported ((string)add(this.id, " watchPositions() is not supported yet")) ;
     }
 
+    /**
+     * @method
+     * @name fetchSettlements
+     * @description fetches the user's settled (resolved) positions — the "close the loop" record after
+     * markets resolve, with the collateral paid out and the realized pnl
+     * @param {string} [outcome] filter to a single unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction settlement structures
+     */
+    public async virtual Task<object> fetchSettlements(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchSettlements() is not supported yet")) ;
+    }
+
     public virtual object safePredictionOrder(object order, object market = null)
     {
         // the prediction identity is the `outcome` handle carried on the raw dict (read by
@@ -1312,6 +1376,7 @@ public partial class PredictionExchange : Exchange
         return h;
     }
 
+    // eslint-disable-next-line no-unused-vars
     public virtual object signEvmTransaction(object tx, object privateKey)
     {
         throw new NotSupported ((string)add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
@@ -1540,5 +1605,12 @@ public partial class PredictionExchange
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchPositions(outcomes, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
+    }
+    public async Task<List<PredictionSettlement>> FetchSettlements(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchSettlements(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionSettlement(item)).ToList<PredictionSettlement>();
     }
 }

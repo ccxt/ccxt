@@ -226,6 +226,9 @@ abstract class kalshi extends \ccxt\prediction\PredictionExchange {
     public function kalshi_private_delete_portfolio_order_groups_order_group_id($params = array()) {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function elections_public_get_search_series($params = array()) {
+        return $this->request('search/series', array('elections', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function kalshiPublicGetEvents($params = array()) {
         return $this->request('events', array('kalshi', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -444,5 +447,8 @@ abstract class kalshi extends \ccxt\prediction\PredictionExchange {
     }
     public function kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId($params = array()) {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function electionsPublicGetSearchSeries($params = array()) {
+        return $this->request('search/series', array('elections', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
 }

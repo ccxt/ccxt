@@ -34,7 +34,7 @@ public partial class polymarket
     /// <item>
     /// <term>params.limit</term>
     /// <description>
-    /// int : max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+    /// int : max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
     /// </description>
     /// </item>
     /// </list>
@@ -102,6 +102,19 @@ public partial class polymarket
     {
         var res = await this.fetchRawEventsList(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// resolves a single outcome by its CLOB token id in one request, so a cache miss
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the resolved outcome object.</returns>
+    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
+    {
+        var res = await this.fetchOutcome(outcomeSymbol);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches the current mid-price and best bid/ask for a single outcome token

@@ -385,3 +385,44 @@ public struct PredictionTickers
         }
     }
 }
+
+// PredictionSettlement is a standalone record (no base unified struct): one settled outcome
+// the user held, with the collateral paid in and paid out. Mirrors the PredictionSettlement
+// interface in ts/src/base/types.ts.
+public struct PredictionSettlement
+{
+    public string? id;
+    public double? timestamp;
+    public string? datetime;
+    public string? outcome;
+    public string? outcomeId;
+    public string? market;
+    public string? eventId;
+    public string? result;
+    public bool? won;
+    public double? amount;
+    public double? price;
+    public double? cost;
+    public double? payout;
+    public double? pnl;
+    public Dictionary<string, object>? info;
+
+    public PredictionSettlement(object settlement)
+    {
+        id = Exchange.SafeString(settlement, "id");
+        info = Helper.GetInfo(settlement);
+        timestamp = Exchange.SafeInteger(settlement, "timestamp");
+        datetime = Exchange.SafeString(settlement, "datetime");
+        outcome = Exchange.SafeString(settlement, "outcome");
+        outcomeId = Exchange.SafeString(settlement, "outcomeId");
+        market = Exchange.SafeString(settlement, "market");
+        eventId = Exchange.SafeString(settlement, "event");
+        result = Exchange.SafeString(settlement, "result");
+        won = Exchange.SafeValue(settlement, "won") != null ? (bool)Exchange.SafeValue(settlement, "won") : null;
+        amount = Exchange.SafeFloat(settlement, "amount");
+        price = Exchange.SafeFloat(settlement, "price");
+        cost = Exchange.SafeFloat(settlement, "cost");
+        payout = Exchange.SafeFloat(settlement, "payout");
+        pnl = Exchange.SafeFloat(settlement, "pnl");
+    }
+}

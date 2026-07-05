@@ -573,7 +573,13 @@ public partial class limitless
     /// <item>
     /// <term>params.query</term>
     /// <description>
-    /// string : a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+    /// string : a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.eventId</term>
+    /// <description>
+    /// string : direct lookup by market address or slug
     /// </description>
     /// </item>
     /// <item>
@@ -588,6 +594,31 @@ public partial class limitless
     public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra exchange-specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.limit</term>
+    /// <description>
+    /// int : max number of raw markets to collect
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> raw limitless market objects.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchRawActiveMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRawActiveMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
 }

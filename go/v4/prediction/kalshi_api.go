@@ -298,3 +298,7 @@ func (this *KalshiCore) KalshiPrivateDeletePortfolioEventsOrdersOrderId(args ...
 func (this *KalshiCore) KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId", args...)
 }
+
+func (this *KalshiCore) ElectionsPublicGetSearchSeries(args ...any) <-chan any {
+	return this.CallEndpointAsync("electionsPublicGetSearchSeries", args...)
+}

@@ -267,6 +267,46 @@ public partial class kalshi
         return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     /// <summary>
+    /// fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getportfoliosettlements"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter to a single unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest settlement to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of settlements to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of prediction settlement structures.</returns>
+    public async Task<List<PredictionSettlement>> FetchSettlements(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchSettlements(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionSettlement(item)).ToList<PredictionSettlement>();
+    }
+    /// <summary>
     /// fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
     /// </summary>
     /// <remarks>
@@ -412,39 +452,45 @@ public partial class kalshi
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
-    /// fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in this.events
+    /// fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://trading-api.readme.io/reference/getevents"/>  <br/>
+    /// See <see href="https://docs.kalshi.com/api-reference/events/get-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// object : extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events)
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.query</term>
     /// <description>
-    /// string : a single query string to filter events by (matches event ticker/title)
+    /// string : free-text search resolved server-side via kalshi's series search endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.series_ticker</term>
+    /// <description>
+    /// string : one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.category</term>
+    /// <description>
+    /// string : a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.status</term>
     /// <description>
-    /// string : 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
+    /// string : 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.limit</term>
     /// <description>
-    /// int : page size per request, defaults to 200
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.maxPages</term>
-    /// <description>
-    /// int : maximum number of event pages to scan, defaults to 50
+    /// int : max number of events to return
     /// </description>
     /// </item>
     /// </list>
@@ -453,6 +499,75 @@ public partial class kalshi
     public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of events to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>rest</term>
+    /// <description>
+    /// object : extra params forwarded verbatim to the events endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> raw kalshi event objects with nested markets.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchEventsByQuery(List<string> queries, Int64 limit, Dictionary<string, object> rest = null)
+    {
+        var res = await this.fetchEventsByQuery(queries, limit, rest);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// fetches a single raw kalshi event object (with nested markets) by its event ticker
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra params forwarded verbatim to the events endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw kalshi event object with nested markets.</returns>
+    public async Task<Dictionary<string, object>> FetchRawEventByTicker(string ticker, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRawEventByTicker(ticker, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : stop fetching once this many events are gathered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>rest</term>
+    /// <description>
+    /// object : extra params forwarded verbatim to the events endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> raw kalshi event objects with nested markets.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchSeriesEvents(List<string> seriesTickers, string status, Int64 limit, Dictionary<string, object> rest = null)
+    {
+        var res = await this.fetchSeriesEvents(seriesTickers, status, limit, rest);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>

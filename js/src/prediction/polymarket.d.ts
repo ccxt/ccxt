@@ -16,7 +16,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
-     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -45,6 +45,18 @@ export default class polymarket extends Exchange {
      */
     fetchRawEventsList(params?: {}): Promise<any[]>;
     parseEventToMarkets(event: Dict): Market[];
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchOutcome
+     * @description resolves a single outcome by its CLOB token id in one request, so a cache miss
+     * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+     * instead of throwing BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+     * falls back to the base bulk load
+     * @param {string} outcomeSymbol the outcome token id or handle
+     * @returns {object} the resolved outcome object
+     */
+    fetchOutcome(outcomeSymbol: string): Promise<any>;
     /**
      * @method
      * @name polymarket#fetchTicker
