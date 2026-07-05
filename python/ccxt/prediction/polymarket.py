@@ -668,20 +668,24 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 if not clobTokenId:
                     continue
                 outcomeHandle = marketSymbol + ':' + outcomeLabel.upper()
-                winner = None
-                settleFraction = None
+                winnerRaw = None
+                settleFractionRaw = None
                 if marketResolved and (outcomePrice is not None):
                     # a genuinely-settled polymarket outcome is at 1(won) or 0(lost). a market
                     # that is only closed-for-trading(not yet UMA-resolved) still has fractional
                     # prices — don't report a fractional mid final settleFraction; leave the
                     # outcome-level fields None until a decisive price exists
                     if outcomePrice >= 0.99:
-                        winner = True
-                        settleFraction = 1
+                        winnerRaw = True
+                        settleFractionRaw = 1
                         resolvedOutcome = outcomeHandle
                     elif outcomePrice <= 0.01:
-                        winner = False
-                        settleFraction = 0
+                        winnerRaw = False
+                        settleFractionRaw = 0
+                # effectively-final copies: Java emits the object literal below anonymous
+                # inner class, which cannot capture a reassigned local
+                winner = winnerRaw
+                settleFraction = settleFractionRaw
                 outcomes.append({
                     'outcome': outcomeHandle,
                     'outcomeId': clobTokenId,
@@ -701,6 +705,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 })
             baseId = conditionId if (conditionId is not None) else marketId
             marketType = 'categorical' if (outcomeLabelsLength > 2) else 'binary'
+            # effectively-final copy for the market object literal below(reassigned in the loop)
+            marketResolvedOutcome = resolvedOutcome
             result.append({
                 'id': conditionId,
                 'symbol': marketSymbol,
@@ -723,7 +729,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'prediction': True,
                 'active': active and not closed,
                 'resolved': marketResolved,
-                'resolvedOutcome': resolvedOutcome,
+                'resolvedOutcome': marketResolvedOutcome,
                 'contract': False,
                 'linear': None,
                 'inverse': None,

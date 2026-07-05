@@ -1659,20 +1659,24 @@ public partial class myriad : PredictionExchange
             object price = this.safeNumber(outcome, "price");
             object outcomeHandle = this.slugToOutcomeSymbol(eventSlug, slug, outcomeLabel);
             object outcomeCompositeId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
-            object winner = null;
-            object settleFraction = null;
+            object winnerRaw = null;
+            object settleFractionRaw = null;
             if (isTrue(hasResolution))
             {
-                winner = (isEqual(outcomeId, resolvedOutcomeId));
-                settleFraction = ((bool) isTrue(winner)) ? 1 : 0;
-                if (isTrue(winner))
+                winnerRaw = (isEqual(outcomeId, resolvedOutcomeId));
+                settleFractionRaw = ((bool) isTrue(winnerRaw)) ? 1 : 0;
+                if (isTrue(winnerRaw))
                 {
                     resolvedOutcome = outcomeHandle;
                 }
             } else if (isTrue(voided))
             {
-                winner = false;
+                winnerRaw = false;
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            object winner = winnerRaw;
+            object settleFraction = settleFractionRaw;
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
                 { "id", outcomeCompositeId },
                 { "outcomeId", outcomeCompositeId },
@@ -1704,6 +1708,8 @@ public partial class myriad : PredictionExchange
         object marketTradingModel = this.safeString(raw, "tradingModel", "amm");
         object marketExecutionModel = ((bool) isTrue((isEqual(marketTradingModel, "amm")))) ? "amm" : "clob";
         object outcomesLength = getArrayLength(outcomes);
+        // effectively-final copy for the market object literal below (reassigned in the loop)
+        object marketResolvedOutcome = resolvedOutcome;
         return new Dictionary<string, object>() {
             { "id", add(add(networkId, ":"), marketId) },
             { "symbol", marketSymbol },
@@ -1724,7 +1730,7 @@ public partial class myriad : PredictionExchange
             { "prediction", true },
             { "active", active },
             { "resolved", marketResolved },
-            { "resolvedOutcome", resolvedOutcome },
+            { "resolvedOutcome", marketResolvedOutcome },
             { "contract", false },
             { "linear", null },
             { "inverse", null },

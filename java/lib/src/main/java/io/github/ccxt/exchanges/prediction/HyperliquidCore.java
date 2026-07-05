@@ -2309,15 +2309,8 @@ public class HyperliquidCore extends HyperliquidApi
                 }});
                 ((java.util.List<Object>)events).add(eventVar);
             }
-            if (!Helpers.isTrue(this.events))
-            {
-                this.events = new java.util.HashMap<String, Object>() {{}};
-            }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
-            {
-                Object ev = Helpers.GetValue(events, i);
-                Helpers.addElementToObject(this.events, Helpers.GetValue(ev, "event"), ev);
-            }
+            // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
+            // so getEvent() resolves these events by any of the three keys
             return this.applyEventFetchParams(events, parameters, queries);
         });
 

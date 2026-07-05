@@ -446,15 +446,19 @@ export default class limitless extends Exchange {
             } else if (labelLower === 'no') {
                 legIndex = 1;
             }
-            let winner = undefined;
-            let settleFraction = undefined;
+            let winnerRaw = undefined;
+            let settleFractionRaw = undefined;
             if (marketResolved) {
-                winner = (legIndex === winningOutcomeIndex);
-                settleFraction = winner ? 1 : 0;
-                if (winner) {
+                winnerRaw = (legIndex === winningOutcomeIndex);
+                settleFractionRaw = winnerRaw ? 1 : 0;
+                if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;
                 }
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            const winner = winnerRaw;
+            const settleFraction = settleFractionRaw;
             outcomes.push ({
                 'outcome': outcomeHandle,
                 'outcomeId': tokenId,
@@ -475,6 +479,8 @@ export default class limitless extends Exchange {
             });
         }
         const outcomesLength = outcomes.length;
+        // effectively-final copy for the market object literal below (reassigned in the loop)
+        const marketResolvedOutcome = resolvedOutcome;
         return {
             'id': slug,
             'symbol': marketSymbol,
@@ -497,7 +503,7 @@ export default class limitless extends Exchange {
             'prediction': true,
             'active': active,
             'resolved': marketResolved,
-            'resolvedOutcome': resolvedOutcome,
+            'resolvedOutcome': marketResolvedOutcome,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

@@ -1342,15 +1342,19 @@ class myriad(PredictionExchange, ImplicitAPI):
             price = self.safe_number(outcome, 'price')
             outcomeHandle = self.slug_to_outcome_symbol(eventSlug, slug, outcomeLabel)
             outcomeCompositeId = networkId + ':' + marketId + '/' + outcomeId
-            winner = None
-            settleFraction = None
+            winnerRaw = None
+            settleFractionRaw = None
             if hasResolution:
-                winner = (outcomeId == resolvedOutcomeId)
-                settleFraction = 1 if winner else 0
-                if winner:
+                winnerRaw = (outcomeId == resolvedOutcomeId)
+                settleFractionRaw = 1 if winnerRaw else 0
+                if winnerRaw:
                     resolvedOutcome = outcomeHandle
             elif voided:
-                winner = False
+                winnerRaw = False
+            # effectively-final copies for the object literal below(Java cannot capture a
+            # reassigned local into the anonymous inner class it emits for a map literal)
+            winner = winnerRaw
+            settleFraction = settleFractionRaw
             outcomes.append({
                 'id': outcomeCompositeId,
                 'outcomeId': outcomeCompositeId,
@@ -1381,6 +1385,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         marketTradingModel = self.safe_string(raw, 'tradingModel', 'amm')
         marketExecutionModel = 'amm' if (marketTradingModel == 'amm') else 'clob'
         outcomesLength = len(outcomes)
+        # effectively-final copy for the market object literal below(reassigned in the loop)
+        marketResolvedOutcome = resolvedOutcome
         return {
             'id': networkId + ':' + marketId,
             'symbol': marketSymbol,
@@ -1401,7 +1407,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'prediction': True,
             'active': active,
             'resolved': marketResolved,
-            'resolvedOutcome': resolvedOutcome,
+            'resolvedOutcome': marketResolvedOutcome,
             'contract': False,
             'linear': None,
             'inverse': None,

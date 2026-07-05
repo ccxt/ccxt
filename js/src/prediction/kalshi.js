@@ -484,15 +484,19 @@ export default class kalshi extends Exchange {
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = marketSymbol + ':' + label;
-            let winner = undefined;
-            let settleFraction = undefined;
+            let winnerRaw = undefined;
+            let settleFractionRaw = undefined;
             if (resolved && (result !== undefined) && (result !== '')) {
-                winner = (label.toLowerCase() === result);
-                settleFraction = (winner) ? 1 : 0;
-                if (winner) {
+                winnerRaw = (label.toLowerCase() === result);
+                settleFractionRaw = (winnerRaw) ? 1 : 0;
+                if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;
                 }
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            const winner = winnerRaw;
+            const settleFraction = settleFractionRaw;
             outcomes.push({
                 'id': outcomeIds[oi],
                 'outcomeId': outcomeIds[oi],
@@ -515,6 +519,8 @@ export default class kalshi extends Exchange {
                 },
             });
         }
+        // effectively-final copy for the market object literal below (reassigned in the loop)
+        const marketResolvedOutcome = resolvedOutcome;
         return {
             'id': ticker,
             'symbol': marketSymbol,
@@ -535,7 +541,7 @@ export default class kalshi extends Exchange {
             'prediction': true,
             'active': active,
             'resolved': resolved,
-            'resolvedOutcome': resolvedOutcome,
+            'resolvedOutcome': marketResolvedOutcome,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

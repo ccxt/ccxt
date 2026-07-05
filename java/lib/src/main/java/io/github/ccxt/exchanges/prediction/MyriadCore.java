@@ -386,6 +386,30 @@ public class MyriadCore extends MyriadApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object response = (this.fetchRawMarketById(id, parameters)).join();
+            Object market = this.parseMyriadMarket(response);
+            Object eventVar = this.parseMarketToEvent(response, market);
+            this.indexEventOutcomes(eventVar);
+            return eventVar;
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawMarketById
+     * @description fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
+     * @param {string} id the unified event/market id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw myriad market object
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchRawMarketById(Object id, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
             // the unified event id is a composite networkId:marketId
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object parts = Helpers.split(id, ":");
@@ -399,10 +423,7 @@ public class MyriadCore extends MyriadApi
             {
                 Helpers.addElementToObject(request, "id", id);
             }
-            Object response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
-            Object market = this.parseMyriadMarket(response);
-            Object eventVar = this.parseMarketToEvent(response, market);
-            return eventVar;
+            return (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
         });
 
     }
@@ -926,13 +947,23 @@ public class MyriadCore extends MyriadApi
      * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createAmmOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createAmmOrder(Object outcome, Object type, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object side = side3;
+            // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
+            // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
+            // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
+            // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object sideLower = ((Helpers.isTrue((!Helpers.isEqual(side, null))))) ? ((String)((String)side)).toLowerCase() : null;
+            Object isCostDenominated = this.safeBool(parameters, "costDenominated", false);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideLower, "buy"))) && !Helpers.isTrue(isCostDenominated)))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
+            }
             if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a privateKey to sign the on-chain transaction")) ;
@@ -951,8 +982,8 @@ public class MyriadCore extends MyriadApi
             Object predictionMarket = this.safeString(chainConfig, "predictionMarket");
             Object tokenAddress = this.safeString2(parameters, "token", "tokenAddress", this.safeString(info, "tokenAddress"));
             Object gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
-            Object sideStr = ((String)((String)side)).toLowerCase();
-            Object quoteParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit")));
+            Object sideStr = sideLower;
+            Object quoteParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated")));
             Object quote = (this.fetchTradeQuote(outcome, sideStr, amount, quoteParams)).join();
             Object calldata = this.safeString(this.safeDict(quote, "info", new java.util.HashMap<String, Object>() {{}}), "calldata");
             Object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
@@ -963,6 +994,32 @@ public class MyriadCore extends MyriadApi
             }
             Object txHash = (this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit)).join();
             return this.parseTradeTx(txHash, quote, ((Object)outcomeObj), sideStr);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name myriad#createMarketBuyOrderWithCost
+     * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost the collateral (USDC) amount to spend
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
+            // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object request = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "enableAmm", true );
+                put( "costDenominated", true );
+            }});
+            return (this.createOrder(outcome, "market", "buy", cost, null, request)).join();
         });
 
     }
@@ -1763,9 +1820,16 @@ public class MyriadCore extends MyriadApi
         Object endDate = this.safeString(raw, "expiresAt");
         Object state = this.safeString(raw, "state", "open");
         Object active = Helpers.isEqual(state, "open");
+        // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
+        Object resolvedOutcomeId = this.safeString(raw, "resolvedOutcomeId", "-1");
+        Object voided = this.safeBool(raw, "voided", false);
+        Object hasResolution = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, "-1"))) && Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, null)))) && Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, "")));
+        Object marketResolved = Helpers.isTrue(hasResolution) || Helpers.isTrue(voided);
+        Object resolvedOutcome = null;
         Object volume24h = this.safeNumber(raw, "volume24h");
-        Object slugBase = ((Helpers.isTrue((!Helpers.isEqual(eventSlug, null))))) ? eventSlug : networkId;
-        Object marketSymbol = this.slugToMarketSymbol(slugBase, slug);
+        // qualify the handle only with a real event slug (when passed); myriad market slugs are
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle
+        Object marketSymbol = this.slugToMarketSymbol(eventSlug, slug);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         Object tokenObj = this.safeDict(raw, "token", new java.util.HashMap<String, Object>() {{}});
         Object tokenAddress = this.safeString(tokenObj, "address");
@@ -1784,9 +1848,28 @@ public class MyriadCore extends MyriadApi
             Object outcomeId = this.safeString(outcome, "outcomeId", this.safeString(outcome, "id", String.valueOf(i)));
             Object outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             Object price = this.safeNumber(outcome, "price");
-            Object outcomeHandle = this.slugToOutcomeSymbol(slugBase, slug, outcomeLabel);
+            Object outcomeHandle = this.slugToOutcomeSymbol(eventSlug, slug, outcomeLabel);
             Object outcomeCompositeId = Helpers.add(Helpers.add(Helpers.add(Helpers.add(networkId, ":"), marketId), "/"), outcomeId);
+            Object winnerRaw = null;
+            Object settleFractionRaw = null;
+            if (Helpers.isTrue(hasResolution))
+            {
+                winnerRaw = (Helpers.isEqual(outcomeId, resolvedOutcomeId));
+                settleFractionRaw = ((Helpers.isTrue(winnerRaw))) ? 1 : 0;
+                if (Helpers.isTrue(winnerRaw))
+                {
+                    resolvedOutcome = outcomeHandle;
+                }
+            } else if (Helpers.isTrue(voided))
+            {
+                winnerRaw = false;
+            }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            Object winner = winnerRaw;
+            Object settleFraction = settleFractionRaw;
 final Object finalNetworkId = networkId;
+            final Object finalOutcomeId = outcomeId;
             final Object finalState = state;
                         ((java.util.List<Object>)outcomes).add(new java.util.HashMap<String, Object>() {{
                 put( "id", outcomeCompositeId );
@@ -1795,6 +1878,8 @@ final Object finalNetworkId = networkId;
                 put( "market", marketSymbol );
                 put( "label", outcomeLabel );
                 put( "active", active );
+                put( "winner", winner );
+                put( "settleFraction", settleFraction );
                 put( "precision", new java.util.HashMap<String, Object>() {{
                     put( "amount", 0.01 );
                     put( "price", 0.001 );
@@ -1803,7 +1888,7 @@ final Object finalNetworkId = networkId;
                     put( "networkId", finalNetworkId );
                     put( "marketId", marketId );
                     put( "slug", slug );
-                    put( "outcomeId", outcomeId );
+                    put( "outcomeId", finalOutcomeId );
                     put( "outcomeLabel", outcomeLabel );
                     put( "outcomePrice", price );
                     put( "volume24h", volume24h );
@@ -1817,6 +1902,8 @@ final Object finalNetworkId = networkId;
         Object marketTradingModel = this.safeString(raw, "tradingModel", "amm");
         Object marketExecutionModel = ((Helpers.isTrue((Helpers.isEqual(marketTradingModel, "amm"))))) ? "amm" : "clob";
         Object outcomesLength = Helpers.getArrayLength(outcomes);
+        // effectively-final copy for the market object literal below (reassigned in the loop)
+        Object marketResolvedOutcome = resolvedOutcome;
         final Object finalNetworkId = networkId;
         final Object finalOutcomesLength = outcomesLength;
         final Object finalState = state;
@@ -1839,6 +1926,8 @@ final Object finalNetworkId = networkId;
             put( "option", false );
             put( "prediction", true );
             put( "active", active );
+            put( "resolved", marketResolved );
+            put( "resolvedOutcome", marketResolvedOutcome );
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
@@ -2135,8 +2224,22 @@ final Object finalNetworkId = networkId;
             }
         }
         Object now = this.milliseconds();
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
+        // percentage from it — setting percentage = the absolute change (as before) was wrong
+        Object previousClose = null;
+        Object percentage = null;
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((!Helpers.isEqual(change, null)))))
+        {
+            previousClose = Helpers.subtract(price, change);
+            if (Helpers.isTrue(!Helpers.isEqual(previousClose, 0)))
+            {
+                percentage = Helpers.multiply(Helpers.divide(change, previousClose), 100);
+            }
+        }
         final Object finalPrice = price;
+        final Object finalPreviousClose = previousClose;
         final Object finalChange = change;
+        final Object finalPercentage = percentage;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "outcome", MyriadCore.this.safeString(market, "outcome") );
             put( "outcomeId", MyriadCore.this.safeString(market, "id") );
@@ -2151,15 +2254,15 @@ final Object finalNetworkId = networkId;
             put( "ask", finalPrice );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", null );
+            put( "open", finalPreviousClose );
             put( "close", finalPrice );
             put( "last", finalPrice );
-            put( "previousClose", null );
+            put( "previousClose", finalPreviousClose );
             put( "change", finalChange );
-            put( "percentage", finalChange );
+            put( "percentage", finalPercentage );
             put( "average", finalPrice );
-            put( "baseVolume", MyriadCore.this.safeNumber(raw, "volume24h") );
-            put( "quoteVolume", MyriadCore.this.safeNumber(raw, "volumeNotional24h") );
+            put( "baseVolume", MyriadCore.this.safeNumber(raw, "volumeNotional24h") );
+            put( "quoteVolume", MyriadCore.this.safeNumber(raw, "volume24h") );
             put( "info", raw );
         }}, market);
     }
@@ -2755,8 +2858,9 @@ final Object finalNetworkId = networkId;
      * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string} [params.query] a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
@@ -2771,19 +2875,29 @@ final Object finalNetworkId = networkId;
             Object queries = this.parseSearchQueries(parameters);
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "sort", "searchIn", "eventId", "slug", "status")));
             Object queriesLength = Helpers.getArrayLength(queries);
-            if (Helpers.isTrue(Helpers.isEqual(queriesLength, 0)))
+            Object eventId = this.safeString(parameters, "eventId");
+            // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
+            // an eventId does a direct lookup, and any other scope (tags) pages the markets listing so
+            // applyEventFetchParams can filter it below
+            Object rawMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
-                // no query - serve the eventId/slug/tags-only scope from the cache (empty cold)
-                Object existingEvents = this.eventsList();
-                return this.applyEventFetchParams(existingEvents, parameters, queries);
+                rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
+            } else if (Helpers.isTrue(!Helpers.isEqual(eventId, null)))
+            {
+                Object rawMarket = (this.fetchRawMarketById(eventId, rest)).join();
+                rawMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList(rawMarket));
+            } else
+            {
+                rawMarkets = (this.fetchRawMarketsList(rest)).join();
             }
-            Object rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
             if (!Helpers.isTrue(this.markets))
             {
                 this.markets = this.createSafeDictionary();
             }
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
+            Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+            for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
             {
                 Object raw = Helpers.GetValue(rawMarkets, i);
                 Object m = this.parseMyriadMarket(raw);

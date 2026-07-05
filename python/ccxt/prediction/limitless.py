@@ -409,13 +409,17 @@ class limitless(PredictionExchange, ImplicitAPI):
                 legIndex = 0
             elif labelLower == 'no':
                 legIndex = 1
-            winner = None
-            settleFraction = None
+            winnerRaw = None
+            settleFractionRaw = None
             if marketResolved:
-                winner = (legIndex == winningOutcomeIndex)
-                settleFraction = 1 if winner else 0
-                if winner:
+                winnerRaw = (legIndex == winningOutcomeIndex)
+                settleFractionRaw = 1 if winnerRaw else 0
+                if winnerRaw:
                     resolvedOutcome = outcomeHandle
+            # effectively-final copies for the object literal below(Java cannot capture a
+            # reassigned local into the anonymous inner class it emits for a map literal)
+            winner = winnerRaw
+            settleFraction = settleFractionRaw
             outcomes.append({
                 'outcome': outcomeHandle,
                 'outcomeId': tokenId,
@@ -435,6 +439,8 @@ class limitless(PredictionExchange, ImplicitAPI):
                 },
             })
         outcomesLength = len(outcomes)
+        # effectively-final copy for the market object literal below(reassigned in the loop)
+        marketResolvedOutcome = resolvedOutcome
         return {
             'id': slug,
             'symbol': marketSymbol,
@@ -457,7 +463,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'prediction': True,
             'active': active,
             'resolved': marketResolved,
-            'resolvedOutcome': resolvedOutcome,
+            'resolvedOutcome': marketResolvedOutcome,
             'contract': False,
             'linear': None,
             'inverse': None,

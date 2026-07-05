@@ -278,6 +278,8 @@ public class PolymarketCore extends PolymarketApi
                     put( "invalid amount", InvalidOrder.class );
                     put( "invalid price", InvalidOrder.class );
                     put( "minimum tick size", InvalidOrder.class );
+                    put( "no orders found to match", OrderNotFillable.class );
+                    put( "could not be fully filled", OrderNotFillable.class );
                     put( "geoblocked", PermissionDenied.class );
                     put( "restricted jurisdiction", PermissionDenied.class );
                     put( "Unauthorized", AuthenticationError.class );
@@ -323,7 +325,7 @@ public class PolymarketCore extends PolymarketApi
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
-     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
+     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
@@ -384,7 +386,10 @@ public class PolymarketCore extends PolymarketApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object pageSize = this.safeInteger(parameters, "limit", 50);
+            Object resultLimit = this.safeInteger(parameters, "limit");
+            // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
+            // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event)
+            Object pageSize = this.safeInteger(this.options, "searchPageSize", 100);
             // map the unified sort/status onto the gamma search params
             Object sort = this.safeString(parameters, "sort");
             Object sortParam = "volume";
@@ -431,6 +436,23 @@ public class PolymarketCore extends PolymarketApi
                 Object pagination = this.safeDict(first, "pagination", new java.util.HashMap<String, Object>() {{}});
                 Object totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
                 Object totalPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(totalResults, pageSize))));
+                // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
+                // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
+                if (Helpers.isTrue(!Helpers.isEqual(resultLimit, null)))
+                {
+                    Object limitPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(resultLimit, pageSize))));
+                    if (Helpers.isTrue(Helpers.isLessThan(limitPages, totalPages)))
+                    {
+                        totalPages = limitPages;
+                    }
+                } else
+                {
+                    Object maxSearchPages = this.safeInteger(this.options, "maxSearchPages", 5);
+                    if (Helpers.isTrue(Helpers.isLessThan(maxSearchPages, totalPages)))
+                    {
+                        totalPages = maxSearchPages;
+                    }
+                }
                 Object remainingPages = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var p = 2; Helpers.isLessThanOrEqual(p, totalPages); p++)
                 {
@@ -511,7 +533,7 @@ public class PolymarketCore extends PolymarketApi
             {
                 order = "startDate";
             }
-            Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries")));
+            Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags")));
             final Object finalOrder = order;
             Object baseRequest = new java.util.HashMap<String, Object>() {{
                 put( "limit", pageSize );
@@ -519,6 +541,15 @@ public class PolymarketCore extends PolymarketApi
                 put( "ascending", false );
             }};
             baseRequest = this.extend(baseRequest, rest);
+            // push a requested tag server-side (gamma accepts tag_slug) so a tags-only fetchEvents returns
+            // the tagged events rather than filtering the top-volume listing down to nothing; the base
+            // filterEventsByTags then narrows further client-side when multiple tags are requested
+            Object requestedTags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object requestedTagsLength = Helpers.getArrayLength(requestedTags);
+            if (Helpers.isTrue(Helpers.isGreaterThan(requestedTagsLength, 0)))
+            {
+                Helpers.addElementToObject(baseRequest, "tag_slug", this.safeString(requestedTags, 0));
+            }
             if (Helpers.isTrue(Helpers.isEqual(status, "active")))
             {
                 Helpers.addElementToObject(baseRequest, "active", true);
@@ -679,8 +710,14 @@ public class PolymarketCore extends PolymarketApi
             Object marketSlug = this.safeString(market, "slug", conditionId);
             Object active = this.safeBool(market, "active", false);
             Object closed = this.safeBool(market, "closed", false);
+            // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
+            Object marketResolved = Helpers.isTrue(closed) || Helpers.isTrue((Helpers.isEqual(this.safeStringLower(market, "umaResolutionStatus"), "resolved")));
+            Object resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             Object tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
+            // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
+            Object orderMinSize = this.safeNumber(market, "orderMinSize", 1);
+            Object priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
             Object negRisk = this.safeBool(market, "negRisk", false);
             Object endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
@@ -736,15 +773,43 @@ public class PolymarketCore extends PolymarketApi
                 {
                     continue;
                 }
+                Object outcomeHandle = Helpers.add(Helpers.add(marketSymbol, ":"), ((String)outcomeLabel).toUpperCase());
+                Object winnerRaw = null;
+                Object settleFractionRaw = null;
+                if (Helpers.isTrue(Helpers.isTrue(marketResolved) && Helpers.isTrue((!Helpers.isEqual(outcomePrice, null)))))
+                {
+                    // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
+                    // that is only closed-for-trading (not yet UMA-resolved) still has fractional
+                    // prices — don't report a fractional mid as a final settleFraction; leave the
+                    // outcome-level fields undefined until a decisive price exists
+                    if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(outcomePrice, 0.99)))
+                    {
+                        winnerRaw = true;
+                        settleFractionRaw = 1;
+                        resolvedOutcome = outcomeHandle;
+                    } else if (Helpers.isTrue(Helpers.isLessThanOrEqual(outcomePrice, 0.01)))
+                    {
+                        winnerRaw = false;
+                        settleFractionRaw = 0;
+                    }
+                }
+                // effectively-final copies: Java emits the object literal below as an anonymous
+                // inner class, which cannot capture a reassigned local
+                Object winner = winnerRaw;
+                Object settleFraction = settleFractionRaw;
 final Object finalMarketSymbol = marketSymbol;
+                final Object finalOutcomePrice = outcomePrice;
                 final Object finalActive = active;
+                final Object finalClosed = closed;
                                 ((java.util.List<Object>)outcomes).add(new java.util.HashMap<String, Object>() {{
-                    put( "outcome", Helpers.add(Helpers.add(finalMarketSymbol, ":"), ((String)outcomeLabel).toUpperCase()) );
+                    put( "outcome", outcomeHandle );
                     put( "outcomeId", clobTokenId );
                     put( "market", finalMarketSymbol );
                     put( "label", outcomeLabel );
-                    put( "price", outcomePrice );
-                    put( "active", Helpers.isTrue(finalActive) && !Helpers.isTrue(closed) );
+                    put( "price", finalOutcomePrice );
+                    put( "active", Helpers.isTrue(finalActive) && !Helpers.isTrue(finalClosed) );
+                    put( "winner", winner );
+                    put( "settleFraction", settleFraction );
                     put( "precision", new java.util.HashMap<String, Object>() {{
                         put( "amount", tickSize );
                         put( "price", tickSize );
@@ -755,6 +820,8 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object baseId = ((Helpers.isTrue((!Helpers.isEqual(conditionId, null))))) ? conditionId : marketId;
             Object marketType = ((Helpers.isTrue((Helpers.isGreaterThan(outcomeLabelsLength, 2))))) ? "categorical" : "binary";
+            // effectively-final copy for the market object literal below (reassigned in the loop)
+            Object marketResolvedOutcome = resolvedOutcome;
             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                 put( "id", conditionId );
                 put( "symbol", marketSymbol );
@@ -776,6 +843,8 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "option", false );
                 put( "prediction", true );
                 put( "active", Helpers.isTrue(active) && !Helpers.isTrue(closed) );
+                put( "resolved", marketResolved );
+                put( "resolvedOutcome", marketResolvedOutcome );
                 put( "contract", false );
                 put( "linear", null );
                 put( "inverse", null );
@@ -799,12 +868,12 @@ final Object finalMarketSymbol = marketSymbol;
                         put( "max", 1 );
                     }} );
                     put( "amount", new java.util.HashMap<String, Object>() {{
-                        put( "min", 1 );
+                        put( "min", orderMinSize );
                         put( "max", null );
                     }} );
                     put( "price", new java.util.HashMap<String, Object>() {{
-                        put( "min", 0.01 );
-                        put( "max", 0.99 );
+                        put( "min", tickSize );
+                        put( "max", priceMax );
                     }} );
                     put( "cost", new java.util.HashMap<String, Object>() {{
                         put( "min", null );
@@ -817,6 +886,58 @@ final Object finalMarketSymbol = marketSymbol;
             }});
         }
         return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchOutcome
+     * @description resolves a single outcome by its CLOB token id in one request, so a cache miss
+     * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+     * instead of throwing BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+     * falls back to the base bulk load
+     * @param {string} outcomeSymbol the outcome token id or handle
+     * @returns {object} the resolved outcome object
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(outcomeSymbol, ":"), Helpers.opNeg(1))))
+            {
+                Object response = (this.gammaPublicGetMarkets(new java.util.HashMap<String, Object>() {{
+                    put( "clob_token_ids", outcomeSymbol );
+                }})).join();
+                Object rawMarkets = ((Helpers.isTrue((!Helpers.isEqual(response, null))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                if (Helpers.isTrue(Helpers.isGreaterThan(rawMarketsLength, 0)))
+                {
+                    if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+                    {
+                        this.markets = this.createSafeDictionary();
+                    }
+                    Object ccxtMarkets = this.parseEventToMarkets(new java.util.HashMap<String, Object>() {{
+                        put( "markets", rawMarkets );
+                    }});
+                    Object ccxtMarketsLength = Helpers.getArrayLength(ccxtMarkets);
+                    for (var i = 0; Helpers.isLessThan(i, ccxtMarketsLength); i++)
+                    {
+                        Object mkt = Helpers.GetValue(ccxtMarkets, i);
+                        Helpers.addElementToObject(this.markets, ((String)Helpers.GetValue(mkt, "symbol")), mkt);
+                    }
+                    this.populateOutcomes();
+                    Object byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
+                    if (Helpers.isTrue(!Helpers.isEqual(byId, null)))
+                    {
+                        return byId;
+                    }
+                }
+            }
+            return (super.fetchOutcome(outcomeSymbol)).join();
+        });
+
     }
 
     /**
@@ -1057,7 +1178,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "askVolume", PolymarketCore.this.safeNumber(bestAsk, "size") );
             put( "vwap", null );
             put( "open", null );
-            put( "close", mid );
+            put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
@@ -1427,15 +1548,16 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
             }
-            // the endpoint requires a market conditionId, then its filtered down to the requested outcome
+            // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
+            // to the requested token client-side below. applying the user's `limit` to this request and
+            // THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
+            // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
+            // token filter by parsePredictionTrades
             final Object finalConditionId = conditionId;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", finalConditionId );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
-            {
-                Helpers.addElementToObject(request, "limit", limit);
-            }
+            Helpers.addElementToObject(request, "limit", this.safeInteger(this.options, "tradesPageSize", 500));
             Object response = (this.dataPublicGetTrades(this.extend(request, parameters))).join();
             Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object filteredTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1906,7 +2028,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "market", PolymarketCore.this.safeString(mkt, "market") );
             put( "type", "limit" );
             put( "timeInForce", PolymarketCore.this.safeString(order, "time_in_force", "GTC") );
-            put( "postOnly", null );
+            put( "postOnly", PolymarketCore.this.safeBool(order, "postOnly") );
             put( "side", side );
             put( "price", price );
             put( "stopPrice", null );
@@ -1980,7 +2102,11 @@ final Object finalMarketSymbol = marketSymbol;
             (this.loadOutcome(outcome)).join();
             Object built = this.buildClobOrderBody(outcome, type, side, amount, price, parameters);
             Object response = (this.clobPrivatePostOrder(this.safeDict(built, "body"))).join();
-            return this.parseOrder(response, ((Object)this.safeDict(built, "outcome")));
+            // request echo first so the response's real orderID/status/success win on overlap
+            Object enriched = this.extend(this.safeDict(built, "request"), response);
+            Object order = this.parseOrder(enriched, ((Object)this.safeDict(built, "outcome")));
+            Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
+            return order;
         });
 
     }
@@ -2004,6 +2130,7 @@ final Object finalMarketSymbol = marketSymbol;
             (this.loadOutcomes()).join();
             Object bodies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object requests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object batchSalt = this.milliseconds();
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -2020,6 +2147,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Object built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
                 ((java.util.List<Object>)bodies).add(this.safeDict(built, "body"));
                 ((java.util.List<Object>)outcomes).add(this.safeDict(built, "outcome"));
+                ((java.util.List<Object>)requests).add(this.safeDict(built, "request"));
             }
             Object response = (this.clobPrivatePostOrders(bodies)).join();
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2027,7 +2155,11 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    ((java.util.List<Object>)result).add(this.parseOrder(Helpers.GetValue(response, i), ((Object)Helpers.GetValue(outcomes, i))));
+                    // request echo first so the response's real orderID/status win on overlap
+                    Object enriched = this.extend(Helpers.GetValue(requests, i), Helpers.GetValue(response, i));
+                    Object parsedItem = this.parseOrder(enriched, ((Object)Helpers.GetValue(outcomes, i)));
+                    Helpers.addElementToObject(parsedItem, "info", Helpers.GetValue(response, i)); // keep info the raw exchange response
+                    ((java.util.List<Object>)result).add(parsedItem);
                 }
             } else
             {
@@ -2058,8 +2190,26 @@ final Object finalMarketSymbol = marketSymbol;
         Object sideStr = ((String)((String)side)).toUpperCase();
         Object isMarket = (Helpers.isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
-        // callers can override with params.orderType (GTC, GTD, FOK or FAK)
+        // native override: params.orderType (GTC, GTD, FOK or FAK)
         Object orderTypeStr = this.safeStringUpper(parameters, "orderType");
+        if (Helpers.isTrue(Helpers.isEqual(orderTypeStr, null)))
+        {
+            // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
+            Object unifiedTif = this.safeStringUpper(parameters, "timeInForce");
+            if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "GTC")))
+            {
+                orderTypeStr = "GTC";
+            } else if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "FOK")))
+            {
+                orderTypeStr = "FOK";
+            } else if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "IOC")))
+            {
+                orderTypeStr = "FAK"; // fill-and-kill == immediate-or-cancel
+            } else if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "GTD")))
+            {
+                orderTypeStr = "GTD";
+            }
+        }
         if (Helpers.isTrue(Helpers.isEqual(orderTypeStr, null)))
         {
             orderTypeStr = ((Helpers.isTrue(isMarket))) ? "FOK" : "GTC";
@@ -2082,6 +2232,8 @@ final Object finalMarketSymbol = marketSymbol;
         Object outcomePrecision = this.safeDict(outcomeObj, "precision", new java.util.HashMap<String, Object>() {{}});
         Object tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
         Object negRisk = this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
+        // maker-only: the CLOB rejects the order if it would immediately take
+        Object postOnly = this.safeBool(parameters, "postOnly", false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         Object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -2094,7 +2246,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         Object cost = this.safeNumber(parameters, "cost");
-        Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost")));
+        Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost")));
         Object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         Object makerAmount = this.safeString(amounts, "makerAmount");
         Object takerAmount = this.safeString(amounts, "takerAmount");
@@ -2129,7 +2281,7 @@ final Object finalMarketSymbol = marketSymbol;
         final Object finalOrderTypeStr = orderTypeStr;
         Object orderBody = new java.util.HashMap<String, Object>() {{
             put( "deferExec", false );
-            put( "postOnly", false );
+            put( "postOnly", postOnly );
             put( "order", new java.util.HashMap<String, Object>() {{
                 put( "salt", PolymarketCore.this.parseToInt(salt) );
                 put( "maker", maker );
@@ -2149,9 +2301,26 @@ final Object finalMarketSymbol = marketSymbol;
             put( "owner", owner );
             put( "orderType", finalOrderTypeStr );
         }};
+        // the CLOB create response only echoes {orderID, status}; carry the submitted terms
+        // (keyed as the fetchOrder response fields parseOrder reads) so createOrder can merge
+        // them and return a fully-populated order instead of undefined side/price/amount
+        final Object finalPrice = price;
+        Object requestEcho = new java.util.HashMap<String, Object>() {{
+            put( "side", finalSideStr );
+            put( "price", finalPrice );
+            put( "asset_id", tokenId );
+            put( "time_in_force", finalOrderTypeStr );
+            put( "postOnly", postOnly );
+        }};
+        if (Helpers.isTrue(Helpers.isEqual(cost, null)))
+        {
+            // a cost-sized market buy specifies spend, not shares — leave size to the fill
+            Helpers.addElementToObject(requestEcho, "original_size", amount);
+        }
         return new java.util.HashMap<String, Object>() {{
-            put( "body", PolymarketCore.this.extend(orderBody, rest) );
+            put( "body", PolymarketCore.this.extend(rest, orderBody) );
             put( "outcome", outcomeObj );
+            put( "request", requestEcho );
         }};
     }
 
@@ -2508,8 +2677,9 @@ final Object finalMarketSymbol = marketSymbol;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // no requireEventQuery: polymarket has a bounded gamma listing (fetchRawEventsList), so an
+            // unscoped call returns the most-active events (matching this method's documented contract)
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.requireEventQuery(parameters);
             Object requestedEventId = this.safeString(parameters, "eventId");
             Object requestedSlug = this.safeString(parameters, "slug");
             Object queries = this.parseSearchQueries(parameters);
@@ -2635,6 +2805,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object eventForParsing = this.safeDict(response, "event", response);
             Object eventVar = this.parseEvent(eventForParsing);
+            this.indexEventOutcomes(eventVar);
             return eventVar;
         });
 
@@ -2715,12 +2886,26 @@ final Object finalMarketSymbol = marketSymbol;
         {
             active = Helpers.isTrue(rawActive) && !Helpers.isTrue(closed);
         }
+        // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
+        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        Object rawTags = this.safeList(rawEvent, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawTagsLength = Helpers.getArrayLength(rawTags);
+        Object parsedTags = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var ti = 0; Helpers.isLessThan(ti, rawTagsLength); ti++)
+        {
+            Object tagLabel = this.safeString2(Helpers.GetValue(rawTags, ti), "slug", "label");
+            if (Helpers.isTrue(!Helpers.isEqual(tagLabel, null)))
+            {
+                ((java.util.List<Object>)parsedTags).add(tagLabel);
+            }
+        }
         final Object finalActive = active;
         return this.extend(new java.util.HashMap<String, Object>() {{
             put( "id", PolymarketCore.this.safeString(rawEvent, "id") );
             put( "slug", slug );
             put( "event", ((Helpers.isTrue(slug))) ? PolymarketCore.this.shortenSlug(slug) : null );
             put( "title", PolymarketCore.this.safeString(rawEvent, "title") );
+            put( "tags", parsedTags );
             put( "markets", marketsList );
             put( "active", finalActive );
             put( "url", PolymarketCore.this.safeString(rawEvent, "url") );

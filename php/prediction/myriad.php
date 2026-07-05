@@ -1492,17 +1492,21 @@ class myriad extends Exchange {
             $price = $this->safe_number($outcome, 'price');
             $outcomeHandle = $this->slug_to_outcome_symbol($eventSlug, $slug, $outcomeLabel);
             $outcomeCompositeId = $networkId . ':' . $marketId . '/' . $outcomeId;
-            $winner = null;
-            $settleFraction = null;
+            $winnerRaw = null;
+            $settleFractionRaw = null;
             if ($hasResolution) {
-                $winner = ($outcomeId === $resolvedOutcomeId);
-                $settleFraction = $winner ? 1 : 0;
-                if ($winner) {
+                $winnerRaw = ($outcomeId === $resolvedOutcomeId);
+                $settleFractionRaw = $winnerRaw ? 1 : 0;
+                if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;
                 }
             } elseif ($voided) {
-                $winner = false;
+                $winnerRaw = false;
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            $winner = $winnerRaw;
+            $settleFraction = $settleFractionRaw;
             $outcomes[] = array(
                 'id' => $outcomeCompositeId,
                 'outcomeId' => $outcomeCompositeId,
@@ -1534,6 +1538,8 @@ class myriad extends Exchange {
         $marketTradingModel = $this->safe_string($raw, 'tradingModel', 'amm');
         $marketExecutionModel = ($marketTradingModel === 'amm') ? 'amm' : 'clob';
         $outcomesLength = count($outcomes);
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $networkId . ':' . $marketId,
             'symbol' => $marketSymbol,
@@ -1554,7 +1560,7 @@ class myriad extends Exchange {
             'prediction' => true,
             'active' => $active,
             'resolved' => $marketResolved,
-            'resolvedOutcome' => $resolvedOutcome,
+            'resolvedOutcome' => $marketResolvedOutcome,
             'contract' => false,
             'linear' => null,
             'inverse' => null,

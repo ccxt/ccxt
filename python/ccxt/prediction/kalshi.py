@@ -464,13 +464,17 @@ class kalshi(PredictionExchange, ImplicitAPI):
         for oi in range(0, len(outcomeLabels)):
             label = outcomeLabels[oi]
             outcomeHandle = marketSymbol + ':' + label
-            winner = None
-            settleFraction = None
+            winnerRaw = None
+            settleFractionRaw = None
             if resolved and (result is not None) and (result != ''):
-                winner = (label.lower() == result)
-                settleFraction = 1 if (winner) else 0
-                if winner:
+                winnerRaw = (label.lower() == result)
+                settleFractionRaw = 1 if (winnerRaw) else 0
+                if winnerRaw:
                     resolvedOutcome = outcomeHandle
+            # effectively-final copies for the object literal below(Java cannot capture a
+            # reassigned local into the anonymous inner class it emits for a map literal)
+            winner = winnerRaw
+            settleFraction = settleFractionRaw
             outcomes.append({
                 'id': outcomeIds[oi],
                 'outcomeId': outcomeIds[oi],
@@ -492,6 +496,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     'openInterest': openInt,
                 },
             })
+        # effectively-final copy for the market object literal below(reassigned in the loop)
+        marketResolvedOutcome = resolvedOutcome
         return {
             'id': ticker,
             'symbol': marketSymbol,
@@ -512,7 +518,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'prediction': True,
             'active': active,
             'resolved': resolved,
-            'resolvedOutcome': resolvedOutcome,
+            'resolvedOutcome': marketResolvedOutcome,
             'contract': False,
             'linear': None,
             'inverse': None,

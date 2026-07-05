@@ -126,7 +126,15 @@ public Object isPrediction()
         Object limit = this.safeInteger(parameters, "limit");
         if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
         {
-            result = this.arraySlice(result, 0, limit);
+            // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
+            // (reflect Slice) and throws in C#, unlike JS/Python which return the whole array
+            Object resultLength = Helpers.getArrayLength(result);
+            Object sliceEnd = limit;
+            if (Helpers.isTrue(Helpers.isGreaterThan(sliceEnd, resultLength)))
+            {
+                sliceEnd = resultLength;
+            }
+            result = this.arraySlice(result, 0, sliceEnd);
         }
         return result;
     }
@@ -515,12 +523,26 @@ public Object isPrediction()
 
     public Object slugToMarketSymbol(Object eventSlug, Object marketSlug)
     {
-        return this.shortenSlug(marketSlug);
+        // qualify the market handle with its event so two events that share a market label
+        // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
+        // to the same handle — a collision silently overwrites markets in this.markets and would
+        // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
+        // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
+        // already-unique handles stay clean.
+        Object marketPart = this.shortenSlug(marketSlug);
+        Object eventPart = this.shortenSlug(eventSlug);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventPart, null))) || Helpers.isTrue((Helpers.isEqual(eventPart, "")))) || Helpers.isTrue((Helpers.isEqual(eventPart, marketPart)))))
+        {
+            return marketPart;
+        }
+        return Helpers.add(Helpers.add(eventPart, "_"), marketPart);
     }
 
     public Object slugToOutcomeSymbol(Object eventSlug, Object marketSlug, Object outcome)
     {
-        return Helpers.add(Helpers.add(this.shortenSlug(marketSlug), ":"), ((String)outcome).toUpperCase());
+        // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
+        // (both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
+        return Helpers.add(Helpers.add(this.slugToMarketSymbol(eventSlug, marketSlug), ":"), ((String)outcome).toUpperCase());
     }
 
     public Object setMarkets(Object markets, Object... optionalArgs)
@@ -609,6 +631,31 @@ public Object isPrediction()
         {
             this.indexMarketOutcomes(Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i)));
         }
+    }
+
+    public void indexEventOutcomes(Object eventVar)
+    {
+        // register a single event's markets into this.markets and rebuild the outcome cache so the
+        // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
+        // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
+        // (kalshi) the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // BadSymbols because the outcome was never cached
+        if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+        {
+            this.markets = this.createSafeDictionary();
+        }
+        Object markets = this.safeList(eventVar, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object marketsLength = Helpers.getArrayLength(markets);
+        for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
+        {
+            Object m = Helpers.GetValue(markets, i);
+            Object symbol = this.safeString(m, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(this.markets, symbol, m);
+            }
+        }
+        this.populateOutcomes();
     }
 
     public java.util.concurrent.CompletableFuture<Object> loadOutcomes(Object... optionalArgs)
@@ -1247,6 +1294,31 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name fetchSettlements
+     * @description fetches the user's settled (resolved) positions — the "close the loop" record after
+     * markets resolve, with the collateral paid out and the realized pnl
+     * @param {string} [outcome] filter to a single unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction settlement structures
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchSettlements(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchSettlements() is not supported yet")) ;
+        });
+
+    }
+
     public Object safePredictionOrder(Object order, Object... optionalArgs)
     {
         // the prediction identity is the `outcome` handle carried on the raw dict (read by
@@ -1540,6 +1612,7 @@ public Object isPrediction()
         return h;
     }
 
+    // eslint-disable-next-line no-unused-vars
     public Object signEvmTransaction(Object tx, Object privateKey)
     {
         throw new NotSupported((String)Helpers.add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;

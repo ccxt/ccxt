@@ -972,6 +972,56 @@ public class TestMain extends BaseTest
                         Object eventVar = (callExchangeMethodDynamically(exchange, "fetchEvent", new java.util.ArrayList<Object>(java.util.Arrays.asList(eventId)))).join();
                         this.AssertPredictionEvent(exchange, eventVar);
                     }
+                    // exercise EACH scoping parameter path, not just the initial query. a scope that
+                    // silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                    // series filter) is a real bug that only surfaces if the path is actually Asserted.
+                    // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                    // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                    Object scopesToTest = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    if (Helpers.isTrue(!Helpers.isEqual(eventId, null)))
+                    {
+                        // copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                        // since eventId is reassigned above. every venue must refetch an event by its own id
+                        Object eventIdScope = eventId;
+                        ((java.util.List<Object>)scopesToTest).add(new java.util.HashMap<String, Object>() {{
+                            put( "eventId", eventIdScope );
+                        }});
+                    }
+                    // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                    // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                    Object extraScopes = exchange.safeList(this.skippedSettingsForExchange, "preferredEventScopes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object extraScopesLength = Helpers.getArrayLength(extraScopes);
+                    for (var si = 0; Helpers.isLessThan(si, extraScopesLength); si++)
+                    {
+                        ((java.util.List<Object>)scopesToTest).add(Helpers.GetValue(extraScopes, si));
+                    }
+                    Object scopesToTestLength = Helpers.getArrayLength(scopesToTest);
+                    for (var sj = 0; Helpers.isLessThan(sj, scopesToTestLength); sj++)
+                    {
+                        Object scope = Helpers.GetValue(scopesToTest, sj);
+                        // fetchEvents scoped by a single parameter must return a non-empty, valid list
+                        Object scopedEvents = (callExchangeMethodDynamically(exchange, "fetchEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList(scope)))).join();
+                        Object scopedList = exchange.safeList(new java.util.HashMap<String, Object>() {{
+                            put( "events", scopedEvents );
+                        }}, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        Object scopedListLength = Helpers.getArrayLength(scopedList);
+                        Assert(Helpers.isGreaterThan(scopedListLength, 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " fetchEvents scoped by "), exchange.json(scope)), " returned no events - the parameter path may be broken"));
+                        this.AssertPredictionEvents(exchange, scopedList);
+                    }
+                    if (Helpers.isTrue(!Helpers.isEqual(eventQuery, null)))
+                    {
+                        // limit must bound the number of events returned (applied by applyEventFetchParams)
+                        final Object finalEventQuery = eventQuery;
+                        Object limited = (callExchangeMethodDynamically(exchange, "fetchEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+        put( "query", finalEventQuery );
+        put( "limit", 1 );
+    }})))).join();
+                        Object limitedList = exchange.safeList(new java.util.HashMap<String, Object>() {{
+                            put( "events", limited );
+                        }}, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        Object limitedListLength = Helpers.getArrayLength(limitedList);
+                        Assert(Helpers.isLessThanOrEqual(limitedListLength, 1), Helpers.add(exchange.id, " fetchEvents did not honour limit=1"));
+                    }
                 } catch(Exception e)
                 {
                     dump("[TEST_FAILURE]", exchange.id, "fetchEvents/fetchEvent failed:", exceptionMessage(e));

@@ -742,8 +742,8 @@ public partial class polymarket : PredictionExchange
                     continue;
                 }
                 object outcomeHandle = add(add(marketSymbol, ":"), ((string)outcomeLabel).ToUpper());
-                object winner = null;
-                object settleFraction = null;
+                object winnerRaw = null;
+                object settleFractionRaw = null;
                 if (isTrue(isTrue(marketResolved) && isTrue((!isEqual(outcomePrice, null)))))
                 {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
@@ -752,15 +752,19 @@ public partial class polymarket : PredictionExchange
                     // outcome-level fields undefined until a decisive price exists
                     if (isTrue(isGreaterThanOrEqual(outcomePrice, 0.99)))
                     {
-                        winner = true;
-                        settleFraction = 1;
+                        winnerRaw = true;
+                        settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
                     } else if (isTrue(isLessThanOrEqual(outcomePrice, 0.01)))
                     {
-                        winner = false;
-                        settleFraction = 0;
+                        winnerRaw = false;
+                        settleFractionRaw = 0;
                     }
                 }
+                // effectively-final copies: Java emits the object literal below as an anonymous
+                // inner class, which cannot capture a reassigned local
+                object winner = winnerRaw;
+                object settleFraction = settleFractionRaw;
                 ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
                     { "outcome", outcomeHandle },
                     { "outcomeId", clobTokenId },
@@ -780,6 +784,8 @@ public partial class polymarket : PredictionExchange
             }
             object baseId = ((bool) isTrue((!isEqual(conditionId, null)))) ? conditionId : marketId;
             object marketType = ((bool) isTrue((isGreaterThan(outcomeLabelsLength, 2)))) ? "categorical" : "binary";
+            // effectively-final copy for the market object literal below (reassigned in the loop)
+            object marketResolvedOutcome = resolvedOutcome;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", conditionId },
                 { "symbol", marketSymbol },
@@ -802,7 +808,7 @@ public partial class polymarket : PredictionExchange
                 { "prediction", true },
                 { "active", isTrue(active) && !isTrue(closed) },
                 { "resolved", marketResolved },
-                { "resolvedOutcome", resolvedOutcome },
+                { "resolvedOutcome", marketResolvedOutcome },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },

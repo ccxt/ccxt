@@ -39,7 +39,7 @@ const KNOWN_TYPES = new Set([
     'FundingHistory', 'DepositWithdrawFee',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
     // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
-    'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest',
+    'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionSettlement',
 ]);
 
 // --- Type helpers ---

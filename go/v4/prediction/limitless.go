@@ -452,15 +452,19 @@ func (this *LimitlessCore) ParseMarket(raw any) any {
 		} else if ccxt.IsTrue(ccxt.IsEqual(labelLower, "no")) {
 			legIndex = 1
 		}
-		var winner any = nil
-		var settleFraction any = nil
+		var winnerRaw any = nil
+		var settleFractionRaw any = nil
 		if ccxt.IsTrue(marketResolved) {
-			winner = (ccxt.IsEqual(legIndex, winningOutcomeIndex))
-			settleFraction = ccxt.Ternary(ccxt.IsTrue(winner), 1, 0)
-			if ccxt.IsTrue(winner) {
+			winnerRaw = (ccxt.IsEqual(legIndex, winningOutcomeIndex))
+			settleFractionRaw = ccxt.Ternary(ccxt.IsTrue(winnerRaw), 1, 0)
+			if ccxt.IsTrue(winnerRaw) {
 				resolvedOutcome = outcomeHandle
 			}
 		}
+		// effectively-final copies for the object literal below (Java cannot capture a
+		// reassigned local into the anonymous inner class it emits for a map literal)
+		var winner any = winnerRaw
+		var settleFraction any = settleFractionRaw
 		ccxt.AppendToArray(&outcomes, map[string]any{
 			"outcome":        outcomeHandle,
 			"outcomeId":      tokenId,
@@ -481,6 +485,8 @@ func (this *LimitlessCore) ParseMarket(raw any) any {
 		})
 	}
 	var outcomesLength any = ccxt.GetArrayLength(outcomes)
+	// effectively-final copy for the market object literal below (reassigned in the loop)
+	var marketResolvedOutcome any = resolvedOutcome
 	return map[string]any{
 		"id":              slug,
 		"symbol":          marketSymbol,
@@ -503,7 +509,7 @@ func (this *LimitlessCore) ParseMarket(raw any) any {
 		"prediction":      true,
 		"active":          active,
 		"resolved":        marketResolved,
-		"resolvedOutcome": resolvedOutcome,
+		"resolvedOutcome": marketResolvedOutcome,
 		"contract":        false,
 		"linear":          nil,
 		"inverse":         nil,
@@ -871,8 +877,8 @@ func (this *LimitlessCore) FetchTicker(outcome any, optionalArgs ...any) <-chan 
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8328 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes8328)
+		retRes8388 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes8388)
 		var outcomeObj any = this.Outcome(outcome)
 		var slug any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 		var request any = map[string]any{
@@ -1180,8 +1186,8 @@ func (this *LimitlessCore) FetchTickers(optionalArgs ...any) <-chan any {
 		var slugs any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 
-			retRes111612 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
-			ccxt.PanicOnError(retRes111612)
+			retRes112212 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
+			ccxt.PanicOnError(retRes112212)
 			var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 			var slug any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 			if !ccxt.IsTrue((ccxt.InOp(outcomesBySlug, slug))) {
@@ -1255,8 +1261,8 @@ func (this *LimitlessCore) FetchTrades(outcome any, optionalArgs ...any) <-chan 
 		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes11658 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes11658)
+		retRes11718 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes11718)
 		var outcomeObj any = this.Outcome(outcome)
 		var slug any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 		var tokenId any = this.SafeString(outcomeObj, "outcomeId")
@@ -1329,8 +1335,8 @@ func (this *LimitlessCore) FetchOrderBook(outcome any, optionalArgs ...any) <-ch
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12228 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes12228)
+		retRes12288 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes12288)
 		var outcomeObj any = this.Outcome(outcome)
 		var slug any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 		var request any = map[string]any{
@@ -1436,8 +1442,8 @@ func (this *LimitlessCore) FetchOHLCV(outcome any, optionalArgs ...any) <-chan a
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes13088 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes13088)
+		retRes13148 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes13148)
 		var outcomeObj any = this.Outcome(outcome)
 		var slug any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 		var outcomeLabel any = this.SafeStringUpper(ccxt.GetValue(outcomeObj, "info"), "outcomeLabel")
@@ -1587,8 +1593,8 @@ func (this *LimitlessCore) FetchOrders(optionalArgs ...any) <-chan any {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchOrders requires an outcome argument")))
 		}
 
-		retRes14348 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes14348)
+		retRes14408 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes14408)
 		var outcomeObj any = this.Outcome(outcome)
 		var info any = this.SafeDict(outcomeObj, "info")
 		var request any = map[string]any{
@@ -1659,15 +1665,15 @@ func (this *LimitlessCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchOpenOrders requires an outcome argument")))
 		}
 
-		retRes14858 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes14858)
+		retRes14918 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes14918)
 		params = this.Extend(params, map[string]any{
 			"statuses": []any{"LIVE"},
 		})
 
-		retRes148915 := (<-this.FetchOrders(outcome, since, limit, params))
-		ccxt.PanicOnError(retRes148915)
-		ch <- retRes148915
+		retRes149515 := (<-this.FetchOrders(outcome, since, limit, params))
+		ccxt.PanicOnError(retRes149515)
+		ch <- retRes149515
 		return nil
 
 	}()
@@ -1702,15 +1708,15 @@ func (this *LimitlessCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchClosedOrders requires an outcome argument")))
 		}
 
-		retRes15078 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes15078)
+		retRes15138 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes15138)
 		params = this.Extend(params, map[string]any{
 			"statuses": []any{"MATCHED"},
 		})
 
-		retRes151115 := (<-this.FetchOrders(outcome, since, limit, params))
-		ccxt.PanicOnError(retRes151115)
-		ch <- retRes151115
+		retRes151715 := (<-this.FetchOrders(outcome, since, limit, params))
+		ccxt.PanicOnError(retRes151715)
+		ch <- retRes151715
 		return nil
 
 	}()
@@ -1738,8 +1744,8 @@ func (this *LimitlessCore) FetchOrdersByIds(ids any, optionalArgs ...any) <-chan
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes152612 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes152612)
+			retRes153212 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes153212)
 		}
 		var length any = ccxt.GetArrayLength(ids)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(length, 50)) {
@@ -1893,8 +1899,8 @@ func (this *LimitlessCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes166412 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes166412)
+			retRes167012 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes167012)
 		}
 
 		orders := (<-this.FetchOrdersByIds([]any{id}, outcome, params))
@@ -2234,8 +2240,8 @@ func (this *LimitlessCore) CreateOrder(outcome any, typeVar any, side any, amoun
 		accounts := (<-this.LoadAccounts())
 		ccxt.PanicOnError(accounts)
 
-		retRes19728 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes19728)
+		retRes19788 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes19788)
 		var outcomeObj any = this.Outcome(outcome)
 		var account any = this.SafeDict(accounts, 0)
 		var accountInfo any = this.SafeDict(account, "info")
@@ -2583,9 +2589,9 @@ func (this *LimitlessCore) Approve(optionalArgs ...any) <-chan any {
 		txHash := (<-this.SendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit))
 		ccxt.PanicOnError(txHash)
 
-		retRes223615 := (<-this.WaitForTransactionReceipt(rpcUrl, txHash))
-		ccxt.PanicOnError(retRes223615)
-		ch <- retRes223615
+		retRes224215 := (<-this.WaitForTransactionReceipt(rpcUrl, txHash))
+		ccxt.PanicOnError(retRes224215)
+		ch <- retRes224215
 		return nil
 
 	}()
@@ -2613,8 +2619,8 @@ func (this *LimitlessCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes225112 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes225112)
+			retRes225712 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes225712)
 		}
 		var request any = map[string]any{
 			"order_id": id,
@@ -2663,8 +2669,8 @@ func (this *LimitlessCore) Redeem(optionalArgs ...any) <-chan any {
 				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " redeem() requires an outcome or a params.conditionId")))
 			}
 
-			retRes228412 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes228412)
+			retRes229012 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes229012)
 			var outcomeObj any = this.Outcome(outcome)
 			conditionId = this.SafeString(this.SafeDict(outcomeObj, "info", map[string]any{}), "conditionId")
 		}
@@ -2711,8 +2717,8 @@ func (this *LimitlessCore) CancelOrders(ids any, optionalArgs ...any) <-chan any
 		_ = params
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes231512 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes231512)
+			retRes232112 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes232112)
 		}
 		var request any = map[string]any{
 			"orderIds": ids,
@@ -2832,9 +2838,9 @@ func (this *LimitlessCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(paginate) {
 			params = this.Omit(params, "paginate")
 
-			retRes239019 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))
-			ccxt.PanicOnError(retRes239019)
-			ch <- retRes239019
+			retRes239619 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))
+			ccxt.PanicOnError(retRes239619)
+			ch <- retRes239619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -3092,13 +3098,13 @@ func (this *LimitlessCore) FetchPositions(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 0)) {
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 
-				retRes262816 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
-				ccxt.PanicOnError(retRes262816)
+				retRes263416 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
+				ccxt.PanicOnError(retRes263416)
 			}
 		} else {
 
-			retRes263112 := (<-this.LoadOutcomes())
-			ccxt.PanicOnError(retRes263112)
+			retRes263712 := (<-this.LoadOutcomes())
+			ccxt.PanicOnError(retRes263712)
 		}
 
 		response := (<-this.LimitlessPrivateGetPortfolioPositions(params))
@@ -3380,8 +3386,8 @@ func (this *LimitlessCore) FetchEvents(optionalArgs ...any) <-chan any {
 					})
 				}
 				var eventGroup any = ccxt.GetValue(eventGroups, eventKey)
-				retRes288416 := ccxt.GetValue(eventGroup, "markets")
-				ccxt.AppendToArray(&retRes288416, m)
+				retRes289016 := ccxt.GetValue(eventGroup, "markets")
+				ccxt.AppendToArray(&retRes289016, m)
 			}
 		}
 		var result any = []any{}

@@ -1446,18 +1446,22 @@ export default class myriad extends Exchange {
             const price = this.safeNumber(outcome, 'price');
             const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, slug, outcomeLabel);
             const outcomeCompositeId = networkId + ':' + marketId + '/' + outcomeId;
-            let winner = undefined;
-            let settleFraction = undefined;
+            let winnerRaw = undefined;
+            let settleFractionRaw = undefined;
             if (hasResolution) {
-                winner = (outcomeId === resolvedOutcomeId);
-                settleFraction = winner ? 1 : 0;
-                if (winner) {
+                winnerRaw = (outcomeId === resolvedOutcomeId);
+                settleFractionRaw = winnerRaw ? 1 : 0;
+                if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;
                 }
             }
             else if (voided) {
-                winner = false;
+                winnerRaw = false;
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            const winner = winnerRaw;
+            const settleFraction = settleFractionRaw;
             outcomes.push({
                 'id': outcomeCompositeId,
                 'outcomeId': outcomeCompositeId,
@@ -1489,6 +1493,8 @@ export default class myriad extends Exchange {
         const marketTradingModel = this.safeString(raw, 'tradingModel', 'amm');
         const marketExecutionModel = (marketTradingModel === 'amm') ? 'amm' : 'clob';
         const outcomesLength = outcomes.length;
+        // effectively-final copy for the market object literal below (reassigned in the loop)
+        const marketResolvedOutcome = resolvedOutcome;
         return {
             'id': networkId + ':' + marketId,
             'symbol': marketSymbol,
@@ -1509,7 +1515,7 @@ export default class myriad extends Exchange {
             'prediction': true,
             'active': active,
             'resolved': marketResolved,
-            'resolvedOutcome': resolvedOutcome,
+            'resolvedOutcome': marketResolvedOutcome,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

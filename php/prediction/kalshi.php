@@ -492,15 +492,19 @@ class kalshi extends Exchange {
         for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
             $label = $outcomeLabels[$oi];
             $outcomeHandle = $marketSymbol . ':' . $label;
-            $winner = null;
-            $settleFraction = null;
+            $winnerRaw = null;
+            $settleFractionRaw = null;
             if ($resolved && ($result !== null) && ($result !== '')) {
-                $winner = (strtolower($label) === $result);
-                $settleFraction = ($winner) ? 1 : 0;
-                if ($winner) {
+                $winnerRaw = (strtolower($label) === $result);
+                $settleFractionRaw = ($winnerRaw) ? 1 : 0;
+                if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;
                 }
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            $winner = $winnerRaw;
+            $settleFraction = $settleFractionRaw;
             $outcomes[] = array(
                 'id' => $outcomeIds[$oi],
                 'outcomeId' => $outcomeIds[$oi],
@@ -523,6 +527,8 @@ class kalshi extends Exchange {
                 ),
             );
         }
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $ticker,
             'symbol' => $marketSymbol,
@@ -543,7 +549,7 @@ class kalshi extends Exchange {
             'prediction' => true,
             'active' => $active,
             'resolved' => $resolved,
-            'resolvedOutcome' => $resolvedOutcome,
+            'resolvedOutcome' => $marketResolvedOutcome,
             'contract' => false,
             'linear' => null,
             'inverse' => null,

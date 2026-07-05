@@ -428,15 +428,19 @@ class limitless extends Exchange {
             } elseif ($labelLower === 'no') {
                 $legIndex = 1;
             }
-            $winner = null;
-            $settleFraction = null;
+            $winnerRaw = null;
+            $settleFractionRaw = null;
             if ($marketResolved) {
-                $winner = ($legIndex === $winningOutcomeIndex);
-                $settleFraction = $winner ? 1 : 0;
-                if ($winner) {
+                $winnerRaw = ($legIndex === $winningOutcomeIndex);
+                $settleFractionRaw = $winnerRaw ? 1 : 0;
+                if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;
                 }
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            $winner = $winnerRaw;
+            $settleFraction = $settleFractionRaw;
             $outcomes[] = array(
                 'outcome' => $outcomeHandle,
                 'outcomeId' => $tokenId,
@@ -457,6 +461,8 @@ class limitless extends Exchange {
             );
         }
         $outcomesLength = count($outcomes);
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $slug,
             'symbol' => $marketSymbol,
@@ -479,7 +485,7 @@ class limitless extends Exchange {
             'prediction' => true,
             'active' => $active,
             'resolved' => $marketResolved,
-            'resolvedOutcome' => $resolvedOutcome,
+            'resolvedOutcome' => $marketResolvedOutcome,
             'contract' => false,
             'linear' => null,
             'inverse' => null,

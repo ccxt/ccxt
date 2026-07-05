@@ -710,22 +710,26 @@ class polymarket extends Exchange {
                     continue;
                 }
                 $outcomeHandle = $marketSymbol . ':' . strtoupper($outcomeLabel);
-                $winner = null;
-                $settleFraction = null;
+                $winnerRaw = null;
+                $settleFractionRaw = null;
                 if ($marketResolved && ($outcomePrice !== null)) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a $market
                     // that is only $closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid final $settleFraction; leave the
                     // outcome-level fields null until a decisive price exists
                     if ($outcomePrice >= 0.99) {
-                        $winner = true;
-                        $settleFraction = 1;
+                        $winnerRaw = true;
+                        $settleFractionRaw = 1;
                         $resolvedOutcome = $outcomeHandle;
                     } elseif ($outcomePrice <= 0.01) {
-                        $winner = false;
-                        $settleFraction = 0;
+                        $winnerRaw = false;
+                        $settleFractionRaw = 0;
                     }
                 }
+                // effectively-final copies => Java emits the object literal below anonymous
+                // inner class, which cannot capture a reassigned local
+                $winner = $winnerRaw;
+                $settleFraction = $settleFractionRaw;
                 $outcomes[] = array(
                     'outcome' => $outcomeHandle,
                     'outcomeId' => $clobTokenId,
@@ -746,6 +750,8 @@ class polymarket extends Exchange {
             }
             $baseId = ($conditionId !== null) ? $conditionId : $marketId;
             $marketType = ($outcomeLabelsLength > 2) ? 'categorical' : 'binary';
+            // effectively-final copy for the $market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+            $marketResolvedOutcome = $resolvedOutcome;
             $result[] = array(
                 'id' => $conditionId,
                 'symbol' => $marketSymbol,
@@ -768,7 +774,7 @@ class polymarket extends Exchange {
                 'prediction' => true,
                 'active' => $active && !$closed,
                 'resolved' => $marketResolved,
-                'resolvedOutcome' => $resolvedOutcome,
+                'resolvedOutcome' => $marketResolvedOutcome,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,

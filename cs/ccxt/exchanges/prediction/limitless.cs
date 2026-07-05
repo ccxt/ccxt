@@ -446,17 +446,21 @@ public partial class limitless : PredictionExchange
             {
                 legIndex = 1;
             }
-            object winner = null;
-            object settleFraction = null;
+            object winnerRaw = null;
+            object settleFractionRaw = null;
             if (isTrue(marketResolved))
             {
-                winner = (isEqual(legIndex, winningOutcomeIndex));
-                settleFraction = ((bool) isTrue(winner)) ? 1 : 0;
-                if (isTrue(winner))
+                winnerRaw = (isEqual(legIndex, winningOutcomeIndex));
+                settleFractionRaw = ((bool) isTrue(winnerRaw)) ? 1 : 0;
+                if (isTrue(winnerRaw))
                 {
                     resolvedOutcome = outcomeHandle;
                 }
             }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            object winner = winnerRaw;
+            object settleFraction = settleFractionRaw;
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
                 { "outcome", outcomeHandle },
                 { "outcomeId", tokenId },
@@ -477,6 +481,8 @@ public partial class limitless : PredictionExchange
             });
         }
         object outcomesLength = getArrayLength(outcomes);
+        // effectively-final copy for the market object literal below (reassigned in the loop)
+        object marketResolvedOutcome = resolvedOutcome;
         return new Dictionary<string, object>() {
             { "id", slug },
             { "symbol", marketSymbol },
@@ -499,7 +505,7 @@ public partial class limitless : PredictionExchange
             { "prediction", true },
             { "active", active },
             { "resolved", marketResolved },
-            { "resolvedOutcome", resolvedOutcome },
+            { "resolvedOutcome", marketResolvedOutcome },
             { "contract", false },
             { "linear", null },
             { "inverse", null },

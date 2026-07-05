@@ -704,22 +704,26 @@ export default class polymarket extends Exchange {
                     continue;
                 }
                 const outcomeHandle = marketSymbol + ':' + outcomeLabel.toUpperCase ();
-                let winner = undefined;
-                let settleFraction = undefined;
+                let winnerRaw = undefined;
+                let settleFractionRaw = undefined;
                 if (marketResolved && (outcomePrice !== undefined)) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
                     if (outcomePrice >= 0.99) {
-                        winner = true;
-                        settleFraction = 1;
+                        winnerRaw = true;
+                        settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
                     } else if (outcomePrice <= 0.01) {
-                        winner = false;
-                        settleFraction = 0;
+                        winnerRaw = false;
+                        settleFractionRaw = 0;
                     }
                 }
+                // effectively-final copies: Java emits the object literal below as an anonymous
+                // inner class, which cannot capture a reassigned local
+                const winner = winnerRaw;
+                const settleFraction = settleFractionRaw;
                 outcomes.push ({
                     'outcome': outcomeHandle,
                     'outcomeId': clobTokenId,
@@ -740,6 +744,8 @@ export default class polymarket extends Exchange {
             }
             const baseId = (conditionId !== undefined) ? conditionId : marketId;
             const marketType = (outcomeLabelsLength > 2) ? 'categorical' : 'binary';
+            // effectively-final copy for the market object literal below (reassigned in the loop)
+            const marketResolvedOutcome = resolvedOutcome;
             result.push ({
                 'id': conditionId,
                 'symbol': marketSymbol,
@@ -762,7 +768,7 @@ export default class polymarket extends Exchange {
                 'prediction': true,
                 'active': active && !closed,
                 'resolved': marketResolved,
-                'resolvedOutcome': resolvedOutcome,
+                'resolvedOutcome': marketResolvedOutcome,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
