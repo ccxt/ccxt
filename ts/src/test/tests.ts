@@ -293,7 +293,7 @@ class testMainClass {
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isLoadMarkets) {
-            await exchange.loadMarkets (true);
+            await exchange.loadMarkets ();
         }
         const name = exchange.id;
         if (skipMessage) {

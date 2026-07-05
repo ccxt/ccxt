@@ -1087,13 +1087,7 @@ export default class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    async loadMarketsHelper (reload = false, params = {}) {
-        if (!reload && this.markets) {
-            if (!this.markets_by_id) {
-                return this.setMarkets (this.markets);
-            }
-            return this.markets;
-        }
+    async loadMarketsHelper (params = {}) {
         let currencies = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
@@ -1111,20 +1105,18 @@ export default class Exchange {
      * @method
      * @name Exchange#loadMarkets
      * @description Loads and prepares the markets for trading.
-     * @param {boolean} reload - If true, the markets will be reloaded from the exchange.
      * @param {object} params - Additional exchange-specific parameters for the request.
      * @returns A promise that resolves to a dictionary of markets.
      * @throws An error if the markets cannot be loaded or prepared.
      * @remarks This method is asynchronous and returns a promise.
-     *          It ensures that the markets are only loaded once, even if the method is called multiple times.
-     *          If the markets are already loaded and not reloading, the method returns the existing markets.
-     *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
+     *          The markets are always reloaded from the exchange when this method is called.
+     *          If a reload is already in progress, the method waits for it to complete before returning the markets.
      *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
      */
-    async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
-        if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
+    async loadMarkets (params: object = {}): Promise<Dictionary<Market>> {
+        if (!this.reloadingMarkets) {
             this.reloadingMarkets = true;
-            this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
+            this.marketsLoading = this.loadMarketsHelper (params).then ((resolved) => {
                 this.reloadingMarkets = false;
                 return resolved;
             }, (error) => {
