@@ -3503,6 +3503,12 @@ func  (this *LimitlessCore) HandleErrors(statusCode any, statusText any, url any
         this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), message, feedback)
     }
     this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions, "broad"), responseBody, feedback)
+    // a 400 is a client-side bad request (bad params, or a business rule like "market not
+    // resolved"), not a transport outage — throw ccxt.BadRequest with the exchange message instead
+    // of letting the base map the bare 400 to a retryable ccxt.ExchangeNotAvailable
+    if ccxt.IsTrue(ccxt.IsEqual(statusCode, 400)) {
+        panic(ccxt.BadRequest(feedback))
+    }
     return nil
 }
 

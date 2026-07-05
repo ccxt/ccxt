@@ -2999,6 +2999,12 @@ export default class limitless extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         }
         this.throwBroadlyMatchedException (this.exceptions['broad'], responseBody, feedback);
+        // a 400 is a client-side bad request (bad params, or a business rule like "market not
+        // resolved"), not a transport outage — throw BadRequest with the exchange message instead
+        // of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        if (statusCode === 400) {
+            throw new BadRequest (feedback);
+        }
         return undefined;
     }
 }
