@@ -3194,7 +3194,7 @@ public partial class deribit : Exchange
         //         "amount": 13.456
         //     }
         //
-        object timestamp = this.safeTimestamp(transfer, "created_timestamp");
+        object timestamp = this.safeInteger(transfer, "created_timestamp");
         object status = this.safeString(transfer, "state");
         object account = this.safeString(transfer, "other_side");
         object direction = this.safeString(transfer, "direction");

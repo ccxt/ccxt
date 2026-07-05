@@ -19,7 +19,7 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
-        testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
+        testOHLCV (exchange, skippedProperties, method, ohlcvs[i] as number[], symbol, now);
     }
     // todo: sorted timestamps check
     return true;

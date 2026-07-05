@@ -144,7 +144,7 @@ class toobit extends \ccxt\async\toobit {
             'ticketInfo' => array($this, 'handle_my_trade'),
             'outboundContractPositionInfo' => array($this, 'handle_positions'),
         );
-        $method = $this->safe_value($methods, $topic);
+        $method = ($topic === null) ? null : $this->safe_value($methods, $topic);
         if ($method !== null) {
             $method($client, $message);
         } else {
@@ -152,7 +152,7 @@ class toobit extends \ccxt\async\toobit {
             for ($i = 0; $i < count($message); $i++) {
                 $item = $message[$i];
                 $event = $this->safe_string($item, 'e');
-                $method2 = $this->safe_value($methods, $event);
+                $method2 = ($event === null) ? null : $this->safe_value($methods, $event);
                 if ($method2 !== null) {
                     $method2($client, $item);
                 }

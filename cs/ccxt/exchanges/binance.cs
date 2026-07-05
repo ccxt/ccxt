@@ -1418,7 +1418,6 @@ public partial class binance : Exchange
                     { "XRP", "XRP" },
                     { "EOS", "EOS" },
                     { "DOGE", "DOGE" },
-                    { "SPL", "SOL" },
                     { "SOL", "SOL" },
                     { "SONIC", "SONIC" },
                     { "ARBONE", "ARBITRUM" },

@@ -18,7 +18,7 @@ async function testWatchTickersHelper(exchange, skippedProperties, argSymbols, a
     let now = exchange.milliseconds();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response = {};
         let success = true;
         let shouldReturn = false;
         try {

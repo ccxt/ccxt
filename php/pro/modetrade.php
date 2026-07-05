@@ -184,7 +184,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDC",
@@ -357,13 +357,16 @@ class modetrade extends \ccxt\async\modetrade {
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_bid_ask($this->extend($data[$i], array( 'ts' => $timestamp )));
-            $this->tickers[$ticker['symbol']] = $ticker;
+            $symbol = $ticker['symbol'];
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $result[] = $ticker;
         }
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -441,6 +444,9 @@ class modetrade extends \ccxt\async\modetrade {
         $symbol = $market['symbol'];
         $interval = $this->safe_string($data, 'type');
         $timeframe = $this->find_timeframe($interval);
+        if ($timeframe === null) {
+            return;
+        }
         $parsed = array(
             $this->safe_integer($data, 'startTime'),
             $this->safe_number($data, 'open'),
@@ -522,7 +528,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($trades, $topic);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -572,7 +578,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($maker !== null) {
             $takerOrMaker = $maker ? 'maker' : 'taker';
         }
-        $fee = null;
+        $fee = array();
         $feeValue = $this->safe_string($trade, 'fee');
         if ($feeValue !== null) {
             $fee = array(
@@ -756,7 +762,7 @@ class modetrade extends \ccxt\async\modetrade {
         })();
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -824,7 +830,7 @@ class modetrade extends \ccxt\async\modetrade {
         //
         $orderId = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
@@ -912,7 +918,8 @@ class modetrade extends \ccxt\async\modetrade {
             // algoexecutionreport
             for ($i = 0; $i < count($data); $i++) {
                 $order = $data[$i];
-                $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
+                $tradeIdStr = $this->safe_string($data, 'tradeId');
+                $tradeId = ($tradeIdStr === null) ? null : $this->omit_zero($tradeIdStr);
                 if ($tradeId !== null) {
                     $this->handle_my_trade($client, $order);
                 }
@@ -920,7 +927,8 @@ class modetrade extends \ccxt\async\modetrade {
             }
         } else {
             // executionreport
-            $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
+            $tradeIdStr = $this->safe_string($data, 'tradeId');
+            $tradeId = ($tradeIdStr === null) ? null : $this->omit_zero($tradeIdStr);
             if ($tradeId !== null) {
                 $this->handle_my_trade($client, $data);
             }
@@ -939,7 +947,7 @@ class modetrade extends \ccxt\async\modetrade {
             }
             $cachedOrders = $this->orders;
             $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
-            $order = $this->safe_dict($orders, $orderId);
+            $order = ($orderId === null) ? null : $this->safe_dict($orders, $orderId);
             if ($order !== null) {
                 $fee = $this->safe_value($order, 'fee');
                 if ($fee !== null) {
@@ -949,7 +957,7 @@ class modetrade extends \ccxt\async\modetrade {
                 if ($fees !== null) {
                     $parsed['fees'] = $fees;
                 }
-                $parsed['trades'] = $this->safe_list($order, 'trades');
+                $parsed['trades'] = $this->safe_list($order, 'trades', array());
                 $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
                 $parsed['datetime'] = $this->safe_string($order, 'datetime');
             }
@@ -1022,7 +1030,7 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols);
-            if (!$this->is_empty($symbols)) {
+            if (($symbols !== null) && !$this->is_empty($symbols)) {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
                     $messageHashes[] = 'positions::' . $symbol;
@@ -1138,7 +1146,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1337,7 +1345,7 @@ class modetrade extends \ccxt\async\modetrade {
             'bbos' => array($this, 'handle_bid_ask'),
         );
         $event = $this->safe_string($message, 'event');
-        $method = $this->safe_value($methods, $event);
+        $method = ($event === null) ? null : $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
             return;
@@ -1353,6 +1361,9 @@ class modetrade extends \ccxt\async\modetrade {
             $splitLength = count($splitTopic);
             if ($splitLength === 2) {
                 $name = $this->safe_string($splitTopic, 1);
+                if ($name === null) {
+                    return;
+                }
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
                     $method($client, $message);
@@ -1361,7 +1372,8 @@ class modetrade extends \ccxt\async\modetrade {
                 $splitName = explode('_', $name);
                 $splitNameLength = count($splitTopic);
                 if ($splitNameLength === 2) {
-                    $method = $this->safe_value($methods, $this->safe_string($splitName, 0));
+                    $splitNameFirst = $this->safe_string($splitName, 0);
+                    $method = ($splitNameFirst === null) ? null : $this->safe_value($methods, $splitNameFirst);
                     if ($method !== null) {
                         $method($client, $message);
                     }

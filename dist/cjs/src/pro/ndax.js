@@ -168,7 +168,7 @@ class ndax extends ndax$1["default"] {
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade(payload[i]);
             const symbol = trade['symbol'];
-            let tradesArray = this.safeValue(this.trades, symbol);
+            let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
             if (tradesArray === undefined) {
                 const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
                 tradesArray = new Cache.ArrayCache(limit);
@@ -489,7 +489,7 @@ class ndax extends ndax$1["default"] {
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const id = this.safeInteger(message, 'i');
-        const subscription = this.safeValue(subscriptionsById, id);
+        const subscription = (id === undefined) ? undefined : this.safeValue(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
@@ -536,7 +536,7 @@ class ndax extends ndax$1["default"] {
             'TickerDataUpdateEvent': this.handleOHLCV,
         };
         const event = this.safeString(message, 'n');
-        const method = this.safeValue(methods, event);
+        const method = (event === undefined) ? undefined : this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
         }

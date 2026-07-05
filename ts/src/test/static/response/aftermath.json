@@ -1734,6 +1734,7 @@
                         "initialMarginPercentage": 0.025,
                         "maintenanceMarginPercentage": 0.0125,
                         "unrealizedPnl": 0.0,
+                        "percentage": null,
                         "timestamp": 1764838387056,
                         "datetime": "2025-12-04 08:53:07.056 UTC"
                     }
@@ -1753,6 +1754,7 @@
                         "initialMarginPercentage": 0.025,
                         "maintenanceMarginPercentage": 0.0125,
                         "unrealizedPnl": 0,
+                        "percentage": null,
                         "timestamp": 1764838387056,
                         "datetime": "2025-12-04 08:53:07.056 UTC"
                     }

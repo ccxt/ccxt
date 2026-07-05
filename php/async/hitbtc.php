@@ -1138,7 +1138,7 @@ class hitbtc extends Exchange {
             $type = $this->safe_string_lower($params, 'type', 'spot');
             $params = $this->omit($params, array( 'type' ));
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $account = $this->safe_string($accountsByType, $type, $type);
+            $account = ($type === null) ? null : $this->safe_string($accountsByType, $type, $type);
             if ($account === 'wallet') {
                 $response = Async\await($this->privateGetWalletBalance($params));
             } elseif ($account === 'spot') {
@@ -1312,17 +1312,13 @@ class hitbtc extends Exchange {
             if ($since !== null) {
                 $request['from'] = $since;
             }
-            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->publicGetPublicTradesSymbol($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->publicGetPublicTrades($this->extend($request, $params)));
+                $responseInner = Async\await($this->publicGetPublicTradesSymbol($this->extend($request, $params)));
+                return $this->parse_trades($responseInner, $market);
             }
-            if ($symbol !== null) {
-                return $this->parse_trades($response, $market);
-            }
+            $response = Async\await($this->publicGetPublicTrades($this->extend($request, $params)));
             $trades = array();
             $marketIds = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
@@ -1368,7 +1364,7 @@ class hitbtc extends Exchange {
             }
             $marketType = null;
             $marginMode = null;
-            $response = null;
+            $response = array();
             list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
             $params = $this->omit($params, array( 'marginMode', 'margin' ));
@@ -1546,6 +1542,9 @@ class hitbtc extends Exchange {
             'ROLLED_BACK' => 'failed',
             'SUCCESS' => 'ok',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1844,7 +1843,9 @@ class hitbtc extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $fee = $this->parse_trading_fee($response[$i]);
                 $symbol = $fee['symbol'];
-                $result[$symbol] = $fee;
+                if ($symbol !== null) {
+                    $result[$symbol] = $fee;
+                }
             }
             return $result;
         })();
@@ -1889,7 +1890,7 @@ class hitbtc extends Exchange {
             }
             $price = $this->safe_string($params, 'price');
             $params = $this->omit($params, 'price');
-            $response = null;
+            $response = array();
             if ($price === 'mark') {
                 $response = Async\await($this->publicGetPublicFuturesCandlesMarkPriceSymbol($this->extend($request, $params)));
             } elseif ($price === 'index') {
@@ -2078,7 +2079,7 @@ class hitbtc extends Exchange {
             //       }
             //     )
             //
-            $order = $this->safe_dict($response, 0);
+            $order = $this->safe_dict($response, 0, array());
             return $this->parse_order($order, $market);
         })();
     }
@@ -2114,7 +2115,7 @@ class hitbtc extends Exchange {
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrderTrades', $params);
             $params = $this->omit($params, array( 'marginMode', 'margin' ));
-            $response = null;
+            $response = array();
             if ($marginMode !== null) {
                 $response = Async\await($this->privateGetMarginHistoryTrade($this->extend($request, $params)));
             } else {
@@ -2529,6 +2530,9 @@ class hitbtc extends Exchange {
             'canceled' => 'canceled',
             'expired' => 'failed',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2917,6 +2921,9 @@ class hitbtc extends Exchange {
             $fundingRates = array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $this->safe_string($marketIds, $i);
+                if ($marketId === null) {
+                    continue;
+                }
                 $rawFundingRate = $this->safe_value($response, $marketId);
                 $marketInner = $this->market($marketId);
                 $symbol = $marketInner['symbol'];
@@ -3781,13 +3788,15 @@ class hitbtc extends Exchange {
             if ($isDefault === true) {
                 $result['withdraw'] = $withdrawResult;
             }
-            $result['networks'][$networkCode] = array(
-                'withdraw' => $withdrawResult,
-                'deposit' => array(
-                    'fee' => null,
-                    'percentage' => null,
-                ),
-            );
+            if ($networkCode !== null) {
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => $withdrawResult,
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
         }
         return $result;
     }
@@ -3834,7 +3843,7 @@ class hitbtc extends Exchange {
         })();
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array(), $defaultValue = null): array {
+    public function handle_margin_mode_and_params($methodName, $params = array(), mixed $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -3909,7 +3918,9 @@ class hitbtc extends Exchange {
                     $payload[] = $getRequest;
                 }
             } else {
-                $payload[] = $body;
+                if ($body !== null) {
+                    $payload[] = $body;
+                }
             }
             $payload[] = $timestamp;
             $payloadString = implode('', $payload);

@@ -1291,6 +1291,9 @@ class mexc(ccxt.async_support.mexc):
         parsed: Order
         if market['spot']:
             parsed = self.parse_ws_order(data, market)
+            sendTime = self.safe_integer(message, 'sendTime')
+            if sendTime is not None:
+                parsed['lastTradeTimestamp'] = sendTime
         else:
             parsed = self.parse_order(data, market)
         orders = self.orders
