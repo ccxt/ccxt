@@ -1855,7 +1855,7 @@ public partial class polymarket : PredictionExchange
             { "market", this.safeString(mkt, "market") },
             { "type", "limit" },
             { "timeInForce", this.safeString(order, "time_in_force", "GTC") },
-            { "postOnly", null },
+            { "postOnly", this.safeBool(order, "postOnly") },
             { "side", side },
             { "price", price },
             { "stopPrice", null },
@@ -2046,6 +2046,8 @@ public partial class polymarket : PredictionExchange
         object outcomePrecision = this.safeDict(outcomeObj, "precision", new Dictionary<string, object>() {});
         object tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
         object negRisk = this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
+        // maker-only: the CLOB rejects the order if it would immediately take
+        object postOnly = this.safeBool(parameters, "postOnly", false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -2090,7 +2092,7 @@ public partial class polymarket : PredictionExchange
         object owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
         object orderBody = new Dictionary<string, object>() {
             { "deferExec", false },
-            { "postOnly", false },
+            { "postOnly", postOnly },
             { "order", new Dictionary<string, object>() {
                 { "salt", this.parseToInt(salt) },
                 { "maker", maker },
@@ -2118,6 +2120,7 @@ public partial class polymarket : PredictionExchange
             { "price", price },
             { "asset_id", tokenId },
             { "time_in_force", orderTypeStr },
+            { "postOnly", postOnly },
         };
         if (isTrue(isEqual(cost, null)))
         {

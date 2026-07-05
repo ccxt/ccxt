@@ -1726,7 +1726,7 @@ class polymarket extends Exchange {
             'market' => $this->safe_string($mkt, 'market'),
             'type' => 'limit', // polymarket CLOB orders are limit orders (the user-ws 'type' field is the lifecycle, used for $status)
             'timeInForce' => $this->safe_string($order, 'time_in_force', 'GTC'),
-            'postOnly' => null,
+            'postOnly' => $this->safe_bool($order, 'postOnly'),
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -1893,6 +1893,8 @@ class polymarket extends Exchange {
         $outcomePrecision = $this->safe_dict($outcomeObj, 'precision', array());
         $tickSize = $this->safe_string($params, 'tickSize', $this->number_to_string($this->safe_number($outcomePrecision, 'price', 0.01)));
         $negRisk = $this->safe_bool($params, 'negRisk', $this->safe_bool($outcomeObj, 'negRisk', false));
+        // $maker-only => the CLOB rejects the order if it would immediately take
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         $signatureType = $this->safe_integer_2($params, 'signatureType', 'signature_type', $this->safe_integer($this->options, 'signatureType', 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -1937,7 +1939,7 @@ class polymarket extends Exchange {
         $owner = $this->safe_string($this->options, 'l2ApiKey', $this->apiKey);
         $orderBody = array(
             'deferExec' => false,
-            'postOnly' => false,
+            'postOnly' => $postOnly,
             'order' => array(
                 'salt' => $this->parse_to_int($salt),
                 'maker' => $maker,
@@ -1965,6 +1967,7 @@ class polymarket extends Exchange {
             'price' => $price,
             'asset_id' => $tokenId,
             'time_in_force' => $orderTypeStr,
+            'postOnly' => $postOnly,
         );
         if ($cost === null) {
             // a $cost-sized market buy specifies spend, not shares — leave size to the fill

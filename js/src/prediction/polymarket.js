@@ -1673,7 +1673,7 @@ export default class polymarket extends Exchange {
             'market': this.safeString(mkt, 'market'),
             'type': 'limit', // polymarket CLOB orders are limit orders (the user-ws 'type' field is the lifecycle, used for status)
             'timeInForce': this.safeString(order, 'time_in_force', 'GTC'),
-            'postOnly': undefined,
+            'postOnly': this.safeBool(order, 'postOnly'),
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -1840,6 +1840,8 @@ export default class polymarket extends Exchange {
         const outcomePrecision = this.safeDict(outcomeObj, 'precision', {});
         const tickSize = this.safeString(params, 'tickSize', this.numberToString(this.safeNumber(outcomePrecision, 'price', 0.01)));
         const negRisk = this.safeBool(params, 'negRisk', this.safeBool(outcomeObj, 'negRisk', false));
+        // maker-only: the CLOB rejects the order if it would immediately take
+        const postOnly = this.safeBool(params, 'postOnly', false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         const signatureType = this.safeInteger2(params, 'signatureType', 'signature_type', this.safeInteger(this.options, 'signatureType', 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -1884,7 +1886,7 @@ export default class polymarket extends Exchange {
         const owner = this.safeString(this.options, 'l2ApiKey', this.apiKey);
         const orderBody = {
             'deferExec': false,
-            'postOnly': false,
+            'postOnly': postOnly,
             'order': {
                 'salt': this.parseToInt(salt),
                 'maker': maker,
@@ -1912,6 +1914,7 @@ export default class polymarket extends Exchange {
             'price': price,
             'asset_id': tokenId,
             'time_in_force': orderTypeStr,
+            'postOnly': postOnly,
         };
         if (cost === undefined) {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill

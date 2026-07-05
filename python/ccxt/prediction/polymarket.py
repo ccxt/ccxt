@@ -1578,7 +1578,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'market': self.safe_string(mkt, 'market'),
             'type': 'limit',  # polymarket CLOB orders are limit orders(the user-ws 'type' field is the lifecycle, used for status)
             'timeInForce': self.safe_string(order, 'time_in_force', 'GTC'),
-            'postOnly': None,
+            'postOnly': self.safe_bool(order, 'postOnly'),
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1727,6 +1727,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         outcomePrecision = self.safe_dict(outcomeObj, 'precision', {})
         tickSize = self.safe_string(params, 'tickSize', self.number_to_string(self.safe_number(outcomePrecision, 'price', 0.01)))
         negRisk = self.safe_bool(params, 'negRisk', self.safe_bool(outcomeObj, 'negRisk', False))
+        # maker-only: the CLOB rejects the order if it would immediately take
+        postOnly = self.safe_bool(params, 'postOnly', False)
         # 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271(deposit wallet, default); funder/maker holds the USDC
         signatureType = self.safe_integer_2(params, 'signatureType', 'signature_type', self.safe_integer(self.options, 'signatureType', 3))
         # the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet(walletAddress)
@@ -1771,7 +1773,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         owner = self.safe_string(self.options, 'l2ApiKey', self.apiKey)
         orderBody = {
             'deferExec': False,
-            'postOnly': False,
+            'postOnly': postOnly,
             'order': {
                 'salt': self.parse_to_int(salt),
                 'maker': maker,
@@ -1799,6 +1801,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'price': price,
             'asset_id': tokenId,
             'time_in_force': orderTypeStr,
+            'postOnly': postOnly,
         }
         if cost is None:
             # a cost-sized market buy specifies spend, not shares — leave size to the fill
