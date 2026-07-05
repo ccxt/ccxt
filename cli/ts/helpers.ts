@@ -133,8 +133,11 @@ function createRequestTemplate (cliOptions, exchange, methodName, args, result) 
         'input': args,
         'output': exchange.last_request_body ?? undefined,
     };
+    const isPrediction = (exchange.has !== undefined) && (exchange.has['prediction'] === true);
+    const requestSubFolder = isPrediction ? 'prediction/' : '';
     log (
         'Report: (paste inside static/request/'
+      + requestSubFolder
       + exchange.id
       + '.json ->'
       + methodName
@@ -146,7 +149,7 @@ function createRequestTemplate (cliOptions, exchange, methodName, args, result) 
     if (cliOptions.name) {
         final.description = cliOptions.name;
         log.green ('auto-saving static result');
-        add_static_result ('request', exchange.id, methodName, final);
+        add_static_result ('request', exchange.id, methodName, final, undefined, isPrediction);
     }
 }
 
@@ -167,8 +170,11 @@ function createResponseTemplate (cliOptions, exchange, methodName, args, result)
         'httpResponse': exchange.parseJson (exchange.last_http_response),
         'parsedResponse': result,
     };
+    const isPrediction = (exchange.has !== undefined) && (exchange.has['prediction'] === true);
+    const responseSubFolder = isPrediction ? 'prediction/' : '';
     log (
         'Report: (paste inside static/response/'
+      + responseSubFolder
       + exchange.id
       + '.json ->'
       + methodName
@@ -180,7 +186,7 @@ function createResponseTemplate (cliOptions, exchange, methodName, args, result)
     if (cliOptions.name) {
         final.description = cliOptions.name;
         log.green ('auto-saving static result');
-        add_static_result ('response', exchange.id, methodName, final);
+        add_static_result ('response', exchange.id, methodName, final, undefined, isPrediction);
     }
 }
 

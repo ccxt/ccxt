@@ -8,7 +8,9 @@
         "s",
         "v",
         "nonce",
-        "time"
+        "time",
+        "timestamp",
+        "datetime"
     ],
     "outputType": "json",
     "options": {
@@ -77,14 +79,19 @@
                         "outcomeId": "#1720",
                         "label": "YES",
                         "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
+                        "order": null,
                         "type": "limit",
                         "side": "sell",
                         "takerOrMaker": "maker",
                         "price": 0.00012,
                         "amount": 84166,
                         "cost": 10.09992,
-                        "fee": {},
-                        "fees": []
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "event": null
                     }
                 ]
             }
@@ -98,7 +105,7 @@
                 ],
                 "httpResponse": {
                     "coin": "#1720",
-                    "time": "1783249257189",
+                    "time": "1783249884567",
                     "levels": [
                         [],
                         [
@@ -163,8 +170,9 @@
                             2000000
                         ]
                     ],
-                    "timestamp": 1783249257189,
-                    "datetime": "2026-07-05T11:00:57.189Z",
+                    "timestamp": 1783249884567,
+                    "datetime": "2026-07-05T11:11:24.567Z",
+                    "nonce": null,
                     "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
                     "outcomeId": "#1720",
                     "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172"
@@ -178,7 +186,7 @@
                 ],
                 "httpResponse": {
                     "coin": "#1720",
-                    "time": "1783249257696",
+                    "time": "1783249885125",
                     "levels": [
                         [],
                         [
@@ -243,8 +251,9 @@
                             2000000
                         ]
                     ],
-                    "timestamp": 1783249257696,
-                    "datetime": "2026-07-05T11:00:57.696Z",
+                    "timestamp": 1783249885125,
+                    "datetime": "2026-07-05T11:11:25.125Z",
+                    "nonce": null,
                     "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
                     "outcomeId": "#1720",
                     "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172"
@@ -281,6 +290,7 @@
                 },
                 "parsedResponse": {
                     "id": "480263627979",
+                    "clientOrderId": null,
                     "info": {
                         "status": "ok",
                         "response": {
@@ -298,8 +308,8 @@
                             }
                         }
                     },
-                    "timestamp": 1783249421797,
-                    "datetime": "2026-07-05T11:03:41.797Z",
+                    "timestamp": 1783249885448,
+                    "datetime": "2026-07-05T11:11:25.448Z",
                     "status": "closed",
                     "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
                     "outcomeId": "#1720",
@@ -312,9 +322,20 @@
                     "filled": 21,
                     "remaining": 0,
                     "cost": 10.92,
+                    "fee": null,
                     "trades": [],
                     "fees": [],
-                    "timeInForce": "IOC"
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "event": null
                 }
             }
         ]
