@@ -127,6 +127,12 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
+    - name: Request Prediction tests
+      if: env.important_modified == 'true'
+      run: npm run request-prediction-js
+    - name: Response Prediction tests
+      if: env.important_modified == 'true'
+      run: npm run response-prediction-js
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
