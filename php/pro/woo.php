@@ -100,7 +100,7 @@ class woo extends \ccxt\async\woo {
         })();
     }
 
-    public function unwatch_public(string $subHash, string $symbol, string $topic, $params = array()): PromiseInterface {
+    public function unwatch_public(string $subHash, ?string $symbol, string $topic, $params = array()): PromiseInterface {
         return Async\async(function () use ($subHash, $symbol, $topic, $params) {
             $urlUid = ($this->uid) ? '/' . $this->uid : '';
             $url = $this->urls['api']['ws']['public'] . $urlUid;
@@ -287,7 +287,8 @@ class woo extends \ccxt\async\woo {
                 for ($i = 0; $i < count($messages); $i++) {
                     $messageItem = $messages[$i];
                     $ts = $this->safe_integer($messageItem, 'ts');
-                    if ($ts < $orderbook['timestamp']) {
+                    $orderbookTimestamp = $orderbook['timestamp'];
+                    if ($ts < $orderbookTimestamp) {
                         continue;
                     } else {
                         $this->handle_order_book_message($client, $messageItem, $orderbook);
@@ -591,7 +592,7 @@ class woo extends \ccxt\async\woo {
         $timestamp = $this->safe_integer($message, 'ts');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->safe_dict($data, $i);
+            $ticker = $this->safe_dict($data, $i, array());
             $ticker['ts'] = $timestamp;
             $parsedTicker = $this->parse_ws_bid_ask($ticker);
             $symbol = $parsedTicker['symbol'];

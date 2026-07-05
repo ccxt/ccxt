@@ -98,7 +98,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def unwatch_public(self, subHash: str, symbol: str, topic: str, params={}) -> Any:
+    async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params={}) -> Any:
         urlUid = '/' + self.uid if (self.uid) else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
@@ -263,7 +263,8 @@ class woo(ccxt.async_support.woo):
             for i in range(0, len(messages)):
                 messageItem = messages[i]
                 ts = self.safe_integer(messageItem, 'ts')
-                if ts < orderbook['timestamp']:
+                orderbookTimestamp = orderbook['timestamp']
+                if ts < orderbookTimestamp:
                     continue
                 else:
                     self.handle_order_book_message(client, messageItem, orderbook)
@@ -533,7 +534,7 @@ class woo(ccxt.async_support.woo):
         timestamp = self.safe_integer(message, 'ts')
         result = {}
         for i in range(0, len(data)):
-            ticker = self.safe_dict(data, i)
+            ticker = self.safe_dict(data, i, {})
             ticker['ts'] = timestamp
             parsedTicker = self.parse_ws_bid_ask(ticker)
             symbol = parsedTicker['symbol']

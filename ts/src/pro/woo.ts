@@ -275,7 +275,8 @@ export default class woo extends wooRest {
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
                 const ts = this.safeInteger (messageItem, 'ts') as number;
-                if (ts < (orderbook['timestamp'] as number)) {
+                const orderbookTimestamp = orderbook['timestamp'] as number;
+                if (ts < orderbookTimestamp) {
                     continue;
                 } else {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
