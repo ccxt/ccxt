@@ -1435,7 +1435,7 @@ public partial class bitget : Exchange
                 { "TONCOIN", "TON" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "uta", false },
+                { "uta", null },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "timeframes", new Dictionary<string, object>() {
@@ -1870,6 +1870,35 @@ public partial class bitget : Exchange
         return new List<object>() {productType, parameters};
     }
 
+    public async virtual Task<object> handleUTAAndParams(object parameters, object methodName, object defaultValue = null)
+    {
+        defaultValue ??= false;
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, methodName, "uta");
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(!isEqual(uta, null)))
+        {
+            return new List<object>() {uta, parameters};
+        }
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            // use the api to determine if the account is uta or not
+            object accountIsUTa = false;
+            try
+            {
+                await this.privateUtaGetV3AccountSettings(parameters);
+                accountIsUTa = true;
+            } catch(Exception e)
+            {
+                accountIsUTa = false;
+            }
+            ((IDictionary<string,object>)this.options)["uta"] = accountIsUTa;
+            return new List<object>() {accountIsUTa, parameters};
+        }
+        return new List<object>() {defaultValue, parameters};
+    }
+
     /**
      * @method
      * @name bitget#fetchTime
@@ -1916,7 +1945,7 @@ public partial class bitget : Exchange
             await this.loadTimeDifference();
         }
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchMarkets", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -2624,7 +2653,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMarketLeverageTiers", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchMarketLeverageTiers", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -3243,7 +3272,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         object response = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchOrderBook", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -3466,7 +3495,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         object response = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTicker", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -3682,7 +3711,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         // only if passedSubType && productType is undefined, then use spot
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTickers", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -4018,7 +4047,7 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
         };
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTrades", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
@@ -4420,7 +4449,7 @@ public partial class bitget : Exchange
         object marketType = null;
         object timeframes = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchOHLCV", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -4626,7 +4655,7 @@ public partial class bitget : Exchange
         object marginMode = null;
         object response = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchBalance", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -5332,7 +5361,7 @@ public partial class bitget : Exchange
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
         object response = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "createOrder", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -5916,7 +5945,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "createOrders", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "createOrders", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -6105,7 +6134,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "editOrder", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -6340,7 +6369,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "cancelOrder", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         object isPlanOrder = isTrue(trigger) || isTrue(trailing);
@@ -6564,7 +6593,7 @@ public partial class bitget : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "cancelOrders", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -6688,7 +6717,7 @@ public partial class bitget : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "cancelAllOrders", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -6799,7 +6828,7 @@ public partial class bitget : Exchange
         }
         object response = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchOrder", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -6990,7 +7019,7 @@ public partial class bitget : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchOpenOrders", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(!isEqual(symbol, null)))
@@ -7492,7 +7521,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchCanceledAndClosedOrders", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -8226,7 +8255,7 @@ public partial class bitget : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchMyTrades", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(!isTrue(uta) && isTrue((isEqual(symbol, null)))))
@@ -8487,7 +8516,7 @@ public partial class bitget : Exchange
         object response = null;
         object uta = null;
         object result = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPosition", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchPosition", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -8633,7 +8662,7 @@ public partial class bitget : Exchange
         object response = null;
         object isHistory = false;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchPositions", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -9065,7 +9094,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchFundingRateHistory", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -9176,7 +9205,7 @@ public partial class bitget : Exchange
         };
         object uta = null;
         object response = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRate", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchFundingRate", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -9429,7 +9458,7 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
         }
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchFundingHistory", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         object paginate = false;
@@ -9760,7 +9789,7 @@ public partial class bitget : Exchange
         };
         object uta = null;
         object response = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "setLeverage", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -9874,7 +9903,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "setPositionMode", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -9919,7 +9948,7 @@ public partial class bitget : Exchange
         };
         object uta = null;
         object response = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenInterest", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchOpenInterest", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -10795,7 +10824,7 @@ public partial class bitget : Exchange
         object uta = null;
         object response = null;
         object result = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchCrossBorrowRate", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -11089,7 +11118,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "closePosition", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "closePosition", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -11136,7 +11165,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(null, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "closeAllPositions", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "closeAllPositions", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -11267,7 +11296,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchPositionsHistory", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -11600,7 +11629,7 @@ public partial class bitget : Exchange
         };
         object response = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingInterval", "uta", false);
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchFundingInterval", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))

@@ -433,7 +433,7 @@ class coinspot extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $response = Async\await($this->publicGetLatest($params));
-            $id = $market['id'];
+            $id = $this->safe_string($market, 'id', '');
             $id = strtolower($id);
             $prices = $this->safe_dict($response, 'prices', array());
             //
@@ -448,7 +448,7 @@ class coinspot extends Exchange {
             //         }
             //     }
             //
-            $ticker = $this->safe_dict($prices, $id);
+            $ticker = $this->safe_dict($prices, $id, array());
             return $this->parse_ticker($ticker, $market);
         })();
     }
@@ -679,6 +679,9 @@ class coinspot extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $sideUpper = strtoupper($side);
             if ($type === 'market') {
                 throw new ExchangeError($this->id . ' createOrder() allows limit orders only');

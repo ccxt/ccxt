@@ -23,6 +23,8 @@ export default class kucoin extends kucoinRest {
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
                 'watchBidsAsks': true,
+                'watchFundingRate': true,
+                'watchMarkPrice': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchPosition': true,
@@ -35,6 +37,8 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'unWatchFundingRate': true,
+                'unWatchMarkPrice': true,
                 'unWatchTicker': true,
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
@@ -647,6 +651,7 @@ export default class kucoin extends kucoinRest {
     }
     handleUtaTicker(client, message) {
         //
+        // watchTicker
         //     {
         //         "T": "ticker.SPOT",
         //         "P": "1774100940787520626",
@@ -664,6 +669,19 @@ export default class kucoin extends kucoinRest {
         //         }
         //     }
         //
+        // watchMarkPrice
+        //     {
+        //         "T": "mark-price",
+        //         "P": "1782834987171570181",
+        //         "d": {
+        //             "s": "ETHUSDTM",
+        //             "mp": "1569.15",
+        //             "ip": "1569.87",
+        //             "oi": "50541824",
+        //             "ts": 1782834987000
+        //         }
+        //     }
+        //
         const data = this.safeDict(message, 'd', {});
         const marketId = this.safeString(data, 's');
         const market = this.safeMarket(marketId);
@@ -675,7 +693,10 @@ export default class kucoin extends kucoinRest {
     parseWsUtaTicker(ticker, market = undefined) {
         const symbol = this.safeString(market, 'symbol');
         market = this.safeMarket(symbol, market);
-        const timestamp = this.safeIntegerProduct(ticker, 'M', 0.000001);
+        let timestamp = this.safeInteger(ticker, 'ts');
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerProduct(ticker, 'M', 0.000001);
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -696,7 +717,8 @@ export default class kucoin extends kucoinRest {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'markPrice': undefined,
+            'markPrice': this.safeString(ticker, 'mp'),
+            'indexPrice': this.safeString(ticker, 'ip'),
             'info': ticker,
         }, market);
     }
@@ -1810,7 +1832,20 @@ export default class kucoin extends kucoinRest {
                 const subHash = subMessageHashes[i];
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
-            this.cleanCache(subscription);
+            const topic = this.safeString(subscription, 'topic');
+            if (topic === 'fundingRate') {
+                // todo: add fundingRate topic to cleanCache
+                const symbols = this.safeList(subscription, 'symbols', []);
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    if (symbol in this.fundingRates) {
+                        delete this.fundingRates[symbol];
+                    }
+                }
+            }
+            else {
+                this.cleanCache(subscription);
+            }
         }
     }
     handleSystemStatus(client, message) {
@@ -3058,6 +3093,146 @@ export default class kucoin extends kucoinRest {
             'takeProfitPrice': undefined,
         });
     }
+    /**
+     * @method
+     * @name kucoin#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
+        const channel = 'funding-fee';
+        const messageHash = 'fundingRate:' + symbol;
+        return await this.subscribePublicUta(messageHash, channel, symbol, params);
+    }
+    /**
+     * @method
+     * @name kucoin#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async unWatchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
+        const channel = 'funding-fee';
+        const subMessageHash = 'fundingRate:' + symbol;
+        const unSubMessageHash = 'unsubscribe:' + subMessageHash;
+        const subscription = {
+            'symbols': [symbol],
+            'topic': 'fundingRate',
+            'unsubscribe': true,
+            'subMessageHashes': [subMessageHash],
+            'messageHashes': [unSubMessageHash],
+        };
+        return await this.subscribePublicUta(unSubMessageHash, channel, symbol, params, subscription);
+    }
+    handleUtaFundingRate(client, message) {
+        //
+        //     {
+        //         "T": "funding-fee",
+        //         "P": "1782831961172694254",
+        //         "d": {
+        //             "s": "ETHUSDTM",
+        //             "fr": "0.000035",
+        //             "ft": 1782806400000,
+        //             "nt": 1782835200000,
+        //             "gl": 28800000,
+        //             "fc": "0.00375",
+        //             "ff": "-0.00375"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(message, 'd', {});
+        const fundingRate = this.parseWsFundingRate(data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve(fundingRate, messageHash);
+    }
+    parseWsFundingRate(data, market = undefined) {
+        //
+        //     {
+        //         "s": "ETHUSDTM",
+        //         "fr": "0.000035",
+        //         "ft": 1782806400000,
+        //         "nt": 1782835200000,
+        //         "gl": 28800000,
+        //         "fc": "0.00375",
+        //         "ff": "-0.00375"
+        //     }
+        //
+        const fundingTimestamp = this.safeInteger(data, 'ft');
+        const nextFundingTimestamp = this.safeInteger(data, 'nt');
+        const marketId = this.safeString(data, 's');
+        const granularity = this.safeString(data, 'gl');
+        return {
+            'info': data,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber(data, 'fr'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(granularity),
+        };
+    }
+    /**
+     * @method
+     * @name kucoin#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async watchMarkPrice(symbol, params = {}) {
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
+        const channel = 'mark-price';
+        const messageHash = 'uta:ticker:' + symbol;
+        return await this.subscribePublicUta(messageHash, channel, symbol, params);
+    }
+    /**
+     * @method
+     * @name kucoin#unWatchMarkPrice
+     * @description unWatches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchMarkPrice(symbol, params = {}) {
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
+        const channel = 'mark-price';
+        const subMessageHash = 'uta:ticker:' + symbol;
+        const unSubMessageHash = 'unsubscribe:' + subMessageHash;
+        const subscription = {
+            'symbols': [symbol],
+            'topic': 'ticker',
+            'unsubscribe': true,
+            'subMessageHashes': [subMessageHash],
+            'messageHashes': [unSubMessageHash],
+        };
+        return await this.subscribePublicUta(unSubMessageHash, channel, symbol, params, subscription);
+    }
     handleSubject(client, message) {
         //
         //     {
@@ -3139,6 +3314,8 @@ export default class kucoin extends kucoinRest {
             'positionAll.UNIFIED': this.handleUtaPosition,
             'positionAll.FUTURES': this.handleUtaPosition,
             'balance.UNIFIED': this.handleUtaBalance,
+            'funding-fee': this.handleUtaFundingRate,
+            'mark-price': this.handleUtaTicker,
         };
         const method = this.safeValue(methods, subject);
         if (method !== undefined) {

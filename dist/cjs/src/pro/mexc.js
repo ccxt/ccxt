@@ -1343,6 +1343,10 @@ class mexc extends mexc$1["default"] {
         let parsed;
         if (market['spot']) {
             parsed = this.parseWsOrder(data, market);
+            const sendTime = this.safeInteger(message, 'sendTime');
+            if (sendTime !== undefined) {
+                parsed['lastTradeTimestamp'] = sendTime;
+            }
         }
         else {
             parsed = this.parseOrder(data, market);

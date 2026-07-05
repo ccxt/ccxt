@@ -323,7 +323,7 @@ func  (this *IndependentreserveCore) HandleMessage(client any, message any)  {
         "OrderBookSnapshot": this.HandleOrderBook,
         "OrderBookChange": this.HandleOrderBook,
     }
-    var handler any = this.SafeValue(handlers, event)
+    var handler any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(event, nil))), nil, this.SafeValue(handlers, event))
     if ccxt.IsTrue(!ccxt.IsEqual(handler, nil)) {
         ccxt.CallDynamically(handler, client, message)
         return

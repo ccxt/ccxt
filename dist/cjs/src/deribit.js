@@ -3025,7 +3025,7 @@ class deribit extends deribit$1["default"] {
         //         "amount": 13.456
         //     }
         //
-        const timestamp = this.safeTimestamp(transfer, 'created_timestamp');
+        const timestamp = this.safeInteger(transfer, 'created_timestamp');
         const status = this.safeString(transfer, 'state');
         const account = this.safeString(transfer, 'other_side');
         const direction = this.safeString(transfer, 'direction');

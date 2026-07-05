@@ -1496,7 +1496,7 @@ class bitget(Exchange, ImplicitAPI):
                 'TONCOIN': 'TON',
             },
             'options': {
-                'uta': False,
+                'uta': None,
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'timeframes': {
@@ -1926,6 +1926,23 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['productType', 'category'])
         return [productType, params]
 
+    def handle_uta_and_params(self, params, methodName: Str, defaultValue: bool = False):
+        uta = None
+        uta, params = self.handle_option_and_params(params, methodName, 'uta')
+        if uta is not None:
+            return [uta, params]
+        if self.check_required_credentials(False):
+            # use the api to determine if the account is uta or not
+            accountIsUTa = False
+            try:
+                self.privateUtaGetV3AccountSettings(params)
+                accountIsUTa = True
+            except Exception as e:
+                accountIsUTa = False
+            self.options['uta'] = accountIsUTa
+            return [accountIsUTa, params]
+        return [defaultValue, params]
+
     def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
@@ -1965,7 +1982,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchMarkets', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchMarkets', False)
         if uta:
             return self.fetch_uta_markets(params)
         return self.fetch_default_markets(params)
@@ -2595,7 +2612,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'isolated')
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'fetchMarketLeverageTiers', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchMarketLeverageTiers', False)
         if uta:
             if productType == 'SPOT':
                 if marginMode is not None:
@@ -3122,7 +3139,7 @@ class bitget(Exchange, ImplicitAPI):
         productType, params = self.handle_product_type_and_params(market, params)
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOrderBook', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOrderBook', False)
         if uta:
             request['category'] = productType
             response = self.publicUtaGetV3MarketOrderbook(self.extend(request, params))
@@ -3327,7 +3344,7 @@ class bitget(Exchange, ImplicitAPI):
         productType, params = self.handle_product_type_and_params(market, params)
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTicker', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchTicker', False)
         if uta:
             request['category'] = productType
             response = self.publicUtaGetV3MarketTickers(self.extend(request, params))
@@ -3520,7 +3537,7 @@ class bitget(Exchange, ImplicitAPI):
         productType, params = self.handle_product_type_and_params(market, params)
         # only if passedSubType and productType is None, then use spot
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTickers', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchTickers', False)
         if uta:
             if symbols is not None:
                 symbolsLength = len(symbols)
@@ -3832,7 +3849,7 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTrades', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchTrades', False)
         if limit is not None:
             if uta:
                 request['limit'] = min(limit, 100)
@@ -4166,7 +4183,7 @@ class bitget(Exchange, ImplicitAPI):
         marketType = None
         timeframes = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOHLCV', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOHLCV', False)
         if uta:
             timeframes = self.options['timeframes']['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
@@ -4310,7 +4327,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchBalance', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchBalance', False)
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         if uta:
@@ -4987,7 +5004,7 @@ class bitget(Exchange, ImplicitAPI):
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'createOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'createOrder', False)
         if uta:
             request = self.create_uta_order_request(symbol, type, side, amount, price, params)
             if isStopLossOrTakeProfitTrigger:
@@ -5374,7 +5391,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.load_markets()
         uta = None
-        uta, params = self.handle_option_and_params(params, 'createOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'createOrders', False)
         if uta:
             return self.create_uta_orders(orders, params)
         ordersRequests = []
@@ -5528,7 +5545,7 @@ class bitget(Exchange, ImplicitAPI):
         productType = None
         uta = None
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'editOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'editOrder', False)
         if uta:
             if amount is not None:
                 request['qty'] = self.amount_to_precision(symbol, amount)
@@ -5690,7 +5707,7 @@ class bitget(Exchange, ImplicitAPI):
         if not (market['spot'] and trigger):
             request['symbol'] = market['id']
         uta = None
-        uta, params = self.handle_option_and_params(params, 'cancelOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'cancelOrder', False)
         isPlanOrder = trigger or trailing
         isContract = market['swap'] or market['future']
         isContractTriggerEndpoint = isContract and isPlanOrder and not uta
@@ -5860,7 +5877,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         uta = None
-        uta, params = self.handle_option_and_params(params, 'cancelOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'cancelOrders', False)
         if uta:
             return self.cancel_uta_orders(ids, symbol, params)
         marginMode = None
@@ -5950,7 +5967,7 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['stop', 'trigger'])
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'cancelAllOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'cancelAllOrders', False)
         if uta:
             if productType == 'SPOT':
                 if marginMode is not None:
@@ -6064,7 +6081,7 @@ class bitget(Exchange, ImplicitAPI):
             request['orderId'] = id
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOrder', False)
         if uta:
             response = self.privateUtaGetV3TradeOrderInfo(self.extend(request, params))
         elif market['spot']:
@@ -6235,7 +6252,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOpenOrders', False)
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -6666,7 +6683,7 @@ class bitget(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchCanceledAndClosedOrders', False)
         if uta:
             return self.fetch_uta_canceled_and_closed_orders(symbol, since, limit, params)
         self.load_markets()
@@ -7275,7 +7292,7 @@ class bitget(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchMyTrades', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchMyTrades', False)
         if not uta and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
@@ -7489,7 +7506,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         uta = None
         result = None
-        uta, params = self.handle_option_and_params(params, 'fetchPosition', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchPosition', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
@@ -7612,7 +7629,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         isHistory = False
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchPositions', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchPositions', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
@@ -7996,7 +8013,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         result = None
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingRateHistory', False)
         if uta:
             if limit is not None:
                 request['limit'] = limit
@@ -8085,7 +8102,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         uta = None
         response = None
-        uta, params = self.handle_option_and_params(params, 'fetchFundingRate', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingRate', False)
         if uta:
             response = self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, params))
             #
@@ -8350,7 +8367,7 @@ class bitget(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingHistory', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
@@ -8662,7 +8679,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         uta = None
         response = None
-        uta, params = self.handle_option_and_params(params, 'setLeverage', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'setLeverage', False)
         if uta:
             if productType == 'SPOT':
                 marginMode = None
@@ -8770,7 +8787,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         response = None
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'setPositionMode', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'setPositionMode', False)
         if uta:
             request['holdMode'] = posMode
             response = self.privateUtaPostV3AccountSetHoldMode(self.extend(request, params))
@@ -8821,7 +8838,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         uta = None
         response = None
-        uta, params = self.handle_option_and_params(params, 'fetchOpenInterest', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOpenInterest', False)
         if uta:
             request['category'] = productType
             response = self.publicUtaGetV3MarketOpenInterest(self.extend(request, params))
@@ -9632,7 +9649,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         response = None
         result = None
-        uta, params = self.handle_option_and_params(params, 'fetchCrossBorrowRate', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchCrossBorrowRate', False)
         if uta:
             response = self.publicUtaGetV3MarketMarginLoans(self.extend(request, params))
             #
@@ -9889,7 +9906,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         response = None
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'closePosition', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'closePosition', False)
         if uta:
             if side is not None:
                 request['posSide'] = side
@@ -9954,7 +9971,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         response = None
         productType, params = self.handle_product_type_and_params(None, params)
-        uta, params = self.handle_option_and_params(params, 'closeAllPositions', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'closeAllPositions', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaPostV3TradeClosePositions(self.extend(request, params))
@@ -10090,7 +10107,7 @@ class bitget(Exchange, ImplicitAPI):
             request['limit'] = limit
         request, params = self.handle_until_option('endTime', request, params)
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchPositionsHistory', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaGetV3PositionHistoryPosition(self.extend(request, params))
@@ -10446,7 +10463,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchFundingInterval', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingInterval', False)
         if uta:
             response = self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, params))
             #

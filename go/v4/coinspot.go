@@ -538,7 +538,7 @@ func (this *CoinspotCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 
 		response := (<-this.PublicGetLatest(params))
 		PanicOnError(response)
-		var id any = GetValue(market, "id")
+		var id any = this.SafeString(market, "id", "")
 		id = ToLower(id)
 		var prices any = this.SafeDict(response, "prices", map[string]any{})
 		//
@@ -553,7 +553,7 @@ func (this *CoinspotCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		//         }
 		//     }
 		//
-		var ticker any = this.SafeDict(prices, id)
+		var ticker any = this.SafeDict(prices, id, map[string]any{})
 
 		ch <- this.ParseTicker(ticker, market)
 		return nil
@@ -849,6 +849,9 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
 
 		retRes6678 := (<-this.LoadMarkets())
 		PanicOnError(retRes6678)
+		if IsTrue(IsEqual(side, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
+		}
 		var sideUpper any = ToUpper(side)
 		if IsTrue(IsEqual(typeVar, "market")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))

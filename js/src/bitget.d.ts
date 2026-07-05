@@ -21,6 +21,7 @@ export default class bitget extends Exchange {
      */
     enableDemoTrading(enabled: boolean): void;
     handleProductTypeAndParams(market?: Market, params?: {}): [Str, Dict];
+    handleUTAAndParams(params: any, methodName: Str, defaultValue?: boolean): Promise<any[]>;
     /**
      * @method
      * @name bitget#fetchTime

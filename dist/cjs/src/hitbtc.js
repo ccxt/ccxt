@@ -1118,7 +1118,7 @@ class hitbtc extends hitbtc$1["default"] {
         const type = this.safeStringLower(params, 'type', 'spot');
         params = this.omit(params, ['type']);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
-        const account = this.safeString(accountsByType, type, type);
+        const account = (type === undefined) ? undefined : this.safeString(accountsByType, type, type);
         let response;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance(params);
@@ -1286,18 +1286,13 @@ class hitbtc extends hitbtc$1["default"] {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let response = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
-            response = await this.publicGetPublicTradesSymbol(this.extend(request, params));
+            const responseInner = await this.publicGetPublicTradesSymbol(this.extend(request, params));
+            return this.parseTrades(responseInner, market);
         }
-        else {
-            response = await this.publicGetPublicTrades(this.extend(request, params));
-        }
-        if (symbol !== undefined) {
-            return this.parseTrades(response, market);
-        }
+        const response = await this.publicGetPublicTrades(this.extend(request, params));
         let trades = [];
         const marketIds = Object.keys(response);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1340,7 +1335,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         let marketType = undefined;
         let marginMode = undefined;
-        let response = undefined;
+        let response = [];
         [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
         params = this.omit(params, ['marginMode', 'margin']);
@@ -1518,6 +1513,9 @@ class hitbtc extends hitbtc$1["default"] {
             'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseTransactionType(type) {
@@ -1799,7 +1797,9 @@ class hitbtc extends hitbtc$1["default"] {
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee(response[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -1841,7 +1841,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
-        let response = undefined;
+        let response = [];
         if (price === 'mark') {
             response = await this.publicGetPublicFuturesCandlesMarkPriceSymbol(this.extend(request, params));
         }
@@ -2036,7 +2036,7 @@ class hitbtc extends hitbtc$1["default"] {
         //       }
         //     ]
         //
-        const order = this.safeDict(response, 0);
+        const order = this.safeDict(response, 0, {});
         return this.parseOrder(order, market);
     }
     /**
@@ -2069,7 +2069,7 @@ class hitbtc extends hitbtc$1["default"] {
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrderTrades', market, params);
         [marginMode, params] = this.handleMarginModeAndParams('fetchOrderTrades', params);
         params = this.omit(params, ['marginMode', 'margin']);
-        let response = undefined;
+        let response = [];
         if (marginMode !== undefined) {
             response = await this.privateGetMarginHistoryTrade(this.extend(request, params));
         }
@@ -2498,6 +2498,9 @@ class hitbtc extends hitbtc$1["default"] {
             'canceled': 'canceled',
             'expired': 'failed',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
@@ -2872,6 +2875,9 @@ class hitbtc extends hitbtc$1["default"] {
         const fundingRates = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString(marketIds, i);
+            if (marketId === undefined) {
+                continue;
+            }
             const rawFundingRate = this.safeValue(response, marketId);
             const marketInner = this.market(marketId);
             const symbol = marketInner['symbol'];
@@ -3710,13 +3716,15 @@ class hitbtc extends hitbtc$1["default"] {
             if (isDefault === true) {
                 result['withdraw'] = withdrawResult;
             }
-            result['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
@@ -3835,7 +3843,9 @@ class hitbtc extends hitbtc$1["default"] {
                 }
             }
             else {
-                payload.push(body);
+                if (body !== undefined) {
+                    payload.push(body);
+                }
             }
             payload.push(timestamp);
             const payloadString = payload.join('');

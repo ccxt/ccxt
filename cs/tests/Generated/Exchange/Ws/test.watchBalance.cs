@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
-            object response = null;
+            object response = new Dictionary<string, object>() {};
             object success = true;
             try
             {

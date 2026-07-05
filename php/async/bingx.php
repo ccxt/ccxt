@@ -3254,11 +3254,14 @@ class bingx extends Exchange {
                 $positionSide = 'BOTH';
             }
             $request['positionSide'] = $positionSide;
-            $amountReq = $amount;
-            if (!$market['inverse']) {
-                $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+            $closePosition = $this->safe_bool($params, 'closePosition', false);
+            if (!$closePosition) {
+                $amountReq = $amount;
+                if (!$market['inverse']) {
+                    $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                }
+                $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
-            $request['quantity'] = $amountReq; // precision not available for inverse contracts
         }
         $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
@@ -3297,6 +3300,7 @@ class bingx extends Exchange {
              * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
              * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
              * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
+             * @param {bool} [$params->closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());

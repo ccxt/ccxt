@@ -142,7 +142,7 @@ class toobit(ccxt.async_support.toobit):
             'ticketInfo': self.handle_my_trade,
             'outboundContractPositionInfo': self.handle_positions,
         }
-        method = self.safe_value(methods, topic)
+        method = None if (topic is None) else self.safe_value(methods, topic)
         if method is not None:
             method(client, message)
         else:
@@ -150,7 +150,7 @@ class toobit(ccxt.async_support.toobit):
             for i in range(0, len(message)):
                 item = message[i]
                 event = self.safe_string(item, 'e')
-                method2 = self.safe_value(methods, event)
+                method2 = None if (event is None) else self.safe_value(methods, event)
                 if method2 is not None:
                     method2(client, item)
 

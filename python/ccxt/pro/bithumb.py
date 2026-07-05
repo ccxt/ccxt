@@ -76,6 +76,8 @@ class bithumb(ccxt.async_support.bithumb):
         marketIds = []
         messageHashes = []
         symbols = self.market_symbols(symbols, None, False, True, True)
+        if symbols is None:
+            symbols = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)

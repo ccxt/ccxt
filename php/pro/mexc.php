@@ -1367,7 +1367,7 @@ class mexc extends \ccxt\async\mexc {
         //   {
         //      channel => "spot@private.orders.v3.api.pb",
         //      $symbol => "MXUSDT",
-        //      sendTime => 1736417034281,
+        //      $sendTime => 1736417034281,
         //      privateOrders array()
         //   }
         //
@@ -1379,6 +1379,10 @@ class mexc extends \ccxt\async\mexc {
         $symbol = $market['symbol'];
         if ($market['spot']) {
             $parsed = $this->parse_ws_order($data, $market);
+            $sendTime = $this->safe_integer($message, 'sendTime');
+            if ($sendTime !== null) {
+                $parsed['lastTradeTimestamp'] = $sendTime;
+            }
         } else {
             $parsed = $this->parse_order($data, $market);
         }

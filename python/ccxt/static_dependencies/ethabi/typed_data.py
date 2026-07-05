@@ -1,29 +1,76 @@
-from typing import (
-    Any,
-    Dict,
-    List,
-    Tuple,
-    Union,
-)
+"""
+Hand-rolled EIP-712 typed structured data hashing.
 
-from ...abi import (
-    encode,
-)
-from ....keccak import (
-    SHA3 as keccak
-)
-from ...utils import (
-    to_bytes,
-    to_int,
-)
+Behaviour-compatible with the previously vendored
+``eth_account.messages.encode_typed_data`` /
+``eth_account._utils.encode_typed_data.encoding_and_hashing`` implementation
+(in a manner compatible with the MetaMask and Ethers ``signTypedData``
+functions), see https://eips.ethereum.org/EIPS/eip-712
+"""
 
-from .helpers import (
-    EIP712_SOLIDITY_TYPES,
-    is_0x_prefixed_hexstr,
-    is_array_type,
-    parse_core_array_type,
-    parse_parent_array_type,
-)
+import re
+from typing import Any, Dict, List, NamedTuple, Tuple, Union
+
+from ..keccak import SHA3 as keccak
+from .abi import encode
+
+_HEX_REGEXP = re.compile("(0[xX])?[0-9a-fA-F]*")
+
+
+def _is_hexstr(value: Any) -> bool:
+    if not isinstance(value, str) or not value:
+        return False
+    return _HEX_REGEXP.fullmatch(value) is not None
+
+
+def _is_0x_prefixed_hexstr(value: Any) -> bool:
+    return _is_hexstr(value) and value.startswith("0x")
+
+
+def _hexstr_to_bytes(hexstr: str) -> bytes:
+    if hexstr[:2] in ("0x", "0X"):
+        hexstr = hexstr[2:]
+    if len(hexstr) % 2:
+        hexstr = "0" + hexstr
+    return bytes.fromhex(hexstr)
+
+
+def _int_to_bytes(value: int) -> bytes:
+    # minimal big-endian representation, b"\x00" for 0
+    return value.to_bytes((value.bit_length() + 7) // 8 or 1, "big")
+
+
+def _text_to_bytes(text: str) -> bytes:
+    return text.encode("utf-8")
+
+
+def _get_eip712_solidity_types():
+    types = ["bool", "address", "string", "bytes", "uint", "int"]
+    ints = ["int{}".format((x + 1) * 8) for x in range(32)]
+    uints = ["uint{}".format((x + 1) * 8) for x in range(32)]
+    bytes_ = ["bytes{}".format(x + 1) for x in range(32)]
+    return types + ints + uints + bytes_
+
+
+EIP712_SOLIDITY_TYPES = _get_eip712_solidity_types()
+
+
+def _is_array_type(type_: str) -> bool:
+    return type_.endswith("]")
+
+
+# strip all brackets: Person[][] -> Person
+def _parse_core_array_type(type_: str) -> str:
+    if _is_array_type(type_):
+        type_ = type_[: type_.index("[")]
+    return type_
+
+
+# strip only last set of brackets: Person[3][1] -> Person[3]
+def _parse_parent_array_type(type_: str) -> str:
+    if _is_array_type(type_):
+        type_ = type_[: type_.rindex("[")]
+    return type_
 
 
 def get_primary_type(types: Dict[str, List[Dict[str, str]]]) -> str:
@@ -33,7 +80,7 @@ def get_primary_type(types: Dict[str, List[Dict[str, str]]]) -> str:
     for type_ in custom_types:
         type_fields = types[type_]
         for field in type_fields:
-            parsed_type = parse_core_array_type(field["type"])
+            parsed_type = _parse_core_array_type(field["type"])
             if parsed_type in custom_types and parsed_type != type_:
                 custom_types_that_are_deps.add(parsed_type)
 
@@ -62,17 +109,19 @@ def encode_field(
 
     # None is allowed only for custom and dynamic types
     elif value is None:
-        raise ValueError(f"Missing value for field `{name}` of type `{type_}`")
+        raise ValueError(
+            "Missing value for field `{}` of type `{}`".format(name, type_)
+        )
 
-    elif is_array_type(type_):
+    elif _is_array_type(type_):
         # handle array type with non-array value
         if not isinstance(value, list):
             raise ValueError(
-                f"Invalid value for field `{name}` of type `{type_}`: "
-                f"expected array, got `{value}` of type `{type(value)}`"
+                "Invalid value for field `{}` of type `{}`: expected array, "
+                "got `{}` of type `{}`".format(name, type_, value, type(value))
             )
 
-        parsed_type = parse_parent_array_type(type_)
+        parsed_type = _parse_parent_array_type(type_)
         type_value_pairs = [
             encode_field(types, name, parsed_type, item) for item in value
         ]
@@ -92,15 +141,15 @@ def encode_field(
     # all bytes types allow hexstr and str values
     elif type_.startswith("bytes"):
         if not isinstance(value, bytes):
-            if is_0x_prefixed_hexstr(value):
-                value = to_bytes(hexstr=value)
+            if _is_0x_prefixed_hexstr(value):
+                value = _hexstr_to_bytes(value)
             elif isinstance(value, str):
-                value = to_bytes(text=value)
+                value = _text_to_bytes(value)
             else:
                 if isinstance(value, int) and value < 0:
                     value = 0
 
-                value = to_bytes(value)
+                value = _int_to_bytes(value)
 
         return (
             # keccak hash if dynamic `bytes` type
@@ -112,17 +161,17 @@ def encode_field(
 
     elif type_ == "string":
         if isinstance(value, int):
-            value = to_bytes(value)
+            value = _int_to_bytes(value)
         else:
-            value = to_bytes(text=value)
+            value = _text_to_bytes(value)
         return ("bytes32", keccak(value))
 
     # allow string values for int and uint types
     elif type(value) == str and type_.startswith(("int", "uint")):
-        if is_0x_prefixed_hexstr(value):
-            return (type_, to_int(hexstr=value))
+        if _is_0x_prefixed_hexstr(value):
+            return (type_, int(value, 16))
         else:
-            return (type_, to_int(text=value))
+            return (type_, int(value))
 
     return (type_, value)
 
@@ -135,10 +184,10 @@ def find_type_dependencies(type_, types, results=None):
     if not isinstance(type_, str):
         raise ValueError(
             "Invalid find_type_dependencies input: expected string, got "
-            f"`{type_}` of type `{type(type_)}`"
+            "`{}` of type `{}`".format(type_, type(type_))
         )
     # get core type if it's an array type
-    type_ = parse_core_array_type(type_)
+    type_ = _parse_core_array_type(type_)
 
     if (
         # don't look for dependencies of solidity types
@@ -150,7 +199,7 @@ def find_type_dependencies(type_, types, results=None):
 
     # found a type that isn't defined
     elif type_ not in types:
-        raise ValueError(f"No definition of type `{type_}`")
+        raise ValueError("No definition of type `{}`".format(type_))
 
     results.add(type_)
 
@@ -169,16 +218,14 @@ def encode_type(type_: str, types: Dict[str, List[Dict[str, str]]]) -> str:
     for type_ in deps:
         children_list = []
         for child in types[type_]:
-            child_type = child["type"]
-            child_name = child["name"]
-            children_list.append(f"{child_type} {child_name}")
+            children_list.append("{} {}".format(child["type"], child["name"]))
 
-        result += f"{type_}({','.join(children_list)})"
+        result += "{}({})".format(type_, ",".join(children_list))
     return result
 
 
 def hash_type(type_: str, types: Dict[str, List[Dict[str, str]]]) -> bytes:
-    return keccak(to_bytes(text=encode_type(type_, types)))
+    return keccak(_text_to_bytes(encode_type(type_, types)))
 
 
 def encode_data(
@@ -228,7 +275,7 @@ def hash_domain(domain_data: Dict[str, Any]) -> bytes:
 
     for k in domain_data.keys():
         if k not in eip712_domain_map.keys():
-            raise ValueError(f"Invalid domain key: `{k}`")
+            raise ValueError("Invalid domain key: `{}`".format(k))
 
     domain_types = {
         "EIP712Domain": [
@@ -237,3 +284,29 @@ def hash_domain(domain_data: Dict[str, Any]) -> bytes:
     }
 
     return hash_struct("EIP712Domain", domain_types, domain_data)
+
+
+class SignableMessage(NamedTuple):
+    """
+    A message compatible with EIP-191 that is ready to be signed.
+    """
+
+    version: bytes  # must be length 1
+    header: bytes  # aka "version specific data"
+    body: bytes  # aka "data to sign"
+
+
+def encode_typed_data(
+    domain_data: Dict[str, Any] = None,
+    message_types: Dict[str, Any] = None,
+    message_data: Dict[str, Any] = None,
+) -> SignableMessage:
+    """
+    Encode an EIP-712 message in a manner compatible with other implementations
+    in use, such as the MetaMask and Ethers ``signTypedData`` functions.
+    """
+    return SignableMessage(
+        b"\x01",
+        hash_domain(domain_data),
+        hash_eip712_message(message_types, message_data),
+    )

@@ -3087,10 +3087,12 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 positionSide = 'BOTH'
             request['positionSide'] = positionSide
-            amountReq = amount
-            if not market['inverse']:
-                amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
-            request['quantity'] = amountReq  # precision not available for inverse contracts
+            closePosition = self.safe_bool(params, 'closePosition', False)
+            if not closePosition:
+                amountReq = amount
+                if not market['inverse']:
+                    amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+                request['quantity'] = amountReq  # precision not available for inverse contracts
         params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
@@ -3126,6 +3128,7 @@ class bingx(Exchange, ImplicitAPI):
         :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
         :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
+        :param bool [params.closePosition]: *swap only* True to close the entire position with a TP/SL order, in which case the quantity is not sent
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()

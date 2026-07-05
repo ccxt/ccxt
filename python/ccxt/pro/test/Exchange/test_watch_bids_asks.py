@@ -30,7 +30,7 @@ async def test_watch_bids_asks_helper(exchange, skipped_properties, arg_symbols,
     while now < ends:
         success = True
         should_return = False
-        response = None
+        response = {}
         try:
             response = await exchange.watch_bids_asks(arg_symbols, arg_params)
         except Exception as e:

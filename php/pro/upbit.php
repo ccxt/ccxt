@@ -43,6 +43,9 @@ class upbit extends \ccxt\async\upbit {
                 $symbols = $this->symbols;
             }
             $symbols = $this->market_symbols($symbols);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $marketIds = $this->market_ids($symbols);
             $url = $this->implode_params($this->urls['api']['ws'], array(
                 'hostname' => $this->hostname,
@@ -235,7 +238,9 @@ class upbit extends \ccxt\async\upbit {
         //   "stream_type" => "SNAPSHOT" }
         $ticker = $this->parse_ticker($message);
         $symbol = $ticker['symbol'];
-        $this->tickers[$symbol] = $ticker;
+        if ($symbol !== null) {
+            $this->tickers[$symbol] = $ticker;
+        }
         $messageHash = 'ticker:' . $symbol;
         $client->resolve($ticker, $messageHash);
     }
@@ -312,6 +317,9 @@ class upbit extends \ccxt\async\upbit {
         //   "stream_type" => "REALTIME" }
         $trade = $this->parse_trade($message);
         $symbol = $trade['symbol'];
+        if ($symbol === null) {
+            return;
+        }
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -477,6 +485,9 @@ class upbit extends \ccxt\async\upbit {
             'watch' => 'open', // not sure what this $status means
             'trade' => 'open',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -619,8 +630,8 @@ class upbit extends \ccxt\async\upbit {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $cachedOrders = $this->orders;
-        $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-        $order = $this->safe_value($orders, $orderId);
+        $orders = ($symbol === null) ? array() : $this->safe_value($cachedOrders->hashmap, $symbol, array());
+        $order = ($orderId === null) ? null : $this->safe_value($orders, $orderId);
         if ($order !== null) {
             $fee = $this->safe_value($order, 'fee');
             if ($fee !== null) {
@@ -705,7 +716,7 @@ class upbit extends \ccxt\async\upbit {
             'candle.1s' => array($this, 'handle_ohlcv'),
         );
         $methodName = $this->safe_string($message, 'type');
-        $method = $this->safe_value($methods, $methodName);
+        $method = ($methodName === null) ? null : $this->safe_value($methods, $methodName);
         if ($method !== null) {
             $method($client, $message);
         }

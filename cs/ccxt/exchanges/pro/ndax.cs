@@ -176,7 +176,7 @@ public partial class ndax : ccxt.ndax
         {
             object trade = this.parseTrade(getValue(payload, i));
             object symbol = getValue(trade, "symbol");
-            object tradesArray = this.safeValue(this.trades, symbol);
+            object tradesArray = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(tradesArray, null)))
             {
                 object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -513,7 +513,7 @@ public partial class ndax : ccxt.ndax
         //
         object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object id = this.safeInteger(message, "i");
-        object subscription = this.safeValue(subscriptionsById, id);
+        object subscription = ((bool) isTrue((isEqual(id, null)))) ? null : this.safeValue(subscriptionsById, id);
         if (isTrue(!isEqual(subscription, null)))
         {
             object method = this.safeValue(subscription, "method");
@@ -565,7 +565,7 @@ public partial class ndax : ccxt.ndax
             { "TickerDataUpdateEvent", this.handleOHLCV },
         };
         object eventVar = this.safeString(message, "n");
-        object method = this.safeValue(methods, eventVar);
+        object method = ((bool) isTrue((isEqual(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
