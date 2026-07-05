@@ -111,6 +111,25 @@ export default class WsClient extends Client {
             for await (const message of this.duplex) {
                 dispatching = true;
                 this.onMessage ({ 'data': message });
+                // release valve: when the server sends faster than the paced
+                // delivery below drains, messages pile up inside the duplex
+                // buffer - flush them synchronously through onMessage, the
+                // same way the php client flushes its backlog in on_message
+                // (php/pro/Client.php) and the python client drains the
+                // aiohttp buffer in receive_loop (async_support/base/ws/
+                // client.py). this keeps queueing latency and memory bounded
+                // under bursts at the cost of per-message consumer wakeups
+                // (consumers awaiting futures observe the merged/cached
+                // state on their next wakeup - identical cross-language
+                // semantics); the microtask hop below then only paces
+                // delivery while the client is keeping up
+                while (this.duplex.readableLength > 0) {
+                    const queued = this.duplex.read ();
+                    if (queued === null) {
+                        break;
+                    }
+                    this.onMessage ({ 'data': queued });
+                }
                 dispatching = false;
                 await Promise.resolve ();
             }
