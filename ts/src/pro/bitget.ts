@@ -78,7 +78,6 @@ export default class bitget extends bitgetRest {
                 'watchTrades': {
                     'ignoreDuplicates': true,
                 },
-                'uta': false,
             },
             'streaming': {
                 'ping': this.ping,
