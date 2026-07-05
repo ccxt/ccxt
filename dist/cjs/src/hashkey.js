@@ -1914,7 +1914,7 @@ class hashkey extends hashkey$1["default"] {
         }
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': this.safeString(currency, 'code'),
             'network': undefined,
             'address': address,
             'tag': tag,

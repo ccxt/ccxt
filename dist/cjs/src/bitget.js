@@ -2153,8 +2153,8 @@ class bitget extends bitget$1["default"] {
                     expiry = this.safeInteger(market, 'deliveryTime');
                     expiryDatetime = this.iso8601(expiry);
                     const expiryParts = expiryDatetime.split('-');
-                    const yearPart = this.safeString(expiryParts, 0);
-                    const dayPart = this.safeString(expiryParts, 2);
+                    const yearPart = this.safeString(expiryParts, 0, '');
+                    const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
                     const month = this.safeString(expiryParts, 1);
                     const day = dayPart.slice(0, 2);
@@ -2420,8 +2420,8 @@ class bitget extends bitget$1["default"] {
                     expiry = this.safeInteger(market, 'deliveryTime');
                     expiryDatetime = this.iso8601(expiry);
                     const expiryParts = expiryDatetime.split('-');
-                    const yearPart = this.safeString(expiryParts, 0);
-                    const dayPart = this.safeString(expiryParts, 2);
+                    const yearPart = this.safeString(expiryParts, 0, '');
+                    const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
                     const month = this.safeString(expiryParts, 1);
                     const day = dayPart.slice(0, 2);
@@ -6024,7 +6024,7 @@ class bitget extends bitget$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         let marginMode = undefined;
-        let response = undefined;
+        let response = {};
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const request = {};
         const trailing = this.safeValue(params, 'trailing');
@@ -6157,10 +6157,10 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        let order = undefined;
+        let order = {};
         if (isContractTriggerEndpoint) {
             const orderInfo = this.safeValue(data, 'successList', []);
-            order = orderInfo[0];
+            order = this.safeDict(orderInfo, 0, {});
         }
         else {
             if (uta && trigger) {
@@ -7673,7 +7673,7 @@ class bitget extends bitget$1["default"] {
         const timestamp = this.safeInteger(item, 'cTime');
         const after = this.safeNumber(item, 'balance');
         const fee = this.safeNumber2(item, 'fees', 'fee');
-        const amountRaw = this.safeString2(item, 'size', 'amount');
+        const amountRaw = this.safeString2(item, 'size', 'amount', '');
         const amount = this.parseNumber(Precise["default"].stringAbs(amountRaw));
         let direction = 'in';
         if (amountRaw.indexOf('-') >= 0) {
@@ -9233,7 +9233,7 @@ class bitget extends bitget$1["default"] {
             'leverage': this.numberToString(leverage),
         };
         let uta = undefined;
-        let response = undefined;
+        let response = {};
         [uta, params] = await this.handleUTAAndParams(params, 'setLeverage', false);
         if (uta) {
             if (productType === 'SPOT') {
@@ -9348,7 +9348,7 @@ class bitget extends bitget$1["default"] {
         }
         let productType = undefined;
         let uta = undefined;
-        let response = undefined;
+        let response = {};
         [productType, params] = this.handleProductTypeAndParams(market, params);
         [uta, params] = await this.handleUTAAndParams(params, 'setPositionMode', false);
         if (uta) {
@@ -10232,7 +10232,7 @@ class bitget extends bitget$1["default"] {
         };
         let uta = undefined;
         let response = undefined;
-        let result = undefined;
+        let result = {};
         [uta, params] = await this.handleUTAAndParams(params, 'fetchCrossBorrowRate', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketMarginLoans(this.extend(request, params));
