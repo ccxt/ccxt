@@ -367,6 +367,7 @@
     "@scure/bip32": "2.2.0",
     "@scure/bip39": "2.2.0",
     "@scure/starknet": "2.2.0",
+    "undici": "7.27.2",
     "ws": "8.21.0"
   },
   "overrides": {
@@ -374,8 +375,7 @@
     "piscina": "^4.9.3"
   },
   "optionalDependencies": {
-    "bufferutil": "4.1.0",
-    "undici": "7.27.2"
+    "bufferutil": "4.1.0"
   },
   "peerDependencies": {
     "protobufjs": "^7.5.3"
