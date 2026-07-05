@@ -371,6 +371,13 @@ public partial class kalshi : PredictionExchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
         }
+        // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        if (isTrue(isEqual(code, 400)))
+        {
+            object feedback = add(add(this.id, " "), body);
+            throw new BadRequest ((string)feedback) ;
+        }
         return null;
     }
 
