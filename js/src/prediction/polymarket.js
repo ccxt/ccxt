@@ -1733,7 +1733,11 @@ export default class polymarket extends Exchange {
         await this.loadOutcome(outcome);
         const built = this.buildClobOrderBody(outcome, type, side, amount, price, params);
         const response = await this.clobPrivatePostOrder(this.safeDict(built, 'body'));
-        return this.parseOrder(response, this.safeDict(built, 'outcome'));
+        // request echo first so the response's real orderID/status/success win on overlap
+        const enriched = this.extend(this.safeDict(built, 'request'), response);
+        const order = this.parseOrder(enriched, this.safeDict(built, 'outcome'));
+        order['info'] = response; // keep info the raw exchange response, not the request echo
+        return order;
     }
     /**
      * @method
@@ -1749,6 +1753,7 @@ export default class polymarket extends Exchange {
         await this.loadOutcomes();
         const bodies = [];
         const outcomes = [];
+        const requests = [];
         const batchSalt = this.milliseconds();
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
@@ -1760,12 +1765,17 @@ export default class polymarket extends Exchange {
             const built = this.buildClobOrderBody(this.safeString(o, 'outcome'), this.safeString(o, 'type'), this.safeString(o, 'side'), this.safeNumber(o, 'amount'), this.safeNumber(o, 'price'), orderParams);
             bodies.push(this.safeDict(built, 'body'));
             outcomes.push(this.safeDict(built, 'outcome'));
+            requests.push(this.safeDict(built, 'request'));
         }
         const response = await this.clobPrivatePostOrders(bodies);
         const result = [];
         if (Array.isArray(response)) {
             for (let i = 0; i < response.length; i++) {
-                result.push(this.parseOrder(response[i], outcomes[i]));
+                // request echo first so the response's real orderID/status win on overlap
+                const enriched = this.extend(requests[i], response[i]);
+                const parsedItem = this.parseOrder(enriched, outcomes[i]);
+                parsedItem['info'] = response[i]; // keep info the raw exchange response
+                result.push(parsedItem);
             }
         }
         else {
@@ -1890,12 +1900,26 @@ export default class polymarket extends Exchange {
             'owner': owner,
             'orderType': orderTypeStr,
         };
+        // the CLOB create response only echoes {orderID, status}; carry the submitted terms
+        // (keyed as the fetchOrder response fields parseOrder reads) so createOrder can merge
+        // them and return a fully-populated order instead of undefined side/price/amount
+        const requestEcho = {
+            'side': sideStr,
+            'price': price,
+            'asset_id': tokenId,
+            'time_in_force': orderTypeStr,
+        };
+        if (cost === undefined) {
+            // a cost-sized market buy specifies spend, not shares — leave size to the fill
+            requestEcho['original_size'] = amount;
+        }
         return {
             // orderBody LAST so its authoritative fields (order/owner/orderType/postOnly/deferExec)
             // can't be clobbered by leftover params — a stray postOnly/orderType would otherwise
             // silently override the signed intent
             'body': this.extend(rest, orderBody),
             'outcome': outcomeObj,
+            'request': requestEcho,
         };
     }
     /**

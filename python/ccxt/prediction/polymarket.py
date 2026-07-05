@@ -1635,7 +1635,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
         await self.load_outcome(outcome)
         built = self.build_clob_order_body(outcome, type, side, amount, price, params)
         response = await self.clobPrivatePostOrder(self.safe_dict(built, 'body'))
-        return self.parse_order(response, self.safe_dict(built, 'outcome'))
+        # request echo first so the response's real orderID/status/success win on overlap
+        enriched = self.extend(self.safe_dict(built, 'request'), response)
+        order = self.parse_order(enriched, self.safe_dict(built, 'outcome'))
+        order['info'] = response   # keep info the raw exchange response, not the request echo
+        return order
 
     async def create_orders(self, orders: List[PredictionOrderRequest], params={}) -> List[PredictionOrder]:
         """
@@ -1651,6 +1655,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         await self.load_outcomes()
         bodies = []
         outcomes = []
+        requests = []
         batchSalt = self.milliseconds()
         for i in range(0, len(orders)):
             o = orders[i]
@@ -1661,11 +1666,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
             built = self.build_clob_order_body(self.safe_string(o, 'outcome'), self.safe_string(o, 'type'), self.safe_string(o, 'side'), self.safe_number(o, 'amount'), self.safe_number(o, 'price'), orderParams)
             bodies.append(self.safe_dict(built, 'body'))
             outcomes.append(self.safe_dict(built, 'outcome'))
+            requests.append(self.safe_dict(built, 'request'))
         response = await self.clobPrivatePostOrders(bodies)
         result = []
         if isinstance(response, list):
             for i in range(0, len(response)):
-                result.append(self.parse_order(response[i], outcomes[i]))
+                # request echo first so the response's real orderID/status win on overlap
+                enriched = self.extend(requests[i], response[i])
+                parsedItem = self.parse_order(enriched, outcomes[i])
+                parsedItem['info'] = response[i]   # keep info the raw exchange response
+                result.append(parsedItem)
         else:
             result.append(self.parse_order(response))
         return result
@@ -1776,12 +1786,25 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'owner': owner,
             'orderType': orderTypeStr,
         }
+        # the CLOB create response only echoes {orderID, status}; carry the submitted terms
+        #(keyed fetchOrder response fields parseOrder reads) so createOrder can merge
+        # them and return a fully-populated order instead of None side/price/amount
+        requestEcho = {
+            'side': sideStr,
+            'price': price,
+            'asset_id': tokenId,
+            'time_in_force': orderTypeStr,
+        }
+        if cost is None:
+            # a cost-sized market buy specifies spend, not shares — leave size to the fill
+            requestEcho['original_size'] = amount
         return {
             # orderBody LAST so its authoritative fields(order/owner/orderType/postOnly/deferExec)
             # can't be clobbered by leftover params — a stray postOnly/orderType would otherwise
             # silently override the signed intent
             'body': self.extend(rest, orderBody),
             'outcome': outcomeObj,
+            'request': requestEcho,
         }
 
     async def create_market_buy_order_with_cost(self, outcome: str, cost: float, params={}) -> PredictionOrder:

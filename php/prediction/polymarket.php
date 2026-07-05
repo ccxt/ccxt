@@ -1762,9 +1762,9 @@ class polymarket extends Exchange {
     public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcome, $type, $side, $amount, $price, $params) {
             /**
-             * places a limit or market order on the CLOB for the given $outcome token
+             * places a limit or market $order on the CLOB for the given $outcome token
              *
-             * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
+             * @see https://docs.polymarket.com/api-reference/trade/post-a-new-$order
              *
              * @param {string} $outcome unified $outcome or $outcome token id
              * @param {string} $type 'market' or 'limit'; market orders default to FOK and, when no $price is given, use the outcome's current $price marketable reference
@@ -1777,16 +1777,20 @@ class polymarket extends Exchange {
              * @param {string} [$params->funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
              * @param {string} [$params->tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the $outcome when omitted
              * @param {bool} [$params->negRisk] whether the market is a neg-risk market; read from the $outcome when omitted
-             * @param {string} [$params->salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
-             * @param {string} [$params->timestamp] order timestamp; defaults to the current time in ms
+             * @param {string} [$params->salt] $order salt; defaults to the current time in ms (pin it for idempotent retries)
+             * @param {string} [$params->timestamp] $order timestamp; defaults to the current time in ms
              * @param {string} [$params->expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
              */
             Async\await($this->load_api_credentials());
             Async\await($this->load_outcome($outcome));
             $built = $this->build_clob_order_body($outcome, $type, $side, $amount, $price, $params);
             $response = Async\await($this->clobPrivatePostOrder($this->safe_dict($built, 'body')));
-            return $this->parse_order($response, $this->safe_dict($built, 'outcome'));
+            // request echo first so the response's real orderID/status/success win on overlap
+            $enriched = $this->extend($this->safe_dict($built, 'request'), $response);
+            $order = $this->parse_order($enriched, $this->safe_dict($built, 'outcome'));
+            $order['info'] = $response;   // keep info the raw exchange $response, not the request echo
+            return $order;
         })();
     }
 
@@ -1797,7 +1801,7 @@ class polymarket extends Exchange {
              *
              * @see https://docs.polymarket.com/api-reference/trade/post-$orders
              *
-             * @param {array[]} $orders a list of order requests, each an object with outcome, type, side, amount, price and optional $params (same $params)
+             * @param {array[]} $orders a list of order $requests, each an object with outcome, type, side, amount, price and optional $params (same $params)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
@@ -1805,6 +1809,7 @@ class polymarket extends Exchange {
             Async\await($this->load_outcomes());
             $bodies = array();
             $outcomes = array();
+            $requests = array();
             $batchSalt = $this->milliseconds();
             for ($i = 0; $i < count($orders); $i++) {
                 $o = $orders[$i];
@@ -1816,12 +1821,17 @@ class polymarket extends Exchange {
                 $built = $this->build_clob_order_body($this->safe_string($o, 'outcome'), $this->safe_string($o, 'type'), $this->safe_string($o, 'side'), $this->safe_number($o, 'amount'), $this->safe_number($o, 'price'), $orderParams);
                 $bodies[] = $this->safe_dict($built, 'body');
                 $outcomes[] = $this->safe_dict($built, 'outcome');
+                $requests[] = $this->safe_dict($built, 'request');
             }
             $response = Async\await($this->clobPrivatePostOrders($bodies));
             $result = array();
             if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 for ($i = 0; $i < count($response); $i++) {
-                    $result[] = $this->parse_order($response[$i], $outcomes[$i]);
+                    // request echo first so the response's real orderID/status win on overlap
+                    $enriched = $this->extend($requests[$i], $response[$i]);
+                    $parsedItem = $this->parse_order($enriched, $outcomes[$i]);
+                    $parsedItem['info'] = $response[$i];   // keep info the raw exchange $response
+                    $result[] = $parsedItem;
                 }
             } else {
                 $result[] = $this->parse_order($response);
@@ -1942,12 +1952,26 @@ class polymarket extends Exchange {
             'owner' => $owner,
             'orderType' => $orderTypeStr,
         );
+        // the CLOB create response only echoes array(orderID, status); carry the submitted terms
+        // (keyed fetchOrder response fields parseOrder reads) so createOrder can merge
+        // them and return a fully-populated order instead of null side/price/amount
+        $requestEcho = array(
+            'side' => $sideStr,
+            'price' => $price,
+            'asset_id' => $tokenId,
+            'time_in_force' => $orderTypeStr,
+        );
+        if ($cost === null) {
+            // a $cost-sized market buy specifies spend, not shares — leave size to the fill
+            $requestEcho['original_size'] = $amount;
+        }
         return array(
             // $orderBody LAST so its authoritative fields (order/owner/orderType/postOnly/deferExec)
             // can't be clobbered by leftover $params — a stray postOnly/orderType would otherwise
             // silently override the signed intent
             'body' => $this->extend($rest, $orderBody),
             'outcome' => $outcomeObj,
+            'request' => $requestEcho,
         );
     }
 

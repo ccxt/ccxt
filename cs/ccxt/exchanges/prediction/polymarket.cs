@@ -1923,7 +1923,11 @@ public partial class polymarket : PredictionExchange
         await this.loadOutcome(outcome);
         object built = this.buildClobOrderBody(outcome, type, side, amount, price, parameters);
         object response = await this.clobPrivatePostOrder(this.safeDict(built, "body"));
-        return this.parseOrder(response, ((object)this.safeDict(built, "outcome")));
+        // request echo first so the response's real orderID/status/success win on overlap
+        object enriched = this.extend(this.safeDict(built, "request"), response);
+        object order = this.parseOrder(enriched, ((object)this.safeDict(built, "outcome")));
+        ((IDictionary<string,object>)order)["info"] = response; // keep info the raw exchange response, not the request echo
+        return order;
     }
 
     /**
@@ -1942,6 +1946,7 @@ public partial class polymarket : PredictionExchange
         await this.loadOutcomes();
         object bodies = new List<object>() {};
         object outcomes = new List<object>() {};
+        object requests = new List<object>() {};
         object batchSalt = this.milliseconds();
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -1957,6 +1962,7 @@ public partial class polymarket : PredictionExchange
             object built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
             ((IList<object>)bodies).Add(this.safeDict(built, "body"));
             ((IList<object>)outcomes).Add(this.safeDict(built, "outcome"));
+            ((IList<object>)requests).Add(this.safeDict(built, "request"));
         }
         object response = await this.clobPrivatePostOrders(bodies);
         object result = new List<object>() {};
@@ -1964,7 +1970,11 @@ public partial class polymarket : PredictionExchange
         {
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                ((IList<object>)result).Add(this.parseOrder(getValue(response, i), ((object)getValue(outcomes, i))));
+                // request echo first so the response's real orderID/status win on overlap
+                object enriched = this.extend(getValue(requests, i), getValue(response, i));
+                object parsedItem = this.parseOrder(enriched, ((object)getValue(outcomes, i)));
+                ((IDictionary<string,object>)parsedItem)["info"] = getValue(response, i); // keep info the raw exchange response
+                ((IList<object>)result).Add(parsedItem);
             }
         } else
         {
@@ -2098,9 +2108,24 @@ public partial class polymarket : PredictionExchange
             { "owner", owner },
             { "orderType", orderTypeStr },
         };
+        // the CLOB create response only echoes {orderID, status}; carry the submitted terms
+        // (keyed as the fetchOrder response fields parseOrder reads) so createOrder can merge
+        // them and return a fully-populated order instead of undefined side/price/amount
+        object requestEcho = new Dictionary<string, object>() {
+            { "side", sideStr },
+            { "price", price },
+            { "asset_id", tokenId },
+            { "time_in_force", orderTypeStr },
+        };
+        if (isTrue(isEqual(cost, null)))
+        {
+            // a cost-sized market buy specifies spend, not shares — leave size to the fill
+            ((IDictionary<string,object>)requestEcho)["original_size"] = amount;
+        }
         return new Dictionary<string, object>() {
             { "body", this.extend(rest, orderBody) },
             { "outcome", outcomeObj },
+            { "request", requestEcho },
         };
     }
 
