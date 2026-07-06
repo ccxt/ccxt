@@ -53,14 +53,23 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
     }
 }
 
-function helperTestSharedCurrencyFormat (exchange, skippedProperties, method, entry, format) {
-    const emptyAllowedFor = [ 'name', 'fee', 'active' ]; // 'active' key is dynamically checked below
-    const currencyType = exchange.safeString (entry, 'type');
+function helperTestSharedCurrencyFormat (exchange: Exchange, skippedProperties: object, method: string, entry: any, format: object) {
+    const emptyAllowedFor = [ 'name', 'fee', 'active', 'type' ]; // 'active' key is dynamically checked below
+    const isNetworkEntry = (entry !== undefined) && ('network' in entry);
+    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
+    const currencyType = isNetworkEntry ? 'crypto' : exchange.safeString (entry, 'type');
+    if (!isNative) {
+        emptyAllowedFor.push ('deposit');
+        emptyAllowedFor.push ('withdraw');
+    }
     if (currencyType !== 'crypto' && ('depositForNonCrypto' in skippedProperties)) {
         emptyAllowedFor.push ('deposit');
     }
     if (currencyType !== 'crypto' && ('withdrawForNonCrypto' in skippedProperties)) {
         emptyAllowedFor.push ('withdraw');
+    }
+    if (currencyType === 'leveraged' || currencyType === 'other') {
+        emptyAllowedFor.push ('precision');
     }
     //
     try {
