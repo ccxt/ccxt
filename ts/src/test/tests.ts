@@ -1663,10 +1663,12 @@ class testMainClass {
     }
 
     initOfflineExchange (exchangeName: string) {
-        // prediction runs load outcome markets from an event -> markets -> outcomes fixture
-        // (static/events/<id>.json). when present, skip the crypto markets/currencies entirely so
-        // setMarkets rebuilds cleanly from the outcome markets (ids like hyperliquid exist in both
-        // namespaces and would otherwise carry the crypto markets/currencies)
+        // prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
+        // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        // setMarkets rebuilds cleanly from the outcome markets
         let predictionEvents = undefined;
         if (this.predictionTests) {
             predictionEvents = this.loadEventsFromFile (exchangeName);
