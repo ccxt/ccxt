@@ -1,6 +1,5 @@
 import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
-import Precise from '../../../base/Precise.js';
 
 function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
     const format = {
