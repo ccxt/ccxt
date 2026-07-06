@@ -415,7 +415,13 @@ export default class bithumb extends Exchange {
                 market['quote'] = quote;
                 market['baseId'] = baseId;
                 market['quoteId'] = quoteId;
-                market['id'] = (generation === 2) ? (quoteId + '-' + baseId) : baseId;
+                let marketId = undefined;
+                if (generation === 2) {
+                    marketId = (quoteId + '-' + baseId);
+                } else {
+                    marketId = baseId;
+                }
+                market['id'] = marketId;
                 this.markets[symbol] = market;
             }
             this.setMarkets (this.markets, this.currencies);
@@ -1382,7 +1388,11 @@ export default class bithumb extends Exchange {
         }
         const type = undefined;
         let side = this.safeStringLower2 (trade, 'type', 'ask_bid');
-        side = (side === 'ask') ? 'sell' : 'buy';
+        if (side === 'bid') {
+            side = 'buy';
+        } else {
+            side = 'sell';
+        }
         const id = this.safeString (trade, 'cont_no');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market);
@@ -1576,9 +1586,21 @@ export default class bithumb extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['order_type'] = 'limit';
-            request['side'] = (side === 'buy') ? 'bid' : 'ask';
+            let sideRequest = undefined;
+            if (side === 'buy') {
+                sideRequest = 'bid';
+            } else {
+                sideRequest = 'ask';
+            }
+            request['side'] = sideRequest;
         } else {
-            request['order_type'] = (side === 'buy') ? 'price' : 'market';
+            let typeRequest = undefined;
+            if (side === 'buy') {
+                typeRequest = 'price';
+            } else {
+                typeRequest = 'market';
+            }
+            request['order_type'] = typeRequest;
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
@@ -1635,7 +1657,13 @@ export default class bithumb extends Exchange {
             let method = 'privatePostTradePlace';
             if (type === 'limit') {
                 request['price'] = this.priceToPrecision (symbol, price);
-                request['type'] = (side === 'buy') ? 'bid' : 'ask';
+                let typeRequest = undefined;
+                if (side === 'buy') {
+                    typeRequest = 'bid';
+                } else {
+                    typeRequest = 'ask';
+                }
+                request['type'] = typeRequest;
             } else {
                 method = 'privatePostTradeMarket' + this.capitalize ((side as string));
             }
@@ -1868,7 +1896,12 @@ export default class bithumb extends Exchange {
             datetime = this.iso8601 (timestamp);
         }
         const sideProperty = this.safeString2 (order, 'type', 'side');
-        const side = (sideProperty === 'bid') ? 'buy' : 'sell';
+        let side = undefined;
+        if (sideProperty === 'bid') {
+            side = 'buy';
+        } else {
+            side = 'sell';
+        }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'state'));
         const price = this.safeString2 (order, 'order_price', 'price');
         let type = this.safeString2 (order, 'order_type', 'ord_type', 'limit');
@@ -2145,7 +2178,12 @@ export default class bithumb extends Exchange {
             if (!side_in_params) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
-            const side = (params['side'] === 'buy') ? 'bid' : 'ask';
+            let side = undefined;
+            if (params['side'] === 'buy') {
+                side = 'bid';
+            } else {
+                side = 'ask';
+            }
             params = this.omit (params, 'side');
             // https://github.com/ccxt/ccxt/issues/6771
             request['type'] = side;
@@ -2338,7 +2376,7 @@ export default class bithumb extends Exchange {
         //
         // generation 1: withdraw
         //
-        //     { "status" : "0000"}
+        //     {"status": "0000"}
         //
         // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals
         //
