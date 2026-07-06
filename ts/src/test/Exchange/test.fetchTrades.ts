@@ -11,7 +11,7 @@ async function testFetchTrades (exchange: Exchange, skippedProperties: object, s
     await testFetchTradesResponse (exchange, skippedProperties, symbol, method, trades);
 }
 
-async function testFetchTradesResponse (exchange, skippedProperties, symbol, method, trades) {
+async function testFetchTradesResponse (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, trades);
     await testFetchTradesStructure (exchange, skippedProperties, symbol, method, trades);
     if (!('requireBothSides' in skippedProperties) && trades.length > 50) {
@@ -25,7 +25,7 @@ async function testFetchTradesResponse (exchange, skippedProperties, symbol, met
     }
 }
 
-async function testFetchTradesStructure (exchange, skippedProperties, symbol, method, trades) {
+async function testFetchTradesStructure (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
     const now = exchange.milliseconds ();
     const isPublicTrade = true;
     for (let i = 0; i < trades.length; i++) {
@@ -33,7 +33,7 @@ async function testFetchTradesStructure (exchange, skippedProperties, symbol, me
     }
 }
 
-async function testFetchTradesSidesBuySell (exchange, skippedProperties, symbol, method, trades) {
+async function testFetchTradesSidesBuySell (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
     //
     //    Check whether both "buy" and "sell" are returned from trades, when there are more than 50 trades
     //
@@ -43,7 +43,7 @@ async function testFetchTradesSidesBuySell (exchange, skippedProperties, symbol,
     assert (('sell' in grouped), msg);
 }
 
-async function testFetchTradesSideSequence (exchange, skippedProperties, symbol, method, trades) {
+async function testFetchTradesSideSequence (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
     //
     //     Check whether side is correct. This can be found out deterministically,
     //   by checking an order that has been filled with multiple trades at the
