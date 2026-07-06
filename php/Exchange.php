@@ -1774,8 +1774,7 @@ class Exchange {
         // floats decode to PHP doubles (exact round-trip <= 15 significant
         // digits, exchanges cap decimal precision well below that), so the
         // former quote-every-number regex pass (issue #8115) is unnecessary
-        $flags = $this->quoteJsonNumbers ? JSON_BIGINT_AS_STRING : 0;
-        return json_decode($this->on_json_response($json_string), $as_associative_array, 512, $flags);
+        return json_decode($json_string, $as_associative_array, 512, JSON_BIGINT_AS_STRING);
     }
 
     public function log() {
@@ -1791,10 +1790,6 @@ class Exchange {
 
     public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
         return is_string($response_body) ? trim($response_body) : $response_body;
-    }
-
-    public function on_json_response($response_body) {
-        return $response_body;
     }
 
     public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
