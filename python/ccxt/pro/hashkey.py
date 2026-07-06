@@ -84,7 +84,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param bool [params.binary]: True or False - default False
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -175,7 +176,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param bool [params.binary]: True or False - default False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = 'realtimes'
@@ -231,7 +233,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param bool [params.binary]: True or False - default False
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = 'trade'
@@ -294,7 +297,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = 'depth'
@@ -359,7 +363,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders'
         if symbol is not None:
             symbol = self.symbol(symbol)
@@ -474,7 +479,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrades'
         if symbol is not None:
             symbol = self.symbol(symbol)
@@ -583,7 +589,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         listenKey = await self.authenticate()
         symbols = self.market_symbols(symbols)
         messageHash = 'positions'
@@ -678,7 +685,8 @@ class hashkey(ccxt.async_support.hashkey):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         listenKey = await self.authenticate()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = 'spot'
         type, params = self.handle_market_type_and_params('watchBalance', None, params, type)
         messageHash = 'balance:' + type

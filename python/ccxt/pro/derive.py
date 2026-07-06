@@ -84,7 +84,8 @@ class derive(ccxt.async_support.derive):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if limit is None:
             limit = 10
         market = self.market(symbol)
@@ -149,7 +150,8 @@ class derive(ccxt.async_support.derive):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         topic = 'ticker.' + market['id'] + '.100'
         request = {
@@ -251,7 +253,8 @@ class derive(ccxt.async_support.derive):
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         limit = self.safe_integer(params, 'limit')
         if limit is None:
             limit = 10
@@ -278,7 +281,8 @@ class derive(ccxt.async_support.derive):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         topic = 'trades.' + market['id']
         messageHah = 'unwatch' + topic
@@ -367,7 +371,8 @@ class derive(ccxt.async_support.derive):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         topic = 'trades.' + market['id']
         request = {
@@ -464,7 +469,8 @@ class derive(ccxt.async_support.derive):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subaccountId = None
         subaccountId, params = self.handleDeriveSubaccountId('watchOrders', params)
         topic = self.number_to_string(subaccountId) + '.orders'
@@ -576,7 +582,8 @@ class derive(ccxt.async_support.derive):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subaccountId = None
         subaccountId, params = self.handleDeriveSubaccountId('watchMyTrades', params)
         topic = self.number_to_string(subaccountId) + '.trades'

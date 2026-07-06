@@ -109,7 +109,8 @@ class aster(ccxt.async_support.aster):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         params['callerMethodName'] = 'watchTicker'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.safe_symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
@@ -147,7 +148,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is None:
             symbols = []
@@ -191,7 +193,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is None:
             symbols = []
@@ -230,7 +233,8 @@ class aster(ccxt.async_support.aster):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         params['callerMethodName'] = 'watchMarkPrice'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.safe_symbol(symbol)
         tickers = await self.watch_mark_prices([symbol], params)
         return tickers[symbol]
@@ -262,7 +266,8 @@ class aster(ccxt.async_support.aster):
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is None:
             symbols = []
@@ -307,7 +312,8 @@ class aster(ccxt.async_support.aster):
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is None:
             symbols = []
@@ -428,7 +434,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is None:
             symbols = []
@@ -469,7 +476,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is None:
             symbols = []
@@ -577,7 +585,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -619,7 +628,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -863,7 +873,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -904,7 +915,8 @@ class aster(ccxt.async_support.aster):
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -986,7 +998,8 @@ class aster(ccxt.async_support.aster):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.safe_symbol(symbol)
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
@@ -1019,7 +1032,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbolsLength = len(symbolsAndTimeframes)
         methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOHLCVForSymbols')
@@ -1065,7 +1079,8 @@ class aster(ccxt.async_support.aster):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbolsLength = len(symbolsAndTimeframes)
         methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchOHLCVForSymbols')
@@ -1216,7 +1231,8 @@ class aster(ccxt.async_support.aster):
         :param str [params.type]: 'spot' or 'swap', default is 'spot'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params, type)
         await self.authenticate(type, params)
@@ -1346,7 +1362,8 @@ class aster(ccxt.async_support.aster):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = 'swap'
         await self.authenticate(type, params)
         url = self.get_private_url(type)
@@ -1520,7 +1537,8 @@ class aster(ccxt.async_support.aster):
         :param str [params.type]: 'spot' or 'swap', default is 'spot' if symbol is not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1553,7 +1571,8 @@ class aster(ccxt.async_support.aster):
         :param str [params.type]: 'spot' or 'swap', default is 'spot' if symbol is not provided
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)

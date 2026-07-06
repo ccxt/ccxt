@@ -64,7 +64,8 @@ class mudrex(ccxt.async_support.mudrex):
         self.options['ws'] = wsOptions
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
@@ -80,7 +81,8 @@ class mudrex(ccxt.async_support.mudrex):
         return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHashes = []
         assets = []
@@ -106,7 +108,8 @@ class mudrex(ccxt.async_support.mudrex):
         return self.filter_by_array_tickers(self.tickers, 'symbol', symbols)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         priceType = self.safe_string(params, 'price')
