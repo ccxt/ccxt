@@ -325,6 +325,7 @@ export default class nado extends Exchange {
      * @name nado#createOrder
      * @description create a trade order
      * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
+     * @see https://docs.nado.xyz/developer-resources/api/trigger/executes/place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -338,6 +339,10 @@ export default class nado extends Exchange {
      * @param {boolean} [params.postOnly] true to create a post-only order
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
      * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+     * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+     * @param {string} [params.triggerDirection] trigger direction, above, below
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -833,6 +838,7 @@ export default class nado extends Exchange {
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -847,12 +853,42 @@ export default class nado extends Exchange {
         let subaccount = undefined;
         [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
-        const request: Dict = {
-            'sender': sender,
-            'type': 'subaccount_orders',
-            'product_id': this.parseToInt (market['id']),
-        };
-        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        let request = {};
+        let response = undefined;
+        if (trigger) {
+            const tx = {
+                'sender': sender,
+                'recvTime': this.numberToString (this.milliseconds () + 10000),
+            };
+            request = {
+                'tx': tx,
+                'type': 'list_trigger_orders',
+                'product_ids': [
+                    this.parseToInt (market['id']),
+                ],
+                'status_types': [
+                    'waiting_price', 'waiting_dependency',
+                ],
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const contracts = await this.queryContracts ();
+            const chainId = this.safeString (contracts, 'chain_id');
+            const endpointAddress = this.safeString (contracts, 'endpoint_addr');
+            const signature = this.signFetchTriggerOrders (tx, chainId, endpointAddress);
+            request['signature'] = signature;
+            response = await this.triggerPrivatePostQuery (this.extend (request, params));
+        } else {
+            request = {
+                'sender': sender,
+                'type': 'subaccount_orders',
+                'product_id': this.parseToInt (market['id']),
+            };
+            response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        }
         //
         // single product
         //
@@ -882,6 +918,9 @@ export default class nado extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
+        if (trigger) {
+            return this.parseOrders (orders, market, since, limit);
+        }
         return this.parseOrders (orders, market, since, limit, { 'status': 'open' });
     }
 
@@ -2410,6 +2449,31 @@ export default class nado extends Exchange {
         //         "placed_at": 1686332708
         //     }
         //
+        // trigger order
+        //
+        // {
+        //     order: {
+        //         order: {
+        //             sender: '',
+        //             priceX18: '100000000000000000000',
+        //             amount: '-1000000000000000000',
+        //             expiration: '4294967295',
+        //             nonce: '',
+        //             appendix: '4097'
+        //         },
+        //         signature: '',
+        //         product_id: '8',
+        //         spot_leverage: null,
+        //         borrow_margin: null,
+        //         trigger: { price_trigger: [Object] },
+        //         digest: '',
+        //         id: null
+        //     },
+        //     status: 'waiting_price',
+        //     placed_at: '1783347360',
+        //     updated_at: '1783347360'
+        // }
+        //
         let id = undefined;
         let timestamp = undefined;
         let timeInForce = undefined;
@@ -2423,6 +2487,7 @@ export default class nado extends Exchange {
         let average = undefined;
         let fee = undefined;
         let lastTradeTimestamp = undefined;
+        let lastUpdateTimestamp = undefined;
         let status = undefined;
         const cancelOrderDigest = this.safeString (order, 'digest');
         const archiveFilled = this.safeString (order, 'base_filled');
@@ -2480,21 +2545,35 @@ export default class nado extends Exchange {
             price = this.parseX18 (this.safeString (order, 'price_x18'));
             status = this.safeString (order, 'status', 'open');
         } else {
-            const placeOrder = this.safeDict (order, 'place_order', {});
+            const placeOrder = this.safeDict2 (order, 'place_order', 'order', {});
             const rawOrder = this.safeDict (placeOrder, 'order', {});
             const marketId = this.safeString (placeOrder, 'product_id');
             market = this.safeMarket (marketId, market);
             const data = this.safeDict (order, 'data', {});
             id = this.safeString (data, 'digest');
+            if (id === undefined) {
+                id = this.safeString (placeOrder, 'digest');
+                timestamp = this.safeTimestamp (order, 'placed_at');
+                lastUpdateTimestamp = this.safeTimestamp (order, 'updated_at');
+            }
             const amountString = this.safeString (rawOrder, 'amount');
             if (amountString !== undefined) {
                 side = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
                 amount = this.parseX18 (Precise.stringAbs (amountString));
             }
-            const responseStatus = this.safeString (order, 'status');
-            status = 'rejected';
-            if (responseStatus === 'success') {
-                status = 'open';
+            const triggerStatus = this.safeDict (order, 'status');
+            if (triggerStatus !== undefined) {
+                const triggered = this.safeDict (triggerStatus, 'triggered');
+                if (triggered !== undefined) {
+                    status = 'closed';
+                } else {
+                    status = 'canceled';
+                }
+            } else {
+                status = this.safeString (order, 'status', 'rejected');
+                if ((status === 'success') || (status.indexOf ('waiting') >= 0)) {
+                    status = 'open';
+                }
             }
             price = this.parseX18 (this.safeString (rawOrder, 'priceX18'));
         }
@@ -2688,6 +2767,24 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, cancellation);
+        const hash = '0x' + this.hash (encoded, keccak, 'hex');
+        return this.signHash (hash, this.privateKey);
+    }
+
+    signFetchTriggerOrders (tx, chainId, endpointAddress) {
+        const domain: Dict = {
+            'name': 'Nado',
+            'version': '0.0.1',
+            'chainId': chainId,
+            'verifyingContract': endpointAddress,
+        };
+        const messageTypes: Dict = {
+            'ListTriggerOrders': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'recvTime', 'type': 'uint64' },
+            ],
+        };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, tx);
         const hash = '0x' + this.hash (encoded, keccak, 'hex');
         return this.signHash (hash, this.privateKey);
     }
