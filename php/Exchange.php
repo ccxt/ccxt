@@ -1774,7 +1774,7 @@ class Exchange {
         // floats decode to PHP doubles (exact round-trip <= 15 significant
         // digits, exchanges cap decimal precision well below that), so the
         // former quote-every-number regex pass (issue #8115) is unnecessary
-        return json_decode($json_string, $as_associative_array, 512, JSON_BIGINT_AS_STRING);
+        return json_decode($json_string, $as_associative_array, flags: JSON_BIGINT_AS_STRING);
     }
 
     public function log() {
