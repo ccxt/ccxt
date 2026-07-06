@@ -839,20 +839,23 @@ export default class kraken extends krakenRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 'timestamp', true);
     }
 
-    async loadMarkets (params = {}) {
-        const markets = await super.loadMarkets (params);
-        const marketsByWsName = {};
-        const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.markets[symbol];
-                const info = this.safeValue (market, 'info', {});
-                const wsName = this.safeString (info, 'wsname') as string;
-                marketsByWsName[wsName] = market;
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        let marketsByWsName = this.safeValue (this.options, 'marketsByWsName');
+        if ((marketsByWsName === undefined) || reload) {
+            marketsByWsName = {};
+            const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            if (symbols !== undefined) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    const market = this.markets[symbol];
+                    const info = this.safeValue (market, 'info', {});
+                    const wsName = this.safeString (info, 'wsname') as string;
+                    marketsByWsName[wsName] = market;
+                }
             }
+            this.options['marketsByWsName'] = marketsByWsName;
         }
-        this.options['marketsByWsName'] = marketsByWsName;
         return markets;
     }
 

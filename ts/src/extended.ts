@@ -333,9 +333,12 @@ export default class extended extends Exchange {
         });
     }
 
-    async loadMarkets (params = {}) {
-        const markets = await super.loadMarkets (params);
-        this.options['currenciesByNumericId'] = this.indexByStringifiedNumericId (this.currencies);
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
+        if ((currenciesByNumericId === undefined) || reload) {
+            this.options['currenciesByNumericId'] = this.indexByStringifiedNumericId (this.currencies);
+        }
         return markets;
     }
 

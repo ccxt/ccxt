@@ -287,9 +287,15 @@ class Exchange extends \ccxt\Exchange {
         })();
     }
 
-    public function load_markets_helper($params = array()) {
+    public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
-        return React\Async\async(function () use ($params) {
+        return React\Async\async(function () use ($reload, $params) {
+            if (!$reload && $this->markets) {
+                if (!$this->markets_by_id) {
+                    return $this->set_markets($this->markets);
+                }
+                return $this->markets;
+            }
             $currencies = null;
             if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
                 $currencies = React\Async\await($this->fetch_currencies());
@@ -301,15 +307,15 @@ class Exchange extends \ccxt\Exchange {
         })();
     }
 
-    public function loadMarkets($params = array()) {
+    public function loadMarkets($reload = false, $params = array()) {
         // returns a promise
-        return $this->load_markets($params);
+        return $this->load_markets($reload, $params);
     }
 
-    public function load_markets($params = array()) {
-        if (!$this->reloadingMarkets) {
+    public function load_markets($reload = false, $params = array()) {
+        if (($reload && !$this->reloadingMarkets) || !$this->marketsLoading) {
             $this->reloadingMarkets = true;
-            $this->marketsLoading = $this->load_markets_helper($params)->then(function ($resolved) {
+            $this->marketsLoading = $this->load_markets_helper($reload, $params)->then(function ($resolved) {
                 $this->reloadingMarkets = false;
                 return $resolved;
             }, function ($error) {

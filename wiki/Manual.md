@@ -1486,7 +1486,7 @@ Console.WriteLine(kraken.id + " " + markets.Count + " markets");
 #### **Java**
 ```java
 Kraken kraken = new Kraken();
-Map<String, MarketInterface> markets = kraken.loadMarkets();
+Map<String, MarketInterface> markets = kraken.loadMarkets(false);
 System.out.println(kraken.id + " " + markets.size() + " markets");
 ```
 
@@ -1953,9 +1953,9 @@ A future market symbol consists of the underlying currency, the quoting currency
 
 ## Market Cache Force Reload
 
-The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. Every call to this method reloads the list of markets from the exchange. If you only want to load the markets once, check the `markets` property first and call the method only when the markets have not been loaded yet.
+The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return the locally saved (cached) array of markets.
 
-When exchange markets are loaded, you can then access market information any time via the `markets` property. This property contains an associative array of markets indexed by symbol. If you need to force reload the list of markets after you have them loaded already, just call the same method again.
+When exchange markets are loaded, you can then access market information any time via the `markets` property. This property contains an associative array of markets indexed by symbol. If you need to force reload the list of markets after you have them loaded already, pass the reload = true flag to the same method again.
 <!-- tabs:start -->
 
 #### **Javascript**
@@ -1966,10 +1966,8 @@ When exchange markets are loaded, you can then access market information any tim
     console.log (kraken.id, kraken.markets)    // output a full list of all loaded markets
     console.log (Object.keys (kraken.markets)) // output a short list of market symbols
     console.log (kraken.markets['BTC/USD'])    // output single market details
-    if (kraken.markets === undefined) {
-        await kraken.loadMarkets () // only loads if not loaded yet
-    }
-    let reloadedMarkets = await kraken.loadMarkets () // force HTTP reload
+    await kraken.loadMarkets () // return a locally cached version, no reload
+    let reloadedMarkets = await kraken.loadMarkets (true) // force HTTP reload = true
     console.log (reloadedMarkets['ETH/BTC'])
 }) ()
 ```
@@ -1980,9 +1978,8 @@ poloniex.load_markets() # request markets
 print(poloniex.id, poloniex.markets)   # output a full list of all loaded markets
 print(list(poloniex.markets.keys())) # output a short list of market symbols
 print(poloniex.markets['BTC/ETH'])     # output single market details
-if poloniex.markets is None:
-    poloniex.load_markets() # only loads if not loaded yet
-reloadedMarkets = poloniex.load_markets() # force HTTP reload
+poloniex.load_markets() # return a locally cached version, no reload
+reloadedMarkets = poloniex.load_markets(True) # force HTTP reload = True
 print(reloadedMarkets['ETH/ZEC'])
 ```
 #### **PHP**
@@ -1992,10 +1989,8 @@ $bitfinex.load_markets(); // request markets
 var_dump($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
 var_dump(array_keys ($bitfinex->markets));   // output a short list of market symbols
 var_dump($bitfinex->markets['XRP/USD']);     // output single market details
-if ($bitfinex->markets === null) {
-    $bitfinex->load_markets(); // only loads if not loaded yet
-}
-$reloadedMarkets = $bitfinex->load_markets(); // force HTTP reload
+$bitfinex->load_markets(); // return a locally cached version, no reload
+$reloadedMarkets = $bitfinex->load_markets(true); // force HTTP reload = true
 var_dump($bitfinex->markets['XRP/BTC']);
 ```
 
@@ -2003,21 +1998,24 @@ var_dump($bitfinex->markets['XRP/BTC']);
 ```go
 kraken := ccxt.NewKraken(map[string]interface{}{"verbose": true}) // log HTTP requests
 kraken.LoadMarkets()       // request markets
-kraken.LoadMarkets()       // force HTTP reload
+kraken.LoadMarkets()       // return a locally cached version, no reload
+kraken.LoadMarkets(true)   // force HTTP reload = true
 ```
 
 #### **C#**
 ```csharp
 var kraken = new Kraken(new Dictionary<string, object>() { { "verbose", true } }); // log HTTP requests
 await kraken.LoadMarkets();       // request markets
-await kraken.LoadMarkets();       // force HTTP reload
+await kraken.LoadMarkets();       // return a locally cached version, no reload
+await kraken.loadMarkets(true);   // force HTTP reload = true
 ```
 
 #### **Java**
 ```java
 Kraken kraken = new Kraken();
-kraken.loadMarkets();                 // loads from exchange
-kraken.loadMarkets();                 // force reload
+kraken.loadMarkets(false);            // loads from exchange
+kraken.loadMarkets(false);            // returns cached version
+kraken.loadMarkets(true);             // force reload
 ```
 
 <!-- tabs:end -->

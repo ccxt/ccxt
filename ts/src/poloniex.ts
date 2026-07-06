@@ -713,9 +713,12 @@ export default class poloniex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async loadMarkets (params = {}) {
-        const markets = await super.loadMarkets (params);
-        this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
+        if ((currenciesByNumericId === undefined) || reload) {
+            this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
+        }
         return markets;
     }
 

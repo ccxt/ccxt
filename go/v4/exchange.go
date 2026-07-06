@@ -346,16 +346,26 @@ func (this *Exchange) InitThrottler() {
   - @method
   - @name Exchange#loadMarkets
   - @description Loads and prepares the markets for trading.
+  - @param {boolean} param.reload - If true, the markets will be reloaded from the exchange.
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
 func (this *Exchange) LoadMarkets(params ...any) <-chan any {
+	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
+
+	if this.marketsLoaded && !reload {
+		out := make(chan any, 1)
+		out <- this.Markets
+		close(out)
+		this.loadMu.Unlock()
+		return out
+	}
 
 	ch := make(chan any, 1)
 	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
 
-	if !this.marketsLoading {
+	if !this.marketsLoading || reload {
 		this.marketsLoading = true
 		markets := <-this.LoadMarketsHelper(params...)
 		this.marketsLoaded = true
@@ -383,7 +393,22 @@ func (this *Exchange) LoadMarketsHelper(params ...any) <-chan any {
 				ch <- panicMsg
 			}
 		}()
-		params := GetArg(params, 0, map[string]any{})
+		reload := GetArg(params, 0, false).(bool)
+		params := GetArg(params, 1, map[string]any{})
+		if !reload {
+			if this.Markets != nil {
+				if this.Markets_by_id == nil {
+					// Only lock when writing
+					this.MarketsMutex.Lock()
+					result := this.SetMarkets(this.Markets, nil)
+					this.MarketsMutex.Unlock()
+					ch <- result
+					return
+				}
+				ch <- this.Markets
+				return
+			}
+		}
 
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]

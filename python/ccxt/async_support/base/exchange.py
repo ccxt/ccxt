@@ -327,7 +327,12 @@ class Exchange(BaseExchange):
             self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
         return self.socks_proxy_sessions[socksProxy]
 
-    async def load_markets_helper(self, params={}):
+    async def load_markets_helper(self, reload=False, params={}):
+        if not reload:
+            if self.markets:
+                if not self.markets_by_id:
+                    return self.set_markets(self.markets)
+                return self.markets
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
@@ -338,11 +343,12 @@ class Exchange(BaseExchange):
         return self.set_markets(markets, currencies)
 
 
-    async def load_markets(self, params={}):
+    async def load_markets(self, reload=False, params={}):
         """
         Loads and prepares the markets for trading.
 
         Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
             params (dict): Additional exchange-specific parameters for the request.
 
         Returns:
@@ -353,14 +359,14 @@ class Exchange(BaseExchange):
 
         Notes:
             This method is asynchronous.
-            The markets are always reloaded from the exchange when this method is called.
-            Callers should check `self.markets` first if they only want to load once.
-            If a load is already in progress, it waits for it to complete before returning the markets.
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
             If an error occurs during loading or preparation, an exception is raised.
         """
-        if not self.reloading_markets:
+        if (reload and not self.reloading_markets) or not self.markets_loading:
             self.reloading_markets = True
-            coroutine = self.load_markets_helper(params)
+            coroutine = self.load_markets_helper(reload, params)
             # coroutines can only be awaited once so we wrap it in a task
             self.markets_loading = asyncio.ensure_future(coroutine)
         try:

@@ -2015,7 +2015,13 @@ class Exchange {
         return isset($json_response) ? $json_response : $result;
     }
 
-    public function load_markets($params = array()) {
+    public function load_markets($reload = false, $params = array()) {
+        if (!$reload && $this->markets) {
+            if (!$this->markets_by_id) {
+                return $this->set_markets($this->markets);
+            }
+            return $this->markets;
+        }
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();

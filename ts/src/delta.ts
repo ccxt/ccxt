@@ -629,10 +629,16 @@ export default class delta extends Exchange {
         });
     }
 
-    async loadMarkets (params = {}) {
-        const markets = await super.loadMarkets (params);
-        this.options['currenciesByNumericId'] = this.indexByStringifiedNumericId (this.currencies);
-        this.options['marketsByNumericId'] = this.indexByStringifiedNumericId (this.markets);
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
+        if ((currenciesByNumericId === undefined) || reload) {
+            this.options['currenciesByNumericId'] = this.indexByStringifiedNumericId (this.currencies);
+        }
+        const marketsByNumericId = this.safeDict (this.options, 'marketsByNumericId');
+        if ((marketsByNumericId === undefined) || reload) {
+            this.options['marketsByNumericId'] = this.indexByStringifiedNumericId (this.markets);
+        }
         return markets;
     }
 
