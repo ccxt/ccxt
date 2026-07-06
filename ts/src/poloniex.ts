@@ -641,9 +641,7 @@ export default class poloniex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1089,9 +1087,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         let market: Market = undefined;
         const request: Dict = {};
         if (symbols !== undefined) {
@@ -1268,9 +1264,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1452,9 +1446,7 @@ export default class poloniex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1513,9 +1505,7 @@ export default class poloniex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -1832,9 +1822,7 @@ export default class poloniex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -1937,9 +1925,7 @@ export default class poloniex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         let market: Market = undefined;
         let request: Dict = {};
         if (symbol !== undefined) {
@@ -2020,9 +2006,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         let request: Dict = {
             'symbol': market['id'],
@@ -2148,9 +2132,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
@@ -2193,9 +2175,7 @@ export default class poloniex extends Exchange {
         // @param {boolean} [params.trigger] true if canceling a trigger order
         // @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         //
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2255,9 +2235,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const request: Dict = {
             // 'accountTypes': 'SPOT',
             'symbols': [ ],
@@ -2331,9 +2309,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         id = id.toString ();
         const request: Dict = {
             'id': id,
@@ -2384,9 +2360,7 @@ export default class poloniex extends Exchange {
     }
 
     async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
@@ -2405,9 +2379,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const request: Dict = {
             'id': id,
         };
@@ -2486,9 +2458,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (marketType !== 'spot') {
@@ -2565,9 +2535,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.privateGetFeeinfo (params);
         //
         //     {
@@ -2604,9 +2572,7 @@ export default class poloniex extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2684,9 +2650,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
         params = extraParams;
         const response = await this.privatePostWalletsAddress (this.extend (request, params));
@@ -2708,9 +2672,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
         params = extraParams;
         const response = await this.privateGetWalletsAddresses (this.extend (request, params));
@@ -2788,9 +2750,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -2872,9 +2832,7 @@ export default class poloniex extends Exchange {
     }
 
     async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
         const start = (since !== undefined) ? this.parseToInt (since / 1000) : now - 10 * year;
@@ -2969,9 +2927,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -3017,9 +2973,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
@@ -3272,9 +3226,7 @@ export default class poloniex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
@@ -3307,9 +3259,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3457,9 +3407,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.swapPrivateGetV3TradePositionOpens (params);
         //
@@ -3574,9 +3522,7 @@ export default class poloniex extends Exchange {
     }
 
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         amount = this.amountToPrecision (symbol, amount);
         const request: Dict = {

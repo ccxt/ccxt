@@ -280,9 +280,7 @@ export default class kraken extends krakenRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const token = await this.authenticate ();
         const market = this.market (symbol);
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
@@ -351,9 +349,7 @@ export default class kraken extends krakenRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const token = await this.authenticate ();
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
@@ -385,9 +381,7 @@ export default class kraken extends krakenRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelOrdersWs () does not support cancelling orders for a specific symbol.');
         }
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const token = await this.authenticate ();
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
@@ -417,9 +411,7 @@ export default class kraken extends krakenRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelOrderWs () does not support cancelling orders for a specific symbol.');
         }
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const token = await this.authenticate ();
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
@@ -465,9 +457,7 @@ export default class kraken extends krakenRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
         }
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const token = await this.authenticate ();
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
@@ -672,9 +662,7 @@ export default class kraken extends krakenRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
@@ -690,9 +678,7 @@ export default class kraken extends krakenRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
@@ -713,9 +699,7 @@ export default class kraken extends krakenRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         params['event_trigger'] = 'bbo';
         const ticker = await this.watchMultiHelper ('bidask', 'ticker', symbols, undefined, params);
@@ -813,9 +797,7 @@ export default class kraken extends krakenRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const name = 'ohlc';
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -876,9 +858,7 @@ export default class kraken extends krakenRest {
     }
 
     async watchHeartbeat (params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const event = 'heartbeat';
         const url = (this.urls['api'] as Dict)['ws']['publicV2'];
         return await this.watch (url, event);
@@ -1114,9 +1094,7 @@ export default class kraken extends krakenRest {
     }
 
     async watchPrivate (name, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = 'executions';
         let messageHash = name;
@@ -1436,9 +1414,7 @@ export default class kraken extends krakenRest {
     }
 
     async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         if (symbols === undefined) {
@@ -1475,9 +1451,7 @@ export default class kraken extends krakenRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const token = await this.authenticate ();
         const messageHash = 'balances';
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
