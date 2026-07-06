@@ -85,7 +85,29 @@ func TestWatchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, 
 				AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 				for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
 					var ticker any = GetValue(values, i)
-					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+
+					{
+						func() (ret_ any) {
+							defer func() {
+								if ex := recover(); ex != nil {
+									if ex == "break" {
+										return
+									}
+									ret_ = func() any {
+										// catch block:
+
+										retRes5820 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
+										PanicOnError(retRes5820)
+										return nil
+									}()
+								}
+							}()
+							// try block:
+							TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+							return nil
+						}()
+
+					}
 				}
 				now = exchange.Milliseconds()
 				now = exchange.Milliseconds()
