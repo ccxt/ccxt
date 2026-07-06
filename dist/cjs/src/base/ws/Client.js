@@ -3,6 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var errors = require('../errors.js');
+var browser = require('../../static_dependencies/fflake/browser.js');
 var Future = require('./Future.js');
 var platform = require('../functions/platform.js');
 var generic = require('../functions/generic.js');
@@ -12,36 +13,7 @@ var time = require('../functions/time.js');
 require('../functions/io.js');
 var base = require('@scure/base');
 
-function _interopNamespace(e) {
-    if (e && e.__esModule) return e;
-    var n = Object.create(null);
-    if (e) {
-        Object.keys(e).forEach(function (k) {
-            if (k !== 'default') {
-                var d = Object.getOwnPropertyDescriptor(e, k);
-                Object.defineProperty(n, k, d.get ? d : {
-                    enumerable: true,
-                    get: function () { return e[k]; }
-                });
-            }
-        });
-    }
-    n["default"] = e;
-    return Object.freeze(n);
-}
-
 // ----------------------------------------------------------------------------
-// websocket decompression backends are resolved once at startup so the message
-// hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
-// inflate is always raw deflate (no zlib header), hence node's inflateRawSync.
-let gunzipSync = undefined;
-let inflateRawSync = undefined;
-if (platform.isNode) {
-    Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:zlib')); }).then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateRawSync; }).catch(() => { });
-}
-else {
-    Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackMode: "eager" */ 'fflate')); }).then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch(() => { });
-}
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
@@ -308,10 +280,10 @@ class Client {
             if (this.gunzip || this.inflate) {
                 arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
                 if (this.gunzip) {
-                    arrayBuffer = gunzipSync(arrayBuffer);
+                    arrayBuffer = browser.gunzipSync(arrayBuffer);
                 }
                 else if (this.inflate) {
-                    arrayBuffer = inflateRawSync(arrayBuffer);
+                    arrayBuffer = browser.inflateSync(arrayBuffer);
                 }
                 message = base.utf8.encode(arrayBuffer);
             }

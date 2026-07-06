@@ -134,7 +134,9 @@ export default class cex extends cexRest {
             throw new ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
         this.options['watchTrades']['symbol'] = symbol;
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -250,7 +252,9 @@ export default class cex extends cexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -287,7 +291,9 @@ export default class cex extends cexRest {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const url = this.urls['api']['ws'];
         const messageHash = 'tickers';
@@ -320,7 +326,9 @@ export default class cex extends cexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickerWs(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const messageHash = this.requestId();
@@ -431,7 +439,9 @@ export default class cex extends cexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalanceWs(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws'];
         const messageHash = this.requestId();
@@ -456,7 +466,9 @@ export default class cex extends cexRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate(params);
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
@@ -494,7 +506,9 @@ export default class cex extends cexRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate(params);
         const url = this.urls['api']['ws'];
         const market = this.market(symbol);
@@ -927,7 +941,9 @@ export default class cex extends cexRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -1056,7 +1072,9 @@ export default class cex extends cexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ohlcv:' + symbol;
@@ -1199,7 +1217,9 @@ export default class cex extends cexRest {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrderWs(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1233,7 +1253,9 @@ export default class cex extends cexRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrdersWs requires a symbol.');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
@@ -1267,7 +1289,9 @@ export default class cex extends cexRest {
         if (price === undefined) {
             throw new BadRequest(this.id + ' createOrderWs requires a price argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
@@ -1307,7 +1331,9 @@ export default class cex extends cexRest {
         if (price === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires a price argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         const data = this.extend({
@@ -1338,7 +1364,9 @@ export default class cex extends cexRest {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1371,7 +1399,9 @@ export default class cex extends cexRest {
         if (symbol !== undefined) {
             throw new BadRequest(this.id + ' cancelOrderWs does not allow filtering by symbol');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const messageHash = this.requestId();
         const data = this.extend({
