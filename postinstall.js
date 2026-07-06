@@ -1,4 +1,4 @@
-import fetch from './js/src/static_dependencies/node-fetch/index.js'
+// uses the global fetch built into node 18+ (the node-fetch static dependency was removed in #29084)
 
 function style(s, style) {
     return style + s + '\x1b[0m'
