@@ -54,7 +54,14 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
 }
 
 function helperTestSharedCurrencyFormat (exchange, skippedProperties, method, entry, format) {
-    const emptyAllowedFor = [ 'name', 'fee', 'active' ]; // 'active' key is dynammically checked in the bottom
+    const emptyAllowedFor = [ 'name', 'fee', 'active' ]; // 'active' key is dynamically checked below
+    const currencyType = exchange.safeString (entry, 'type');
+    if (currencyType !== 'crypto' && ('depositForNonCrypto' in skippedProperties)) {
+        emptyAllowedFor.push ('deposit');
+    }
+    if (currencyType !== 'crypto' && ('withdrawForNonCrypto' in skippedProperties)) {
+        emptyAllowedFor.push ('withdraw');
+    }
     //
     try {
         testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
