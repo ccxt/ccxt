@@ -38,9 +38,7 @@ function testTrade (exchange: Exchange, skippedProperties: object, method: strin
             }
         }
     }
-    if (!('amountPriceCost' in skippedProperties)) {
-        testSharedMethods.assertAmountPriceCost (exchange, skippedProperties, method, symbol, entry, 'amount', 'price', 'cost');
-    }
+    testSharedMethods.assertAmountPriceCost (exchange, skippedProperties, method, symbol, entry, 'amount', 'price', 'cost');
 }
 
 export default testTrade;
