@@ -285,7 +285,7 @@ class testMainClass {
         } else {
             if (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests)) {
                 skipMessage = '[INFO] IGNORED_TEST';
-            } else if (!supportedByExchange && !isProxyTest && !isFeatureTest) {
+            } else if (!supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {
                 skipMessage = '[INFO] UNSUPPORTED_TEST';
             } else if (!(methodName in this.testFiles)) {
                 skipMessage = '[INFO] UNIMPLEMENTED_TEST';
