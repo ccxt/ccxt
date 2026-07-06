@@ -1771,9 +1771,6 @@ class Exchange {
         // PHP integers are 64-bit, so json_decode preserves integer ids up to
         // 9223372036854775807 (19 digits) natively; JSON_BIGINT_AS_STRING keeps
         // anything larger as an exact string instead of a lossy double.
-        // floats decode to PHP doubles (exact round-trip <= 15 significant
-        // digits, exchanges cap decimal precision well below that), so the
-        // former quote-every-number regex pass (issue #8115) is unnecessary
         return json_decode($json_string, $as_associative_array, flags: JSON_BIGINT_AS_STRING);
     }
 
