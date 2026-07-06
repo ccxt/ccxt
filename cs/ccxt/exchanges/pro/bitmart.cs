@@ -198,7 +198,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = "spot";
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -386,7 +389,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marketType = null;
         var symbolsmarketTypeparametersVariable = this.getParamsForMultipleSub("watchTradesForSymbols", symbols, limit, parameters);
         symbols = ((IList<object>)symbolsmarketTypeparametersVariable)[0];
@@ -439,7 +445,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marketType = null;
         var symbolsmarketTypeparametersVariable = this.getParamsForMultipleSub("unWatchTradesForSymbols", symbols, null, parameters);
         symbols = ((IList<object>)symbolsmarketTypeparametersVariable)[0];
@@ -482,7 +491,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -501,7 +513,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
@@ -546,7 +561,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
@@ -571,7 +589,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         if (isTrue(isEqual(symbols, null)))
         {
@@ -678,7 +699,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
@@ -736,7 +760,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = "unsubscribe::orders";
         if (isTrue(!isEqual(symbol, null)))
@@ -1053,7 +1080,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = "swap";
         await this.authenticate(type, parameters);
         symbols = this.marketSymbols(symbols, "swap", true, true, false);
@@ -1096,7 +1126,10 @@ public partial class bitmart : ccxt.bitmart
                 throw new NotSupported ((string)add(this.id, " unWatchPositions() does not support a list of symbols, unWatch from all markets only")) ;
             }
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "action", "unsubscribe" },
             { "args", new List<object>() {"futures/position"} },
@@ -1503,7 +1536,10 @@ public partial class bitmart : ccxt.bitmart
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object market = this.market(symbol);
         object type = "spot";
@@ -1543,7 +1579,10 @@ public partial class bitmart : ccxt.bitmart
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object market = this.market(symbol);
         object type = "spot";
@@ -1687,7 +1726,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         object depth = this.safeString(options, "depth", "depth/increase100");
         symbol = this.symbol(symbol);
@@ -1718,7 +1760,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         object depth = this.safeString(options, "depth", "depth/increase100");
         symbol = this.symbol(symbol);
@@ -1974,7 +2019,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var symbolstypeparametersVariable = this.getParamsForMultipleSub("watchOrderBookForSymbols", symbols, limit, parameters);
         symbols = ((IList<object>)symbolstypeparametersVariable)[0];
@@ -2005,7 +2053,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var symbolstypeparametersVariable = this.getParamsForMultipleSub("unWatchOrderBookForSymbols", symbols, null, parameters);
         symbols = ((IList<object>)symbolstypeparametersVariable)[0];
@@ -2037,7 +2088,10 @@ public partial class bitmart : ccxt.bitmart
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object fundingRate = await this.watchFundingRates(new List<object>() {symbol}, parameters);
         return getValue(fundingRate, symbol);
@@ -2059,7 +2113,10 @@ public partial class bitmart : ccxt.bitmart
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchFundingRates() requires an array of symbols")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRates", market, parameters);

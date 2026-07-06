@@ -141,7 +141,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("ticker:", symbol);
@@ -176,7 +179,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         return await this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", parameters);
     }
 
@@ -195,7 +201,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         if (isTrue(isEqual(symbols, null)))
         {
@@ -451,7 +460,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         if (isTrue(isEqual(symbols, null)))
         {
@@ -547,7 +559,10 @@ public partial class bitget : ccxt.bitget
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes");
@@ -604,7 +619,10 @@ public partial class bitget : ccxt.bitget
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object timeframes = this.safeDict(this.options, "timeframes");
         object interval = this.safeString(timeframes, timeframe);
         object channel = null;
@@ -816,7 +834,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = "books";
         object limit = this.safeInteger(parameters, "limit");
         if (isTrue(isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))) || isTrue((isEqual(limit, 50)))))
@@ -830,7 +851,10 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> unWatchChannel(object symbol, object channel, object messageHashTopic, object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add(add("unsubscribe:", messageHashTopic), ":"), getValue(market, "symbol"));
         object instType = null;
@@ -877,7 +901,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object channel = "books";
         object incrementalFeed = true;
@@ -1127,7 +1154,10 @@ public partial class bitget : ccxt.bitget
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
@@ -1418,7 +1448,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = "";
         object subscriptionHash = "positions";
@@ -1704,7 +1737,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object marketId = null;
         object isTrigger = null;
@@ -2272,7 +2308,10 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))

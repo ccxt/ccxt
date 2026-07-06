@@ -904,7 +904,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -984,7 +987,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1089,7 +1095,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -1133,7 +1142,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1177,7 +1189,10 @@ public partial class kraken : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1310,7 +1325,10 @@ public partial class kraken : Exchange
     {
         // https://www.kraken.com/features/api#get-ledgers-info
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -1357,7 +1375,10 @@ public partial class kraken : Exchange
     {
         // https://www.kraken.com/features/api#query-ledgers
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         ids = String.Join(",", ((IList<object>)ids).ToArray());
         object request = this.extend(new Dictionary<string, object>() {
             { "id", ids },
@@ -1571,7 +1592,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object id = getValue(market, "id");
         object request = new Dictionary<string, object>() {
@@ -1647,7 +1671,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostBalanceEx(parameters);
         //
         //     {
@@ -1681,7 +1708,10 @@ public partial class kraken : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // only buy orders are supported by the endpoint
         object req = new Dictionary<string, object>() {
             { "cost", cost },
@@ -1702,7 +1732,10 @@ public partial class kraken : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         return await this.createMarketOrderWithCost(symbol, "buy", cost, parameters);
     }
 
@@ -1732,7 +1765,10 @@ public partial class kraken : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1773,7 +1809,10 @@ public partial class kraken : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ordersRequests = new List<object>() {};
         object orderSymbols = new List<object>() {};
         object symbol = null;
@@ -2399,7 +2438,10 @@ public partial class kraken : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -2472,7 +2514,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId");
         object request = new Dictionary<string, object>() {
             { "trades", true },
@@ -2566,7 +2611,10 @@ public partial class kraken : Exchange
                 }
             }
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbol, null)))
         {
             symbol = this.symbol(symbol);
@@ -2639,7 +2687,10 @@ public partial class kraken : Exchange
     public async virtual Task<object> fetchOrdersByIds(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostQueryOrders(this.extend(new Dictionary<string, object>() {
             { "trades", true },
             { "txid", String.Join(",", ((IList<object>)ids).ToArray()) },
@@ -2675,7 +2726,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -2746,7 +2800,10 @@ public partial class kraken : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = null;
         object requestId = this.safeValue(parameters, "userref", id); // string or integer
         parameters = this.omit(parameters, "userref");
@@ -2821,7 +2878,10 @@ public partial class kraken : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostCancelAll(parameters);
         //
         //    {
@@ -2852,7 +2912,10 @@ public partial class kraken : Exchange
         {
             throw new BadRequest ((string)add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
         };
@@ -2885,7 +2948,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -2978,7 +3044,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -3223,7 +3292,10 @@ public partial class kraken : Exchange
     {
         // https://www.kraken.com/en-us/help/api#deposit-status
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
@@ -3302,7 +3374,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3425,7 +3500,10 @@ public partial class kraken : Exchange
     public async virtual Task<object> fetchDepositMethods(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -3469,7 +3547,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object network = this.safeStringUpper(parameters, "network");
         object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
@@ -3609,7 +3690,10 @@ public partial class kraken : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "docalcs", "true" },
             { "consolidation", "market" },
@@ -3757,7 +3841,10 @@ public partial class kraken : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object fromAccountParsed = this.parseAccountType(fromAccount);
         object toAccountParsed = this.parseAccountType(toAccount);

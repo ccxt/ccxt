@@ -50,7 +50,10 @@ public partial class independentreserve : ccxt.independentreserve
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), getValue(market, "base")), "-"), getValue(market, "quote"));
@@ -141,7 +144,10 @@ public partial class independentreserve : ccxt.independentreserve
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         if (isTrue(isEqual(limit, null)))

@@ -153,7 +153,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
@@ -182,7 +185,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = "ticker";
         object options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
@@ -262,7 +268,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add("market.", getValue(market, "id")), ".trade.detail");
@@ -289,7 +298,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = "trades";
         object options = this.safeDict(this.options, "watchTrades", new Dictionary<string, object>() {});
@@ -363,7 +375,10 @@ public partial class htx : ccxt.htx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -394,7 +409,10 @@ public partial class htx : ccxt.htx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
         object subMessageHash = add(add(add("market.", getValue(market, "id")), ".kline."), interval);
@@ -457,7 +475,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object allowedLimits = new List<object>() {5, 20, 150, 400};
@@ -509,7 +530,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = "orderbook";
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
@@ -874,7 +898,10 @@ public partial class htx : ccxt.htx
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         object marketId = "*"; // wildcard
         object market = null;
@@ -1018,7 +1045,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         object subType = null;
         object market = null;
@@ -1637,7 +1667,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = "";
         if (!isTrue(this.isEmpty(symbols)))
@@ -1874,7 +1907,10 @@ public partial class htx : ccxt.htx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isUnifiedAccount = this.safeValue2(parameters, "isUnifiedAccount", "unified", false);
         parameters = this.omit(parameters, new List<object>() {"isUnifiedAccount", "unified"});
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = null;
         object channel = null;
         object marginMode = null;

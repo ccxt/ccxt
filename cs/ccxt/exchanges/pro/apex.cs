@@ -83,7 +83,10 @@ public partial class apex : ccxt.apex
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
@@ -228,7 +231,10 @@ public partial class apex : ccxt.apex
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
@@ -405,7 +411,10 @@ public partial class apex : ccxt.apex
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = this.getWsPublicUrl();
@@ -427,7 +436,10 @@ public partial class apex : ccxt.apex
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object url = this.getWsPublicUrl();
@@ -538,7 +550,10 @@ public partial class apex : ccxt.apex
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = this.getWsPublicUrl();
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
@@ -656,7 +671,10 @@ public partial class apex : ccxt.apex
     {
         parameters ??= new Dictionary<string, object>();
         object messageHash = "myTrades";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbol, null)))
         {
             symbol = this.symbol(symbol);
@@ -686,7 +704,10 @@ public partial class apex : ccxt.apex
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "";
         if (!isTrue(this.isEmpty((IList<object>)(symbols))))
         {
@@ -727,7 +748,10 @@ public partial class apex : ccxt.apex
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
