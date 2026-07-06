@@ -7,7 +7,7 @@ import { jwt } from './base/functions/rsa.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Dictionary, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, List, Fee } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, List, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -90,8 +90,8 @@ export default class bithumb extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -394,7 +394,7 @@ export default class bithumb extends Exchange {
     /**
      * @ignore
      */
-    async loadMarketsGeneration (generation: Int): Promise<Dictionary<Market>> {
+    async loadMarketsGeneration (generation: Int): Promise<Dict> {
         let loadedMarketsGeneration = this.safeInteger (this.options, 'loadedMarketsGeneration');
         const isStaticRequestTest = (this.httpProxy === 'http://fake:8080') && (this.httpsProxy === 'http://fake:8080');
         if (isStaticRequestTest && (this.markets !== undefined)) {
