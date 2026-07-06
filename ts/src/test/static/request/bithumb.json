@@ -314,6 +314,33 @@
                     3
                 ]
             }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "generation 2 fetchWithdrawal",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bithumb.com/v1/withdraw?currency=KRW&uuid=536239",
+                "input": [
+                    "536239",
+                    "KRW"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "generation 2 fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bithumb.com/v1/withdraws",
+                "input": []
+            },
+            {
+                "description": "generation 2 KRW fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bithumb.com/v1/withdraws/krw",
+                "input": [
+                    "KRW"
+                ]
+            }
         ]
     }
 }

@@ -2340,7 +2340,7 @@ export default class bithumb extends Exchange {
         //
         //     { "status" : "0000"}
         //
-        // generation 2: withdraw
+        // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals
         //
         //     {
         //         "type": "withdraw",
@@ -2357,6 +2357,7 @@ export default class bithumb extends Exchange {
         //         "txid": null
         //     }
         //
+        const type = this.safeString (transaction, 'type');
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const datetime = this.safeString (transaction, 'created_at');
@@ -2370,9 +2371,9 @@ export default class bithumb extends Exchange {
             'address': undefined,
             'addressTo': undefined,
             'amount': this.safeNumber (transaction, 'amount'),
-            'type': undefined,
+            'type': type,
             'currency': currency['code'],
-            'status': this.safeString (transaction, 'state'),
+            'status': this.parseTransactionStatusByType (this.safeString (transaction, 'state'), type),
             'updated': undefined,
             'tagFrom': undefined,
             'tag': undefined,
@@ -2386,6 +2387,141 @@ export default class bithumb extends Exchange {
             },
             'info': transaction,
         } as Transaction;
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        if (type === undefined) {
+            return status;
+        }
+        const statusesByType: Dict = {
+            'deposit': {
+                'DEPOSIT_PROCESSING': 'pending',
+                'DEPOSIT_ACCEPTED': 'ok',
+                'DEPOSIT_CANCELLED': 'canceled',
+                'PROCESSING': 'pending',
+                'ACCEPTED': 'ok',
+                'CANCELLED': 'canceled',
+            },
+            'withdraw': {
+                'processing': 'pending',
+                'done': 'ok',
+                'cancelled': 'canceled',
+                'PROCESSING': 'pending',
+                'DONE': 'ok',
+                'CANCELLED': 'canceled',
+            },
+        };
+        const statuses = this.safeDict (statusesByType, type, {});
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
+     * @param {string} id withdrawal id
+     * @param {string} [code] the currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.txid] the transaction id for the withdrawal
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawal', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' fetchWithdrawal is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires a code argument');
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        if (id !== undefined) {
+            request['uuid'] = id;
+        }
+        const response = await this.privateGetV1Withdraw (this.extend (request, params));
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.page] the number of pages to return, default is 1
+     * @param {string} [params.state] the withdrawal state, either PROCESSING, DONE or CANCELLED
+     * @param {string} [params.order_by] either asc or desc, desc is the default
+     * @param {string[]} [params.uuids] an array of uuid strings
+     * @param {string[]} [params.txids] an array of txid strings
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' fetchWithdrawals is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        let currency: Currency = undefined;
+        if (code === 'KRW') {
+            currency = this.currency (code);
+            response = await this.privateGetV1WithdrawsKrw (this.extend (request, params));
+        } else {
+            if (code !== undefined) {
+                currency = this.currency (code);
+                request['currency'] = currency['id'];
+            }
+            response = await this.privateGetV1Withdraws (this.extend (request, params));
+        }
+        //
+        //     [
+        //         {
+        //             "type": "withdraw",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "processing",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     fixCommaNumber (numberStr) {
@@ -2454,10 +2590,18 @@ export default class bithumb extends Exchange {
                     body = this.json (query);
                     headers['Content-Type'] = 'application/json';
                     if (hasQuery) {
-                        auth = isBulkCancelEndpoint ? this.urlencodeWithArrayBrackets (query) : this.rawencode (query);
+                        if (isBulkCancelEndpoint) {
+                            auth = this.urlencodeWithArrayBrackets (query);
+                        } else {
+                            auth = this.rawencode (query);
+                        }
                     }
                 } else if (hasQuery) {
-                    auth = isBulkCancelEndpoint ? this.urlencodeWithArrayBrackets (query) : this.urlencode (query);
+                    if (isBulkCancelEndpoint) {
+                        auth = this.urlencodeWithArrayBrackets (query);
+                    } else {
+                        auth = this.urlencode (query);
+                    }
                     url += '?' + auth;
                 }
                 if (hasQuery) {

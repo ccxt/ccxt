@@ -2107,6 +2107,242 @@
                     }
                 ]
             }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "generation 2 fetch withdrawal",
+                "method": "fetchWithdrawal",
+                "input": [
+                    "536239",
+                    "KRW"
+                ],
+                "httpResponse": {
+                    "type": "withdraw",
+                    "uuid": "536239",
+                    "currency": "KRW",
+                    "net_type": null,
+                    "txid": null,
+                    "state": "DONE",
+                    "created_at": "2017-09-29T10:19:27+09:00",
+                    "done_at": "2017-09-29T10:21:35+09:00",
+                    "amount": "2921867",
+                    "fee": "1000",
+                    "transaction_type": "default"
+                },
+                "parsedResponse": {
+                    "id": "536239",
+                    "txid": null,
+                    "timestamp": 1506647967000,
+                    "datetime": "2017-09-29T10:19:27+09:00",
+                    "network": null,
+                    "addressFrom": null,
+                    "address": null,
+                    "addressTo": null,
+                    "amount": 2921867,
+                    "type": "withdraw",
+                    "currency": "KRW",
+                    "status": "ok",
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": 1000,
+                        "rate": null
+                    },
+                    "info": {
+                        "type": "withdraw",
+                        "uuid": "536239",
+                        "currency": "KRW",
+                        "net_type": null,
+                        "txid": null,
+                        "state": "DONE",
+                        "created_at": "2017-09-29T10:19:27+09:00",
+                        "done_at": "2017-09-29T10:21:35+09:00",
+                        "amount": "2921867",
+                        "fee": "1000",
+                        "transaction_type": "default"
+                    }
+                }
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "generation 2 fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "type": "withdraw",
+                        "uuid": "110321905",
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "txid": "ef60633e868d139142404d78bb169fb2670119d0ec1ee4edbe3b80e8136388a1",
+                        "state": "DONE",
+                        "created_at": "2017-09-22T10:38:06+09:00",
+                        "done_at": "2017-09-22T10:47:07+09:00",
+                        "amount": "0.44822665",
+                        "fee": "0.0005",
+                        "transaction_type": null
+                    },
+                    {
+                        "type": "withdraw",
+                        "uuid": "110321904",
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "txid": null,
+                        "state": "CANCELLED",
+                        "created_at": "2017-09-19T20:28:47+09:00",
+                        "done_at": null,
+                        "amount": "0.44822665",
+                        "fee": "0.0005",
+                        "transaction_type": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "110321904",
+                        "txid": null,
+                        "timestamp": 1505820527000,
+                        "datetime": "2017-09-19T20:28:47+09:00",
+                        "network": "BTC",
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 0.44822665,
+                        "type": "withdraw",
+                        "currency": "BTC",
+                        "status": "canceled",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0.0005,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "withdraw",
+                            "uuid": "110321904",
+                            "currency": "BTC",
+                            "net_type": "BTC",
+                            "txid": null,
+                            "state": "CANCELLED",
+                            "created_at": "2017-09-19T20:28:47+09:00",
+                            "done_at": null,
+                            "amount": "0.44822665",
+                            "fee": "0.0005",
+                            "transaction_type": null
+                        }
+                    },
+                    {
+                        "id": "110321905",
+                        "txid": "ef60633e868d139142404d78bb169fb2670119d0ec1ee4edbe3b80e8136388a1",
+                        "timestamp": 1506044286000,
+                        "datetime": "2017-09-22T10:38:06+09:00",
+                        "network": "BTC",
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 0.44822665,
+                        "type": "withdraw",
+                        "currency": "BTC",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0.0005,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "withdraw",
+                            "uuid": "110321905",
+                            "currency": "BTC",
+                            "net_type": "BTC",
+                            "txid": "ef60633e868d139142404d78bb169fb2670119d0ec1ee4edbe3b80e8136388a1",
+                            "state": "DONE",
+                            "created_at": "2017-09-22T10:38:06+09:00",
+                            "done_at": "2017-09-22T10:47:07+09:00",
+                            "amount": "0.44822665",
+                            "fee": "0.0005",
+                            "transaction_type": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 KRW fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "KRW"
+                ],
+                "httpResponse": [
+                    {
+                        "type": "withdraw",
+                        "uuid": "536239",
+                        "currency": "KRW",
+                        "net_type": null,
+                        "txid": null,
+                        "state": "DONE",
+                        "created_at": "2017-09-29T10:19:27+09:00",
+                        "done_at": "2017-09-29T10:21:35+09:00",
+                        "amount": "2921867",
+                        "fee": "1000",
+                        "transaction_type": "default"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "536239",
+                        "txid": null,
+                        "timestamp": 1506647967000,
+                        "datetime": "2017-09-29T10:19:27+09:00",
+                        "network": null,
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 2921867,
+                        "type": "withdraw",
+                        "currency": "KRW",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 1000,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "withdraw",
+                            "uuid": "536239",
+                            "currency": "KRW",
+                            "net_type": null,
+                            "txid": null,
+                            "state": "DONE",
+                            "created_at": "2017-09-29T10:19:27+09:00",
+                            "done_at": "2017-09-29T10:21:35+09:00",
+                            "amount": "2921867",
+                            "fee": "1000",
+                            "transaction_type": "default"
+                        }
+                    }
+                ]
+            }
         ]
     }
 }
