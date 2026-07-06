@@ -935,6 +935,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @param {int} [params.until] timestamp in ms of the latest order to fetch
+     * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -948,22 +949,53 @@ export default class nado extends Exchange {
         }
         let subaccount = undefined;
         [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'subaccount', 'default');
-        let ordersRequest: Dict = {
-            'subaccounts': [
-                this.createSubaccount (this.walletAddress, subaccount),
-            ],
-        };
-        if (market !== undefined) {
-            ordersRequest['product_ids'] = [ this.parseToInt (market['id']) ];
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        let request = {};
+        let response = undefined;
+        if (trigger) {
+            const tx = {
+                'sender': sender,
+                'recvTime': this.numberToString (this.milliseconds () + 10000),
+            };
+            request = {
+                'tx': tx,
+                'type': 'list_trigger_orders',
+                'product_ids': [
+                    this.parseToInt (market['id']),
+                ],
+                'status_types': [
+                    'triggered', 'triggering', 'twap_executing', 'twap_completed',
+                ],
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const contracts = await this.queryContracts ();
+            const chainId = this.safeString (contracts, 'chain_id');
+            const endpointAddress = this.safeString (contracts, 'endpoint_addr');
+            const signature = this.signFetchTriggerOrders (tx, chainId, endpointAddress);
+            request['signature'] = signature;
+            response = await this.triggerPrivatePostQuery (this.extend (request, params));
+        } else {
+            let ordersRequest: Dict = {
+                'subaccounts': [
+                    sender,
+                ],
+            };
+            if (market !== undefined) {
+                ordersRequest['product_ids'] = [ this.parseToInt (market['id']) ];
+            }
+            [ ordersRequest, params ] = this.handleUntilOption ('max_time', ordersRequest, params, 0.001);
+            if (limit !== undefined) {
+                ordersRequest['limit'] = Math.min (limit, 500);
+            }
+            request = {
+                'orders': ordersRequest,
+            };
+            response = await this.archivePost (this.deepExtend (request, params));
         }
-        [ ordersRequest, params ] = this.handleUntilOption ('max_time', ordersRequest, params, 0.001);
-        if (limit !== undefined) {
-            ordersRequest['limit'] = Math.min (limit, 500);
-        }
-        const request: Dict = {
-            'orders': ordersRequest,
-        };
-        const response = await this.archivePost (this.deepExtend (request, params));
         //
         //     {
         //         "orders": [
@@ -983,12 +1015,17 @@ export default class nado extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeList (response, 'orders', []);
-        const closedOrders = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            if (this.isArchiveOrderClosed (order)) {
-                closedOrders.push (this.extend ({ 'status': 'closed' }, order));
+        let closedOrders = [];
+        if (trigger) {
+            const data = this.safeDict (response, 'data', {});
+            closedOrders = this.safeList (data, 'orders', []);
+        } else {
+            const orders = this.safeList (response, 'orders', []);
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                if (this.isArchiveOrderClosed (order)) {
+                    closedOrders.push (this.extend ({ 'status': 'closed' }, order));
+                }
             }
         }
         return this.parseOrders (closedOrders, market, since, limit);
