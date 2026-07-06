@@ -1768,7 +1768,14 @@ class Exchange {
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
-        return json_decode($this->on_json_response($json_string), $as_associative_array);
+        // PHP integers are 64-bit, so json_decode preserves integer ids up to
+        // 9223372036854775807 (19 digits) natively; JSON_BIGINT_AS_STRING keeps
+        // anything larger as an exact string instead of a lossy double.
+        // floats decode to PHP doubles (exact round-trip <= 15 significant
+        // digits, exchanges cap decimal precision well below that), so the
+        // former quote-every-number regex pass (issue #8115) is unnecessary
+        $flags = $this->quoteJsonNumbers ? JSON_BIGINT_AS_STRING : 0;
+        return json_decode($this->on_json_response($json_string), $as_associative_array, 512, $flags);
     }
 
     public function log() {
@@ -1787,7 +1794,7 @@ class Exchange {
     }
 
     public function on_json_response($response_body) {
-        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
+        return $response_body;
     }
 
     public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
