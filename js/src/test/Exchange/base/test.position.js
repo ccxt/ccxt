@@ -7,7 +7,7 @@
 import testSharedMethods from './test.sharedMethods.js';
 function testPosition(exchange, skippedProperties, method, entry, symbol, now) {
     const format = {
-        'info': {},
+        'info': {}, // or []
         'symbol': 'XYZ/USDT',
         'timestamp': 1504224000000,
         'datetime': '2017-09-01T00:00:00',

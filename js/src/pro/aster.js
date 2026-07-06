@@ -66,16 +66,16 @@ export default class aster extends asterRest {
                     'swap': 0,
                 },
                 'listenKeyRefreshRate': {
-                    'spot': 3600000,
+                    'spot': 3600000, // 60 minutes
                     'swap': 3600000,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
-                'wallet': 'wb',
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -107,7 +107,9 @@ export default class aster extends asterRest {
      */
     async watchTicker(symbol, params = {}) {
         params['callerMethodName'] = 'watchTicker';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
@@ -145,8 +147,13 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -190,8 +197,13 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -229,7 +241,9 @@ export default class aster extends asterRest {
      */
     async watchMarkPrice(symbol, params = {}) {
         params['callerMethodName'] = 'watchMarkPrice';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         const tickers = await this.watchMarkPrices([symbol], params);
         return tickers[symbol];
@@ -261,8 +275,13 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -307,8 +326,13 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchMarkPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -373,8 +397,10 @@ export default class aster extends asterRest {
         const parsed = this.parseWsTicker(ticker, marketType);
         const symbol = parsed['symbol'];
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = parsed;
-        client.resolve(this.tickers[symbol], messageHash);
+        if (symbol !== undefined) {
+            this.tickers[symbol] = parsed;
+            client.resolve(this.tickers[symbol], messageHash);
+        }
     }
     parseWsTicker(message, marketType) {
         const event = this.safeString(message, 'e');
@@ -428,8 +454,13 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -470,8 +501,13 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -513,14 +549,17 @@ export default class aster extends asterRest {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const ticker = this.parseWsBidAsk(data, market);
         const symbol = ticker['symbol'];
-        this.bidsasks[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = ticker;
+        }
         const messageHash = 'bidask:' + symbol;
         client.resolve(ticker, messageHash);
     }
     parseWsBidAsk(message, market = undefined) {
         const timestamp = this.safeInteger(message, 'T');
+        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': bidAskSymbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'ask': this.safeString(message, 'a'),
@@ -576,7 +615,9 @@ export default class aster extends asterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
@@ -621,7 +662,9 @@ export default class aster extends asterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
@@ -668,6 +711,9 @@ export default class aster extends asterRest {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const parsed = this.parseWsTrade(trade, market);
         const symbol = parsed['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache(limit);
@@ -836,7 +882,7 @@ export default class aster extends asterRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrderBook';
@@ -853,7 +899,7 @@ export default class aster extends asterRest {
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
         params['callerMethodName'] = 'unWatchOrderBook';
@@ -870,10 +916,12 @@ export default class aster extends asterRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
@@ -914,10 +962,12 @@ export default class aster extends asterRest {
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols(symbols);
         const type = this.safeString(firstMarket, 'type', 'swap');
@@ -1003,7 +1053,9 @@ export default class aster extends asterRest {
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOHLCV';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
         return result[symbol][timeframe];
@@ -1036,7 +1088,9 @@ export default class aster extends asterRest {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbolsLength = symbolsAndTimeframes.length;
         let methodName = undefined;
         [methodName, params] = this.handleParamString(params, 'callerMethodName', 'watchOHLCVForSymbols');
@@ -1058,10 +1112,13 @@ export default class aster extends asterRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString(data, 0);
+            if (symbolString === undefined) {
+                continue;
+            }
             const market = this.market(symbolString);
             symbolString = market['symbol'];
             const unfiedTimeframe = this.safeString(data, 1);
-            const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@kline_' + timeframeId);
             messageHashes.push('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
@@ -1083,7 +1140,9 @@ export default class aster extends asterRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbolsLength = symbolsAndTimeframes.length;
         let methodName = undefined;
         [methodName, params] = this.handleParamString(params, 'callerMethodName', 'unWatchOHLCVForSymbols');
@@ -1105,10 +1164,13 @@ export default class aster extends asterRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString(data, 0);
+            if (symbolString === undefined) {
+                continue;
+            }
             const market = this.market(symbolString);
             symbolString = market['symbol'];
             const unfiedTimeframe = this.safeString(data, 1);
-            const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@kline_' + timeframeId);
             messageHashes.push('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
@@ -1149,6 +1211,9 @@ export default class aster extends asterRest {
         const kline = this.safeDict(data, 'k');
         const timeframeId = this.safeString(kline, 'i');
         const timeframe = this.findTimeframe(timeframeId);
+        if (timeframe === undefined) {
+            return;
+        }
         const ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
@@ -1181,7 +1246,7 @@ export default class aster extends asterRest {
         const listenKeyRefreshRateOptions = this.safeDict(this.options, 'listenKeyRefreshRate', {});
         const listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            let response = undefined;
+            let response = {};
             if (type === 'spot') {
                 response = await this.sapiPrivatePostV3ListenKey(params);
             }
@@ -1243,7 +1308,9 @@ export default class aster extends asterRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
         await this.authenticate(type, params);
@@ -1381,7 +1448,9 @@ export default class aster extends asterRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const type = 'swap';
         await this.authenticate(type, params);
         const url = this.getPrivateUrl(type);
@@ -1435,7 +1504,7 @@ export default class aster extends asterRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }
@@ -1575,7 +1644,9 @@ export default class aster extends asterRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1611,7 +1682,9 @@ export default class aster extends asterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1669,7 +1742,8 @@ export default class aster extends asterRest {
                                 const orderFee = fees[i];
                                 if (orderFee['currency'] === tradeFee['currency']) {
                                     const feeCost = this.sum(tradeFee['cost'], orderFee['cost']);
-                                    order['fees'][i]['cost'] = parseFloat(this.currencyToPrecision(tradeFee['currency'], feeCost));
+                                    const feeCostString = this.currencyToPrecision(tradeFee['currency'], feeCost);
+                                    order['fees'][i]['cost'] = (feeCostString === undefined) ? undefined : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -1681,7 +1755,8 @@ export default class aster extends asterRest {
                         else if (fee !== undefined) {
                             if (fee['currency'] === tradeFee['currency']) {
                                 const feeCost = this.sum(fee['cost'], tradeFee['cost']);
-                                order['fee']['cost'] = parseFloat(this.currencyToPrecision(tradeFee['currency'], feeCost));
+                                const feeCostString = this.currencyToPrecision(tradeFee['currency'], feeCost);
+                                order['fee']['cost'] = (feeCostString === undefined) ? undefined : parseFloat(feeCostString);
                             }
                             else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
@@ -1895,7 +1970,7 @@ export default class aster extends asterRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
         };
-        const method = this.safeValue(methods, event);
+        const method = (event === undefined) ? undefined : this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, messageInner);
         }

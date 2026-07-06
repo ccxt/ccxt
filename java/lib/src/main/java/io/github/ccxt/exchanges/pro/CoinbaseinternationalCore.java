@@ -119,7 +119,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 market = this.market(Helpers.GetValue(symbols, 0));
                 messageHash = Helpers.add(Helpers.add(name, "::"), Helpers.GetValue(market, "symbol"));
-                productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id")));
+                productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)Helpers.GetValue(market, "id"))));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             if (Helpers.isTrue(Helpers.isEqual(url, null)))
@@ -171,7 +171,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             this.checkRequiredCredentials();
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (Helpers.isTrue(this.isEmpty((java.util.List<String>)(symbols))))
             {
                 symbols = this.symbols;
             } else
@@ -180,9 +180,9 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             }
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
-                Object marketId = this.marketId(Helpers.GetValue(symbols, i));
+                Object marketId = this.marketId(Helpers.GetValue((java.util.List<String>)(symbols), i));
                 Object symbol = this.symbol(marketId);
                 ((java.util.List<Object>)productIds).add(marketId);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "::"), symbol));
@@ -258,7 +258,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object result = new java.util.HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, symbol, fundingRate);
+                Helpers.addElementToObject(result, ((String)symbol), fundingRate);
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);
@@ -287,14 +287,14 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
-            return (this.subscribe(channel, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            return (this.subscribe(((String)channel), new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
     }
 
     public Object getActiveSymbols()
     {
-        Object symbols = this.symbols;
+        Object symbols = ((Object)this.symbols);
         Object output = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
@@ -330,7 +330,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
-            Object ticker = (this.subscribe(channel, symbols, parameters)).join();
+            Object ticker = (this.subscribe(((String)channel), symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object result = new java.util.HashMap<String, Object>() {{}};
@@ -593,12 +593,12 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timeframe = this.findTimeframe(messageHash);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe), null)))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)), null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         Object data = this.safeList(message, "candles", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -683,15 +683,15 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         Object trade = this.parseWsTrade(message);
         Object symbol = Helpers.GetValue(trade, "symbol");
         Object channel = this.safeString(message, "channel");
-        if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
+        if (!Helpers.isTrue((Helpers.inOp(this.trades, ((String)symbol)))))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, tradesArrayCache);
+            Helpers.addElementToObject(this.trades, ((String)symbol), tradesArrayCache);
         }
-        Object tradesArray = Helpers.GetValue(this.trades, symbol);
+        Object tradesArray = Helpers.GetValue(this.trades, ((String)symbol));
         Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+        Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
         client.resolve(tradesArray, channel);
         client.resolve(tradesArray, Helpers.add(Helpers.add(channel, "::"), Helpers.GetValue(trade, "symbol")));
         return message;
@@ -739,7 +739,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -761,7 +761,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
@@ -968,7 +968,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         if (Helpers.isTrue(Helpers.isEqual(type, "error")))
         {
             Object errorMessage = this.safeString(message, "message");
-            throw new ExchangeError((String)errorMessage) ;
+            throw new ExchangeError((String)((String)errorMessage)) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(channel, "CANDLES"), Helpers.opNeg(1))))
         {

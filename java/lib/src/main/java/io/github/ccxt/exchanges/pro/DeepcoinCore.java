@@ -126,7 +126,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object marketId = Helpers.GetValue(market, "symbol"); // spot markets use symbol with slash
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
         {
-            marketId = Helpers.add(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId")); // swap markets use symbol without slash
+            marketId = Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
         Object action = "1"; // subscribe
         if (Helpers.isTrue(unWatch))
@@ -380,7 +380,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object ask = this.safeNumber(ticker, "AP1");
         Object baseVolume = this.safeNumber(ticker, "V");
         Object quoteVolume = this.safeNumber(ticker, "T");
-        if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+        if (Helpers.isTrue(this.safeBool(market, "inverse")))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -389,7 +389,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
             put( "high", high );
@@ -567,7 +567,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
             put( "id", DeepcoinCore.this.safeString2(trade, "TradeID", "TI") );
             put( "order", DeepcoinCore.this.safeString(trade, "OS") );
             put( "type", null );
@@ -586,7 +586,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "0", "buy" );
             put( "1", "sell" );
         }};
-        return this.safeString(sides, direction, direction);
+        return this.safeString(sides, ((String)direction), direction);
     }
 
     public Object handleTakerOrMaker(Object matchRole)
@@ -595,7 +595,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "0", "maker" );
             put( "1", "taker" );
         }};
-        return this.safeString(roles, matchRole, matchRole);
+        return this.safeString(roles, ((String)matchRole), matchRole);
     }
 
     /**
@@ -707,12 +707,12 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
-        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe))))
+        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
             Object ohlcv = this.parseWsOHLCV(data, market);
@@ -749,7 +749,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -775,7 +775,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -874,7 +874,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                 ((java.util.List<Object>)Helpers.GetValue(orderedEntries, "asks")).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, volume)));
             }
         }
-        Object timestamp = this.safeInteger(message, "mt");
+        Object timestamp = this.safeInteger(message, "mt", 0);
         Object snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Object cachedMessages = ((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"));
@@ -905,7 +905,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         "mt": 1760975816446
         //     }
         //
-        Object timestamp = this.safeInteger(message, "mt");
+        Object timestamp = this.safeInteger(message, "mt", 0);
         if (Helpers.isTrue(Helpers.isGreaterThan(timestamp, Helpers.GetValue(orderbook, "timestamp"))))
         {
             Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1153,7 +1153,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", DeepcoinCore.this.safeTimestamp(order, "U") );
             put( "status", DeepcoinCore.this.parseWsOrderStatus(state) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
             put( "type", null );
             put( "timeInForce", null );
             put( "side", DeepcoinCore.this.parseTradeSide(direction) );
@@ -1181,7 +1181,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "4", "open" );
             put( "6", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -1300,7 +1300,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object direction = this.safeString(position, "p");
         Object marginMode = this.safeString(position, "i");
         return this.safePosition(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
             put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
@@ -1308,7 +1308,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "contractSize", null );
             put( "side", DeepcoinCore.this.parsePositionSide(direction) );
             put( "notional", null );
-            put( "leverage", DeepcoinCore.this.omitZero(DeepcoinCore.this.safeString(position, "l")) );
+            put( "leverage", DeepcoinCore.this.omitZero(((String)DeepcoinCore.this.safeString(position, "l"))) );
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );
@@ -1437,7 +1437,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
     {
         Object subHash = this.safeString(subscription, "subHash");
         Object unsubHash = this.safeString(subscription, "unsubHash");
-        this.cleanUnsubscription(client, subHash, unsubHash);
+        this.cleanUnsubscription(client, ((String)subHash), ((String)unsubHash));
         this.cleanCache(subscription);
     }
 

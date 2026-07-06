@@ -35,7 +35,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-bitbns.fetchStatus ([params])
+bitbns.fetchStatus (params?)
 ```
 
 
@@ -54,7 +54,7 @@ retrieves data on all markets for bitbns
 
 
 ```javascript
-bitbns.fetchMarkets ([params])
+bitbns.fetchMarkets (params?)
 ```
 
 
@@ -64,7 +64,7 @@ bitbns.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -75,7 +75,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitbns.fetchOrderBook (symbol[, limit, params])
+bitbns.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -95,7 +95,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitbns.fetchTickers (symbols[, params])
+bitbns.fetchTickers (symbols, params?)
 ```
 
 
@@ -114,7 +114,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitbns.fetchBalance ([params])
+bitbns.fetchBalance (params?)
 ```
 
 
@@ -146,7 +146,7 @@ create a trade order
 
 
 ```javascript
-bitbns.createOrder (symbol, type, side, amount[, price, params])
+bitbns.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -173,7 +173,7 @@ cancels an open order
 
 
 ```javascript
-bitbns.cancelOrder (id, symbol[, params])
+bitbns.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -195,7 +195,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitbns.fetchOrder (id, symbol[, params])
+bitbns.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -223,7 +223,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitbns.fetchOpenOrders (symbol[, since, limit, params])
+bitbns.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -245,7 +245,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitbns.fetchMyTrades (symbol[, since, limit, params])
+bitbns.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -267,7 +267,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitbns.fetchTrades (symbol[, since, limit, params])
+bitbns.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -289,7 +289,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitbns.fetchDeposits (code[, since, limit, params])
+bitbns.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -311,7 +311,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitbns.fetchWithdrawals (code[, since, limit, params])
+bitbns.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -331,6 +331,6 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitbns.fetchDepositAddress (code[, params])
+bitbns.fetchDepositAddress (code, params?)
 ```
 

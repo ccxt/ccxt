@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Exchange } from '../../ccxt.js';
 declare const AuthenticationError: typeof import("../base/errors.js").AuthenticationError;
 declare const NotSupported: typeof import("../base/errors.js").NotSupported;

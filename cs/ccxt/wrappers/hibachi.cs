@@ -84,7 +84,8 @@ public partial class hibachi
     /// fetches a price ticker and the related information for the past 24h
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -124,6 +125,7 @@ public partial class hibachi
     /// fetch the trading fee
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -342,7 +344,7 @@ public partial class hibachi
     /// fetches the state of the open orders on the orderbook
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -443,7 +445,7 @@ public partial class hibachi
     /// fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
     /// </summary>
     /// <remarks>
-    /// See <see href=""/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -543,6 +545,7 @@ public partial class hibachi
     /// fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -648,7 +651,7 @@ public partial class hibachi
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -708,7 +711,7 @@ public partial class hibachi
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

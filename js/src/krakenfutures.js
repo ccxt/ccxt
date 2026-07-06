@@ -5,12 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class krakenfutures
@@ -50,7 +49,7 @@ export default class krakenfutures extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
@@ -144,7 +143,7 @@ export default class krakenfutures extends Exchange {
                         'batchorder',
                         'cancelallorders',
                         'cancelallordersafter',
-                        'withdrawal',
+                        'withdrawal', // for futures wallet -> kraken spot wallet
                         'assignmentprogram/add',
                         'assignmentprogram/delete',
                     ],
@@ -207,12 +206,12 @@ export default class krakenfutures extends Exchange {
                     'requiredArgumentMissing': BadRequest,
                     'unavailable': ExchangeNotAvailable,
                     'authenticationError': AuthenticationError,
-                    'accountInactive': ExchangeError,
-                    'invalidAccount': BadRequest,
+                    'accountInactive': ExchangeError, // When account has no trade history / no order history. Should this error be ignored in some cases?
+                    'invalidAccount': BadRequest, // the fromAccount or the toAccount are invalid
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
-                    'Bad Request': BadRequest,
-                    'Unavailable': ExchangeNotAvailable,
+                    'Bad Request': BadRequest, // The URL contains invalid characters. (Please encode the json URL parameter)
+                    'Unavailable': ExchangeNotAvailable, // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': BadRequest,
                     'Json Parse Error': ExchangeError,
                     'nonceBelowThreshold': InvalidNonce,
@@ -551,7 +550,9 @@ export default class krakenfutures extends Exchange {
      * @returns An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -600,7 +601,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTickers(params);
         //
         //    {
@@ -724,7 +727,9 @@ export default class krakenfutures extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
@@ -785,11 +790,11 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         return [
-            this.safeInteger(ohlcv, 'time'),
-            this.safeNumber(ohlcv, 'open'),
-            this.safeNumber(ohlcv, 'high'),
-            this.safeNumber(ohlcv, 'low'),
-            this.safeNumber(ohlcv, 'close'),
+            this.safeInteger(ohlcv, 'time'), // unix timestamp in milliseconds
+            this.safeNumber(ohlcv, 'open'), // open price
+            this.safeNumber(ohlcv, 'high'), // highest price
+            this.safeNumber(ohlcv, 'low'), // lowest price
+            this.safeNumber(ohlcv, 'close'), // close price
             this.safeNumber(ohlcv, 'volume'), // trading volume, undefined for mark or index price
         ];
     }
@@ -809,7 +814,9 @@ export default class krakenfutures extends Exchange {
      * @returns An array of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -821,7 +828,7 @@ export default class krakenfutures extends Exchange {
         };
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        let rawTrades = undefined;
+        let rawTrades = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
             [request, params] = this.handleUntilOption('before', request, params);
@@ -1157,7 +1164,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.privatePostSendorder(orderRequest);
@@ -1241,7 +1250,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1298,7 +1309,9 @@ export default class krakenfutures extends Exchange {
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': id,
         };
@@ -1326,7 +1339,9 @@ export default class krakenfutures extends Exchange {
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostCancelorder(this.extend({ 'order_id': id }, params));
         const status = this.safeString(this.safeValue(response, 'cancelStatus', {}), 'status');
         this.verifyOrderActionSuccess(status, 'cancelOrder');
@@ -1350,7 +1365,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = [];
         const clientOrderIds = this.safeValue(params, 'clientOrderIds', []);
         const clientOrderIdsLength = clientOrderIds.length;
@@ -1466,7 +1483,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'timeout': (timeout > 0) ? (this.parseToInt(timeout / 1000)) : 0,
         };
@@ -1495,7 +1514,9 @@ export default class krakenfutures extends Exchange {
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1516,7 +1537,9 @@ export default class krakenfutures extends Exchange {
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1536,7 +1559,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderIds': [id],
         };
@@ -1560,7 +1585,9 @@ export default class krakenfutures extends Exchange {
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1573,7 +1600,7 @@ export default class krakenfutures extends Exchange {
             request['since'] = since;
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
-        let response = undefined;
+        let response;
         if (isTrigger) {
             params = this.omit(params, ['trigger', 'stop']);
             response = await this.historyGetTriggers(this.extend(request, params));
@@ -1620,7 +1647,9 @@ export default class krakenfutures extends Exchange {
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1632,7 +1661,7 @@ export default class krakenfutures extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let response = undefined;
+        let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         if (isTrigger) {
             params = this.omit(params, ['trigger', 'stop']);
@@ -1695,8 +1724,8 @@ export default class krakenfutures extends Exchange {
             'clientOrderIdAlreadyExist': DuplicateOrderId,
             'clientOrderIdTooLong': BadRequest,
             'outsidePriceCollar': InvalidOrder,
-            'postWouldExecute': OrderImmediatelyFillable,
-            'iocWouldNotExecute': OrderNotFillable,
+            'postWouldExecute': OrderImmediatelyFillable, // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+            'iocWouldNotExecute': OrderNotFillable, // -||-
             'wouldNotReducePosition': ExchangeError,
             'orderForEditNotFound': OrderNotFound,
             'orderForEditNotAStop': InvalidOrder,
@@ -1709,32 +1738,32 @@ export default class krakenfutures extends Exchange {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'placed': 'open',
-            'cancelled': 'canceled',
-            'invalidOrderType': 'rejected',
-            'invalidSide': 'rejected',
-            'invalidSize': 'rejected',
-            'invalidPrice': 'rejected',
-            'insufficientAvailableFunds': 'rejected',
-            'selfFill': 'rejected',
-            'tooManySmallOrders': 'rejected',
-            'maxPositionViolation': 'rejected',
-            'marketSuspended': 'rejected',
-            'marketInactive': 'rejected',
-            'clientOrderIdAlreadyExist': 'rejected',
-            'clientOrderIdTooLong': 'rejected',
-            'outsidePriceCollar': 'rejected',
+            'placed': 'open', // the order was placed successfully
+            'cancelled': 'canceled', // the order was cancelled successfully
+            'invalidOrderType': 'rejected', // the order was not placed because orderType is invalid
+            'invalidSide': 'rejected', // the order was not placed because side is invalid
+            'invalidSize': 'rejected', // the order was not placed because size is invalid
+            'invalidPrice': 'rejected', // the order was not placed because limitPrice and/or stopPrice are invalid
+            'insufficientAvailableFunds': 'rejected', // the order was not placed because available funds are insufficient
+            'selfFill': 'rejected', // the order was not placed because it would be filled against an existing order belonging to the same account
+            'tooManySmallOrders': 'rejected', // the order was not placed because the number of small open orders would exceed the permissible limit
+            'maxPositionViolation': 'rejected', // Order would cause you to exceed your maximum position in this contract.
+            'marketSuspended': 'rejected', // the order was not placed because the market is suspended
+            'marketInactive': 'rejected', // the order was not placed because the market is inactive
+            'clientOrderIdAlreadyExist': 'rejected', // the specified client id already exist
+            'clientOrderIdTooLong': 'rejected', // the client id is longer than the permissible limit
+            'outsidePriceCollar': 'rejected', // the limit order crosses the spread but is an order of magnitude away from the mark price - fat finger control
             // Should the next two be 'expired' ?
-            'postWouldExecute': 'rejected',
-            'iocWouldNotExecute': 'rejected',
-            'wouldNotReducePosition': 'rejected',
-            'edited': 'open',
-            'orderForEditNotFound': 'rejected',
-            'orderForEditNotAStop': 'rejected',
-            'filled': 'closed',
-            'notFound': 'rejected',
-            'untouched': 'open',
-            'partiallyFilled': 'open',
+            'postWouldExecute': 'rejected', // the post-only order would be filled upon placement, thus is cancelled
+            'iocWouldNotExecute': 'rejected', // the immediate-or-cancel order would not execute.
+            'wouldNotReducePosition': 'rejected', // the reduce only order would not reduce position.
+            'edited': 'open', // the order was edited successfully
+            'orderForEditNotFound': 'rejected', // the requested order for edit has not been found
+            'orderForEditNotAStop': 'rejected', // the supplied stopPrice cannot be applied because order is not a stop order
+            'filled': 'closed', // the order was found completely filled and could not be cancelled
+            'notFound': 'rejected', // the order was not found, either because it had already been cancelled or it never existed
+            'untouched': 'open', // the entire size of the order is unfilled
+            'partiallyFilled': 'open', // the size of the order is partially but not entirely filled
             'ENTERED_BOOK': 'open',
             'FULLY_EXECUTED': 'closed',
             'CANCELLED': 'canceled',
@@ -2066,7 +2095,7 @@ export default class krakenfutures extends Exchange {
                 'postOnly': undefined,
                 'reduceOnly': this.safeBool(orderDictFromFetchOrder, 'reduceOnly'),
                 'side': this.safeString(orderDictFromFetchOrder, 'side'),
-                'price': undefined,
+                'price': undefined, // limitPrice is returning inaccurate values https://github.com/ccxt/ccxt/issues/27996#issuecomment-4019280204
                 'triggerPrice': fetchOrderTriggerPrice,
                 'stopPrice': fetchOrderTriggerPrice,
                 'amount': this.safeString(orderDictFromFetchOrder, 'quantity'),
@@ -2225,7 +2254,7 @@ export default class krakenfutures extends Exchange {
             'postOnly': type === 'post',
             'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeStringLower2(details, 'side', 'direction'),
-            'price': price,
+            'price': price, // limitPrice is returning inaccurate values https://github.com/ccxt/ccxt/issues/27996#issuecomment-4070088684
             'triggerPrice': triggerPrice,
             'stopPrice': triggerPrice,
             'amount': amount,
@@ -2252,7 +2281,9 @@ export default class krakenfutures extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2292,7 +2323,9 @@ export default class krakenfutures extends Exchange {
      * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = this.safeString2(params, 'type', 'account');
         let symbol = this.safeString(params, 'symbol');
         params = this.omit(params, ['type', 'account', 'symbol']);
@@ -2514,7 +2547,9 @@ export default class krakenfutures extends Exchange {
      * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const marketIds = this.marketIds(symbols);
         const response = await this.publicGetTickers(params);
         const tickers = this.safeList(response, 'tickers', []);
@@ -2617,13 +2652,15 @@ export default class krakenfutures extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.publicGetHistoricalfundingrates(this.extend(request, params));
         //
@@ -2664,7 +2701,9 @@ export default class krakenfutures extends Exchange {
      * @returns Parsed exchange response for positions
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const response = await this.privateGetOpenpositions(request);
         //
@@ -2760,7 +2799,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetInstruments(params);
         //
         //    {
@@ -2955,7 +2996,9 @@ export default class krakenfutures extends Exchange {
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if (fromAccount === 'spot') {
             throw new BadRequest(this.id + ' transfer does not yet support transfers from spot');
@@ -2963,7 +3006,7 @@ export default class krakenfutures extends Exchange {
         const request = {
             'amount': amount,
         };
-        let response = undefined;
+        let response;
         if (toAccount === 'spot') {
             if (this.parseAccount(fromAccount) !== 'cash') {
                 throw new BadRequest(this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
@@ -3004,7 +3047,9 @@ export default class krakenfutures extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'maxLeverage': leverage,
             'symbol': this.marketId(symbol).toUpperCase(),
@@ -3024,7 +3069,9 @@ export default class krakenfutures extends Exchange {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetLeveragepreferences(params);
         //
         //     {
@@ -3054,7 +3101,9 @@ export default class krakenfutures extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': this.marketId(symbol).toUpperCase(),

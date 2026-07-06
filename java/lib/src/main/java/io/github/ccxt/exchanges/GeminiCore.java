@@ -458,7 +458,7 @@ public class GeminiCore extends GeminiApi
         Object networkCode = null;
         if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
         {
-            networkCode = this.networkIdToCode(networkId);
+            networkCode = this.networkIdToCode(networkId, code);
             final Object finalNetworkId = networkId;
             final Object finalNetworkCode = networkCode;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
@@ -835,7 +835,7 @@ public class GeminiCore extends GeminiApi
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            Object marketIdUpper = ((String)marketId).toUpperCase();
+            Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Object isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
             Object marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
@@ -956,7 +956,7 @@ public class GeminiCore extends GeminiApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1169,8 +1169,8 @@ public class GeminiCore extends GeminiApi
         Object last = this.safeString2(ticker, "last", "close", price);
         Object percentage = this.safeString(ticker, "percentChange24h");
         Object open = this.safeString(ticker, "open");
-        Object baseVolume = this.safeString(volume, baseId);
-        Object quoteVolume = this.safeString(volume, quoteId);
+        Object baseVolume = this.safeString(volume, ((String)baseId));
+        Object quoteVolume = this.safeString(volume, ((String)quoteId));
         final Object finalSymbol = symbol;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
@@ -2134,7 +2134,7 @@ public class GeminiCore extends GeminiApi
             put( "Advanced", "ok" );
             put( "Complete", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
@@ -2180,7 +2180,7 @@ public class GeminiCore extends GeminiApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
+            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, ((String)networkCode)), "currency");
             return this.safeValue(networkGroup, code);
         });
 
@@ -2213,7 +2213,7 @@ public class GeminiCore extends GeminiApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
             }
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "network", networkId );
             }};

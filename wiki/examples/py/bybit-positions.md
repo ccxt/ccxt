@@ -1,8 +1,5 @@
-- [Bybit Positions](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -32,5 +29,5 @@ market = exchange.market(symbol)
 params = {'subType':'linear' if market['linear'] else 'inverse'}
 inverse_positions = exchange.fetch_positions([ symbol ], params)
 pprint(inverse_positions)
- 
+
 ```

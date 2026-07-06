@@ -464,7 +464,7 @@ public class LbankCore extends LbankApi
             {
                 networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
             }
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             final Object finalNetworkId = networkId;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", finalNetworkId );
@@ -562,7 +562,7 @@ public class LbankCore extends LbankApi
             {
                 Object market = Helpers.GetValue(data, i);
                 Object marketId = this.safeString(market, "symbol");
-                Object parts = Helpers.split(marketId, "_");
+                Object parts = Helpers.split(((String)marketId), "_");
                 Object baseId = Helpers.GetValue(parts, 0);
                 Object quoteId = Helpers.GetValue(parts, 1);
                 Object base = this.safeCurrencyCode(baseId);
@@ -951,7 +951,7 @@ public class LbankCore extends LbankApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1134,7 +1134,7 @@ public class LbankCore extends LbankApi
         Object feeCost = this.safeString(trade, "tradeFee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
-            Object feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? Helpers.GetValue(market, "base") : Helpers.GetValue(market, "quote");
+            Object feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? this.safeString(market, "base") : this.safeString(market, "quote");
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1726,7 +1726,7 @@ public class LbankCore extends LbankApi
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = Helpers.GetValue(fee, "symbol");
-                Helpers.addElementToObject(result, symbol, fee);
+                Helpers.addElementToObject(result, ((String)symbol), fee);
             }
             return result;
         });
@@ -1901,7 +1901,7 @@ public class LbankCore extends LbankApi
             put( "3", "canceled" );
             put( "4", "closed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2004,7 +2004,7 @@ public class LbankCore extends LbankApi
         Object postOnly = false;
         Object type = "limit";
         Object rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        Object parts = Helpers.split(rawType, "_");
+        Object parts = Helpers.split(((String)rawType), "_");
         Object side = this.safeString(parts, 0);
         Object typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (Helpers.isTrue(Helpers.isEqual(typePart, "market")))
@@ -2512,7 +2512,7 @@ public class LbankCore extends LbankApi
         Object defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
         Object network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString(networks, ((String)network), network); // handle ERC20>ETH alias
         return network;
     }
 
@@ -2587,7 +2587,7 @@ public class LbankCore extends LbankApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
-                put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(result, "netWork")) );
+                put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(result, "netWork"), code) );
                 put( "address", address );
                 put( "tag", tag );
             }};
@@ -2609,7 +2609,7 @@ public class LbankCore extends LbankApi
             }};
             Object networks = this.safeValue(this.options, "networks");
             Object network = this.safeStringUpper(parameters, "network");
-            network = this.safeString(networks, network, network);
+            network = this.safeString(networks, ((String)network), network);
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 Helpers.addElementToObject(request, "networkName", network);
@@ -2684,7 +2684,7 @@ public class LbankCore extends LbankApi
             Object network = this.safeStringUpper2(parameters, "network", "networkName");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network", "networkName")));
             Object networks = this.safeValue(this.options, "networks");
-            Object networkId = this.safeString(networks, network, network);
+            Object networkId = this.safeString(networks, ((String)network), network);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 Helpers.addElementToObject(request, "networkName", networkId);
@@ -2809,7 +2809,7 @@ public class LbankCore extends LbankApi
             put( "txid", txid );
             put( "timestamp", timestamp );
             put( "datetime", LbankCore.this.iso8601(timestamp) );
-            put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(transaction, "networkName")) );
+            put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(transaction, "networkName"), code) );
             put( "address", address );
             put( "addressTo", finalAddressTo );
             put( "addressFrom", finalAddressFrom );
@@ -3054,7 +3054,7 @@ public class LbankCore extends LbankApi
                     Object fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (Helpers.isTrue(!Helpers.isEqual(fee, null)))
                     {
-                        Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+                        Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
                         Helpers.addElementToObject(Helpers.GetValue(withdrawFees, code), networkCode, fee);
                     }
                 }
@@ -3117,7 +3117,7 @@ public class LbankCore extends LbankApi
                 {
                     Object currencyId = this.safeString(item, "assetCode");
                     Object codeInner = this.safeCurrencyCode(currencyId);
-                    Object network = this.networkIdToCode(this.safeString(item, "chain"));
+                    Object network = this.networkIdToCode(this.safeString(item, "chain"), codeInner);
                     if (Helpers.isTrue(Helpers.isEqual(network, null)))
                     {
                         network = codeInner;
@@ -3309,7 +3309,7 @@ public class LbankCore extends LbankApi
                             Object resultCodeInfo = Helpers.GetValue(Helpers.GetValue(result, code), "info");
                             ((java.util.List<Object>)resultCodeInfo).add(fee);
                         }
-                        Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"));
+                        Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                         {
                             final Object finalWithdrawFee = withdrawFee;
@@ -3368,11 +3368,12 @@ public class LbankCore extends LbankApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object result = this.depositWithdrawFee(fee);
+        Object code = this.safeString(currency, "code");
         Object networkList = this.safeValue(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
             Object networkEntry = Helpers.GetValue(networkList, j);
-            Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+            Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Object isDefault = this.safeValue(networkEntry, "isDefault");
             if (Helpers.isTrue(!Helpers.isEqual(withdrawFee, null)))
@@ -3569,7 +3570,7 @@ public class LbankCore extends LbankApi
                 put( "10601", "Interface closed unavailable" );
                 put( "10701", "invalid asset code" );
                 put( "10702", "not allowed deposit" );
-            }}, errorCode, this.json(response));
+            }}, ((String)errorCode), this.json(response));
             Object ErrorClass = this.safeValue(new java.util.HashMap<String, Object>() {{
                 put( "10001", BadRequest.class );
                 put( "10002", AuthenticationError.class );
@@ -3620,7 +3621,7 @@ public class LbankCore extends LbankApi
                 put( "10601", ExchangeError.class );
                 put( "10701", BadSymbol.class );
                 put( "10702", PermissionDenied.class );
-            }}, errorCode, ExchangeError.class);
+            }}, ((String)errorCode), ExchangeError.class);
             Helpers.throwDynamicException(ErrorClass, message);return null;
         }
         return null;

@@ -22,18 +22,17 @@ async def test_after_construct(exchange, skipped_properties):
 
 def test_options_networks(exchange, skipped_properties):
     if not ('networks' in skipped_properties):
-        # only allow these whitelisted unified networkCodes to be repeated
-        allowed_unified_aliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'POLYGON', 'MATIC']
-        networks = exchange.options['networks']
+        allowed_unified_aliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SOL', 'POLYGON', 'MATIC', 'CARDANO', 'ADA', 'ATOM', 'COSMOS']
+        networks = exchange.safe_dict(exchange.options, 'networks')
         if networks is None:
             return
         # 1) ensure 'networks' dictionary exists in options
-        assert exchange.is_dictionary(networks), 'exchange.options["networks"] is not an object'
+        assert exchange.is_dictionary(networks), 'exchange.options["networks"] is not a dict'
         if len(list(networks.keys())) == 0:
             return
         # 2) ensure 'networksById' dictionary exists in options
         assert 'networksById' in exchange.options, 'exchange.options["networksById"] is not set'
-        assert exchange.is_dictionary(exchange.options['networksById']), 'exchange.options["networksById"] is not an object'
+        assert exchange.is_dictionary(exchange.options['networksById']), 'exchange.options["networksById"] is not a dict'
         #
         network_codes = list(exchange.options['networks'].keys())
         # 3) ensure that the same network-id is not assigned to multiple networkCodes

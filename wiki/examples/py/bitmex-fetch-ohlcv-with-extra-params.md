@@ -1,8 +1,5 @@
-- [Bitmex Fetch Ohlcv With Extra Params](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -35,5 +32,5 @@ while True:
     # * 5 to make distinct delay and to avoid too much load
     # / 1000 to convert milliseconds to fractional seconds
     time.sleep(bitmex.rateLimit * 5 / 1000)
- 
+
 ```

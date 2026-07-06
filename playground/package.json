@@ -1,0 +1,31 @@
+{
+  "name": "ccxt-playground",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive multi-language playground for the CCXT cryptocurrency library",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "setup-runtimes": "bash scripts/setup-runtimes.sh"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "ccxt": "^4.5.49",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "undici": "^7.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.8.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.10",
+    "dompurify": "^3.4.0"
+  }
+}

@@ -30,7 +30,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinspot.fetchBalance ([params])
+coinspot.fetchBalance (params?)
 ```
 
 
@@ -40,7 +40,7 @@ coinspot.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinspot</code>](#coinspot)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.coinspot.com.au/api#listopenorders  
 
@@ -52,7 +52,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinspot.fetchOrderBook (symbol[, limit, params])
+coinspot.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -73,7 +73,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinspot.fetchTicker (symbol[, params])
+coinspot.fetchTicker (symbol, params?)
 ```
 
 
@@ -94,7 +94,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinspot.fetchTickers (symbols[, params])
+coinspot.fetchTickers (symbols, params?)
 ```
 
 
@@ -117,7 +117,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinspot.fetchTrades (symbol[, since, limit, params])
+coinspot.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -140,7 +140,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinspot.fetchMyTrades (symbol[, since, limit, params])
+coinspot.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -165,7 +165,7 @@ create a trade order
 
 
 ```javascript
-coinspot.createOrder (symbol, type, side, amount[, price, params])
+coinspot.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -191,6 +191,6 @@ cancels an open order
 
 
 ```javascript
-coinspot.cancelOrder (id, symbol[, params])
+coinspot.cancelOrder (id, symbol, params?)
 ```
 

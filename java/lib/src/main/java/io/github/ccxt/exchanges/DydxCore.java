@@ -131,7 +131,7 @@ public class DydxCore extends DydxApi
                 put( "1d", "1DAY" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1" );
+                put( "logo", "https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "indexer", "https://indexer.dydx.trade/v4" );
                     put( "nodeRpc", "https://dydx-ops-rpc.kingnodes.com" );
@@ -145,7 +145,7 @@ public class DydxCore extends DydxApi
                 put( "www", "https://www.dydx.xyz" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.dydx.xyz")) );
                 put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.dydx.exchange/introduction-trading_fees")) );
-                put( "referral", "dydx.trade?ref=ccxt" );
+                put( "referral", "https://dydx.trade?ref=ccxt" );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "indexer", new java.util.HashMap<String, Object>() {{
@@ -583,7 +583,7 @@ public class DydxCore extends DydxApi
     /**
      * @method
      * @name dydx#fetchMarkets
-     * @description retrieves data on all markets for hyperliquid
+     * @description retrieves data on all markets for dydx
      * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -648,7 +648,7 @@ public class DydxCore extends DydxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = this.safeString(market, "symbol");
         Object price = this.safeString(trade, "price");
         Object amount = this.safeString(trade, "size");
         Object side = this.safeStringLower(trade, "side");
@@ -674,7 +674,7 @@ public class DydxCore extends DydxApi
      * @method
      * @name dydx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @see https://docs.dydx.xyz/indexer-client/http#get-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1430,7 +1430,7 @@ public class DydxCore extends DydxApi
             // }
             //
             Object response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
-            Object account = this.safeDict(response, "info");
+            Object account = this.safeDict(response, "info", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(account, "pub_key", new java.util.HashMap<String, Object>() {{
         put( "key", Helpers.GetValue(Helpers.GetValue(account, "pub_key"), "key") );
     }});
@@ -1473,7 +1473,7 @@ public class DydxCore extends DydxApi
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         Object amountStr = this.amountToPrecision(symbol, amount);
         Object priceStr = this.priceToPrecision(symbol, price);
-        Object marketInfo = this.safeDict(market, "info");
+        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object atomicResolution = Helpers.GetValue(marketInfo, "atomicResolution");
         Object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         Object quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1933,7 +1933,7 @@ public class DydxCore extends DydxApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2108,7 +2108,7 @@ public class DydxCore extends DydxApi
             }
             Object defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             Object defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-            Object feeDenom = this.safeDict(this.options, "feeDenom");
+            Object feeDenom = this.safeDict(this.options, "feeDenom", new java.util.HashMap<String, Object>() {{}});
             Object gasPrice = null;
             Object denom = null;
             if (Helpers.isTrue(Helpers.isEqual(defaultFeeDenom, "uusdc")))

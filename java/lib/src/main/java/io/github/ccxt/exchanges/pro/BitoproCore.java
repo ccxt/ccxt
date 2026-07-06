@@ -75,7 +75,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -441,7 +441,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //
         Object marketId = this.safeString(message, "pair");
         // market-ids are lowercase in REST API and uppercase in WS API
-        Object market = this.safeMarket(((String)marketId).toLowerCase(), null, "_");
+        Object market = this.safeMarket(((Helpers.isTrue(!Helpers.isEqual(marketId, null)))) ? ((String)marketId).toLowerCase() : null, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);

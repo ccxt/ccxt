@@ -72,9 +72,11 @@ func  (this *BittradeCore) WatchTicker(symbol any, optionalArgs ...any) <- chan 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes628 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes628)
+                retRes6312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes6312)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             // only supports a limit of 150 at this time
@@ -96,9 +98,9 @@ func  (this *BittradeCore) WatchTicker(symbol any, optionalArgs ...any) <- chan 
                 "params": params,
             }
         
-                retRes8115 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-                ccxt.PanicOnError(retRes8115)
-                ch <- retRes8115
+                retRes8315 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+                ccxt.PanicOnError(retRes8315)
+                ch <- retRes8315
                 return nil
         
             }()
@@ -157,9 +159,11 @@ func  (this *BittradeCore) WatchTrades(symbol any, optionalArgs ...any) <- chan 
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1288 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1288)
+                retRes13112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes13112)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             // only supports a limit of 150 at this time
@@ -258,9 +262,11 @@ func  (this *BittradeCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2088 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2088)
+                retRes21312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes21312)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -338,7 +344,7 @@ func  (this *BittradeCore) HandleOHLCV(client any, message any)  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BittradeCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -352,9 +358,11 @@ func  (this *BittradeCore) WatchOrderBook(symbol any, optionalArgs ...any) <- ch
             if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 150)))) {
                 panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook accepts limit = 150 only")))
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2858 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2858)
+                retRes29212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes29212)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             // only supports a limit of 150 at this time
@@ -666,10 +674,10 @@ func  (this *BittradeCore) Pong(client any, message any) <- chan any {
             //     { ping: 1583491673714 }
             //
         
-            retRes5658 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+            retRes5738 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
                 "pong": this.SafeInteger(message, "ping"),
             }))
-            ccxt.PanicOnError(retRes5658)
+            ccxt.PanicOnError(retRes5738)
                 return nil
             }()
             return ch
@@ -723,7 +731,7 @@ func  (this *BittradeCore) HandleErrorMessage(client any, message any) any  {
         }
         return false
     }
-    return message
+    return true
 }
 func  (this *BittradeCore) HandleMessage(client any, message any)  {
     if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {

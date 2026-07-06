@@ -7,10 +7,6 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (ccxt.ICoreExchange, bool) {
     switch exchangeId {
-    case "aftermath":
-        aftermathItf := NewAftermathCore()
-        aftermathItf.Init(exchangeArgs)
-        return aftermathItf, true
     case "alpaca":
         alpacaItf := NewAlpacaCore()
         alpacaItf.Init(exchangeArgs)
@@ -19,14 +15,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         apexItf := NewApexCore()
         apexItf.Init(exchangeArgs)
         return apexItf, true
-    case "arkham":
-        arkhamItf := NewArkhamCore()
-        arkhamItf.Init(exchangeArgs)
-        return arkhamItf, true
-    case "ascendex":
-        ascendexItf := NewAscendexCore()
-        ascendexItf.Init(exchangeArgs)
-        return ascendexItf, true
     case "aster":
         asterItf := NewAsterCore()
         asterItf.Init(exchangeArgs)
@@ -131,10 +119,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         coinbaseItf := NewCoinbaseCore()
         coinbaseItf.Init(exchangeArgs)
         return coinbaseItf, true
-    case "coinbaseadvanced":
-        coinbaseadvancedItf := NewCoinbaseadvancedCore()
-        coinbaseadvancedItf.Init(exchangeArgs)
-        return coinbaseadvancedItf, true
     case "coinbaseexchange":
         coinbaseexchangeItf := NewCoinbaseexchangeCore()
         coinbaseexchangeItf.Init(exchangeArgs)
@@ -179,10 +163,18 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         exmoItf := NewExmoCore()
         exmoItf.Init(exchangeArgs)
         return exmoItf, true
+    case "extended":
+        extendedItf := NewExtendedCore()
+        extendedItf.Init(exchangeArgs)
+        return extendedItf, true
     case "gate":
         gateItf := NewGateCore()
         gateItf.Init(exchangeArgs)
         return gateItf, true
+    case "gateeu":
+        gateeuItf := NewGateeuCore()
+        gateeuItf.Init(exchangeArgs)
+        return gateeuItf, true
     case "gemini":
         geminiItf := NewGeminiCore()
         geminiItf.Init(exchangeArgs)
@@ -207,10 +199,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         htxItf := NewHtxCore()
         htxItf.Init(exchangeArgs)
         return htxItf, true
-    case "huobi":
-        huobiItf := NewHuobiCore()
-        huobiItf.Init(exchangeArgs)
-        return huobiItf, true
     case "hyperliquid":
         hyperliquidItf := NewHyperliquidCore()
         hyperliquidItf.Init(exchangeArgs)
@@ -231,6 +219,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         kucoinItf := NewKucoinCore()
         kucoinItf.Init(exchangeArgs)
         return kucoinItf, true
+    case "kucoineu":
+        kucoineuItf := NewKucoineuCore()
+        kucoineuItf.Init(exchangeArgs)
+        return kucoineuItf, true
     case "kucoinfutures":
         kucoinfuturesItf := NewKucoinfuturesCore()
         kucoinfuturesItf.Init(exchangeArgs)
@@ -255,6 +247,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         modetradeItf := NewModetradeCore()
         modetradeItf.Init(exchangeArgs)
         return modetradeItf, true
+    case "mudrex":
+        mudrexItf := NewMudrexCore()
+        mudrexItf.Init(exchangeArgs)
+        return mudrexItf, true
     case "myokx":
         myokxItf := NewMyokxCore()
         myokxItf.Init(exchangeArgs)

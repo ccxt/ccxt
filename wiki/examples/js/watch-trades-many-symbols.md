@@ -1,8 +1,6 @@
-- [Watch Trades Many Symbols](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+// @NO_AUTO_TRANSPILE
+'use strict';
 import ccxt from '../../js/ccxt.js';
 // eslint-disable-next-line import/no-named-as-default-member
 console.log('CCXT Version:', ccxt.version);
@@ -29,5 +27,5 @@ async function main() {
     await Promise.all(symbols.map((symbol) => watchTrades(exchange, symbol)));
 }
 main();
- 
+
 ```

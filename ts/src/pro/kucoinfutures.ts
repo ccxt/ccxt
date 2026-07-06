@@ -2,7 +2,7 @@
 
 import kucoin from './kucoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, Strings, TransferEntry } from '../base/types.js';
+import type { Dict, NullableDict, Strings, TransferEntry } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -63,7 +63,9 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request: Dict = {
@@ -71,7 +73,7 @@ export default class kucoinfutures extends kucoin {
             'amount': amountToPrecision,
         };
         const toAccountString = this.parseTransferType (toAccount);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
             request['recAccountType'] = toAccountString;
             response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
@@ -113,7 +115,7 @@ export default class kucoinfutures extends kucoin {
         } else {
             throw new BadRequest (this.id + ' transfer() only supports transfers between future/swap, spot and funding accounts');
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.extend (this.parseTransfer (data, currency), {
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,

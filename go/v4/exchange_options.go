@@ -406,6 +406,7 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]any) {
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
 
 	this.ReturnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false).(bool)
+	this.FetchHistoryCacheSize = SafeValue(extendedProperties, "fetchHistoryCacheSize", 0).(int)
 }
 
 func (this *Exchange) MapToSafeMap(input map[string]any) *sync.Map {

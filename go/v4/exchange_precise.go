@@ -76,12 +76,13 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 		numerator = p.integer
 	} else if distance < 0 {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(-distance)), nil)
-		numerator = new(big.Int).Div(p.integer, exponent)
+		// Quo truncates toward zero, matching JS BigInt division (big.Int.Div is Euclidean and rounds toward -inf for negatives)
+		numerator = new(big.Int).Quo(p.integer, exponent)
 	} else {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(distance)), nil)
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
-	result := new(big.Int).Div(numerator, other.integer)
+	result := new(big.Int).Quo(numerator, other.integer)
 	return NewPrecise(result.String(), precision)
 }
 
@@ -275,14 +276,8 @@ func StringSub(string1, string2 any) any {
 // }
 
 func StringAdd(string1, string2 any) any {
-	if string1 == nil && string2 == nil {
+	if string1 == nil || string2 == nil {
 		return nil
-	}
-	if string1 == nil {
-		return string2.(string)
-	}
-	if string2 == nil {
-		return string1.(string)
 	}
 	return NewPrecise(string1.(string)).Add(NewPrecise(string2.(string))).String()
 }
@@ -322,9 +317,9 @@ func StringEquals(a, b any) bool {
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
 
-func StringMin(string1, string2 any) string {
+func StringMin(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
 }

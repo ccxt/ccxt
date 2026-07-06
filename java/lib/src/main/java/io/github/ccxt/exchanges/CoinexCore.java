@@ -1326,7 +1326,7 @@ public class CoinexCore extends CoinexApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2829,7 +2829,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 Object code = this.safeString(entry, "code");
-                Object message = this.safeString(entry, "message");
+                Object message = this.safeString(entry, "message", "");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
                 {
                     Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
@@ -3308,7 +3308,7 @@ public class CoinexCore extends CoinexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
             }
-            Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode)); // required for on-chain, not required for inter-user transfer
+            Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"))); // required for on-chain, not required for inter-user transfer
             Object response = (this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
@@ -3335,7 +3335,7 @@ public class CoinexCore extends CoinexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object coinAddress = this.safeString(depositAddress, "address");
+        Object coinAddress = this.safeString(depositAddress, "address", "");
         Object parts = Helpers.split(coinAddress, ":");
         Object address = null;
         Object tag = null;
@@ -4010,7 +4010,7 @@ final Object finalI = i;
             put( "marginMode", "isolated" );
             put( "amount", CoinexCore.this.parseNumber(Precise.stringAbs(change)) );
             put( "total", CoinexCore.this.safeNumber(data, "margin_avbl") );
-            put( "code", Helpers.GetValue(market, "quote") );
+            put( "code", CoinexCore.this.safeString(market, "quote") );
             put( "status", null );
             put( "timestamp", timestamp );
             put( "datetime", CoinexCore.this.iso8601(timestamp) );
@@ -4370,7 +4370,7 @@ final Object finalI = i;
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode)); // required for on-chain, not required for inter-user transfer
+                Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"))); // required for on-chain, not required for inter-user transfer
             }
             Object response = (this.v2PrivatePostAssetsWithdraw(this.extend(request, parameters))).join();
             //
@@ -4618,7 +4618,7 @@ final Object finalI = i;
             put( "txid", finalTxid );
             put( "timestamp", timestamp );
             put( "datetime", CoinexCore.this.iso8601(timestamp) );
-            put( "network", CoinexCore.this.networkIdToCode(networkId) );
+            put( "network", CoinexCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "addressTo", address );
             put( "addressFrom", null );
@@ -5465,7 +5465,9 @@ final Object finalI = i;
                 Object networkId = this.safeString(entry, "chain");
                 if (Helpers.isTrue(networkId))
                 {
-                    Object networkCode = this.networkIdToCode(networkId, this.safeString(asset, "ccy"));
+                    Object currencyId = this.safeString(asset, "ccy");
+                    Object feeCode = this.safeCurrencyCode(currencyId, currency);
+                    Object networkCode = this.networkIdToCode(networkId, feeCode);
                     Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
         put( "fee", CoinexCore.this.safeNumber(entry, "withdrawal_fee") );
@@ -5894,7 +5896,7 @@ final Object finalI = i;
         }
         Object code = this.safeString(response, "code");
         Object data = this.safeValue(response, "data");
-        Object message = this.safeString(response, "message");
+        Object message = this.safeString(response, "message", "");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);

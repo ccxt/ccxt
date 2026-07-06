@@ -41,10 +41,10 @@ function test_watch_ohlcv_for_symbols($exchange, $skipped_properties, $symbol) {
             }
             if ($success === true) {
                 $assertion_message = $exchange->id . ' ' . $method . ' ' . $symbol . ' ' . $chosen_timeframe_key . ' | ' . $exchange->json($response);
-                assert(is_array($response), 'Response must be a dictionary. ' . $assertion_message);
+                assert($exchange->is_dictionary($response), 'Response must be a dictionary. ' . $assertion_message);
                 assert(is_array($response) && array_key_exists($symbol, $response), 'Response should contain the symbol as key. ' . $assertion_message);
                 $symbol_obj = $response[$symbol];
-                assert(is_array($symbol_obj), 'Response.Symbol should be a dictionary. ' . $assertion_message);
+                assert($exchange->is_dictionary($symbol_obj), 'Response.Symbol should be a dictionary. ' . $assertion_message);
                 assert(is_array($symbol_obj) && array_key_exists($chosen_timeframe_key, $symbol_obj), 'Response.symbol should contain the timeframe key. ' . $assertion_message);
                 $ohlcvs = $symbol_obj[$chosen_timeframe_key];
                 assert(gettype($ohlcvs) === 'array' && array_is_list($ohlcvs), 'Response.symbol.timeframe should be an array. ' . $assertion_message);

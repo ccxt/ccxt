@@ -87,7 +87,7 @@ public class ZebpayCore extends ZebpayApi
                 put( "1w", 10080 );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad" );
+                put( "logo", "https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://sapi.zebpay.com" );
                     put( "swap", "https://futuresbe.zebpay.com" );
@@ -276,7 +276,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -432,7 +432,7 @@ public class ZebpayCore extends ZebpayApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "chainId");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object depositAllowed = Helpers.isEqual(this.safeBool(chain, "isDepositEnabled"), true);
             deposit = ((Helpers.isTrue((depositAllowed)))) ? depositAllowed : deposit;
             Object withdrawAllowed = Helpers.isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
@@ -578,7 +578,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -638,7 +638,7 @@ public class ZebpayCore extends ZebpayApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1504,7 +1504,7 @@ public class ZebpayCore extends ZebpayApi
             //         }
             //     }
             //
-            Object responseData = this.safeDict(response, "data");
+            Object responseData = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(responseData, market);
         });
 
@@ -1655,7 +1655,7 @@ public class ZebpayCore extends ZebpayApi
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", ((String)Helpers.GetValue(market, "id")).toUpperCase() );
+                put( "symbol", ZebpayCore.this.safeStringUpper(market, "id") );
             }};
             Object response = (this.privateSwapGetV1TradeUserLeverage(this.extend(request, parameters))).join();
             //
@@ -1750,7 +1750,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1802,7 +1802,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -2182,7 +2182,7 @@ public class ZebpayCore extends ZebpayApi
         Object timestamp = this.milliseconds();
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", Helpers.GetValue(market, "id") );
+            put( "symbol", ZebpayCore.this.safeString(market, "id") );
             put( "type", null );
             put( "marginMode", null );
             put( "amount", ZebpayCore.this.safeNumber(info, "amount") );

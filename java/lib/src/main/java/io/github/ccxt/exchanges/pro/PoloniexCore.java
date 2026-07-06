@@ -589,7 +589,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -763,7 +763,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
         Object parsed = this.parseWsOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = ((Helpers.isTrue((Helpers.isEqual(timeframe, null))))) ? null : this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -808,7 +808,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 Object symbol = Helpers.GetValue(trade, "symbol");
                 Object type = "trades";
                 Object messageHash = Helpers.add(Helpers.add(type, "::"), symbol);
-                Object tradesArray = this.safeValue(this.trades, symbol);
+                Object tradesArray = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.safeValue(this.trades, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
                 {
                     Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1014,8 +1014,8 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
                 Object symbol = this.safeSymbol(marketId);
-                Object orderId = this.safeString(order, "orderId");
-                Object clientOrderId = this.safeString(order, "clientOrderId");
+                Object orderId = this.safeString(order, "orderId", "");
+                Object clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(eventType, "place")) || Helpers.isTrue(Helpers.isEqual(eventType, "canceled"))))
                 {
                     Object parsed = this.parseWsOrder(order);
@@ -1065,13 +1065,13 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                         Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
     put( "rate", null );
     put( "cost", 0 );
-    put( "currency", Helpers.GetValue(Helpers.GetValue(trade, "fee"), "currency") );
+    put( "currency", PoloniexCore.this.safeString(Helpers.GetValue(trade, "fee"), "currency") );
 }});
                     }
-                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(trade, "fee"), "cost"), null)))))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"), null)))))
                     {
                         Object stringOrderCost = this.numberToString(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"));
-                        Object stringTradeCost = this.numberToString(Helpers.GetValue(Helpers.GetValue(trade, "fee"), "cost"));
+                        Object stringTradeCost = this.numberToString(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"));
                         Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                     }
                     Object rawState = this.safeString(order, "state");
@@ -1453,7 +1453,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             put( "cancelAllOrders", "handleOrderRequest");
             put( "auth", "handleAuthenticate");
         }};
-        Object method = this.safeValue(methods, type);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? null : this.safeValue(methods, type);
         if (Helpers.isTrue(Helpers.isEqual(type, "auth")))
         {
             this.handleAuthenticate(client, message);

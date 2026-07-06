@@ -18,7 +18,7 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 async def test_fetch_markets(exchange, skipped_properties):
     method = 'fetchMarkets'
     markets = await exchange.fetch_markets()
-    assert isinstance(markets, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(markets)
+    assert exchange.is_dictionary(markets), exchange.id + ' ' + method + ' must return a dict. ' + exchange.json(markets)
     market_values = list(markets.values())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, market_values)
     for i in range(0, len(market_values)):

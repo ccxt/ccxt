@@ -1,5 +1,5 @@
 import asterRest from '../aster.js';
-import type { Balances, Str, Strings, Tickers, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position } from '../base/types.js';
+import type { Balances, Str, Strings, Tickers, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class aster extends asterRest {
     describe(): any;
@@ -141,7 +141,7 @@ export default class aster extends asterRest {
      */
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(message: any, market?: any): Ticker;
+    parseWsBidAsk(message: any, market?: Market): Ticker;
     /**
      * @method
      * @name aster#watchTrades
@@ -194,7 +194,7 @@ export default class aster extends asterRest {
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name aster#watchOrderBook
@@ -206,7 +206,7 @@ export default class aster extends asterRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -220,7 +220,7 @@ export default class aster extends asterRest {
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
@@ -234,7 +234,7 @@ export default class aster extends asterRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -248,7 +248,7 @@ export default class aster extends asterRest {
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
@@ -303,7 +303,7 @@ export default class aster extends asterRest {
      */
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     authenticate(type?: string, params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
     getPrivateUrl(type?: string): string;
@@ -336,7 +336,7 @@ export default class aster extends asterRest {
     setPositionsCache(client: Client): void;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name aster#watchOrders
@@ -368,7 +368,7 @@ export default class aster extends asterRest {
     handleOrderUpdate(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     getMarketFromOrder(client: Client, order: any): import("../base/types.js").MarketInterface;
     handleBalanceAndPosition(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;

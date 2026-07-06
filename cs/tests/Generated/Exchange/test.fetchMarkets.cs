@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchMarkets";
         object markets = await exchange.fetchMarkets();
-        assert((markets is IDictionary<string, object>), add(add(add(add(exchange.id, " "), method), " must return an object. "), exchange.json(markets)));
+        assert(exchange.isDictionary(markets), add(add(add(add(exchange.id, " "), method), " must return a dict. "), exchange.json(markets)));
         object marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))

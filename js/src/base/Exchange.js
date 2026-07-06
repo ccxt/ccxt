@@ -5,6 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/starknet';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
 // import {
 //     // keys as keysFunc,
@@ -13,30 +18,19 @@ import * as functions from './functions.js';
 //     // vwap as vwapFunc,
 // } from './functions.js';
 // import exceptions from "./errors.js"
-import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
+import { ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-// ----------------------------------------------------------------------------
-//
-import { axolotl } from './functions/crypto.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
-import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
-import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
-import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
-import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
-const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
+const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
 arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
@@ -48,19 +42,38 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
+// onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
+// lastIndex on the global regex) - profiled neutral vs a function-local literal
+// (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
+const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 // -----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
 export default class Exchange {
+    // this is updated by vss.js when building
+    static { this.ccxtVersion = '4.5.64'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
-        this.api = undefined;
         this.certified = false;
         this.pro = false;
         this.countries = undefined;
+        this.proxyUrl = undefined;
+        this.proxy_url = undefined;
+        this.httpProxy = undefined;
+        this.http_proxy = undefined;
+        this.httpsProxy = undefined;
+        this.https_proxy = undefined;
+        this.socksProxy = undefined;
+        this.socks_proxy = undefined;
         this.userAgent = undefined;
         this.user_agent = undefined;
+        this.wsProxy = undefined;
+        this.ws_proxy = undefined;
+        this.wssProxy = undefined;
+        this.wss_proxy = undefined;
+        this.wsSocksProxy = undefined;
+        this.ws_socks_proxy = undefined;
         //
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -73,17 +86,23 @@ export default class Exchange {
         this.MAX_VALUE = Number.MAX_VALUE;
         //
         this.agent = undefined; // maintained for backwards compatibility
-        this.nodeHttpModuleLoaded = false;
         this.httpAgent = undefined;
         this.httpsAgent = undefined;
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true; // reserved
-        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        this.quoteJsonNumbers = true; // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
         // eslint-disable-next-line no-unused-vars
         this.number = Number; // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false;
         // whether fees should be summed by currency code
         this.reduceFees = true;
+        // native fetch client state (see loadFetchImplementation)
+        this.fetchImplementationLoading = undefined;
+        this.fetchIsNative = false;
+        this.undiciModule = undefined;
+        this.zlibModule = undefined; // node:zlib, for transparent response decompression on the undici.request path
+        this.httpStatusTexts = {}; // node:http STATUS_CODES, undici.request carries no reason phrases
+        this.fetchDispatcher = undefined; // shared keep-alive undici Agent (node only)
         this.validateServerSsl = true;
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
@@ -95,47 +114,29 @@ export default class Exchange {
         this.fundingRates = {};
         this.bidsasks = {};
         this.orders = undefined;
-        this.triggerOrders = undefined;
         this.transactions = {};
         this.myLiquidations = undefined;
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
-        this.precision = undefined;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
-        this.last_http_response = undefined;
         this.last_json_response = undefined;
-        this.last_response_headers = undefined;
-        this.last_request_headers = undefined;
         this.last_request_body = undefined;
         this.last_request_url = undefined;
         this.last_request_path = undefined;
+        this.fetchHistoryCache = [];
+        this.fetchHistoryCacheSize = 0;
         this.id = 'Exchange';
-        this.markets = undefined;
-        this.features = undefined;
-        this.status = undefined;
         this.rateLimit = 2000; // milliseconds
-        this.tokenBucket = undefined;
         this.throttler = undefined;
         this.enableRateLimit = true;
         this.rollingWindowSize = 0.0; // set to 0.0 to use leaky bucket rate limiter
         this.rateLimiterAlgorithm = 'leakyBucket';
-        this.httpExceptions = undefined;
-        this.limits = undefined;
-        this.markets_by_id = undefined;
         this.symbols = undefined;
         this.ids = undefined;
         this.currencies = {};
-        this.baseCurrencies = undefined;
-        this.quoteCurrencies = undefined;
-        this.currencies_by_id = undefined;
         this.codes = undefined;
         this.reloadingMarkets = undefined;
-        this.marketsLoading = undefined;
-        this.accounts = undefined;
-        this.accountsById = undefined;
-        this.commonCurrencies = undefined;
         this.hostname = undefined;
         this.precisionMode = undefined;
         this.paddingMode = undefined;
@@ -143,12 +144,12 @@ export default class Exchange {
         this.timeframes = {};
         this.version = undefined;
         this.name = undefined;
-        this.targetAccount = undefined;
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
         this.socksProxyAgentModuleChecked = false;
-        this.proxyDictionaries = {};
+        this.proxyDictionaries = {}; // proxyUrl -> undici dispatcher (native fetch path) or node-style agent (legacy fetchImplementation / ws paths), distinguished by the 'dispatch' method
+        this.proxyDictionariesMaxSize = 8; // FIFO cap - an undici dispatcher entry holds ~23KB of eagerly-allocated pool state, so rotating-proxy setups would otherwise grow the cache without bound; evicted undici dispatchers are closed gracefully, evicted legacy agents are just dropped (they may still back live ws connections)
         this.proxiesModulesLoading = undefined;
         this.alias = false;
         // WS/PRO options
@@ -261,7 +262,7 @@ export default class Exchange {
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //         this.userAgent = {
-        //             'User-Agent': 'ccxt/' + (Exchange as any).ccxtVersion +
+        //             'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //                 ' (+https://github.com/ccxt/ccxt)' +
         //                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         //         }
@@ -275,7 +276,7 @@ export default class Exchange {
         // underlying properties
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true; // reserved
-        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        this.quoteJsonNumbers = true; // quote json numbers as precise strings when a response carries precision-risky numbers
         this.number = Number; // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false;
         // whether fees should be summed by currency code
@@ -287,16 +288,6 @@ export default class Exchange {
         // default property values
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2FA)
-        // default credentials
-        this.apiKey = undefined;
-        this.secret = undefined;
-        this.uid = undefined;
-        this.login = undefined;
-        this.password = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
         // placeholders for cached data
         this.balance = {};
         this.bidsasks = {};
@@ -312,19 +303,13 @@ export default class Exchange {
         this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
-        this.last_http_response = undefined;
         this.last_json_response = undefined;
-        this.last_response_headers = undefined;
-        this.last_request_headers = undefined;
         this.last_request_body = undefined;
-        this.last_request_url = undefined;
-        this.last_request_path = undefined;
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -347,14 +332,6 @@ export default class Exchange {
             else {
                 this[property] = value;
             }
-        }
-        // http client options
-        const agentOptions = {
-            'keepAlive': true,
-        };
-        // ssl options
-        if (!this.validateServerSsl) {
-            agentOptions['rejectUnauthorized'] = false;
         }
         // generate old metainfo interface
         const hasKeys = Object.keys(this.has);
@@ -392,9 +369,7 @@ export default class Exchange {
         const nameBytes = new TextEncoder().encode(name);
         const data = new Uint8Array([...nsBytes, ...nameBytes]);
         const nsHash = sha1(data);
-        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
-        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [...nsHash.slice(0, 16)]
             .map((b) => b.toString(16).padStart(2, '0'))
@@ -410,37 +385,6 @@ export default class Exchange {
     encodeURIComponent(...args) {
         // @ts-expect-error
         return encodeURIComponent(...args);
-    }
-    checkRequiredVersion(requiredVersion, error = true) {
-        let result = true;
-        const [major1, minor1, patch1] = requiredVersion.split('.');
-        const [major2, minor2, patch2] = Exchange.ccxtVersion.split('.');
-        const intMajor1 = this.parseToInt(major1);
-        const intMinor1 = this.parseToInt(minor1);
-        const intPatch1 = this.parseToInt(patch1);
-        const intMajor2 = this.parseToInt(major2);
-        const intMinor2 = this.parseToInt(minor2);
-        const intPatch2 = this.parseToInt(patch2);
-        if (intMajor1 > intMajor2) {
-            result = false;
-        }
-        if (intMajor1 === intMajor2) {
-            if (intMinor1 > intMinor2) {
-                result = false;
-            }
-            else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
-                result = false;
-            }
-        }
-        if (!result) {
-            if (error) {
-                throw new NotSupported('Your current version of CCXT is ' + Exchange.ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT');
-            }
-            else {
-                return error;
-            }
-        }
-        return result;
     }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
@@ -502,32 +446,24 @@ export default class Exchange {
         }
     }
     log(...args) {
-        // eslint-disable-next-line no-console
         console.log(...args);
     }
     async loadProxyModules() {
         // when loading markets, multiple parallel calls are made, so need one promise
         if (this.proxiesModulesLoading === undefined) {
             this.proxiesModulesLoading = (async () => {
-                // we have to handle it with below nested way, because of dynamic
-                // import issues (https://github.com/ccxt/ccxt/pull/20687)
+                // the vendored proxy agents were removed together with the node-fetch transport -
+                // the native fetch paths handle proxies through undici (see getFetchProxyDispatcher),
+                // so the node-style agent modules below back only the legacy paths (user-supplied
+                // fetchImplementation and ws connections) and are optional user-installed packages
                 try {
-                    // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-                    this.httpProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-                    this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+                    // @ts-ignore
+                    this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
+                    // @ts-ignore
+                    this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
                 }
                 catch (e) {
-                    // if several users are using those frameworks which cause exceptions,
-                    // let them to be able to load modules still, by installing them
-                    try {
-                        // @ts-ignore
-                        this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
-                        // @ts-ignore
-                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
-                    }
-                    catch (err) {
-                        // TODO: handle error
-                    }
+                    // optional modules, setProxyAgents raises NotSupported with install instructions when they are actually needed
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
@@ -535,7 +471,7 @@ export default class Exchange {
                         this.socksProxyAgentModule = await import(/* webpackIgnore: true */ 'socks-proxy-agent');
                     }
                     catch (e) {
-                        // TODO: handle error
+                        // optional module, setProxyAgents raises NotSupported with install instructions when it is actually needed
                     }
                     this.socksProxyAgentModuleChecked = true;
                 }
@@ -551,19 +487,22 @@ export default class Exchange {
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new NotSupported(this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported(this.id + ' - to use httpProxy with ccxt, at first you need install module "npm i http-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(httpProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
+            const cachedHttpAgent = this.proxyDictionaries[httpProxy];
+            if ((cachedHttpAgent === undefined) || (typeof cachedHttpAgent.dispatch === 'function')) {
+                // absent, or the url is occupied by an undici dispatcher from the native fetch path - (re)create the node-style agent
+                this.cacheProxyDictionary(httpProxy, new this.httpProxyAgentModule.HttpProxyAgent(httpProxy));
             }
             chosenAgent = this.proxyDictionaries[httpProxy];
         }
         else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new NotSupported(this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported(this.id + ' - to use httpsProxy with ccxt, at first you need install module "npm i https-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(httpsProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
+            const cachedHttpsAgent = this.proxyDictionaries[httpsProxy];
+            if ((cachedHttpsAgent === undefined) || (typeof cachedHttpsAgent.dispatch === 'function')) {
+                this.cacheProxyDictionary(httpsProxy, new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy));
             }
             chosenAgent = this.proxyDictionaries[httpsProxy];
             chosenAgent.keepAlive = true;
@@ -572,8 +511,9 @@ export default class Exchange {
             if (this.socksProxyAgentModule === undefined) {
                 throw new NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(socksProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
+            const cachedSocksAgent = this.proxyDictionaries[socksProxy];
+            if ((cachedSocksAgent === undefined) || (typeof cachedSocksAgent.dispatch === 'function')) {
+                this.cacheProxyDictionary(socksProxy, new this.socksProxyAgentModule.SocksProxyAgent(socksProxy));
             }
             chosenAgent = this.proxyDictionaries[socksProxy];
         }
@@ -598,6 +538,18 @@ export default class Exchange {
             }
         }
         return undefined;
+    }
+    addFetchCache(data) {
+        if (this.fetchHistoryCacheSize <= 0) {
+            return;
+        }
+        if (this.fetchHistoryCache.length >= this.fetchHistoryCacheSize) {
+            this.fetchHistoryCache.shift();
+        }
+        this.fetchHistoryCache.push(data);
+    }
+    getFetchCache() {
+        return this.fetchHistoryCache;
     }
     isBinaryMessage(msg) {
         return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
@@ -641,30 +593,341 @@ export default class Exchange {
         }
         return data;
     }
-    async fetch(url, method = 'GET', headers = undefined, body = undefined) {
-        // load node-http(s) modules only on first call
-        if (isNode) {
-            if (!this.nodeHttpModuleLoaded) {
-                this.nodeHttpModuleLoaded = true;
-                const httpsModule = await import(/* webpackIgnore: true */ 'node:https');
-                this.httpsAgent = new httpsModule.Agent({ 'keepAlive': true });
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#loadFetchImplementation
+     * @description resolves the fetch implementation once per instance - the platform-native fetch is used everywhere (undici in node, native fetch in bun / browsers / deno), a user-supplied this.fetchImplementation always takes precedence
+     * @returns {Promise<any>} a promise that resolves when the fetch client is ready
+     */
+    async loadFetchImplementation() {
+        // one shared promise, so parallel first-requests initialize the client only once
+        if (this.fetchImplementationLoading === undefined) {
+            this.fetchImplementationLoading = (async () => {
+                if (this.fetchImplementation !== undefined) {
+                    // user-supplied custom implementation - ensure the error classes have sane defaults
+                    if (this.AbortError === undefined) {
+                        this.AbortError = DOMException;
+                    }
+                    if (this.FetchError === undefined) {
+                        this.FetchError = TypeError;
+                    }
+                    return;
+                }
+                this.AbortError = DOMException;
+                this.FetchError = TypeError;
+                // in the browser (and webworkers / deno / bun) default to the platform's
+                // built-in fetch - the undici import below is never even attempted there
+                if (!isNode || isBun) {
+                    if (selfIsDefined()) {
+                        // fetchImplementation cannot be called on this. in browsers:
+                        // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+                        // eslint-disable-next-line
+                        this.fetchImplementation = self.fetch;
+                    }
+                    else if (typeof fetch === 'function') {
+                        this.fetchImplementation = fetch;
+                    }
+                    else {
+                        throw new NotSupported(this.id + ' the built-in "fetch" function is not available in this environment, please use a modern browser, bun, or node.js 18+');
+                    }
+                    this.fetchIsNative = true;
+                    return;
+                }
+                // node: prefer the undici module for tunable pooling and proxy support
+                try {
+                    // undici is the engine behind node's built-in fetch - importing it directly gives us
+                    // tunable connection pooling (keep-alive), ProxyAgent support, and the low-level
+                    // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
+                    // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
+                    //
+                    // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
+                    // unconditionally defers every write on an idle kept-alive socket behind a
+                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
+                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
+                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
+                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
+                    const undiciModule = await import(/* webpackIgnore: true */ 'undici');
+                    this.undiciModule = undiciModule;
+                    this.fetchImplementation = undiciModule.fetch;
+                    // redirects are never followed - exchange rest apis do not redirect legitimately,
+                    // so a redirect response raises NetworkError instead (see undiciRequest, and the
+                    // 'redirect': 'error' request param on the whatwg-fetch paths)
+                    this.fetchDispatcher = new undiciModule.Agent(this.getDispatcherOptions(true));
+                    // node:zlib for transparent gzip/br/deflate response decompression (see undiciBody),
+                    // node:http for the reason phrases that undici.request responses do not carry
+                    this.zlibModule = await import(/* webpackIgnore: true */ 'node:zlib');
+                    const httpModule = await import(/* webpackIgnore: true */ 'node:http');
+                    this.httpStatusTexts = httpModule.STATUS_CODES;
+                    this.fetchIsNative = true;
+                    return;
+                }
+                catch (e) {
+                    // some environments cannot resolve the undici module (custom bundlers, https://github.com/ccxt/ccxt/pull/20687)
+                    // fall through to node's built-in global fetch below (same undici engine, default pooling)
+                }
+                if (typeof fetch === 'function') {
+                    this.fetchImplementation = fetch;
+                    this.fetchIsNative = true;
+                }
+                else {
+                    throw new NotSupported(this.id + ' the built-in "fetch" function is not available in this environment, please use node.js 18+, bun, or a modern browser');
+                }
+            })();
+        }
+        return await this.fetchImplementationLoading;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getDispatcherOptions
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
+     * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
+     * @returns {object} undici dispatcher options
+     */
+    getDispatcherOptions(isPlainAgent = false) {
+        const options = {
+            'keepAliveTimeout': 60 * 1000, // hold idle sockets for 60s (server keep-alive hints still apply)
+            'keepAliveMaxTimeout': 10 * 60 * 1000, // cap server-suggested keep-alive at 10 minutes
+            'connections': 256, // per-origin socket cap, prevents fd exhaustion under bursts
+            'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
+            'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
+        };
+        if (!this.shouldValidateServerSsl()) {
+            const tlsOptions = { 'rejectUnauthorized': false };
+            if (isPlainAgent) {
+                options['connect'] = tlsOptions;
+            }
+            else {
+                options['requestTls'] = tlsOptions;
             }
         }
+        return options;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#shouldValidateServerSsl
+     * @description whether server certificates should be validated, honoring both this.validateServerSsl and legacy agents constructed with rejectUnauthorized false
+     * @returns {boolean} true when server ssl certificates must be validated
+     */
+    shouldValidateServerSsl() {
+        if (!this.validateServerSsl) {
+            return false;
+        }
+        // backwards compatibility: users disabled tls validation by passing an agent object
+        const legacyAgents = [this.agent, this.httpsAgent];
+        for (let i = 0; i < legacyAgents.length; i++) {
+            const legacyAgent = legacyAgents[i];
+            if (legacyAgent && legacyAgent.options && (legacyAgent.options.rejectUnauthorized === false)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#extractProxyFromAgent
+     * @description backwards compatibility helper - http-proxy-agent, https-proxy-agent and socks-proxy-agent instances all carry their target on a `proxy` property (URL object or string), extract it so it can be passed to the native fetch
+     * @param {object} [agent] a legacy proxy-carrying agent object
+     * @returns {string|undefined} the proxy url, or undefined when the agent does not carry one
+     */
+    extractProxyFromAgent(agent) {
+        if (agent !== undefined && agent !== null) {
+            const proxy = agent.proxy;
+            if (proxy !== undefined && proxy !== null) {
+                if (typeof proxy === 'string') {
+                    return proxy;
+                }
+                if (proxy.href !== undefined) {
+                    return proxy.href; // URL instance
+                }
+            }
+        }
+        return undefined;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#cacheProxyDictionary
+     * @description stores a per-proxy-url transport handle (undici dispatcher or legacy node-style agent) in this.proxyDictionaries, evicting the oldest entry beyond proxyDictionariesMaxSize so rotating-proxy setups cannot grow the cache without bound - evicted or replaced undici dispatchers are closed gracefully (in-flight requests finish first), legacy agents are just dropped because live ws connections may still hold them
+     * @param {string} proxyUrl the proxy url the handle serves
+     * @param {any} value an undici dispatcher or a node-style agent
+     * @returns {any} the cached value
+     */
+    cacheProxyDictionary(proxyUrl, value) {
+        const existing = this.proxyDictionaries[proxyUrl];
+        if (existing !== undefined) {
+            // same url switching between the dispatcher and agent families
+            this.releaseProxyDictionaryEntry(existing);
+        }
+        else {
+            const cachedProxyUrls = Object.keys(this.proxyDictionaries);
+            if (cachedProxyUrls.length >= this.proxyDictionariesMaxSize) {
+                const oldestProxyUrl = cachedProxyUrls[0]; // js objects preserve string-key insertion order
+                const oldestEntry = this.proxyDictionaries[oldestProxyUrl];
+                delete this.proxyDictionaries[oldestProxyUrl];
+                this.releaseProxyDictionaryEntry(oldestEntry);
+            }
+        }
+        this.proxyDictionaries[proxyUrl] = value;
+        return value;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#releaseProxyDictionaryEntry
+     * @description closes an undici dispatcher that left this.proxyDictionaries - close () drains in-flight requests before releasing sockets, and any close failure is irrelevant because the dispatcher is already unreferenced; legacy node-style agents are left untouched (never destroyed, matching the long-standing behavior, because live ws connections may still use them)
+     * @param {any} entry the evicted or replaced proxyDictionaries value
+     */
+    releaseProxyDictionaryEntry(entry) {
+        if ((entry !== undefined) && (entry !== null) && (typeof entry.dispatch === 'function') && (typeof entry.close === 'function')) {
+            entry.close().catch(() => { });
+        }
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getFetchProxyDispatcher
+     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively; dispatchers share this.proxyDictionaries with the legacy node-style agents (entries are distinguished by the 'dispatch' method) and the cache is FIFO-capped at proxyDictionariesMaxSize entries so rotating-proxy setups cannot grow it without bound
+     * @param {string} proxyUrl the proxy url, e.g. http://user:pass@host:port or socks5://host:port
+     * @returns {any} an undici dispatcher
+     */
+    getFetchProxyDispatcher(proxyUrl) {
+        const cached = this.proxyDictionaries[proxyUrl];
+        if ((cached !== undefined) && (typeof cached.dispatch === 'function')) {
+            return cached;
+        }
+        // absent, or the url is occupied by a legacy node-style agent - (re)create the dispatcher
+        const lowercaseProxyUrl = proxyUrl.toLowerCase();
+        if ((lowercaseProxyUrl.indexOf('socks4:') === 0) || (lowercaseProxyUrl.indexOf('socks4a:') === 0)) {
+            throw new NotSupported(this.id + ' - socks4 proxies are not supported by the built-in fetch, please use a socks5:// proxy');
+        }
+        const options = this.getDispatcherOptions(false);
+        options['uri'] = proxyUrl;
+        return this.cacheProxyDictionary(proxyUrl, new this.undiciModule.ProxyAgent(options));
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciRequest
+     * @description dispatches through the low-level undici.request api and adapts the result to the minimal fetch-Response surface that handleRestResponse consumes - profiled ~2x faster end-to-end than undici.fetch (node streams instead of the WHATWG Response/Headers/web-streams machinery)
+     * @param {string} url the request url
+     * @param {object} params fetch-style request params ('method', 'headers', 'body', 'signal', 'dispatcher')
+     * @returns {Promise<object>} an object with 'status', 'statusText', 'headers' (plain object), 'text' and 'arrayBuffer' methods
+     */
+    async undiciRequest(url, params) {
+        const headers = params['headers'];
+        if (!('Accept-Encoding' in headers) && !('accept-encoding' in headers)) {
+            headers['Accept-Encoding'] = 'gzip, deflate, br'; // fetch/node-fetch parity, inflated in undiciBody
+        }
+        const res = await this.undiciModule.request(url, { 'method': params['method'], 'headers': headers, 'body': params['body'], 'signal': params['signal'], 'dispatcher': params['dispatcher'] });
+        // undici.request follows no redirects by default and none are composed onto the
+        // dispatchers - exchange rest apis do not redirect legitimately, so surface a
+        // redirect response as a NetworkError instead of following it or handing its
+        // (usually empty) body to handleRestResponse
+        const statusCode = res.statusCode;
+        const location = res.headers['location'];
+        if ((statusCode >= 300) && (statusCode < 400) && (location !== undefined)) {
+            try {
+                await res.body.dump(); // drain the body so the socket returns to the keep-alive pool
+            }
+            catch (e) {
+                // a drain failure only costs the connection, the throw below is what matters
+            }
+            throw new NetworkError(this.id + ' ' + params['method'] + ' ' + url + ' redirect to ' + location + ' was not followed (HTTP ' + statusCode + ', following redirects is disabled)');
+        }
+        return {
+            'status': res.statusCode,
+            'statusText': this.httpStatusTexts[res.statusCode] || '',
+            'headers': res.headers,
+            'text': () => this.undiciBody(res, false),
+            'arrayBuffer': () => this.undiciBody(res, true),
+        };
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciBody
+     * @description reads an undici.request response body, transparently decompressing gzip/br/deflate content-encodings via node:zlib (undici.request performs no decompression, unlike fetch)
+     * @param {object} res an undici.request response
+     * @param {boolean} [binary] true to return a Buffer, false to return a utf8 string
+     * @returns {Promise<any>} the response body
+     */
+    async undiciBody(res, binary = false) {
+        let contentEncoding = res.headers['content-encoding'];
+        if ((res.statusCode === 204) || (res.statusCode === 304)) {
+            contentEncoding = undefined; // bodyless statuses, nothing to inflate
+        }
+        let decompressor = undefined;
+        if ((contentEncoding === 'gzip') || (contentEncoding === 'x-gzip')) {
+            decompressor = this.zlibModule.createGunzip();
+        }
+        else if (contentEncoding === 'br') {
+            decompressor = this.zlibModule.createBrotliDecompress();
+        }
+        else if (contentEncoding === 'deflate') {
+            decompressor = this.zlibModule.createInflate();
+        }
+        // ponytail: chained content-encodings ('gzip, br') are not handled - no exchange sends them,
+        // and neither did the previous node-fetch implementation
+        if (decompressor === undefined) {
+            return binary ? await res.body.arrayBuffer() : await res.body.text();
+        }
+        const chunks = [];
+        res.body.pipe(decompressor);
+        for await (const chunk of decompressor) {
+            chunks.push(chunk);
+        }
+        const buffer = Buffer.concat(chunks);
+        return binary ? buffer : buffer.toString('utf8');
+    }
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#setFetchProxyOptions
+     * @description attaches per-platform proxy transport options to the native fetch request params - undici dispatcher on node, the built-in `proxy` option on bun; the shared keep-alive dispatcher is attached when no proxy applies
+     * @param {object} params the fetch RequestInit params, mutated in place
+     * @param {string} [httpProxy] unified httpProxy setting
+     * @param {string} [httpsProxy] unified httpsProxy setting
+     * @param {string} [socksProxy] unified socksProxy setting
+     */
+    setFetchProxyOptions(params, httpProxy, httpsProxy, socksProxy) {
+        // unified proxy settings take precedence over legacy proxy-carrying agent objects
+        let selectedProxy = httpProxy || httpsProxy || socksProxy;
+        if (!selectedProxy) {
+            selectedProxy = this.extractProxyFromAgent(this.agent) || this.extractProxyFromAgent(this.httpsAgent) || this.extractProxyFromAgent(this.httpAgent);
+        }
+        if (!selectedProxy) {
+            if (this.fetchDispatcher !== undefined) {
+                params['dispatcher'] = this.fetchDispatcher;
+            }
+            return;
+        }
+        if (!isNode) {
+            throw new NotSupported(this.id + ' - proxies in browser-side projects are not supported. You have several choices: [A] Use `exchange.proxyUrl` property to redirect requests through local/remote cors-proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder, which can be used for REST requests only) [B] override `exchange.fetch` && `exchange.watch` methods to send requests through your custom proxy');
+        }
+        if (isBun) {
+            // bun's native fetch has first-class proxy support
+            params['proxy'] = selectedProxy;
+            return;
+        }
+        if (this.undiciModule === undefined) {
+            throw new NotSupported(this.id + ' - proxy support with the built-in fetch requires the undici module, please install it with "npm i undici"');
+        }
+        params['dispatcher'] = this.getFetchProxyDispatcher(selectedProxy);
+    }
+    async fetch(url, method = 'GET', headers = undefined, body = undefined) {
         // ##### PROXY & HEADERS #####
         headers = this.extend(this.headers, headers);
         // proxy-url
         const proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
-        let httpProxyAgent = false;
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
                 // in node-js we need to set header to *
                 headers = this.extend({ 'Origin': this.origin }, headers);
-                // only for http proxy
-                if (proxyUrl.substring(0, 5) === 'http:') {
-                    await this.loadHttpProxyAgent();
-                    httpProxyAgent = this.httpAgent;
-                }
             }
             url = proxyUrl + this.urlEncoderForProxyUrl(url);
         }
@@ -676,7 +939,6 @@ export default class Exchange {
             // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
             await this.loadProxyModules();
         }
-        const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
@@ -717,82 +979,105 @@ export default class Exchange {
             this.log('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
         }
         // end of proxies & headers
-        if (this.fetchImplementation === undefined) {
-            if (isNode) {
-                if (this.agent === undefined) {
-                    this.agent = this.httpsAgent;
-                }
-                try {
-                    const nodeFetchModule = await import(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js');
-                    this.AbortError = nodeFetchModule.AbortError;
-                    this.fetchImplementation = nodeFetchModule.default;
-                    this.FetchError = nodeFetchModule.FetchError;
-                }
-                catch (e) {
-                    // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
-                    // so let them to fallback to node's native fetch
-                    if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
-                        // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
-                        // it throws same error types
-                        this.AbortError = DOMException;
-                        this.FetchError = TypeError;
-                    }
-                    else {
-                        throw new Error('Seems, "fetch" function is not available in your node-js version, please use latest node-js version');
-                    }
-                }
-            }
-            else {
-                // eslint-disable-next-line
-                this.fetchImplementation = (selfIsDefined()) ? self.fetch : fetch;
-                this.AbortError = DOMException;
-                this.FetchError = TypeError;
-            }
+        if (this.fetchImplementationLoading === undefined || this.fetchImplementation === undefined) {
+            await this.loadFetchImplementation();
         }
-        // fetchImplementation cannot be called on this. in browsers:
-        // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
         const fetchImplementation = this.fetchImplementation;
-        const params = { method, headers, body, 'timeout': this.timeout };
-        if (this.agent) {
-            params['agent'] = this.agent;
+        const params = { method, headers, body };
+        if (this.fetchIsNative) {
+            // never follow redirects: the whatwg-fetch paths (browser / bun / global-fetch
+            // fallback) reject with TypeError on a redirect response, which the catch below
+            // surfaces as NetworkError; the undici.request path raises in undiciRequest instead
+            params['redirect'] = 'error';
+            this.setFetchProxyOptions(params, httpProxy, httpsProxy, socksProxy);
         }
-        // override agent, if needed
-        if (httpProxyAgent) {
-            // if proxyUrl is being used, then specifically in nodejs, we need http module, not https
-            params['agent'] = httpProxyAgent;
-        }
-        else if (chosenAgent) {
-            // if http(s)Proxy is being used
-            params['agent'] = chosenAgent;
+        else {
+            // backwards compatibility for user-supplied fetchImplementation functions
+            // that expect node-style 'agent' and 'timeout' request options
+            params['timeout'] = this.timeout;
+            const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
+            const legacyAgent = chosenAgent || this.agent || this.httpsAgent;
+            if (legacyAgent) {
+                params['agent'] = legacyAgent;
+            }
         }
         const controller = new AbortController();
         params['signal'] = controller.signal;
         const timeout = setTimeout(() => {
             controller.abort();
         }, this.timeout);
+        let response = undefined;
         try {
-            const response = await fetchImplementation(url, params);
-            clearTimeout(timeout);
-            return this.handleRestResponse(response, url, method, headers, body);
+            if (this.fetchIsNative && (this.undiciModule !== undefined)) {
+                response = await this.undiciRequest(url, params);
+            }
+            else {
+                response = await fetchImplementation(url, params);
+            }
         }
         catch (e) {
-            if (e instanceof this.AbortError) {
+            if ((e instanceof this.AbortError) || ((e !== undefined) && ((e.name === 'AbortError') || (e.name === 'TimeoutError')))) {
                 throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
             }
-            else if (e instanceof this.FetchError) {
-                throw new NetworkError(this.id + ' ' + method + ' ' + url + ' fetch failed');
+            // undici wraps the underlying transport error into TypeError('fetch failed') with a cause
+            const causeMessage = ((e !== undefined) && (e.cause !== undefined) && (e.cause !== null) && (e.cause.message !== undefined)) ? (': ' + e.cause.message) : '';
+            if ((e instanceof this.FetchError) || (e instanceof TypeError)) {
+                throw new NetworkError(this.id + ' ' + method + ' ' + url + ' fetch failed' + causeMessage);
+            }
+            // undici.request and other runtimes signal connection failures with error classes carrying a string code
+            const networkErrorCodes = ['ConnectionRefused', 'ConnectionClosed', 'ConnectionReset', 'DNSError', 'FailedToOpenSocket', 'ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'EPIPE', 'EAI_AGAIN', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT'];
+            if ((e !== undefined) && (typeof e.code === 'string') && (networkErrorCodes.indexOf(e.code) !== -1)) {
+                throw new NetworkError(this.id + ' ' + method + ' ' + url + ' fetch failed: ' + e.message);
             }
             throw e;
         }
+        finally {
+            clearTimeout(timeout);
+        }
+        return await this.handleRestResponse(response, url, method, headers, body);
     }
     jsonStringifyWithNull(obj) {
         return JSON.stringify(obj, (_, v) => (v === undefined ? null : v));
     }
+    hasUnsafeInteger(value) {
+        if (typeof value === 'number') {
+            return (value > Number.MAX_SAFE_INTEGER) || (value < -Number.MAX_SAFE_INTEGER);
+        }
+        if (value !== null && typeof value === 'object') {
+            if (Array.isArray(value)) {
+                for (let i = 0; i < value.length; i++) {
+                    if (this.hasUnsafeInteger(value[i])) {
+                        return true;
+                    }
+                }
+            }
+            else {
+                for (const key in value) {
+                    if (this.hasUnsafeInteger(value[key])) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     parseJson(jsonString) {
         try {
             if (this.isJsonEncodedObject(jsonString)) {
-                return JSON.parse(this.onJsonResponse(jsonString));
+                if (!this.quoteJsonNumbers) {
+                    return JSON.parse(jsonString);
+                }
+                // fast path: a plain parse followed by a scan for integers beyond
+                // Number.MAX_SAFE_INTEGER (2^53), the only values whose original
+                // digits a plain parse can lose in practice (exchanges cap decimal
+                // precision well below 16 significant digits) — any lossy integer
+                // token rounds to a double >= 2^53, so it is always detected here
+                const parsed = JSON.parse(jsonString);
+                if (this.hasUnsafeInteger(parsed)) {
+                    // slow path: requote all numbers as strings and reparse
+                    return JSON.parse(this.onJsonResponse(jsonString));
+                }
+                return parsed;
             }
         }
         catch (e) {
@@ -802,16 +1087,34 @@ export default class Exchange {
     }
     getResponseHeaders(response) {
         const result = {};
-        response.headers.forEach((value, key) => {
-            key = key.split('-').map((word) => this.capitalize(word)).join('-');
-            result[key] = value;
-        });
+        const headers = response.headers;
+        if (typeof headers.forEach === 'function') {
+            // fetch Headers object
+            headers.forEach((value, key) => {
+                key = key.split('-').map((word) => this.capitalize(word)).join('-');
+                result[key] = value;
+            });
+            return result;
+        }
+        // undici.request responses carry a plain object (repeated headers arrive as arrays)
+        const keys = Object.keys(headers);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = headers[key];
+            if (Array.isArray(value)) {
+                value = value.join(', ');
+            }
+            const capitalizedKey = key.split('-').map((word) => this.capitalize(word)).join('-');
+            result[capitalizedKey] = value;
+        }
         return result;
     }
     handleRestResponse(response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
         const responseHeaders = this.getResponseHeaders(response);
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
-            const responseBuffer = response.buffer();
+            // native fetch responses have no buffer() method, polyfill it from arrayBuffer()
+            // Buffer on node/bun for backwards compatibility, Uint8Array in browsers
+            const responseBuffer = response.arrayBuffer().then((arrayBuffer) => ((typeof Buffer !== 'undefined') ? Buffer.from(arrayBuffer) : new Uint8Array(arrayBuffer)));
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders;
             }
@@ -853,7 +1156,18 @@ export default class Exchange {
         return responseBody.trim();
     }
     onJsonResponse(responseBody) {
-        return this.quoteJsonNumbers ? responseBody.replace(/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
+        // quotes json numbers in-place so JSON.parse preserves their exact source digits as strings
+        // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
+        //
+        // perf notes (benchmarked on node 22, real 0.3-1.9MB binance payloads, cpu-profiled):
+        // the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
+        // string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
+        // rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
+        //
+        // no quoteJsonNumbers guard needed here: parseJson returns early when
+        // quoteJsonNumbers is false, so this is only reached after an integer
+        // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
+        return responseBody.replace(QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
     async loadMarketsHelper(reload = false, params = {}) {
         if (!reload && this.markets) {
@@ -950,11 +1264,14 @@ export default class Exchange {
                 // this function will return 0.00000001
                 // check https://github.com/ccxt/ccxt/issues/24135
                 const numberNormalized = this.numberToString(value);
+                if (numberNormalized === undefined) {
+                    return d;
+                }
                 if (numberNormalized.indexOf('e-') > -1) {
                     return this.number(numberToString(parseFloat(numberNormalized)));
                 }
                 const result = this.number(numberNormalized);
-                return Number.isNaN(result) ? d : result;
+                return (Number.isNaN(result) ? d : result);
             }
             catch (e) {
                 return d;
@@ -1246,8 +1563,8 @@ export default class Exchange {
             }
         }
     }
-    async close() {
-        // test by running ts/src/pro/test/base/test.close.ts
+    async close(cleanInstanceCache = false) {
+        // [WS]
         await this.sleep(0); // allow other futures to run
         const clients = Object.values(this.clients || {});
         const closedClients = [];
@@ -1261,7 +1578,14 @@ export default class Exchange {
             delete this.clients[client.url];
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        if (cleanInstanceCache) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData();
+        }
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -1320,9 +1644,6 @@ export default class Exchange {
         const length = Math.min(100000, message.length);
         return message.slice(0, length);
     }
-    axolotl(payload, hexKey, ed25519) {
-        return axolotl(payload, hexKey, ed25519);
-    }
     fixStringifiedJsonMembers(content) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
@@ -1345,10 +1666,10 @@ export default class Exchange {
         // Removes the "0x" prefix if present
         const cleanPrivateKey = this.remove0xPrefix(privateKey);
         // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.getPublicKey(cleanPrivateKey);
+        const publicKeyBytes = secp256k1.getPublicKey(this.base16ToBinary(cleanPrivateKey));
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1.Point.fromBytes(publicKeyBytes).toBytes(false).slice(1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
         const publicKeyHash = keccak_256(publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
@@ -1399,6 +1720,16 @@ export default class Exchange {
         // TODO: unify to ecdsa
         const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetSign(msgHash, pri) {
+        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetGetSelectorFromName(name) {
+        return Starknet.hash.getSelectorFromName(name);
+    }
+    extendedStarknetComputePoseidonHashOnElements(data) {
+        return Starknet.hash.computePoseidonHashOnElements(data);
     }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256, 'hex'))).toString();
@@ -1458,15 +1789,13 @@ export default class Exchange {
     toDydxLong(numStr) {
         return Long.fromString(numStr);
     }
-    retrieveDydxCredentials(entropy) {
-        let credentials = undefined;
-        if (entropy.indexOf(' ') > 0) {
-            credentials = deriveHDKeyFromMnemonic(entropy);
-            credentials['mnemonic'] = entropy;
-            return credentials;
-        }
-        credentials = exportMnemonicAndPrivateKey(this.base16ToBinary(entropy));
-        return credentials;
+    retrieveDydxCredentials(privateKey) {
+        const privateKeyBytes = this.base16ToBinary(this.remove0xPrefix(privateKey));
+        const publicKeyBytes = secp256k1.getPublicKey(privateKeyBytes, true);
+        return {
+            'privateKey': privateKeyBytes,
+            'publicKey': publicKeyBytes,
+        };
     }
     encodeDydxTxForSimulation(message, memo, sequence, publicKey) {
         if (!encodeAsAny) {
@@ -1574,11 +1903,9 @@ export default class Exchange {
         return dict;
     }
     randomBytes(length) {
-        const rng = new SecureRandom();
-        const x = [];
-        x.length = length;
-        rng.nextBytes(x);
-        return Buffer.from(x).toString('hex');
+        const x = new Uint8Array(length);
+        crypto.getRandomValues(x);
+        return this.binaryToBase16(x);
     }
     randNumber(size) {
         let number = '';
@@ -1627,7 +1954,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return signer;
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders(signer, request) {
         const orders = request['orders'];
         const ordersArr = [];
@@ -1651,7 +1977,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder(signer, request) {
         const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1675,7 +2000,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount(signer, request) {
         const res = (globalThis.SignCreateSubAccount(1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1717,7 +2041,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignApproveIntegrator(signer, request) {
         const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
@@ -1730,14 +2053,26 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.privateKey, res.publicKey];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignChangePubkey(signer, request) {
         const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo, res.messageToSign];
     }
-    /* eslint-enable */
+    setLastRestRequestTimestamp() {
+        // hand-written per language (not transpiled): in most languages this is a
+        // plain assignment, but the Go implementation guards the write with a mutex
+        // because concurrent requests would otherwise data-race on this field
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+    setLastRequest(request) {
+        // hand-written per language (not transpiled): plain assignments in most
+        // languages, but the Go implementation guards the writes with a mutex because
+        // concurrent requests would otherwise data-race on these bookkeeping fields
+        this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
+    }
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1783,12 +2118,12 @@ export default class Exchange {
             'name': this.name,
             'countries': this.countries,
             'enableRateLimit': this.enableRateLimit,
-            'rateLimit': this.rateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
             'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
-            'timeout': this.timeout,
-            'certified': this.certified,
-            'pro': this.pro,
-            'alias': this.alias,
+            'timeout': this.timeout, // milliseconds = seconds * 1000
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2049,14 +2384,14 @@ export default class Exchange {
                 'accountId': false,
                 'login': false,
                 'password': false,
-                'twofa': false,
-                'privateKey': false,
-                'walletAddress': false,
+                'twofa': false, // 2-factor authentication (one-time password key)
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
                 'token': false, // reserved for HTTP auth in some cases
             },
-            'markets': undefined,
-            'currencies': {},
-            'timeframes': undefined,
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
             'fees': {
                 'trading': {
                     'tierBased': undefined,
@@ -2120,6 +2455,34 @@ export default class Exchange {
             },
             'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
+    }
+    cleanRestData() {
+        this.ids = undefined;
+        this.markets = undefined;
+        this.markets_by_id = undefined;
+        this.symbols = undefined;
+        this.codes = undefined;
+        this.currencies = this.createSafeDictionary();
+        this.currencies_by_id = undefined;
+        this.baseCurrencies = undefined;
+        this.quoteCurrencies = undefined;
+        this.last_http_response = undefined;
+        // this.last_json_response = undefined; // not unified prop
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+    }
+    cleanWsData() {
+        this.balance = this.createSafeDictionary(true);
+        this.orderbooks = this.createSafeDictionary(true);
+        this.tickers = this.createSafeDictionary(true);
+        this.liquidations = undefined;
+        this.myLiquidations = undefined;
+        this.orders = undefined;
+        this.trades = this.createSafeDictionary(true);
+        this.transactions = this.createSafeDictionary();
+        this.ohlcvs = this.createSafeDictionary(true);
+        this.myTrades = undefined;
+        this.positions = undefined;
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -2204,11 +2567,11 @@ export default class Exchange {
          * @returns {object | undefined}
          */
         const value = this.safeValue(dictionaryOrList, key1);
-        if ((value !== undefined) && (typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         const value2 = this.safeValue(dictionaryOrList, key2);
-        if ((value2 !== undefined) && (typeof value2 === 'object') && !Array.isArray(value2)) {
+        if (this.isDictionary(value2)) {
             return value2;
         }
         return defaultValue;
@@ -2275,7 +2638,7 @@ export default class Exchange {
     }
     handleDeltasWithKeys(bookSide, deltas, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         for (let i = 0; i < deltas.length; i++) {
-            const bidAsk = this.parseBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
+            const bidAsk = this.parseOrderBookBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray(bidAsk);
         }
     }
@@ -2602,7 +2965,7 @@ export default class Exchange {
         this.options['enableDemoTrading'] = enable;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return {};
+        return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
     async fetchAccounts(params = {}) {
         throw new NotSupported(this.id + ' fetchAccounts() is not supported yet');
@@ -3873,7 +4236,7 @@ export default class Exchange {
             'postOnly': postOnly,
             'trades': trades,
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'stopPrice': triggerPrice,
+            'stopPrice': triggerPrice, // ! deprecated, use triggerPrice instead
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -4226,7 +4589,7 @@ export default class Exchange {
     safeTicker(ticker, market = undefined) {
         let open = this.omitZero(this.safeString(ticker, 'open'));
         let close = this.omitZero(this.safeString2(ticker, 'close', 'last'));
-        let change = this.omitZero(this.safeString(ticker, 'change'));
+        let change = this.safeString(ticker, 'change'); // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         let percentage = this.omitZero(this.safeString(ticker, 'percentage'));
         let average = this.omitZero(this.safeString(ticker, 'average'));
         let vwap = this.safeString(ticker, 'vwap');
@@ -4550,11 +4913,11 @@ export default class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
+            result.push(this.parseOrderBookBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -4581,11 +4944,11 @@ export default class Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         if (Array.isArray(ohlcv)) {
             return [
-                this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeInteger(ohlcv, 0), // timestamp
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
@@ -4804,8 +5167,8 @@ export default class Exchange {
         return this.parseNumber(value, d);
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -4835,7 +5198,7 @@ export default class Exchange {
         if (Array.isArray(response)) {
             for (let i = 0; i < response.length; i++) {
                 const item = response[i];
-                const id = this.safeString(item, marketIdKey);
+                const id = (marketIdKey === undefined) ? undefined : this.safeString(item, marketIdKey);
                 const market = this.safeMarket(id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool(market, 'contract', false);
@@ -4874,7 +5237,7 @@ export default class Exchange {
     }
     safePosition(position) {
         // simplified version of: /pull/12765/
-        const unrealizedPnlString = this.safeString(position, 'unrealisedPnl');
+        const unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
         const initialMarginString = this.safeString(position, 'initialMargin');
         //
         // PERCENTAGE
@@ -5175,16 +5538,31 @@ export default class Exchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
+        let fetchData = undefined;
+        const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            if (fetchDataCacheEnabled) {
+                fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
+            }
             try {
-                this.lastRestRequestTimestamp = this.milliseconds();
+                this.setLastRestRequestTimestamp();
                 const request = this.sign(path, api, method, params, headers, body);
-                this.last_request_headers = request['headers'];
-                this.last_request_body = request['body'];
-                this.last_request_url = request['url'];
-                return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
+                if (fetchDataCacheEnabled) {
+                    fetchData['request'] = request;
+                }
+                this.setLastRequest(request);
+                const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
+                if (fetchDataCacheEnabled) {
+                    fetchData['response']['body'] = response;
+                    this.addFetchCache(fetchData);
+                }
+                return response;
             }
             catch (e) {
+                if (fetchDataCacheEnabled) {
+                    fetchData['error'] = e;
+                    this.addFetchCache(fetchData);
+                }
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
@@ -5260,12 +5638,12 @@ export default class Exchange {
             if (isFirstCandle || openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push([
-                    openingTime,
-                    price,
-                    price,
-                    price,
-                    price,
-                    trade['amount'],
+                    openingTime, // timestamp
+                    price, // O
+                    price, // H
+                    price, // L
+                    price, // C
+                    trade['amount'], // V
                     1, // count
                 ]);
             }
@@ -5363,7 +5741,7 @@ export default class Exchange {
     async fetchLedgerEntry(id, code = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeFloat(bidask, priceKey);
         const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);
@@ -5377,7 +5755,7 @@ export default class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
+        if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -6501,7 +6879,7 @@ export default class Exchange {
             }
             else {
                 const keys = Object.keys(addressStructures);
-                const key = this.safeString(keys, 0);
+                const key = keys[0];
                 return this.safeDict(addressStructures, key);
             }
         }
@@ -6569,8 +6947,8 @@ export default class Exchange {
     }
     isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
         const leverageSuffixes = [
-            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
-            'UP', 'DOWN',
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
             'BULL', 'BEAR', // similar
         ];
         for (let i = 0; i < leverageSuffixes.length; i++) {
@@ -7419,7 +7797,10 @@ export default class Exchange {
         for (let i = 0; i < responseKeys.length; i++) {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
-            const currencyId = isArray ? this.safeString(dictionary, currencyIdKey) : entry;
+            let currencyId = entry;
+            if (isArray) {
+                currencyId = (currencyIdKey === undefined) ? undefined : this.safeString(dictionary, currencyIdKey);
+            }
             const currency = this.safeCurrency(currencyId);
             const code = this.safeString(currency, 'code');
             if ((codes === undefined) || (this.inArray(code, codes))) {
@@ -7637,7 +8018,7 @@ export default class Exchange {
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     const last = this.safeValue(response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger(last, 'timestamp') + 1;
+                    paginationTimestamp = this.safeInteger(last, 'timestamp', 0) + 1;
                     if ((until !== undefined) && (paginationTimestamp >= until)) {
                         break;
                     }
@@ -7776,7 +8157,7 @@ export default class Exchange {
                     const index = responseLength - j - 1;
                     const entry = this.safeDict(response, index);
                     const info = this.safeDict(entry, 'info');
-                    const cursor = this.safeValue(info, cursorReceived);
+                    const cursor = (cursorReceived === undefined) ? undefined : this.safeValue(info, cursorReceived);
                     if (cursor !== undefined) {
                         cursorValue = cursor;
                         break;
@@ -7914,8 +8295,8 @@ export default class Exchange {
         }
         return this.extend(interest, {
             'symbol': symbol,
-            'baseVolume': this.safeNumber(interest, 'baseVolume'),
-            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'), // deprecated
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'), // deprecated
             'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
             'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
             'timestamp': this.safeInteger(interest, 'timestamp'),
@@ -7982,9 +8363,9 @@ export default class Exchange {
         const optionStructures = {};
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const currencyId = this.safeString(info, currencyKey);
+            const currencyId = (currencyKey === undefined) ? undefined : this.safeString(info, currencyKey);
             const currency = this.safeCurrency(currencyId);
-            const marketId = this.safeString(info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString(info, symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, 'option');
             optionStructures[market['symbol']] = this.parseOption(info, currency, market);
         }
@@ -7997,7 +8378,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString(info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString(info, symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
                 marginModeStructures[market['symbol']] = this.parseMarginMode(info, market);
@@ -8015,7 +8396,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString(info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString(info, symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
                 leverageStructures[market['symbol']] = this.parseLeverage(info, market);
@@ -8033,8 +8414,8 @@ export default class Exchange {
         let toCurrency = undefined;
         for (let i = 0; i < conversions.length; i++) {
             const entry = conversions[i];
-            const fromId = this.safeString(entry, fromCurrencyKey);
-            const toId = this.safeString(entry, toCurrencyKey);
+            const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString(entry, fromCurrencyKey);
+            const toId = (toCurrencyKey === undefined) ? undefined : this.safeString(entry, toCurrencyKey);
             if (fromId !== undefined) {
                 fromCurrency = this.safeCurrency(fromId);
             }
@@ -8183,7 +8564,7 @@ export default class Exchange {
         const marginModifications = [];
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString(info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString(info, symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
                 marginModifications.push(this.parseMarginModification(info, market));
@@ -8294,7 +8675,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new NotSupported(this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }

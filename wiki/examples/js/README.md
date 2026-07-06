@@ -23,10 +23,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Aggregate Orderbook](./examples/js/aggregate-orderbook.md)
 
-- [Apex Example](./examples/js/apex-example.md)
-
-- [Apex Watch](./examples/js/apex-watch.md)
-
 - [Arbitrage Pairs](./examples/js/arbitrage-pairs.md)
 
 - [Basic Chart](./examples/js/basic-chart.md)
@@ -39,17 +35,13 @@ node path/to/example.js # substitute for actual filename here
 
 - [Binance Fetch All Deposits](./examples/js/binance-fetch-all-deposits.md)
 
-- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/js/binance-fetch-balance-snapshot-watch-balance-updates.md)
-
 - [Binance Fetch Ohlcv Many Symbols Async Await](./examples/js/binance-fetch-ohlcv-many-symbols-async-await.md)
 
 - [Binance Fetch Ohlcv Many Symbols Promise Then Callbacks](./examples/js/binance-fetch-ohlcv-many-symbols-promise-then-callbacks.md)
 
-- [Binance Fetchticker Delivery Vs Future](./examples/js/binance-fetchTicker-delivery-vs-future.md)
+- [Binance FetchTicker Delivery Vs Future](./examples/js/binance-fetchTicker-delivery-vs-future.md)
 
 - [Binance Futures Transfer From Sub Account To Master](./examples/js/binance-futures-transfer-from-sub-account-to-master.md)
-
-- [Binance Https Proxy](./examples/js/binance-https-proxy.md)
 
 - [Binance Margin Stop Order](./examples/js/binance-margin-stop-order.md)
 
@@ -65,19 +57,15 @@ node path/to/example.js # substitute for actual filename here
 
 - [Bitfinex Fetch Trades](./examples/js/bitfinex-fetch-trades.md)
 
-- [Bitfinex2 Fetch Trades](./examples/js/bitfinex2-fetch-trades.md)
-
 - [Bitmex Browser Cors Proxy](./examples/js/bitmex-browser-cors-proxy.md)
 
-- [Bitpanda Fetchmytrades Reduce](./examples/js/bitpanda-fetchMyTrades-reduce.md)
+- [Bitpanda FetchMyTrades Reduce](./examples/js/bitpanda-fetchMyTrades-reduce.md)
 
 - [Bitrue Fetch Balance](./examples/js/bitrue-fetch-balance.md)
 
 - [Bitstamp Private Api](./examples/js/bitstamp-private-api.md)
 
 - [Bitstamp Public Api](./examples/js/bitstamp-public-api.md)
-
-- [Bittrex Balance](./examples/js/bittrex-balance.md)
 
 - [Bittrex Fetch Closed Orders History](./examples/js/bittrex-fetch-closed-orders-history.md)
 
@@ -99,7 +87,7 @@ node path/to/example.js # substitute for actual filename here
 
 - [Coinbase Fetch All Balances](./examples/js/coinbase-fetch-all-balances.md)
 
-- [Coinex Fetch All Deposit Addresses Using Fetchdepositaddress](./examples/js/coinex-fetch-all-deposit-addresses-using-fetchDepositAddress.md)
+- [Coinex Fetch All Deposit Addresses Using FetchDepositAddress](./examples/js/coinex-fetch-all-deposit-addresses-using-fetchDepositAddress.md)
 
 - [Coinex Futures](./examples/js/coinex-futures.md)
 
@@ -143,7 +131,7 @@ node path/to/example.js # substitute for actual filename here
 
 - [Exchange Close](./examples/js/exchange-close.md)
 
-- [Exchange Rate Limiter Rollingwindow](./examples/js/exchange-rate-limiter-rollingWindow.md)
+- [Exchange Rate Limiter RollingWindow](./examples/js/exchange-rate-limiter-rollingWindow.md)
 
 - [Exchanges By Volume](./examples/js/exchanges-by-volume.md)
 
@@ -156,6 +144,8 @@ node path/to/example.js # substitute for actual filename here
 - [Fetch All Tickers To Files](./examples/js/fetch-all-tickers-to-files.md)
 
 - [Fetch Balance All Exchanges](./examples/js/fetch-balance-all-exchanges.md)
+
+- [Fetch Balance Snapshot Watch Balance Updates](./examples/js/fetch-balance-snapshot-watch-balance-updates.md)
 
 - [Fetch Balance](./examples/js/fetch-balance.md)
 
@@ -185,45 +175,41 @@ node path/to/example.js # substitute for actual filename here
 
 - [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/js/fetch-tickers)
 
-- [Gateio Create Batch Order](./examples/js/gateio-create-batch-order.md)
+- [Gate Create Batch Order](./examples/js/gate-create-batch-order.md)
 
-- [Gateio Futures](./examples/js/gateio-futures.md)
+- [Gate Futures](./examples/js/gate-futures.md)
 
-- [Gateio Open Close Contract](./examples/js/gateio-open-close-contract.md)
+- [Gate Open Close Contract](./examples/js/gate-open-close-contract.md)
 
-- [Gateio Swap Watch Many Orderbooks](./examples/js/gateio-swap-watch-many-orderbooks.md)
+- [Gate Swap Watch Many Orderbooks](./examples/js/gate-swap-watch-many-orderbooks.md)
 
-- [Gateio Swaps](./examples/js/gateio-swaps.md)
+- [Gate Swaps](./examples/js/gate-swaps.md)
 
-- [Gateio Watch Balance](./examples/js/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/js/gate-watch-balance.md)
 
-- [Gateio Watch Order Book](./examples/js/gateio-watch-order-book.md)
-
-- [Gdax Fetch Trades Pagination](./examples/js/gdax-fetch-trades-pagination.md)
+- [Gate Watch Order Book](./examples/js/gate-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/js/graceful-shutdown.md)
 
 - [Hibachi Example](./examples/js/hibachi-example.md)
 
-- [Hitbtc2 Withdraw](./examples/js/hitbtc2-withdraw.md)
+- [Hitbtc Withdraw](./examples/js/hitbtc-withdraw.md)
 
 - [How To Import One Exchange Esm](./examples/js/how-to-import-one-exchange-esm.md)
 
-- [Huobi Futures](./examples/js/huobi-futures.md)
+- [Htx Futures](./examples/js/htx-futures.md)
 
-- [Huobi Open Close Contract](./examples/js/huobi-open-close-contract.md)
+- [Htx Market Buy Sell Fetch Trading Limits](./examples/js/htx-market-buy-sell-fetch-trading-limits.md)
 
-- [Huobi Swaps](./examples/js/huobi-swaps.md)
+- [Htx Open Close Contract](./examples/js/htx-open-close-contract.md)
 
-- [Huobipro Market Buy Sell Fetch Trading Limits](./examples/js/huobipro-market-buy-sell-fetch-trading-limits.md)
+- [Htx Swaps](./examples/js/htx-swaps.md)
 
-- [Hybridcjsexample](./examples/js/hybridCJSExample.md)
+- [HybridCJSExample](./examples/js/hybridCJSExample.md)
 
-- [Hybridesmexample](./examples/js/hybridESMExample.md)
+- [HybridESMExample](./examples/js/hybridESMExample.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/js/hyperliquid-load-hip3-dexes.md)
-
-- [Idex Fetch Balance](./examples/js/idex-fetch-balance.md)
 
 - [Instantiate All At Once](./examples/js/instantiate-all-at-once.md)
 
@@ -265,17 +251,17 @@ node path/to/example.js # substitute for actual filename here
 
 - [Ohlcv Console Chart](./examples/js/ohlcv-console-chart.md)
 
-- [Okex Fetch Closed Orders Archive](./examples/js/okex-fetch-closed-orders-archive.md)
-
-- [Okex Transfer](./examples/js/okex-transfer.md)
-
-- [Okex Watch Balance And Create Order](./examples/js/okex-watch-balance-and-create-order.md)
-
 - [Okx Create Futures Order](./examples/js/okx-create-futures-order.md)
+
+- [Okx Fetch Closed Orders Archive](./examples/js/okx-fetch-closed-orders-archive.md)
 
 - [Okx Poll Fetch My Trades](./examples/js/okx-poll-fetch-my-trades.md)
 
 - [Okx Poll Rate Limit](./examples/js/okx-poll-rate-limit.md)
+
+- [Okx Transfer](./examples/js/okx-transfer.md)
+
+- [Okx Watch Balance And Create Order](./examples/js/okx-watch-balance-and-create-order.md)
 
 - [Okx Watch Tickers](./examples/js/okx-watch-tickers.md)
 
@@ -309,17 +295,15 @@ node path/to/example.js # substitute for actual filename here
 
 - [Symbols](./examples/js/symbols.md)
 
-- [Theocean](./examples/js/theocean.md)
-
 - [Tickers](./examples/js/tickers.md)
 
 - [Validate Paginated Data](./examples/js/validate-paginated-data.md)
 
-- [Watch Ohlcv For Symbols](./examples/js/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](./examples/js/watch-OHLCV-For-Symbols.md)
 
-- [Watch Ohlcv](./examples/js/watch-OHLCV.md)
+- [Watch OHLCV](./examples/js/watch-OHLCV.md)
 
-- [Watch Orderbook For Symbols](./examples/js/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](./examples/js/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/js/watch-Trades-For-Symbols.md)
 
@@ -341,25 +325,11 @@ node path/to/example.js # substitute for actual filename here
 
 - [Watch Vs Fetch](./examples/js/watch-vs-fetch.md)
 
-- [Watchpositions Many Exchanges Continuosly.d](./examples/js/watchPositions-many-exchanges-continuosly.d.md)
+- [WatchPositions Many Exchanges Continuosly](./examples/js/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions Many Exchanges Continuosly.d.ts](./examples/js/watchPositions-many-exchanges-continuosly.d.ts.md)
+- [WatchPositions](./examples/js/watchPositions.md)
 
-- [Watchpositions Many Exchanges Continuosly](./examples/js/watchPositions-many-exchanges-continuosly.md)
-
-- [Watchpositions.d](./examples/js/watchPositions.d.md)
-
-- [Watchpositions.d.ts](./examples/js/watchPositions.d.ts.md)
-
-- [Watchpositions](./examples/js/watchPositions.md)
-
-- [Watchpositionsforsymbols.d](./examples/js/watchPositionsForSymbols.d.md)
-
-- [Watchpositionsforsymbols.d.ts](./examples/js/watchPositionsForSymbols.d.ts.md)
-
-- [Watchpositionsforsymbols](./examples/js/watchPositionsForSymbols.md)
-
-- [Watchtradesforsymbols](./examples/js/watchTradesForSymbols.md)
+- [WatchPositionsForSymbols](./examples/js/watchPositionsForSymbols.md)
 
 - [Withdraw From One Exchange To Another](./examples/js/withdraw-from-one-exchange-to-another.md)
 

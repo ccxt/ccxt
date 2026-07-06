@@ -42,7 +42,7 @@ function assertType(exchange, skippedProperties, entry, key, format) {
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray(entryKeyVal) && Array.isArray(formatKeyVal);
-    const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
+    const same_object = exchange.isDictionary(entryKeyVal) && exchange.isDictionary(formatKeyVal);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
@@ -78,7 +78,7 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         }
     }
     else {
-        assert(typeof entry === 'object', 'entry is not an object' + logText);
+        assert(exchange.isDictionary(entry), 'entry is not a dict' + logText);
         const keys = Object.keys(format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -104,7 +104,7 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
                 const typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
                 assert(typeAssertion, '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
-                    if (typeof value === 'object') {
+                    if (exchange.isDictionary(value) || Array.isArray(value)) {
                         assertStructure(exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
                     }
                 }
@@ -312,7 +312,7 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key, all
         assert(key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     }
     else {
-        assert(typeof entry === 'object', 'fee container is expected to be an object' + logText);
+        assert(exchange.isDictionary(entry), 'fee container is expected to be a dict' + logText);
         assert(key in entry, 'fee key "' + key + '" was expected to be present in entry' + logText);
     }
     const feeObject = exchange.safeValue(entry, key);

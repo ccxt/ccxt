@@ -197,7 +197,7 @@ class weex(Exchange, ImplicitAPI):
                 'withdraw': False,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936',  # todo
+                'logo': 'https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c',  # todo
                 'api': {
                     'public': 'https://api-spot.weex.com',
                     'private': 'https://api-spot.weex.com',
@@ -863,12 +863,12 @@ class weex(Exchange, ImplicitAPI):
         currencyId = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(rawCurrency, 'name')
-        networks: dict = {}
+        networks = {}
         chains = self.safe_list(rawCurrency, 'networkList', [])
         for j in range(0, len(chains)):
             chain = self.safe_dict(chains, j)
             networkId = self.safe_string(chain, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -1102,7 +1102,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', default is 'spot'(used if symbols are not provided)
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         market = self.get_market_from_symbols(symbols)
         marketType = None
@@ -1110,9 +1111,9 @@ class weex(Exchange, ImplicitAPI):
         symbolsLength = 0
         if symbols is not None:
             symbolsLength = len(symbols)
-        request: dict = {}
+        request = {}
         if symbolsLength == 1:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response = None
         if marketType == 'spot':
             #
@@ -1269,11 +1270,12 @@ class weex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 15, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if (limit is not None) and (limit > 15):
@@ -1322,7 +1324,8 @@ class weex(Exchange, ImplicitAPI):
  Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['spot']:
             return self.fetch_spot_ohlcv(symbol, timeframe, since, limit, params)
@@ -1343,9 +1346,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1372,7 +1376,8 @@ class weex(Exchange, ImplicitAPI):
         :param boolean [params.historical]: whether to fetch historical klines(default is False). If False, will fetch last price klines
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         maxHistoricalLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
@@ -1385,7 +1390,7 @@ class weex(Exchange, ImplicitAPI):
         timeframeOption = self.safe_dict(self.options, 'timeframes', {})
         contractTimeframes = self.safe_dict(timeframeOption, 'contract', {})
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': self.safe_string(contractTimeframes, timeframe, timeframe),
         }
@@ -1448,9 +1453,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1522,8 +1528,11 @@ class weex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'time')
         isBuyer = self.safe_bool(trade, 'isBuyer')
         side = self.safe_string_lower(trade, 'side')
+        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'
+        elif isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
         isSpot = True
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
@@ -1551,6 +1560,8 @@ class weex(Exchange, ImplicitAPI):
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
+        elif isBuyerMaker is not None:
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'id'),
@@ -1577,9 +1588,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.contractGetCapiV3MarketOpenInterest(self.extend(request, params))
@@ -1616,15 +1628,16 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         symbolsLength = 0
         if symbols is not None:
             symbolsLength = len(symbols)
-        request: dict = {}
+        request = {}
         if symbolsLength == 1:
             market = self.get_market_from_symbols(symbols)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response = self.contractGetCapiV3MarketPremiumIndex(self.extend(request, params))
         #
         #     [
@@ -1689,9 +1702,10 @@ class weex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1780,7 +1794,7 @@ class weex(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
         }
         balances = self.safe_list(response, 'balances', response)
@@ -1808,8 +1822,9 @@ class weex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1858,7 +1873,7 @@ class weex(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> str:
-        statuses: dict = {
+        statuses = {
             'Successful': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -1881,7 +1896,8 @@ class weex(Exchange, ImplicitAPI):
  Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['contract']:
             return self.create_contract_order(symbol, type, side, amount, price, params)
@@ -1904,7 +1920,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'GTC', 'IOC', or 'FOK'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.create_spot_order_request(symbol, type, side, amount, price, params)
         response = self.privatePostApiV3Order(request)
@@ -1920,7 +1937,7 @@ class weex(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': side.upper(),
             'type': type.upper(),
@@ -1965,7 +1982,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: GTC, IOC, or FOK(default is GTC for limit orders)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.create_contract_order_request(symbol, type, side, amount, price, params)
         triggerPrice = self.safe_string(request, 'triggerPrice')
@@ -1978,7 +1996,7 @@ class weex(Exchange, ImplicitAPI):
 
     def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': side.upper(),
             'quantity': self.amount_to_precision(symbol, amount),
@@ -2063,7 +2081,7 @@ class weex(Exchange, ImplicitAPI):
         return self.extend(request, params)
 
     def encode_trigger_price_type(self, triggerPriceType: Str):
-        types: dict = {
+        types = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
         }
@@ -2084,7 +2102,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: *non-trigger orders only* a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2093,7 +2112,7 @@ class weex(Exchange, ImplicitAPI):
         trigger = self.safe_bool(params, 'trigger', False)
         if trigger and id is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument for trigger orders')
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_string(params, 'clientOrderId')
         params = self.omit(params, ['clientOrderId', 'trigger'])
         if clientOrderId is not None:
@@ -2139,8 +2158,9 @@ class weex(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: *swap only* True for cancelling trigger orders(default is False)
         :returns: Response from the exchange
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2158,7 +2178,7 @@ class weex(Exchange, ImplicitAPI):
             response = self.contractPrivateDeleteCapiV3AlgoOpenOrders(self.extend(request, params))
         else:
             response = self.contractPrivateDeleteCapiV3AllOpenOrders(self.extend(request, params))
-        extendedParams: dict = {
+        extendedParams = {
             'status': 'canceled',
         }
         return self.parse_orders(response, market, None, None, extendedParams)
@@ -2177,8 +2197,9 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2205,7 +2226,7 @@ class weex(Exchange, ImplicitAPI):
         else:
             response = self.contractPrivateDeleteCapiV3BatchOrders(self.extend(request, params))
         ordersResponse = self.safe_list(response, 'orderList', [])
-        extendedParams: dict = {
+        extendedParams = {
             'status': 'canceled',
         }
         return self.parse_orders(ordersResponse, market, None, None, extendedParams)
@@ -2224,14 +2245,15 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: *spot only* a unique id for the order, used if id is not provided
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrder', market, params)
         isSpot = (marketType == 'spot')
-        request: dict = {}
+        request = {}
         if (id is None) and not isSpot:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument for non-spot markets')
         clientOrderId = self.safe_string(params, 'clientOrderId')
@@ -2283,7 +2305,8 @@ class weex(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: *swap only* whether to fetch trigger orders(default is False)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2297,9 +2320,9 @@ class weex(Exchange, ImplicitAPI):
             if isSpot:
                 raise NotSupported(self.id + ' fetchOpenOrders() pagination is not supported for spot markets')
             return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, maxLimit)
-        request: dict = {}
+        request = {}
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response = None
         if isSpot:
             #
@@ -2390,7 +2413,7 @@ class weex(Exchange, ImplicitAPI):
                 #     ]
                 #
                 response = self.contractPrivateGetCapiV3OpenOrders(self.extend(request, params))
-        extendedParams: dict = {
+        extendedParams = {
             'status': 'open',
         }
         return self.parse_orders(response, market, since, limit, extendedParams)
@@ -2410,7 +2433,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2440,7 +2464,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2471,7 +2496,8 @@ class weex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchOrders() supports spot markets only')
@@ -2480,7 +2506,7 @@ class weex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, maxLimit)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -2526,7 +2552,8 @@ class weex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2539,9 +2566,9 @@ class weex(Exchange, ImplicitAPI):
         maxLimit = 1000
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, maxLimit)
-        request: dict = {}
+        request = {}
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -2723,7 +2750,7 @@ class weex(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'new': 'open',
             'partial_fill': 'closed',
             'full_fill': 'closed',
@@ -2736,7 +2763,7 @@ class weex(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
             'STOP_LOSS': 'limit',
@@ -2776,8 +2803,9 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'orderId': id,
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
@@ -2797,7 +2825,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2811,9 +2840,9 @@ class weex(Exchange, ImplicitAPI):
         maxLimit = 100
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, maxLimit)
-        request: dict = {}
+        request = {}
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -2878,7 +2907,8 @@ class weex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate', False)
         maxLimit = 100
@@ -2888,7 +2918,7 @@ class weex(Exchange, ImplicitAPI):
         accountType, params = self.handle_market_type_and_params('fetchLedger', None, params)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         accountType = self.safe_string(accountsByType, accountType, accountType)
-        request: dict = {}
+        request = {}
         items = None
         currency = None
         if code is not None:
@@ -3002,7 +3032,7 @@ class weex(Exchange, ImplicitAPI):
         }, currency)
 
     def parse_ledger_type(self, type: Str):
-        types: dict = {
+        types = {
             'transfer_in': 'transfer',
             'transfer_out': 'transfer',
             'deposit': 'deposit',
@@ -3026,7 +3056,8 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.contractPrivateGetCapiV3AccountPositionAllPosition(params)
         return self.parse_positions(response, symbols)
@@ -3055,9 +3086,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.contractPrivateGetCapiV3AccountPositionSinglePosition(self.extend(request, params))
@@ -3187,7 +3219,8 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: A list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.contractPrivatePostCapiV3ClosePositions(params)
         #
         #     [
@@ -3212,9 +3245,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.contractPrivatePostCapiV3ClosePositions(self.extend(request, params))
@@ -3231,12 +3265,13 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['spot']:
             # spot markets return 0 for fees
             raise NotSupported(self.id + ' fetchTradingFee() is not supported for spot markets')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.contractPrivateGetCapiV3AccountCommissionRate(self.extend(request, params))
@@ -3278,9 +3313,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.contractPrivateGetCapiV3AccountSymbolConfig(self.extend(request, params))
@@ -3309,7 +3345,8 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `margin mode structures <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.contractPrivateGetCapiV3AccountSymbolConfig(params)
         return self.parse_margin_modes(response, symbols, 'symbol', 'swap')
@@ -3324,7 +3361,7 @@ class weex(Exchange, ImplicitAPI):
         }
 
     def parse_margin_type(self, marginType: Str):
-        marginTypes: dict = {
+        marginTypes = {
             'CROSSED': 'cross',
             'ISOLATED': 'isolated',
         }
@@ -3343,16 +3380,17 @@ class weex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'marginType': self.encode_margin_mode(marginMode),
         }
         return self.contractPrivatePostCapiV3AccountMarginType(self.extend(request, params))
 
     def encode_margin_mode(self, marginMode: Str):
-        marginTypes: dict = {
+        marginTypes = {
             'cross': 'CROSSED',
             'isolated': 'ISOLATED',
         }
@@ -3371,9 +3409,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.contractPrivateGetCapiV3AccountSymbolConfig(self.extend(request, params))
@@ -3390,7 +3429,8 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.contractPrivateGetCapiV3AccountSymbolConfig(params)
         return self.parse_leverages(response, symbols, 'symbol', 'swap')
@@ -3435,9 +3475,10 @@ class weex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         marginMode = None
@@ -3465,9 +3506,10 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an object detailing whether the market is in hedged or one-way mode
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.contractPrivateGetCapiV3AccountSymbolConfig(self.extend(request, params))
@@ -3492,14 +3534,15 @@ class weex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setPositionMode', params)
         if marginMode is None:
             raise ArgumentsRequired(self.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required')
         separatedType = 'SEPARATED' if hedged else 'COMBINED'
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'marginType': self.encode_margin_mode(marginMode),
             'separatedType': separatedType,
@@ -3507,13 +3550,14 @@ class weex(Exchange, ImplicitAPI):
         return self.contractPrivatePostCapiV3AccountMarginType(self.extend(request, params))
 
     def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         isolatedPositionId = self.safe_string_n(params, ['positionId', 'id', 'isolatedPositionId'])
         if isolatedPositionId is None:
             raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionId parameter')
         params = self.omit(params, ['positionId', 'id'])
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'isolatedPositionId': isolatedPositionId,
             'amount': self.cost_to_precision(symbol, amount),
             'type': type,
@@ -3538,12 +3582,12 @@ class weex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'requestTime')
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
             'total': None,
-            'code': market['settle'],
+            'code': self.safe_string(market, 'settle'),
             'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -3577,7 +3621,7 @@ class weex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 1, params)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)

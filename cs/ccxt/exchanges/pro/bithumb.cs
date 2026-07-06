@@ -49,7 +49,10 @@ public partial class bithumb : ccxt.bithumb
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("ticker:", getValue(market, "symbol"));
         object request = new Dictionary<string, object>() {
@@ -72,11 +75,18 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object marketIds = new List<object>() {};
         object messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -156,8 +166,8 @@ public partial class bithumb : ccxt.bithumb
         //        "volumePower" : "60.80"         // 체결강도
         //    }
         //
-        object date = this.safeString(ticker, "date", "");
-        object time = this.safeString(ticker, "time", "");
+        object date = ((string)this.safeString(ticker, "date", ""));
+        object time = ((string)this.safeString(ticker, "time", ""));
         object datetime = add(add(add(add(add(add(add(add(add(add(slice(date, 0, 4), "-"), slice(date, 4, 6)), "-"), slice(date, 6, 8)), "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
         object marketId = this.safeString(ticker, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -197,7 +207,10 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -240,7 +253,7 @@ public partial class bithumb : ccxt.bithumb
         object first = this.safeDict(list, 0, new Dictionary<string, object>() {});
         object marketId = this.safeString(first, "symbol");
         object symbol = this.safeSymbol(marketId, null, "_");
-        object timestampStr = this.safeString(content, "datetime");
+        object timestampStr = ((string)this.safeString(content, "datetime"));
         object timestamp = this.parseToInt(slice(timestampStr, 0, 13));
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
@@ -269,7 +282,7 @@ public partial class bithumb : ccxt.bithumb
         //
         object sideId = this.safeString(delta, "orderType");
         object side = ((bool) isTrue((isEqual(sideId, "bid")))) ? "bids" : "asks";
-        object bidAsk = this.parseBidAsk(delta, "price", "quantity");
+        object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         object orderbookSide = getValue(orderbook, side);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
@@ -296,7 +309,10 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -370,7 +386,7 @@ public partial class bithumb : ccxt.bithumb
         object marketId = this.safeString(trade, "symbol");
         object datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        object timestamp = subtract(this.parse8601(datetime), 32400000);
+        object timestamp = subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
         object sideId = this.safeString(trade, "buySellGb");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", null },
@@ -428,7 +444,10 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object messageHash = "myAsset";
@@ -524,7 +543,10 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object messageHash = "myOrder";

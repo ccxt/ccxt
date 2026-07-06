@@ -1,11 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market } from './base/types.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -145,9 +145,8 @@ export default class p2b extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
+                'logo': 'https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -379,8 +378,8 @@ export default class p2b extends Exchange {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId) as string;
+        const quote = this.safeCurrencyCode (quoteId) as string;
         const limits = this.safeValue (market, 'limits');
         const maxAmount = this.safeString (limits, 'max_amount');
         const maxPrice = this.safeString (limits, 'max_price');
@@ -419,11 +418,11 @@ export default class p2b extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (limits, 'min_amount'),
-                    'max': this.parseNumber (this.omitZero (maxAmount)),
+                    'max': this.parseNumber (this.omitZero (maxAmount as string)),
                 },
                 'price': {
                     'min': this.safeNumber (limits, 'min_price'),
-                    'max': this.parseNumber (this.omitZero (maxPrice)),
+                    'max': this.parseNumber (this.omitZero (maxPrice as string)),
                 },
                 'cost': {
                     'min': undefined,
@@ -445,7 +444,9 @@ export default class p2b extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetTickers (params);
         //
         //    {
@@ -486,7 +487,9 @@ export default class p2b extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -592,10 +595,12 @@ export default class p2b extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -647,7 +652,9 @@ export default class p2b extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const lastId = this.safeInteger (params, 'lastId');
         if (lastId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades () requires an extra parameter params["lastId"]');
@@ -746,7 +753,7 @@ export default class p2b extends Exchange {
             'amount': this.safeString (trade, 'amount'),
             'cost': this.safeString (trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': this.safeString (market, 'quote'),
                 'cost': this.safeString2 (trade, 'fee', 'deal_fee'),
             },
         }, market);
@@ -766,7 +773,9 @@ export default class p2b extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -834,7 +843,9 @@ export default class p2b extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostAccountBalances (params);
         //
         //    {
@@ -884,7 +895,7 @@ export default class p2b extends Exchange {
                 'free': available,
                 'used': used,
             };
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -903,7 +914,9 @@ export default class p2b extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (type === 'market') {
             throw new BadRequest (this.id + ' createOrder () can only accept orders with type "limit"');
         }
@@ -937,7 +950,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -955,7 +968,9 @@ export default class p2b extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -984,7 +999,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result);
     }
 
@@ -1006,7 +1021,9 @@ export default class p2b extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders () requires the symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -1060,7 +1077,9 @@ export default class p2b extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.safeMarket (symbol);
         const request: Dict = {
             'orderId': id,
@@ -1116,7 +1135,9 @@ export default class p2b extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         if (until === undefined) {
@@ -1191,7 +1212,9 @@ export default class p2b extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let market: Market = undefined;
@@ -1251,7 +1274,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        let orders = [];
+        let orders: Order[] = [];
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -1331,7 +1354,7 @@ export default class p2b extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {

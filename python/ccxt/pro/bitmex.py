@@ -73,7 +73,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
@@ -88,7 +89,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         name = 'instrument'
         url = self.urls['api']['ws']
@@ -105,13 +107,13 @@ class bitmex(ccxt.async_support.bitmex):
         else:
             rawSubscriptions.append(name)
             messageHashes.append('alltickers')
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': rawSubscriptions,
         }
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), rawSubscriptions)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -344,7 +346,7 @@ class bitmex(ccxt.async_support.bitmex):
         #     }
         #
         data = self.safe_list(message, 'data', [])
-        tickers: dict = {}
+        tickers = {}
         for i in range(0, len(data)):
             update = data[i]
             marketId = self.safe_string(update, 'symbol')
@@ -386,7 +388,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         messageHashes = []
         subscriptionHashes = []
@@ -463,11 +466,12 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         messageHash = 'margin'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [
                 messageHash,
@@ -684,7 +688,7 @@ class bitmex(ccxt.async_support.bitmex):
             timestamp = self.milliseconds()
             payload = 'GET' + '/realtime' + str(timestamp)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
-            request: dict = {
+            request = {
                 'op': 'authKeyExpires',
                 'args': [
                     self.apiKey,
@@ -721,14 +725,15 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         subscriptionHash = 'position'
         messageHash = 'positions'
         if not self.is_empty(symbols):
-            messageHash = '::' + ','.join(symbols)
+            messageHash = '::' + ','.join((symbols))
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -896,6 +901,23 @@ class bitmex(ccxt.async_support.bitmex):
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
+            side = self.safe_string(position, 'side')
+            if side is None:
+                # BitMEX 'update' rows are deltas and may omit homeNotional, so
+                # parsePosition returns side = None. Carry the side forward from
+                # the cached position for self symbol, otherwise appending would break
+                # the ArrayCacheBySymbolBySide index(see issue  #29001).
+                symbol = self.safe_string(position, 'symbol')
+                cachedBySide = self.safe_dict(cache.hashmap, symbol, {})
+                cachedSides = list(cachedBySide.keys())
+                sidesLength = len(cachedSides)
+                if sidesLength == 1:
+                    side = cachedSides[0]
+                    position['side'] = side
+            if side is None:
+                # still unresolved(e.g. the very first message is a partial without
+                # homeNotional); skip self row rather than corrupt the cache
+                continue
             newPositions.append(position)
             cache.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
@@ -921,7 +943,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         name = 'order'
         subscriptionHash = name
@@ -930,7 +953,7 @@ class bitmex(ccxt.async_support.bitmex):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -1100,7 +1123,7 @@ class bitmex(ccxt.async_support.bitmex):
                 limit = self.safe_integer(self.options, 'ordersLimit', 1000)
                 self.orders = ArrayCacheBySymbolById(limit)
             stored = self.orders
-            symbols: dict = {}
+            symbols = {}
             for i in range(0, dataLength):
                 currentOrder = data[i]
                 orderId = self.safe_string(currentOrder, 'orderID')
@@ -1130,7 +1153,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         name = 'execution'
         subscriptionHash = name
@@ -1139,7 +1163,7 @@ class bitmex(ccxt.async_support.bitmex):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -1217,7 +1241,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         stored = self.myTrades
-        symbols: dict = {}
+        symbols = {}
         for j in range(0, len(trades)):
             trade = trades[j]
             symbol = trade['symbol']
@@ -1239,7 +1263,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -1252,7 +1276,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         table = None
         if limit is None:
@@ -1263,7 +1287,8 @@ class bitmex(ccxt.async_support.bitmex):
             table = 'orderBookL10'
         else:
             raise ExchangeError(self.id + ' watchOrderBookForSymbols limit argument must be None(L2), 25(L2) or 10(L3)')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
         messageHashes = []
@@ -1275,7 +1300,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + symbol
             messageHashes.append(messageHash)
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -1294,7 +1319,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         table = 'trade'
         topics = []
@@ -1307,7 +1333,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + symbol
             messageHashes.append(messageHash)
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -1331,13 +1357,14 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         table = 'tradeBin' + self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [
                 messageHash,
@@ -1419,7 +1446,7 @@ class bitmex(ccxt.async_support.bitmex):
         timeframe = self.find_timeframe(interval)
         duration = self.parse_timeframe(timeframe)
         candles = self.safe_value(message, 'data', [])
-        results: dict = {}
+        results = {}
         for i in range(0, len(candles)):
             candle = candles[i]
             marketId = self.safe_string(candle, 'symbol')
@@ -1427,7 +1454,7 @@ class bitmex(ccxt.async_support.bitmex):
             symbol = market['symbol']
             messageHash = table + ':' + market['id']
             result = [
-                self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
+                self.parse_to_int(self.parse8601(self.safe_string(candle, 'timestamp'))) - duration * 1000,
                 None,  # set open price to None, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 self.safe_float(candle, 'high'),
                 self.safe_float(candle, 'low'),
@@ -1448,7 +1475,8 @@ class bitmex(ccxt.async_support.bitmex):
             client.resolve(results[messageHash], messageHash)
 
     async def watch_heartbeat(self, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']
         return await self.watch(url, event)
@@ -1538,7 +1566,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + symbol
             client.resolve(orderbook, messageHash)
         else:
-            numUpdatesByMarketId: dict = {}
+            numUpdatesByMarketId = {}
             for i in range(0, len(data)):
                 marketId = self.safe_value(data[i], 'symbol')
                 if marketId is None:
@@ -1666,7 +1694,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         if self.handle_error_message(client, message):
             table = self.safe_string(message, 'table')
-            methods: dict = {
+            methods = {
                 'orderBookL2': self.handle_order_book,
                 'orderBookL2_25': self.handle_order_book,
                 'orderBook10': self.handle_order_book,

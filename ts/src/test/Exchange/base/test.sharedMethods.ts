@@ -1,10 +1,10 @@
 /* eslint no-restricted-syntax: ["error", "FunctionExpression", "WithStatement"] */
 
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
-import { Str } from '../../../base/types';
+import { Bool, Num, Order, Str } from '../../../base/types.js';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
     // there are cases when exchange is undefined (eg. base tests)
@@ -19,7 +19,7 @@ function isTemporaryFailure (e: any) {
 }
 
 function stringValue (value: any) {
-    let stringVal = undefined;
+    let stringVal: Str = undefined;
     if (typeof value === 'string') {
         stringVal = value;
     } else if (value === undefined) {
@@ -41,7 +41,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
-    const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
+    const same_object = exchange.isDictionary (entryKeyVal) && exchange.isDictionary (formatKeyVal);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
@@ -77,7 +77,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
-        assert (typeof entry === 'object', 'entry is not an object' + logText);
+        assert (exchange.isDictionary (entry), 'entry is not a dict' + logText);
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -103,7 +103,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
                 const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
                 assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
-                    if (typeof value === 'object') {
+                    if (exchange.isDictionary (value) || Array.isArray (value)) {
                         assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
                     }
                 }
@@ -324,7 +324,7 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
         assert (Array.isArray (entry), 'fee container is expected to be an array' + logText);
         assert (key as number < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     } else {
-        assert (typeof entry === 'object', 'fee container is expected to be an object' + logText);
+        assert (exchange.isDictionary (entry), 'fee container is expected to be a dict' + logText);
         assert (key in entry, 'fee key "' + key + '" was expected to be present in entry' + logText);
     }
     const feeObject = exchange.safeValue (entry, key);
@@ -400,10 +400,10 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
 async function fetchBestBidAsk (exchange, method, symbol) {
     const logText = logTemplate (exchange, method, {});
     // find out best bid/ask price
-    let bestBid = undefined;
-    let bestAsk = undefined;
+    let bestBid: Num = undefined;
+    let bestAsk: Num = undefined;
 
-    let usedMethod = undefined;
+    let usedMethod: Str = undefined;
     if (exchange.has['fetchOrderBook']) {
         usedMethod = 'fetchOrderBook';
         const orderbook = await exchange.fetchOrderBook (symbol);
@@ -437,7 +437,7 @@ async function fetchBestBidAsk (exchange, method, symbol) {
 }
 
 async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder = undefined;
+    let fetchedOrder: Order = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
@@ -493,7 +493,7 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     const statusClanceled = (order['status'] === 'canceled');
     const filledDefined = (filled !== undefined);
     const amountDefined = (amount !== undefined);
-    let condition = undefined;
+    let condition: Bool = undefined;
     //
     // ### OPEN STATUS
     //
@@ -632,6 +632,29 @@ function exchangeProp (exchange: Exchange, key: string, defaultValue: any = unde
     return exchange.getProperty (exchange, keyUpper, defaultValue);
 }
 
+async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    const eMessage = exchange.exceptionMessage (ex, false);
+    if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(symbol in exchange.markets)) {
+                return;
+            }
+            // if OHLCV supported
+            if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
+                if (ohlcv.length <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert (eMessage === '', eMessage); // trigger error
+}
+
 
 export default {
     exchangeProp,
@@ -667,4 +690,5 @@ export default {
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
+    validateTickerExceptionForPercentage,
 };

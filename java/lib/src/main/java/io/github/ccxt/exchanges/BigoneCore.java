@@ -466,7 +466,7 @@ public class BigoneCore extends BigoneApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "gateway_name");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object deposit = this.safeBool(chain, "is_deposit_enabled");
             Object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
             Object minDepositAmount = this.safeString(chain, "min_deposit_amount");
@@ -987,7 +987,7 @@ public class BigoneCore extends BigoneApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2199,7 +2199,7 @@ public class BigoneCore extends BigoneApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
-                put( "network", BigoneCore.this.networkIdToCode(selectedNetworkId) );
+                put( "network", BigoneCore.this.networkIdToCode(selectedNetworkId, code) );
                 put( "address", address );
                 put( "tag", tag );
             }};
@@ -2552,7 +2552,7 @@ public class BigoneCore extends BigoneApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "gateway_name", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "gateway_name", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             // requires write permission on the wallet
             Object response = (this.privatePostWithdrawals(this.extend(request, parameters))).join();

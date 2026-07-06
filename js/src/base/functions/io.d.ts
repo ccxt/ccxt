@@ -1,5 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
 /**
  * Initialize synchronous file system module (Node.js only)
  * Uses dynamic import to prevent bundling in browser builds
