@@ -79,8 +79,8 @@ function detectObsoleteNetworks (exchange: Exchange) {
     if (networks === undefined) {
         return;
     }
-    const networkCodes: string[] = Object.keys (networks);
-    if (networkCodes.length <= 0) {
+    const allNetworkCodes: string[] = Object.keys (networks);
+    if (allNetworkCodes.length <= 0) {
         return;
     }
     let collectedNetworkCodes: string[] = [];
@@ -92,8 +92,8 @@ function detectObsoleteNetworks (exchange: Exchange) {
         collectedNetworkCodes = exchange.arrayConcat (collectedNetworkCodes, networkCodes);
     }
     const filteredCodes = exchange.unique (collectedNetworkCodes);
-    for (let j = 0; j < networkCodes.length; j++) {
-        const networkCode = networkCodes[j];
+    for (let j = 0; j < allNetworkCodes.length; j++) {
+        const networkCode = allNetworkCodes[j];
         if (!exchange.inArray (networkCode, filteredCodes)) {
             console.log ('Warning: networkCode ' + networkCode + ' is defined in exchange.options.networks, but exchange no longer supports that chain.');
         }
