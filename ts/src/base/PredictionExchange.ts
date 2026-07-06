@@ -42,7 +42,9 @@ export default class PredictionExchange extends Exchange {
         const tags = this.safeList (params, 'tags', []);
         const eventId = this.safeString (params, 'eventId');
         const slug = this.safeString (params, 'slug');
-        if ((query === undefined) && (queries.length === 0) && (tags.length === 0) && (eventId === undefined) && (slug === undefined)) {
+        const queriesLength = queries.length;
+        const tagsLength = tags.length;
+        if ((query === undefined) && (queriesLength === 0) && (tagsLength === 0) && (eventId === undefined) && (slug === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search');
         }
         return undefined;
@@ -328,7 +330,7 @@ export default class PredictionExchange extends Exchange {
         return outcomeObj['outcome'];
     }
 
-    shortenSlug (slug: string): string {
+    shortenSlug (slug: Str): string {
         const replacements = {
             'federal-reserve': 'fed',
             'interest-rates': 'rates',
@@ -394,7 +396,10 @@ export default class PredictionExchange extends Exchange {
         return joined.toUpperCase ();
     }
 
-    slugToMarketSymbol (eventSlug: string, marketSlug: string): string {
+    slugToMarketSymbol (eventSlug: Str, marketSlug: string): string {
+        // eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
+        // pass undefined — the body already collapses an absent event to just the market part.
+        // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
         // qualify the market handle with its event so two events that share a market label
         // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
         // to the same handle — a collision silently overwrites markets in this.markets and would
@@ -409,7 +414,7 @@ export default class PredictionExchange extends Exchange {
         return eventPart + '_' + marketPart;
     }
 
-    slugToOutcomeSymbol (eventSlug: string, marketSlug: string, outcome: string): string {
+    slugToOutcomeSymbol (eventSlug: Str, marketSlug: string, outcome: string): string {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
         // (both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
         return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + outcome.toUpperCase ();

@@ -41,7 +41,9 @@ public partial class PredictionExchange : Exchange
         object tags = this.safeList(parameters, "tags", new List<object>() {});
         object eventId = this.safeString(parameters, "eventId");
         object slug = this.safeString(parameters, "slug");
-        if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(query, null))) && isTrue((isEqual(getArrayLength(queries), 0)))) && isTrue((isEqual(getArrayLength(tags), 0)))) && isTrue((isEqual(eventId, null)))) && isTrue((isEqual(slug, null)))))
+        object queriesLength = getArrayLength(queries);
+        object tagsLength = getArrayLength(tags);
+        if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(query, null))) && isTrue((isEqual(queriesLength, 0)))) && isTrue((isEqual(tagsLength, 0)))) && isTrue((isEqual(eventId, null)))) && isTrue((isEqual(slug, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search")) ;
         }
@@ -480,6 +482,9 @@ public partial class PredictionExchange : Exchange
 
     public virtual object slugToMarketSymbol(object eventSlug, object marketSlug)
     {
+        // eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
+        // pass undefined — the body already collapses an absent event to just the market part.
+        // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
         // qualify the market handle with its event so two events that share a market label
         // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
         // to the same handle — a collision silently overwrites markets in this.markets and would

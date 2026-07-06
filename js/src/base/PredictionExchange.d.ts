@@ -29,9 +29,9 @@ export default class PredictionExchange extends Exchange {
     outcome(outcomeSymbol: string): any;
     safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): any;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;
-    shortenSlug(slug: string): string;
-    slugToMarketSymbol(eventSlug: string, marketSlug: string): string;
-    slugToOutcomeSymbol(eventSlug: string, marketSlug: string, outcome: string): string;
+    shortenSlug(slug: Str): string;
+    slugToMarketSymbol(eventSlug: Str, marketSlug: string): string;
+    slugToOutcomeSymbol(eventSlug: Str, marketSlug: string, outcome: string): string;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;

@@ -1240,6 +1240,7 @@ class kalshi extends Exchange {
         $requestedOutcomeLabel = $this->safe_string_lower($outcomeObj, 'label', $this->safe_string_lower($marketInfo, 'outcomeLabel'));
         $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome');
         $outcomeId = $this->safe_string_2($outcomeObj, 'outcomeId', 'id');
+        $side = null;
         if ($rawSide === 'yes' || $rawSide === 'no') {
             if ($requestedOutcomeLabel === 'yes' || $requestedOutcomeLabel === 'no') {
                 $side = ($rawSide === $requestedOutcomeLabel) ? 'buy' : 'sell';
@@ -2139,7 +2140,8 @@ class kalshi extends Exchange {
             $rawEvents = array();
             $eventTickersLength = count($eventTickers);
             for ($ei = 0; $ei < $eventTickersLength; $ei++) {
-                if (($limit !== null) && (strlen($rawEvents) >= $limit)) {
+                $collectedLength = count($rawEvents);
+                if (($limit !== null) && ($collectedLength >= $limit)) {
                     break;
                 }
                 $fullEvent = Async\await($this->fetch_raw_event_by_ticker($eventTickers[$ei], $rest));
@@ -2245,7 +2247,8 @@ class kalshi extends Exchange {
             $pageLimit = $this->safe_integer($this->options, 'defaultFetchEventsLimit', 200);
             $maxPages = $this->safe_integer($this->options, 'maxEventPagesPerSeries', 20);
             for ($si = 0; $si < $seriesTickersLength; $si++) {
-                if (($limit !== null) && (strlen($rawEvents) >= $limit)) {
+                $collectedLength = count($rawEvents);
+                if (($limit !== null) && ($collectedLength >= $limit)) {
                     break;
                 }
                 $cursor = null;
@@ -2276,7 +2279,8 @@ class kalshi extends Exchange {
                         $rawEvents[] = $pageEvents[$ei];
                     }
                     $cursor = $this->safe_string($response, 'cursor');
-                    if (($limit !== null) && (strlen($rawEvents) >= $limit)) {
+                    $collectedAfterPage = count($rawEvents);
+                    if (($limit !== null) && ($collectedAfterPage >= $limit)) {
                         break;
                     }
                     if (($cursor === null) || ($cursor === '') || ($pageEventsLength < $reqLimit)) {

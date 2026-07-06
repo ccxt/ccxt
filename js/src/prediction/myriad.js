@@ -390,7 +390,9 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async fetchPositions(outcomes = undefined, params = {}) {
-        const address = this.safeString2(params, 'address', 'user', this.walletAddress);
+        // resolve the owner the same way fetchBalance does — derive from the configured privateKey
+        // when no explicit walletAddress/param is set, so a privateKey-only config works for both
+        const address = this.safeString2(params, 'address', 'user', this.walletAddressOrUndefined());
         if (address === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchPositions() requires a walletAddress or an address parameter');
         }
@@ -1425,7 +1427,8 @@ export default class myriad extends Exchange {
         let resolvedOutcome = undefined;
         const volume24h = this.safeNumber(raw, 'volume24h');
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
-        // globally unique, so do NOT fall back to networkId — that would prefix every handle
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle.
+        // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
         const marketSymbol = this.slugToMarketSymbol(eventSlug, slug);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         const tokenObj = this.safeDict(raw, 'token', {});

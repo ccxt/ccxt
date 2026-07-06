@@ -1155,7 +1155,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         requestedOutcomeLabel = self.safe_string_lower(outcomeObj, 'label', self.safe_string_lower(marketInfo, 'outcomeLabel'))
         outcomeSymbol = self.safe_string(outcomeObj, 'outcome')
         outcomeId = self.safe_string_2(outcomeObj, 'outcomeId', 'id')
-        side: Str
+        side = None
         if rawSide == 'yes' or rawSide == 'no':
             if requestedOutcomeLabel == 'yes' or requestedOutcomeLabel == 'no':
                 side = 'buy' if (rawSide == requestedOutcomeLabel) else 'sell'
@@ -1931,7 +1931,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         rawEvents = []
         eventTickersLength = len(eventTickers)
         for ei in range(0, eventTickersLength):
-            if (limit is not None) and (len(rawEvents) >= limit):
+            collectedLength = len(rawEvents)
+            if (limit is not None) and (collectedLength >= limit):
                 break
             fullEvent = await self.fetch_raw_event_by_ticker(eventTickers[ei], rest)
             rawEvents.append(fullEvent)
@@ -2015,7 +2016,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         pageLimit = self.safe_integer(self.options, 'defaultFetchEventsLimit', 200)
         maxPages = self.safe_integer(self.options, 'maxEventPagesPerSeries', 20)
         for si in range(0, seriesTickersLength):
-            if (limit is not None) and (len(rawEvents) >= limit):
+            collectedLength = len(rawEvents)
+            if (limit is not None) and (collectedLength >= limit):
                 break
             cursor = None
             for page in range(0, maxPages):
@@ -2040,7 +2042,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 for ei in range(0, pageEventsLength):
                     rawEvents.append(pageEvents[ei])
                 cursor = self.safe_string(response, 'cursor')
-                if (limit is not None) and (len(rawEvents) >= limit):
+                collectedAfterPage = len(rawEvents)
+                if (limit is not None) and (collectedAfterPage >= limit):
                     break
                 if (cursor is None) or (cursor == '') or (pageEventsLength < reqLimit):
                     break

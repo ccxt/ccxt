@@ -47,7 +47,9 @@ class PredictionExchange extends \ccxt\async\Exchange {
         $tags = $this->safe_list($params, 'tags', array());
         $eventId = $this->safe_string($params, 'eventId');
         $slug = $this->safe_string($params, 'slug');
-        if (($query === null) && (strlen($queries) === 0) && (strlen($tags) === 0) && ($eventId === null) && ($slug === null)) {
+        $queriesLength = count($queries);
+        $tagsLength = count($tags);
+        if (($query === null) && ($queriesLength === 0) && ($tagsLength === 0) && ($eventId === null) && ($slug === null)) {
             throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of $query, $queries, $tags, $eventId or $slug to scope the search');
         }
         return null;
@@ -337,7 +339,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $outcomeObj['outcome'];
     }
 
-    public function shorten_slug(string $slug) {
+    public function shorten_slug(?string $slug) {
         $replacements = array(
             'federal-reserve' => 'fed',
             'interest-rates' => 'rates',
@@ -403,7 +405,10 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return strtoupper($joined);
     }
 
-    public function slug_to_market_symbol(string $eventSlug, string $marketSlug) {
+    public function slug_to_market_symbol(?string $eventSlug, string $marketSlug) {
+        // $eventSlug is nullable (Str) => markets without a parent event (e.g. myriad's 1:1 markets)
+        // pass null — the body already collapses an absent event to just the market part.
+        // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
         // qualify the market handle with its event so two events that share a market label
         // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
         // to the same handle — a collision silently overwrites markets in $this->markets and would
@@ -418,7 +423,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $eventPart . '_' . $marketPart;
     }
 
-    public function slug_to_outcome_symbol(string $eventSlug, string $marketSlug, string $outcome) {
+    public function slug_to_outcome_symbol(?string $eventSlug, string $marketSlug, string $outcome) {
         // build on slugToMarketSymbol so the $outcome handle stays consistent with the market symbol
         // (both event-qualified or both not) — otherwise a qualified market . unqualified $outcome mismatch
         return $this->slug_to_market_symbol($eventSlug, $marketSlug) . ':' . strtoupper($outcome);

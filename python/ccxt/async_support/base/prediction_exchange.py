@@ -43,7 +43,9 @@ class PredictionExchange(Exchange):
         tags = self.safe_list(params, 'tags', [])
         eventId = self.safe_string(params, 'eventId')
         slug = self.safe_string(params, 'slug')
-        if (query is None) and (len(queries) == 0) and (len(tags) == 0) and (eventId is None) and (slug is None):
+        queriesLength = len(queries)
+        tagsLength = len(tags)
+        if (query is None) and (queriesLength == 0) and (tagsLength == 0) and (eventId is None) and (slug is None):
             raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search')
         return None
 
@@ -263,7 +265,7 @@ class PredictionExchange(Exchange):
         outcomeObj = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
         return outcomeObj['outcome']
 
-    def shorten_slug(self, slug: str):
+    def shorten_slug(self, slug: Str):
         replacements = {
             'federal-reserve': 'fed',
             'interest-rates': 'rates',
@@ -323,7 +325,10 @@ class PredictionExchange(Exchange):
         joined = '_'.join(parts)
         return joined.upper()
 
-    def slug_to_market_symbol(self, eventSlug: str, marketSlug: str):
+    def slug_to_market_symbol(self, eventSlug: Str, marketSlug: str):
+        # eventSlug is nullable(Str): markets without a parent event(e.g. myriad's 1:1 markets)
+        # pass None — the body already collapses an absent event to just the market part.
+        # a strict `string` param would make PHP/typed transpilers raise on null before the body runs.
         # qualify the market handle with its event so two events that share a market label
         #(e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
         # to the same handle — a collision silently overwrites markets in self.markets and would
@@ -336,7 +341,7 @@ class PredictionExchange(Exchange):
             return marketPart
         return eventPart + '_' + marketPart
 
-    def slug_to_outcome_symbol(self, eventSlug: str, marketSlug: str, outcome: str):
+    def slug_to_outcome_symbol(self, eventSlug: Str, marketSlug: str, outcome: str):
         # build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
         #(both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
         return self.slug_to_market_symbol(eventSlug, marketSlug) + ':' + outcome.upper()

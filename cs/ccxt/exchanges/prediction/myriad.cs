@@ -401,8 +401,10 @@ public partial class myriad : PredictionExchange
      */
     public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
+        // resolve the owner the same way fetchBalance does — derive from the configured privateKey
+        // when no explicit walletAddress/param is set, so a privateKey-only config works for both
         parameters ??= new Dictionary<string, object>();
-        object address = this.safeString2(parameters, "address", "user", this.walletAddress);
+        object address = this.safeString2(parameters, "address", "user", this.walletAddressOrUndefined());
         if (isTrue(isEqual(address, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchPositions() requires a walletAddress or an address parameter")) ;
@@ -1637,7 +1639,8 @@ public partial class myriad : PredictionExchange
         object resolvedOutcome = null;
         object volume24h = this.safeNumber(raw, "volume24h");
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
-        // globally unique, so do NOT fall back to networkId — that would prefix every handle
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle.
+        // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
         object marketSymbol = this.slugToMarketSymbol(eventSlug, slug);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         object tokenObj = this.safeDict(raw, "token", new Dictionary<string, object>() {});

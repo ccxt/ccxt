@@ -57,7 +57,9 @@ public Object isPrediction()
         Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object eventId = this.safeString(parameters, "eventId");
         Object slug = this.safeString(parameters, "slug");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(query, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(queries), 0)))) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(tags), 0)))) && Helpers.isTrue((Helpers.isEqual(eventId, null)))) && Helpers.isTrue((Helpers.isEqual(slug, null)))))
+        Object queriesLength = Helpers.getArrayLength(queries);
+        Object tagsLength = Helpers.getArrayLength(tags);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(query, null))) && Helpers.isTrue((Helpers.isEqual(queriesLength, 0)))) && Helpers.isTrue((Helpers.isEqual(tagsLength, 0)))) && Helpers.isTrue((Helpers.isEqual(eventId, null)))) && Helpers.isTrue((Helpers.isEqual(slug, null)))))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search")) ;
         }
@@ -523,6 +525,9 @@ public Object isPrediction()
 
     public Object slugToMarketSymbol(Object eventSlug, Object marketSlug)
     {
+        // eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
+        // pass undefined — the body already collapses an absent event to just the market part.
+        // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
         // qualify the market handle with its event so two events that share a market label
         // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
         // to the same handle — a collision silently overwrites markets in this.markets and would

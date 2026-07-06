@@ -2589,7 +2589,8 @@ func (this *KalshiCore) FetchEventsByQuery(queries any, limit any, optionalArgs 
 		var rawEvents any = []any{}
 		var eventTickersLength any = ccxt.GetArrayLength(eventTickers)
 		for ei := 0; ccxt.IsLessThan(ei, eventTickersLength); ei++ {
-			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetArrayLength(rawEvents), limit)))) {
+			var collectedLength any = ccxt.GetArrayLength(rawEvents)
+			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(collectedLength, limit)))) {
 				break
 			}
 
@@ -2743,7 +2744,8 @@ func (this *KalshiCore) FetchSeriesEvents(seriesTickers any, status any, limit a
 		var pageLimit any = this.SafeInteger(this.Options, "defaultFetchEventsLimit", 200)
 		var maxPages any = this.SafeInteger(this.Options, "maxEventPagesPerSeries", 20)
 		for si := 0; ccxt.IsLessThan(si, seriesTickersLength); si++ {
-			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetArrayLength(rawEvents), limit)))) {
+			var collectedLength any = ccxt.GetArrayLength(rawEvents)
+			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(collectedLength, limit)))) {
 				break
 			}
 			var cursor any = nil
@@ -2776,7 +2778,8 @@ func (this *KalshiCore) FetchSeriesEvents(seriesTickers any, status any, limit a
 					ccxt.AppendToArray(&rawEvents, ccxt.GetValue(pageEvents, ei))
 				}
 				cursor = this.SafeString(response, "cursor")
-				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetArrayLength(rawEvents), limit)))) {
+				var collectedAfterPage any = ccxt.GetArrayLength(rawEvents)
+				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, nil))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(collectedAfterPage, limit)))) {
 					break
 				}
 				if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(cursor, nil))) || ccxt.IsTrue((ccxt.IsEqual(cursor, "")))) || ccxt.IsTrue((ccxt.IsLessThan(pageEventsLength, reqLimit)))) {

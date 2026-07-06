@@ -443,9 +443,11 @@ public class MyriadCore extends MyriadApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // resolve the owner the same way fetchBalance does — derive from the configured privateKey
+            // when no explicit walletAddress/param is set, so a privateKey-only config works for both
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object address = this.safeString2(parameters, "address", "user", this.walletAddress);
+            Object address = this.safeString2(parameters, "address", "user", this.walletAddressOrUndefined());
             if (Helpers.isTrue(Helpers.isEqual(address, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires a walletAddress or an address parameter")) ;
@@ -1828,7 +1830,8 @@ public class MyriadCore extends MyriadApi
         Object resolvedOutcome = null;
         Object volume24h = this.safeNumber(raw, "volume24h");
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
-        // globally unique, so do NOT fall back to networkId — that would prefix every handle
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle.
+        // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
         Object marketSymbol = this.slugToMarketSymbol(eventSlug, slug);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         Object tokenObj = this.safeDict(raw, "token", new java.util.HashMap<String, Object>() {{}});

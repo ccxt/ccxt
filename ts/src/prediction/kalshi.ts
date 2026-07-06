@@ -1237,7 +1237,7 @@ export default class kalshi extends Exchange {
         const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
         const outcomeId = this.safeString2 (outcomeObj, 'outcomeId', 'id');
-        let side: Str;
+        let side: Str = undefined;
         if (rawSide === 'yes' || rawSide === 'no') {
             if (requestedOutcomeLabel === 'yes' || requestedOutcomeLabel === 'no') {
                 side = (rawSide === requestedOutcomeLabel) ? 'buy' : 'sell';
@@ -2124,7 +2124,8 @@ export default class kalshi extends Exchange {
         const rawEvents: any[] = [];
         const eventTickersLength = eventTickers.length;
         for (let ei = 0; ei < eventTickersLength; ei++) {
-            if ((limit !== undefined) && (rawEvents.length >= limit)) {
+            const collectedLength = rawEvents.length;
+            if ((limit !== undefined) && (collectedLength >= limit)) {
                 break;
             }
             const fullEvent = await this.fetchRawEventByTicker (eventTickers[ei], rest);
@@ -2230,7 +2231,8 @@ export default class kalshi extends Exchange {
         const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 200);
         const maxPages = this.safeInteger (this.options, 'maxEventPagesPerSeries', 20);
         for (let si = 0; si < seriesTickersLength; si++) {
-            if ((limit !== undefined) && (rawEvents.length >= limit)) {
+            const collectedLength = rawEvents.length;
+            if ((limit !== undefined) && (collectedLength >= limit)) {
                 break;
             }
             let cursor: Str = undefined;
@@ -2261,7 +2263,8 @@ export default class kalshi extends Exchange {
                     rawEvents.push (pageEvents[ei]);
                 }
                 cursor = this.safeString (response, 'cursor');
-                if ((limit !== undefined) && (rawEvents.length >= limit)) {
+                const collectedAfterPage = rawEvents.length;
+                if ((limit !== undefined) && (collectedAfterPage >= limit)) {
                     break;
                 }
                 if ((cursor === undefined) || (cursor === '') || (pageEventsLength < reqLimit)) {

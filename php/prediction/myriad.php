@@ -390,7 +390,9 @@ class myriad extends Exchange {
              * @param {string} [$params->address] the wallet $address to query, defaults to $this->walletAddress
              * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
              */
-            $address = $this->safe_string_2($params, 'address', 'user', $this->walletAddress);
+            // resolve the owner the same way fetchBalance does — derive from the configured privateKey
+            // when no explicit walletAddress/param is set, so a privateKey-only config works for both
+            $address = $this->safe_string_2($params, 'address', 'user', $this->wallet_address_or_undefined());
             if ($address === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires a walletAddress or an $address parameter');
             }
@@ -1471,7 +1473,8 @@ class myriad extends Exchange {
         $resolvedOutcome = null;
         $volume24h = $this->safe_number($raw, 'volume24h');
         // qualify the handle only with a real event $slug (when passed); myriad market slugs are
-        // globally unique, so do NOT fall back to $networkId — that would prefix every handle
+        // globally unique, so do NOT fall back to $networkId — that would prefix every handle.
+        // $eventSlug may be null (single-market load) — slugToMarketSymbol accepts a nullable $slug->
         $marketSymbol = $this->slug_to_market_symbol($eventSlug, $slug);
         // the collateral token ($outcome . address . decimals) is per-market; carry it for on-chain trading
         $tokenObj = $this->safe_dict($raw, 'token', array());

@@ -2352,7 +2352,8 @@ public partial class kalshi : PredictionExchange
         object eventTickersLength = getArrayLength(eventTickers);
         for (object ei = 0; isLessThan(ei, eventTickersLength); postFixIncrement(ref ei))
         {
-            if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(getArrayLength(rawEvents), limit)))))
+            object collectedLength = getArrayLength(rawEvents);
+            if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedLength, limit)))))
             {
                 break;
             }
@@ -2484,7 +2485,8 @@ public partial class kalshi : PredictionExchange
         object maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
         for (object si = 0; isLessThan(si, seriesTickersLength); postFixIncrement(ref si))
         {
-            if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(getArrayLength(rawEvents), limit)))))
+            object collectedLength = getArrayLength(rawEvents);
+            if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedLength, limit)))))
             {
                 break;
             }
@@ -2522,7 +2524,8 @@ public partial class kalshi : PredictionExchange
                     ((IList<object>)rawEvents).Add(getValue(pageEvents, ei));
                 }
                 cursor = this.safeString(response, "cursor");
-                if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(getArrayLength(rawEvents), limit)))))
+                object collectedAfterPage = getArrayLength(rawEvents);
+                if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedAfterPage, limit)))))
                 {
                     break;
                 }

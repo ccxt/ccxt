@@ -2567,7 +2567,8 @@ final Object finalOi = oi;
             Object eventTickersLength = Helpers.getArrayLength(eventTickers);
             for (var ei = 0; Helpers.isLessThan(ei, eventTickersLength); ei++)
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(rawEvents), limit)))))
+                Object collectedLength = Helpers.getArrayLength(rawEvents);
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(collectedLength, limit)))))
                 {
                     break;
                 }
@@ -2716,7 +2717,8 @@ final Object finalOi = oi;
             Object maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
             for (var si = 0; Helpers.isLessThan(si, seriesTickersLength); si++)
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(rawEvents), limit)))))
+                Object collectedLength = Helpers.getArrayLength(rawEvents);
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(collectedLength, limit)))))
                 {
                     break;
                 }
@@ -2756,7 +2758,8 @@ final Object finalOi = oi;
                         ((java.util.List<Object>)rawEvents).add(Helpers.GetValue(pageEvents, ei));
                     }
                     cursor = this.safeString(response, "cursor");
-                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(rawEvents), limit)))))
+                    Object collectedAfterPage = Helpers.getArrayLength(rawEvents);
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(collectedAfterPage, limit)))))
                     {
                         break;
                     }
