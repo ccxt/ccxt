@@ -229,6 +229,7 @@
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -246,7 +247,6 @@
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",
     "docsify": "^4.13.1",
-    "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^63.0.4",
@@ -367,6 +367,7 @@
     "@scure/bip32": "2.2.0",
     "@scure/bip39": "2.2.0",
     "@scure/starknet": "2.2.0",
+    "undici": "7.28.0",
     "ws": "8.21.0"
   },
   "overrides": {

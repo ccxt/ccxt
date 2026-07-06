@@ -26,9 +26,14 @@ const isElectron = typeof process !== 'undefined' &&
 const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof WorkerGlobalScope);
 const isWindows = typeof process !== 'undefined' && process.platform === "win32";
 const isDeno = typeof Deno !== 'undefined';
+// bun is node-compatible (isNode stays true there), but its native fetch differs (e.g. built-in `proxy` option)
+const isBun = typeof process !== 'undefined' &&
+    typeof process.versions !== 'undefined' &&
+    typeof process.versions.bun !== 'undefined';
 const isNode = !(isBrowser || isWebWorker || isDeno);
 
 exports.isBrowser = isBrowser;
+exports.isBun = isBun;
 exports.isDeno = isDeno;
 exports.isElectron = isElectron;
 exports.isNode = isNode;
