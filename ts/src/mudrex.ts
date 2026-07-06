@@ -278,7 +278,9 @@ export default class mudrex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const priceType = this.safeString (params, 'price');
         params = this.omit (params, 'price');
@@ -359,7 +361,9 @@ export default class mudrex extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'asset_id': market['id'],
@@ -380,7 +384,9 @@ export default class mudrex extends Exchange {
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         const response = await this.privateGetFutures (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
@@ -556,7 +562,9 @@ export default class mudrex extends Exchange {
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
         const requested = this.safeStringN (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
@@ -616,7 +624,9 @@ export default class mudrex extends Exchange {
      * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'asset_id': market['id'],
@@ -648,7 +658,9 @@ export default class mudrex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const marginType = this.safeString (params, 'marginType', 'ISOLATED');
         const request: Dict = {
@@ -686,7 +698,9 @@ export default class mudrex extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         // standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
         // an existing position through the riskorder endpoint, so a positionId is required
@@ -762,7 +776,9 @@ export default class mudrex extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -862,7 +878,9 @@ export default class mudrex extends Exchange {
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -886,7 +904,9 @@ export default class mudrex extends Exchange {
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -912,7 +932,9 @@ export default class mudrex extends Exchange {
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrdersByState (state: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const q: Dict = {};
         if (limit !== undefined) {
             q['limit'] = limit;
@@ -993,7 +1015,9 @@ export default class mudrex extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const q: Dict = {};
         const response = await this.privateGetFuturesPositions (this.extend (q, params));
         const data = this.safeValue (response, 'data', []);
@@ -1025,7 +1049,9 @@ export default class mudrex extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (limit !== undefined) {
@@ -1124,7 +1150,9 @@ export default class mudrex extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let positionId = this.safeString (params, 'position_id');
         const amount = this.safeValue (params, 'amount');
         if (positionId === undefined) {
@@ -1174,7 +1202,9 @@ export default class mudrex extends Exchange {
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let positionId = this.safeString (params, 'position_id');
         if (positionId === undefined) {
             const positions = await this.fetchPositions ([ symbol ], params);
@@ -1224,7 +1254,9 @@ export default class mudrex extends Exchange {
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);

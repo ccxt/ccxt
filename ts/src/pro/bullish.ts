@@ -129,7 +129,9 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trades::' + market['symbol'];
         const url = '/trading-api/v1/market-data/trades';
@@ -199,7 +201,9 @@ export default class bullish extends bullishRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id'];
@@ -280,7 +284,9 @@ export default class bullish extends bullishRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = '/trading-api/v1/market-data/orderbook';
         const messageHash = 'orderbook::' + market['symbol'];
@@ -370,7 +376,9 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const subscribeHash = 'orders';
         let messageHash = subscribeHash;
         if (symbol !== undefined) {
@@ -485,7 +493,9 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const subscribeHash = 'myTrades';
         let messageHash = subscribeHash;
         if (symbol !== undefined) {
@@ -590,7 +600,9 @@ export default class bullish extends bullishRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'topic': 'assetAccounts',
         };
@@ -686,7 +698,9 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
         if ((symbols !== undefined) && !this.isEmpty (symbols)) {

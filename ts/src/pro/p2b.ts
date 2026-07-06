@@ -95,7 +95,9 @@ export default class p2b extends p2bRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '15m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const channel = this.safeInteger (timeframes, timeframe);
         if (channel === undefined) {
@@ -126,7 +128,9 @@ export default class p2b extends p2bRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
@@ -151,7 +155,9 @@ export default class p2b extends p2bRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
@@ -200,7 +206,9 @@ export default class p2b extends p2bRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const messageHashes: string[] = [];
         if (symbols !== undefined) {
@@ -237,7 +245,9 @@ export default class p2b extends p2bRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];

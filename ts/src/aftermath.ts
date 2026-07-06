@@ -382,7 +382,9 @@ export default class aftermath extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         return this.parseTradingFee (market);
     }
@@ -409,7 +411,9 @@ export default class aftermath extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request = {
             'chId': market['id'],
@@ -481,7 +485,9 @@ export default class aftermath extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const chId = this.safeString (market, 'id');
         const request = {
@@ -520,7 +526,9 @@ export default class aftermath extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const chId = this.safeString (market, 'id');
         const request = {
@@ -571,7 +579,9 @@ export default class aftermath extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const chId = this.safeString (market, 'id');
         const request = {
@@ -664,7 +674,9 @@ export default class aftermath extends Exchange {
      * @returns {Array} a list of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#accounts}
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request = {
             'address': this.walletAddress,
         };
@@ -704,7 +716,9 @@ export default class aftermath extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol as string);
         let accountNumber: Int = undefined;
         [ accountNumber, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'accountNumber');
@@ -765,7 +779,9 @@ export default class aftermath extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let accountNumber: Int = undefined;
         [ accountNumber, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'accountNumber');
         if (accountNumber === undefined) {
@@ -841,7 +857,9 @@ export default class aftermath extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'createOrder', 'account');
         const order = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
@@ -862,7 +880,9 @@ export default class aftermath extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const ordersRequest: List = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.clone (orders[i]);
@@ -950,7 +970,9 @@ export default class aftermath extends Exchange {
      * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol as string);
         let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'account');
@@ -989,7 +1011,9 @@ export default class aftermath extends Exchange {
     }
 
     async createAccount (symbol: string, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const settleId = market['settleId'];
         const txRequest = {
@@ -1033,7 +1057,9 @@ export default class aftermath extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams2 (params, 'addMargin', 'account', 'accountId');
@@ -1081,7 +1107,9 @@ export default class aftermath extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams2 (params, 'reduceMargin', 'account', 'accountId');
@@ -1130,7 +1158,9 @@ export default class aftermath extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const txRequest = {
             'metadata': {
@@ -1188,7 +1218,9 @@ export default class aftermath extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'withdraw', 'account');
@@ -1265,7 +1297,9 @@ export default class aftermath extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'account', 'accountId');

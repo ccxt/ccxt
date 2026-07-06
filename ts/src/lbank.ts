@@ -784,7 +784,9 @@ export default class lbank extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (market['swap']) {
             const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
@@ -831,7 +833,9 @@ export default class lbank extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
@@ -912,7 +916,9 @@ export default class lbank extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 60;
@@ -1103,7 +1109,9 @@ export default class lbank extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1181,7 +1189,9 @@ export default class lbank extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         // endpoint doesnt work
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 100;
@@ -1416,7 +1426,9 @@ export default class lbank extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const responseForSwap = await this.fetchFundingRates ([ market['symbol'] ], params);
         return this.safeValue (responseForSwap, market['symbol']) as FundingRate;
@@ -1432,7 +1444,9 @@ export default class lbank extends Exchange {
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
             'productGroup': 'SwapU',
@@ -1476,7 +1490,9 @@ export default class lbank extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
         const method = this.safeString (params, 'method', defaultMethod);
@@ -1565,7 +1581,9 @@ export default class lbank extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         const response = await this.spotPrivatePostSupplementCustomerTradeFee (this.extend (request, params));
         const fees = this.safeValue (response, 'data', []);
@@ -1590,7 +1608,9 @@ export default class lbank extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1614,7 +1634,9 @@ export default class lbank extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'custom_id', 'clientOrderId');
         const postOnly = this.safeBool (params, 'postOnly', false);
@@ -1870,7 +1892,9 @@ export default class lbank extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let method = this.safeString (params, 'method');
         if (method === undefined) {
             const options = this.safeValue (this.options, 'fetchOrder', {});
@@ -1886,7 +1910,9 @@ export default class lbank extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1923,7 +1949,9 @@ export default class lbank extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1980,7 +2008,9 @@ export default class lbank extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         since = this.safeValue (params, 'start_date', since);
         params = this.omit (params, 'start_date');
@@ -2042,7 +2072,9 @@ export default class lbank extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 100;
@@ -2101,7 +2133,9 @@ export default class lbank extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 100;
@@ -2158,7 +2192,9 @@ export default class lbank extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         const market = this.market (symbol);
@@ -2200,7 +2236,9 @@ export default class lbank extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2247,7 +2285,9 @@ export default class lbank extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const options = this.safeValue (this.options, 'fetchDepositAddress', {});
         const defaultMethod = this.safeString (options, 'method', 'fetchDepositAddressDefault');
         const method = this.safeString (params, 'method', defaultMethod);
@@ -2262,7 +2302,9 @@ export default class lbank extends Exchange {
     }
 
     async fetchDepositAddressDefault (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'assetCode': currency['id'],
@@ -2300,7 +2342,9 @@ export default class lbank extends Exchange {
 
     async fetchDepositAddressSupplement (code: string, params = {}): Promise<DepositAddress> {
         // returns the address for whatever the default network is...
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -2352,7 +2396,9 @@ export default class lbank extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const fee = this.safeString (params, 'fee');
         params = this.omit (params, 'fee');
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
@@ -2513,7 +2559,9 @@ export default class lbank extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime': end time, timestamp in milliseconds, default now
@@ -2567,7 +2615,9 @@ export default class lbank extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime': end time, timestamp in milliseconds, default now
@@ -2624,7 +2674,9 @@ export default class lbank extends Exchange {
      */
     async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         // private only returns information for currencies with non-zero balance
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const isAuthorized = this.checkRequiredCredentials (false);
         let result: Dict;
         if (isAuthorized === true) {
@@ -2646,7 +2698,9 @@ export default class lbank extends Exchange {
     async fetchPrivateTransactionFees (params = {}) {
         // complete response
         // incl. for coins which undefined in public method
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.spotPrivatePostSupplementUserInfo ();
         //
         //    {
@@ -2705,7 +2759,9 @@ export default class lbank extends Exchange {
     async fetchPublicTransactionFees (params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const code = this.safeString2 (params, 'coin', 'assetCode');
         params = this.omit (params, [ 'coin', 'assetCode' ]);
         const request: Dict = {};
@@ -2772,7 +2828,9 @@ export default class lbank extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const isAuthorized = this.checkRequiredCredentials (false);
         let response: Dict;
         if (isAuthorized === true) {
@@ -2794,7 +2852,9 @@ export default class lbank extends Exchange {
     async fetchPrivateDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // complete response
         // incl. for coins which undefined in public method
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.spotPrivatePostSupplementUserInfo (params);
         //
         //    {
@@ -2833,7 +2893,9 @@ export default class lbank extends Exchange {
     async fetchPublicDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //

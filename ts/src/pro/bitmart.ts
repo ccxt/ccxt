@@ -192,7 +192,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         await this.authenticate (type, params);
@@ -352,7 +354,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let marketType: Str = undefined;
         [ symbols, marketType, params ] = this.getParamsForMultipleSub ('watchTradesForSymbols', symbols, limit, params);
         const channelName = 'trade';
@@ -396,7 +400,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let marketType: Str = undefined;
         [ symbols, marketType, params ] = this.getParamsForMultipleSub ('unWatchTradesForSymbols', symbols, undefined, params);
         const channelName = 'trade';
@@ -427,7 +433,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
@@ -444,7 +452,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
@@ -482,7 +492,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
@@ -501,7 +513,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         if (symbols === undefined) {
             symbols = [];
@@ -592,7 +606,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         let messageHash = 'orders';
         if (symbol !== undefined) {
@@ -640,7 +656,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         let messageHash = 'unsubscribe::orders';
         if (symbol !== undefined) {
@@ -932,7 +950,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const type = 'swap';
         await this.authenticate (type, params);
         symbols = this.marketSymbols (symbols, 'swap', true, true, false);
@@ -969,7 +989,9 @@ export default class bitmart extends bitmartRest {
                 throw new NotSupported (this.id + ' unWatchPositions() does not support a list of symbols, unWatch from all markets only');
             }
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'action': 'unsubscribe',
             'args': [ 'futures/position' ],
@@ -1343,7 +1365,9 @@ export default class bitmart extends bitmartRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const market = this.market (symbol);
         let type = 'spot';
@@ -1375,7 +1399,9 @@ export default class bitmart extends bitmartRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const market = this.market (symbol);
         let type = 'spot';
@@ -1502,7 +1528,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         let depth = this.safeString (options, 'depth', 'depth/increase100');
         symbol = this.symbol (symbol);
@@ -1528,7 +1556,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         let depth = this.safeString (options, 'depth', 'depth/increase100');
         symbol = this.symbol (symbol);
@@ -1755,7 +1785,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let type: Str = undefined;
         [ symbols, type, params ] = this.getParamsForMultipleSub ('watchOrderBookForSymbols', symbols, limit, params);
         let channel: Str = undefined;
@@ -1778,7 +1810,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let type: Str = undefined;
         [ symbols, type, params ] = this.getParamsForMultipleSub ('unWatchOrderBookForSymbols', symbols, undefined, params);
         let channel: Str = undefined;
@@ -1800,7 +1834,9 @@ export default class bitmart extends bitmartRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const fundingRate = await this.watchFundingRates ([ symbol ], params);
         return fundingRate[symbol];
@@ -1819,7 +1855,9 @@ export default class bitmart extends bitmartRest {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchFundingRates', market, params);
