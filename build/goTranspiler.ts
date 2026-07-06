@@ -4,6 +4,7 @@ import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+import { writeReAsyncedTranspileCopy, removeReAsyncedTranspileCopy } from './reAsyncDelegators.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import fs from 'fs';
@@ -1286,7 +1287,9 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // the wrapper must receive from the channel to transform the result,
+        // even when the underlying method is a non-async Promise pass-through
+        const isAsync = methodWrapper.async || String(methodWrapper.returnType ?? '').startsWith('Promise');
         const isExchange = exchangeName === 'Exchange';
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs) || !isAsync) {
@@ -2039,7 +2042,10 @@ ${caseStatements.join('\n')}
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
+        // non-async Promise-returning delegators must be transpiled in their async form (see reAsyncDelegators.ts)
+        const transpilePaths = allFilesPath.map ((file: string) => writeReAsyncedTranspileCopy (file));
+        const transpiledFiles =  transpilePaths.map((file: string) => this.transpiler.transpileGoByPath(file));
+        transpilePaths.forEach ((tmpPath: string, i: number) => removeReAsyncedTranspileCopy (tmpPath, allFilesPath[i]));
 
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];

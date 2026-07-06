@@ -116,8 +116,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        return await this.watchPublic ('ticker24h', symbol, params);
+    watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        return this.watchPublic ('ticker24h', symbol, params);
     }
 
     /**
@@ -1068,8 +1068,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarketsWs (params = {}) {
-        return await this.watchRequest ('getMarkets', params);
+    fetchMarketsWs (params = {}): Promise<any> {
+        return this.watchRequest ('getMarkets', params);
     }
 
     /**

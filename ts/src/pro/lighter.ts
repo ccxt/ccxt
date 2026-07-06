@@ -400,8 +400,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        return await this.watchTicker (symbol, params);
+    watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        return this.watchTicker (symbol, params);
     }
 
     /**
@@ -413,8 +413,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        return await this.watchTickers (symbols, params);
+    watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return this.watchTickers (symbols, params);
     }
 
     /**
@@ -426,8 +426,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchTicker (symbol, params);
+    unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+        return this.unWatchTicker (symbol, params);
     }
 
     /**
@@ -439,8 +439,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
-        return await this.unWatchTickers (symbols, params);
+    unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
+        return this.unWatchTickers (symbols, params);
     }
 
     parseWsTrade (trade, market: Market = undefined) {
