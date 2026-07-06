@@ -78,7 +78,9 @@ class derive extends derive$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (limit === undefined) {
             limit = 10;
         }
@@ -145,7 +147,9 @@ class derive extends derive$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const topic = 'ticker.' + market['id'] + '.100';
         const request = {
@@ -250,7 +254,9 @@ class derive extends derive$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let limit = this.safeInteger(params, 'limit');
         if (limit === undefined) {
             limit = 10;
@@ -280,7 +286,9 @@ class derive extends derive$1["default"] {
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const topic = 'trades.' + market['id'];
         const messageHah = 'unwatch' + topic;
@@ -377,7 +385,9 @@ class derive extends derive$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const topic = 'trades.' + market['id'];
         const request = {
@@ -478,7 +488,9 @@ class derive extends derive$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let subaccountId = undefined;
         [subaccountId, params] = this.handleDeriveSubaccountId('watchOrders', params);
         const topic = this.numberToString(subaccountId) + '.orders';
@@ -598,7 +610,9 @@ class derive extends derive$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let subaccountId = undefined;
         [subaccountId, params] = this.handleDeriveSubaccountId('watchMyTrades', params);
         const topic = this.numberToString(subaccountId) + '.trades';

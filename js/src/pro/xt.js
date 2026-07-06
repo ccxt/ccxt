@@ -280,7 +280,9 @@ export default class xt extends xtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const options = this.safeDict(this.options, 'watchTicker');
         const defaultMethod = this.safeString(options, 'method', 'ticker');
@@ -301,7 +303,9 @@ export default class xt extends xtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const options = this.safeDict(this.options, 'unWatchTicker');
         const defaultMethod = this.safeString(options, 'method', 'ticker');
@@ -323,7 +327,9 @@ export default class xt extends xtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const options = this.safeDict(this.options, 'watchTickers');
         const defaultMethod = this.safeString(options, 'method', 'tickers');
         const name = this.safeString(params, 'method', defaultMethod);
@@ -350,7 +356,9 @@ export default class xt extends xtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const options = this.safeDict(this.options, 'unWatchTickers');
         const defaultMethod = this.safeString(options, 'method', 'tickers');
         const name = this.safeString(params, 'method', defaultMethod);
@@ -378,7 +386,9 @@ export default class xt extends xtRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const ohlcv = await this.subscribe(name, 'public', 'watchOHLCV', market, undefined, params);
@@ -399,7 +409,9 @@ export default class xt extends xtRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const messageHash = 'unsubscribe::' + name;
@@ -419,7 +431,9 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'trade@' + market['id'];
         const trades = await this.subscribe(name, 'public', 'watchTrades', market, undefined, params);
@@ -439,7 +453,9 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'trade@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
@@ -460,7 +476,9 @@ export default class xt extends xtRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const levels = this.safeString(params, 'levels');
         params = this.omit(params, 'levels');
@@ -485,7 +503,9 @@ export default class xt extends xtRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const levels = this.safeString(params, 'levels');
         params = this.omit(params, 'levels');
@@ -509,7 +529,9 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'order';
         let market = undefined;
         if (symbol !== undefined) {
@@ -534,7 +556,9 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'trade';
         let market = undefined;
         if (symbol !== undefined) {
@@ -556,7 +580,9 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'balance';
         return await this.subscribe(name, 'private', 'watchBalance', undefined, undefined, params);
     }
@@ -572,7 +598,9 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['contract'] + '/' + 'user';
         const client = this.client(url);
         this.setPositionsCache(client);

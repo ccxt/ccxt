@@ -93,7 +93,9 @@ class p2b extends p2b$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const timeframes = this.safeValue(this.options, 'timeframes', {});
         const channel = this.safeInteger(timeframes, timeframe);
         if (channel === undefined) {
@@ -123,7 +125,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
         [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
@@ -147,7 +151,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
@@ -194,7 +200,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const messageHashes = [];
         if (symbols !== undefined) {
@@ -230,7 +238,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
