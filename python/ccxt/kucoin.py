@@ -94,7 +94,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
+                'fetchIndexOHLCV': True,  # uta only
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': True,
@@ -105,7 +105,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
+                'fetchMarkOHLCV': True,  # uta only
                 'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMyTrades': True,
@@ -126,7 +126,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': True,
-                'fetchPremiumIndexOHLCV': False,
+                'fetchPremiumIndexOHLCV': True,  # uta only
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -570,6 +570,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'market/open-interest': 20,
                         'server/status': 6,
                         'market/borrowable-currency': 30,
+                        'user/my-ip': 20,
+                        'market/fiat-price': 6,
                     },
                 },
                 'utaPrivate': {
@@ -2628,27 +2630,51 @@ class kucoin(Exchange, ImplicitAPI):
         #         "time": 1634641777363
         #     }
         #
-        # uta
+        # uta spot
+        #     {
+        #         "symbol": "ETH-USDT",
+        #         "name": "ETH-USDT",
+        #         "bestBidSize": "2.8893176",
+        #         "bestBidPrice": "1566.24",
+        #         "bestAskSize": "2.4373857",
+        #         "bestAskPrice": "1566.25",
+        #         "lastPrice": "1565.87",
+        #         "size": "0.0384399",
+        #         "open": "1572.96",
+        #         "high": "1637.4",
+        #         "low": "1550.41",
+        #         "baseVolume": "101560.01156957747448132256",
+        #         "quoteVolume": "161467045.65271628672329459176",
+        #         "priceChange": "-7.09",
+        #         "priceChangePercent": "-0.0045"
+        #     }
+        #
+        # uta swap
         #
         #     {
-        #         "symbol": "BTC-USDT",
-        #         "name": "BTC-USDT",
-        #         "bestBidSize": "0.69207954",
-        #         "bestBidPrice": "110417.5",
-        #         "bestAskSize": "0.08836606",
-        #         "bestAskPrice": "110417.6",
-        #         "lastPrice": "110417.5",
-        #         "size": "0.00016",
-        #         "open": "110105.1",
-        #         "high": "110838.9",
-        #         "low": "109705.5",
-        #         "baseVolume": "1882.10069442",
-        #         "quoteVolume": "207325626.822922498"
+        #         "symbol": "ETHUSDTM",
+        #         "bestBidSize": "4",
+        #         "bestBidPrice": "1573.45",
+        #         "bestAskSize": "43",
+        #         "bestAskPrice": "1573.46",
+        #         "lastPrice": "1573.63",
+        #         "size": "1",
+        #         "open": "1570.09",
+        #         "high": "1637.08",
+        #         "low": "1549.63",
+        #         "baseVolume": "282920.90",
+        #         "quoteVolume": "449940743.674",
+        #         "priceChange": "3.54",
+        #         "priceChangePercent": "0.2255",
+        #         "indexPrice": "1572.67",
+        #         "markPrice": "1572.68"
         #     }
         #
         percentage = self.safe_string(ticker, 'changeRate')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')
+        else:
+            percentage = self.safe_string(ticker, 'priceChangePercent')
         last = self.safe_string_n(ticker, ['last', 'lastTradedPrice', 'lastPrice'])
         last = self.safe_string(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
@@ -2672,12 +2698,13 @@ class kucoin(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'changePrice'),
+            'change': self.safe_string_2(ticker, 'changePrice', 'priceChange'),
             'percentage': percentage,
             'average': self.safe_string(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'markPrice': self.safe_string(ticker, 'value'),
+            'markPrice': self.safe_string_2(ticker, 'markPrice', 'value'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 
@@ -3036,23 +3063,26 @@ class kucoin(Exchange, ImplicitAPI):
             #     {
             #         "code": "200000",
             #         "data": {
-            #             "tradeType": "SPOT",
-            #             "ts": 1762061290067,
+            #             "tradeType": "FUTURES",
+            #             "ts": 1782828116206000000,
             #             "list": [
             #                 {
-            #                     "symbol": "BTC-USDT",
-            #                     "name": "BTC-USDT",
-            #                     "bestBidSize": "0.69207954",
-            #                     "bestBidPrice": "110417.5",
-            #                     "bestAskSize": "0.08836606",
-            #                     "bestAskPrice": "110417.6",
-            #                     "lastPrice": "110417.5",
-            #                     "size": "0.00016",
-            #                     "open": "110105.1",
-            #                     "high": "110838.9",
-            #                     "low": "109705.5",
-            #                     "baseVolume": "1882.10069442",
-            #                     "quoteVolume": "207325626.822922498"
+            #                     "symbol": "ETHUSDTM",
+            #                     "bestBidSize": "4",
+            #                     "bestBidPrice": "1573.45",
+            #                     "bestAskSize": "43",
+            #                     "bestAskPrice": "1573.46",
+            #                     "lastPrice": "1573.63",
+            #                     "size": "1",
+            #                     "open": "1570.09",
+            #                     "high": "1637.08",
+            #                     "low": "1549.63",
+            #                     "baseVolume": "282920.90",
+            #                     "quoteVolume": "449940743.674",
+            #                     "priceChange": "3.54",
+            #                     "priceChangePercent": "0.2255",
+            #                     "indexPrice": "1572.67",
+            #                     "markPrice": "1572.68"
             #                 }
             #             ]
             #         }
@@ -3192,6 +3222,9 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uta = False
         uta, params = self.handle_option_and_params(params, 'fetchOHLCV', 'uta', uta)
+        priceType = self.safe_string(params, 'price')
+        if (priceType is not None) and (not uta):
+            uta = True  # mark, index, premiumIndex price types are only available for UTA
         if uta:
             return self.fetch_utaohlcv(symbol, timeframe, since, limit, params)
         elif market['contract']:
@@ -3244,6 +3277,18 @@ class kucoin(Exchange, ImplicitAPI):
             request['tradeType'] = 'SPOT'
         else:
             request['tradeType'] = 'FUTURES'
+        priceType = None
+        priceType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'price', priceType)
+        if priceType is not None:
+            priceTypes = {
+                'mark': 'mark-price',
+                'index': 'index-price',
+                'premiumIndex': 'premium-index',
+            }
+            suffix = self.safe_string(priceTypes, priceType)
+            if suffix is None:
+                raise NotSupported(self.id + ' fetchOHLCV() price parameter must be one of "mark", "index", or "premiumIndex"')
+            request['symbol'] = market['id'] + '-' + suffix
         response = self.utaGetMarketKline(self.extend(request, params))
         #
         #     {

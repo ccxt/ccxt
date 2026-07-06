@@ -89,7 +89,7 @@ public partial class bitvavo : ccxt.bitvavo
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
-            ((IList<object>)args).Add(getValue(market, "id"));
+            ((IList<object>)args).Add(((string)getValue(market, "id")));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
@@ -172,7 +172,7 @@ public partial class bitvavo : ccxt.bitvavo
             object messageHash = add(add(eventVar, "@"), marketId);
             object ticker = this.parseTicker(data, market);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
             ((IList<object>)result).Add(ticker);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
@@ -208,7 +208,7 @@ public partial class bitvavo : ccxt.bitvavo
             object data = getValue(tickers, i);
             object ticker = this.parseWsBidAsk(data);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             ((IList<object>)result).Add(ticker);
             object messageHash = add(add(eventVar, ":"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
@@ -373,12 +373,12 @@ public partial class bitvavo : ccxt.bitvavo
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
         object candles = this.safeValue(message, "candle");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
         for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
         {
@@ -578,11 +578,11 @@ public partial class bitvavo : ccxt.bitvavo
     {
         object symbol = this.safeString(subscription, "symbol");
         object limit = this.safeInteger(subscription, "limit");
-        if (isTrue(inOp(this.orderbooks, symbol)))
+        if (isTrue(inOp(this.orderbooks, ((string)symbol))))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)((string)symbol));
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ((IDictionary<string,object>)this.orderbooks)[(string)((string)symbol)] = this.orderBook(new Dictionary<string, object>() {}, limit);
     }
 
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, object message, object marketIds)
@@ -964,7 +964,7 @@ public partial class bitvavo : ccxt.bitvavo
         // const action = this.safeString (message, 'action');
         object response = this.safeList(message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
-        object trades = this.parseTrades(response, null, null, null);
+        object trades = this.parseTrades((IList<object>)(response), null, null, null);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         object messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
@@ -1056,7 +1056,7 @@ public partial class bitvavo : ccxt.bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         object response = this.safeList(message, "response");
         object messageHash = this.safeString(message, "requestId");
-        object withdrawals = this.parseTransactions(response, null, null, null, new Dictionary<string, object>() {
+        object withdrawals = this.parseTransactions((IList<object>)(response), null, null, null, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });
         callDynamically(client as WebSocketClient, "resolve", new object[] {withdrawals, messageHash});
@@ -1536,7 +1536,7 @@ public partial class bitvavo : ccxt.bitvavo
         object rejected = false;
         try
         {
-            this.handleErrors(code, error, client.url, "", new Dictionary<string, object>() {}, error, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(code, ((string)error), client.url, "", new Dictionary<string, object>() {}, ((string)error), ((string)message), new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             rejected = true;
@@ -1628,11 +1628,11 @@ public partial class bitvavo : ccxt.bitvavo
             { "getMarkets", this.handleMarkets },
         };
         object eventVar = this.safeString(message, "event");
-        object method = this.safeValue(methods, eventVar);
+        object method = this.safeValue(methods, ((string)eventVar));
         if (isTrue(isEqual(method, null)))
         {
             object action = this.safeString(message, "action");
-            method = this.safeValue(methods, action);
+            method = this.safeValue(methods, ((string)action));
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

@@ -21,6 +21,7 @@ export default class bitget extends Exchange {
      */
     enableDemoTrading(enabled: boolean): void;
     handleProductTypeAndParams(market?: Market, params?: {}): [Str, Dict];
+    handleUTAAndParams(params: any, methodName: Str, defaultValue?: boolean): Promise<any[]>;
     /**
      * @method
      * @name bitget#fetchTime
@@ -717,7 +718,7 @@ export default class bitget extends Exchange {
         amount: number;
         id: string;
     };
-    parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): FundingHistory[];
+    parseFundingHistories(contracts: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
@@ -767,7 +768,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitget#setMarginMode
@@ -792,7 +793,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitget#fetchOpenInterest
@@ -1033,7 +1034,7 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name bitget#fetchPositionsHistory

@@ -67,7 +67,7 @@ public partial class kucoin : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
-                { "fetchIndexOHLCV", false },
+                { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchL3OrderBook", true },
@@ -78,7 +78,7 @@ public partial class kucoin : Exchange
                 { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
-                { "fetchMarkOHLCV", false },
+                { "fetchMarkOHLCV", true },
                 { "fetchMarkPrice", true },
                 { "fetchMarkPrices", true },
                 { "fetchMyTrades", true },
@@ -99,7 +99,7 @@ public partial class kucoin : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsADLRank", true },
                 { "fetchPositionsHistory", true },
-                { "fetchPremiumIndexOHLCV", false },
+                { "fetchPremiumIndexOHLCV", true },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -506,6 +506,8 @@ public partial class kucoin : Exchange
                         { "market/open-interest", 20 },
                         { "server/status", 6 },
                         { "market/borrowable-currency", 30 },
+                        { "user/my-ip", 20 },
+                        { "market/fiat-price", 6 },
                     } },
                 } },
                 { "utaPrivate", new Dictionary<string, object>() {
@@ -2446,28 +2448,53 @@ public partial class kucoin : Exchange
         //         "time": 1634641777363
         //     }
         //
-        // uta
+        // uta spot
+        //     {
+        //         "symbol": "ETH-USDT",
+        //         "name": "ETH-USDT",
+        //         "bestBidSize": "2.8893176",
+        //         "bestBidPrice": "1566.24",
+        //         "bestAskSize": "2.4373857",
+        //         "bestAskPrice": "1566.25",
+        //         "lastPrice": "1565.87",
+        //         "size": "0.0384399",
+        //         "open": "1572.96",
+        //         "high": "1637.4",
+        //         "low": "1550.41",
+        //         "baseVolume": "101560.01156957747448132256",
+        //         "quoteVolume": "161467045.65271628672329459176",
+        //         "priceChange": "-7.09",
+        //         "priceChangePercent": "-0.0045"
+        //     }
+        //
+        // uta swap
         //
         //     {
-        //         "symbol": "BTC-USDT",
-        //         "name": "BTC-USDT",
-        //         "bestBidSize": "0.69207954",
-        //         "bestBidPrice": "110417.5",
-        //         "bestAskSize": "0.08836606",
-        //         "bestAskPrice": "110417.6",
-        //         "lastPrice": "110417.5",
-        //         "size": "0.00016",
-        //         "open": "110105.1",
-        //         "high": "110838.9",
-        //         "low": "109705.5",
-        //         "baseVolume": "1882.10069442",
-        //         "quoteVolume": "207325626.822922498"
+        //         "symbol": "ETHUSDTM",
+        //         "bestBidSize": "4",
+        //         "bestBidPrice": "1573.45",
+        //         "bestAskSize": "43",
+        //         "bestAskPrice": "1573.46",
+        //         "lastPrice": "1573.63",
+        //         "size": "1",
+        //         "open": "1570.09",
+        //         "high": "1637.08",
+        //         "low": "1549.63",
+        //         "baseVolume": "282920.90",
+        //         "quoteVolume": "449940743.674",
+        //         "priceChange": "3.54",
+        //         "priceChangePercent": "0.2255",
+        //         "indexPrice": "1572.67",
+        //         "markPrice": "1572.68"
         //     }
         //
         object percentage = this.safeString(ticker, "changeRate");
         if (isTrue(!isEqual(percentage, null)))
         {
             percentage = Precise.stringMul(percentage, "100");
+        } else
+        {
+            percentage = this.safeString(ticker, "priceChangePercent");
         }
         object last = this.safeStringN(ticker, new List<object>() {"last", "lastTradedPrice", "lastPrice"});
         last = this.safeString(ticker, "price", last);
@@ -2492,12 +2519,13 @@ public partial class kucoin : Exchange
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(ticker, "changePrice") },
+            { "change", this.safeString2(ticker, "changePrice", "priceChange") },
             { "percentage", percentage },
             { "average", this.safeString(ticker, "averagePrice") },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
-            { "markPrice", this.safeString(ticker, "value") },
+            { "markPrice", this.safeString2(ticker, "markPrice", "value") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
@@ -2850,23 +2878,26 @@ public partial class kucoin : Exchange
             //     {
             //         "code": "200000",
             //         "data": {
-            //             "tradeType": "SPOT",
-            //             "ts": 1762061290067,
+            //             "tradeType": "FUTURES",
+            //             "ts": 1782828116206000000,
             //             "list": [
             //                 {
-            //                     "symbol": "BTC-USDT",
-            //                     "name": "BTC-USDT",
-            //                     "bestBidSize": "0.69207954",
-            //                     "bestBidPrice": "110417.5",
-            //                     "bestAskSize": "0.08836606",
-            //                     "bestAskPrice": "110417.6",
-            //                     "lastPrice": "110417.5",
-            //                     "size": "0.00016",
-            //                     "open": "110105.1",
-            //                     "high": "110838.9",
-            //                     "low": "109705.5",
-            //                     "baseVolume": "1882.10069442",
-            //                     "quoteVolume": "207325626.822922498"
+            //                     "symbol": "ETHUSDTM",
+            //                     "bestBidSize": "4",
+            //                     "bestBidPrice": "1573.45",
+            //                     "bestAskSize": "43",
+            //                     "bestAskPrice": "1573.46",
+            //                     "lastPrice": "1573.63",
+            //                     "size": "1",
+            //                     "open": "1570.09",
+            //                     "high": "1637.08",
+            //                     "low": "1549.63",
+            //                     "baseVolume": "282920.90",
+            //                     "quoteVolume": "449940743.674",
+            //                     "priceChange": "3.54",
+            //                     "priceChangePercent": "0.2255",
+            //                     "indexPrice": "1572.67",
+            //                     "markPrice": "1572.68"
             //                 }
             //             ]
             //         }
@@ -3012,6 +3043,11 @@ public partial class kucoin : Exchange
         var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
+        object priceType = this.safeString(parameters, "price");
+        if (isTrue(isTrue((!isEqual(priceType, null))) && isTrue((!isTrue(uta)))))
+        {
+            uta = true; // mark, index, premiumIndex price types are only available for UTA
+        }
         if (isTrue(uta))
         {
             return await this.fetchUTAOHLCV(symbol, timeframe, since, limit, parameters);
@@ -3085,6 +3121,24 @@ public partial class kucoin : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
+        }
+        object priceType = null;
+        var priceTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "price", priceType);
+        priceType = ((IList<object>)priceTypeparametersVariable)[0];
+        parameters = ((IList<object>)priceTypeparametersVariable)[1];
+        if (isTrue(!isEqual(priceType, null)))
+        {
+            object priceTypes = new Dictionary<string, object>() {
+                { "mark", "mark-price" },
+                { "index", "index-price" },
+                { "premiumIndex", "premium-index" },
+            };
+            object suffix = this.safeString(priceTypes, priceType);
+            if (isTrue(isEqual(suffix, null)))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
+            }
+            ((IDictionary<string,object>)request)["symbol"] = add(add(getValue(market, "id"), "-"), suffix);
         }
         object response = await this.utaGetMarketKline(this.extend(request, parameters));
         //

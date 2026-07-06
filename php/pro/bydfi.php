@@ -846,7 +846,7 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve(array( $parsedPosition ), $symbolMessageHash);
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "S" => "1",

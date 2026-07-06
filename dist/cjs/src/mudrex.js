@@ -84,7 +84,7 @@ class mudrex extends mudrex$1["default"] {
                 '1M': '1mth',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/12a65022-f416-4bf8-98eb-5b6b9b05cb6a',
+                'logo': 'https://github.com/user-attachments/assets/72368864-84ed-43eb-8c75-d4fb77023b42',
                 'api': {
                     'public': 'https://trade.mudrex.com/fapi/v1',
                     'private': 'https://trade.mudrex.com/fapi/v1',

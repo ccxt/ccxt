@@ -82,7 +82,6 @@ class bitget(ccxt.async_support.bitget):
                 'watchTrades': {
                     'ignoreDuplicates': True,
                 },
-                'uta': False,
             },
             'streaming': {
                 'ping': self.ping,

@@ -1331,7 +1331,7 @@ public class TestMain extends BaseTest
             }
             // try proxy several times
             Object maxRetries = 3;
-            Object exception = null;
+            Object exceptionMessageString = null;
             for (var j = 0; Helpers.isLessThan(j, maxRetries); j++)
             {
                 try
@@ -1340,14 +1340,14 @@ public class TestMain extends BaseTest
                     return true;  // if successfull, then end the test
                 } catch(Exception e)
                 {
-                    exception = e;
+                    exceptionMessageString = exceptionMessage(e);
                     (exchange.sleep(Helpers.multiply(j, 1000))).join();
                 }
             }
             // if exception was set, then throw it
-            if (Helpers.isTrue(!Helpers.isEqual(exception, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(exceptionMessageString, null)))
             {
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessage(exception));
+                Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessageString);
                 // temporary comment the below, because c# transpilation failure
                 // throw new Exchange Error (errorMessage.toString ());
                 dump(Helpers.add("[TEST_WARNING]", errorMessage));
@@ -1707,8 +1707,8 @@ public class TestMain extends BaseTest
                 {
                     if (Helpers.isTrue(Helpers.isEqual(this.lang, "C#")))
                     {
-                        Object stringifiedNewOutput = exchange.numberToString(sanitizedNewOutput);
-                        Object stringifiedStoredOutput = exchange.numberToString(sanitizedStoredOutput);
+                        Object stringifiedNewOutput = ((String)exchange.numberToString(sanitizedNewOutput));
+                        Object stringifiedStoredOutput = ((String)exchange.numberToString(sanitizedStoredOutput));
                         this.AssertStaticError(Helpers.isEqual(String.valueOf(stringifiedNewOutput), String.valueOf(stringifiedStoredOutput)), messageError, storedOutput, newOutput, AssertingKey);
                     } else
                     {
@@ -1879,7 +1879,7 @@ public class TestMain extends BaseTest
             try
             {
                 Object callOutput = exchange.safeValue(data, "output");
-                this.AssertStaticRequestOutput(exchange, type, skipKeys, Helpers.GetValue(data, "url"), requestUrl, callOutput, output);
+                this.AssertStaticRequestOutput(exchange, type, skipKeys, Helpers.GetValue(data, "url"), ((String)requestUrl), callOutput, output);
             } catch(Exception e)
             {
                 this.requestTestsFailed = true;
@@ -2030,25 +2030,25 @@ public class TestMain extends BaseTest
             if (!Helpers.isTrue(exchange.isEmptyString(apiKey)))
             {
                 // c# to string requirement
-                exchange.apiKey = String.valueOf(apiKey);
+                exchange.apiKey = String.valueOf(((String)apiKey));
             }
             Object secret = exchange.safeString(exchangeData, "secret");
             if (!Helpers.isTrue(exchange.isEmptyString(secret)))
             {
                 // c# to string requirement
-                exchange.secret = String.valueOf(secret);
+                exchange.secret = String.valueOf(((String)secret));
             }
             Object privateKey = exchange.safeString(exchangeData, "privateKey");
             if (!Helpers.isTrue(exchange.isEmptyString(privateKey)))
             {
                 // c# to string requirement
-                exchange.privateKey = String.valueOf(privateKey);
+                exchange.privateKey = String.valueOf(((String)privateKey));
             }
             Object walletAddress = exchange.safeString(exchangeData, "walletAddress");
             if (!Helpers.isTrue(exchange.isEmptyString(walletAddress)))
             {
                 // c# to string requirement
-                exchange.walletAddress = String.valueOf(walletAddress);
+                exchange.walletAddress = String.valueOf(((String)walletAddress));
             }
             Object accounts = exchange.safeList(exchangeData, "accounts");
             if (Helpers.isTrue(accounts))
@@ -2102,7 +2102,7 @@ public class TestMain extends BaseTest
                     }
                     Object type = exchange.safeString(exchangeData, "outputType");
                     Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    (this.testRequestStatically(exchange, method, result, type, skipKeys)).join();
+                    (this.testRequestStatically(exchange, method, result, ((String)type), skipKeys)).join();
                     // reset options
                     exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new java.util.HashMap<String, Object>() {{}}));
                 }
@@ -2128,25 +2128,25 @@ public class TestMain extends BaseTest
             if (!Helpers.isTrue(exchange.isEmptyString(apiKey)))
             {
                 // c# to string requirement
-                exchange.apiKey = String.valueOf(apiKey);
+                exchange.apiKey = String.valueOf(((String)apiKey));
             }
             Object secret = exchange.safeString(exchangeData, "secret");
             if (!Helpers.isTrue(exchange.isEmptyString(secret)))
             {
                 // c# to string requirement
-                exchange.secret = String.valueOf(secret);
+                exchange.secret = String.valueOf(((String)secret));
             }
             Object privateKey = exchange.safeString(exchangeData, "privateKey");
             if (!Helpers.isTrue(exchange.isEmptyString(privateKey)))
             {
                 // c# to string requirement
-                exchange.privateKey = String.valueOf(privateKey);
+                exchange.privateKey = String.valueOf(((String)privateKey));
             }
             Object walletAddress = exchange.safeString(exchangeData, "walletAddress");
             if (!Helpers.isTrue(exchange.isEmptyString(walletAddress)))
             {
                 // c# to string requirement
-                exchange.walletAddress = String.valueOf(walletAddress);
+                exchange.walletAddress = String.valueOf(((String)walletAddress));
             }
             Object methods = exchange.safeValue(exchangeData, "methods", new java.util.HashMap<String, Object>() {{}});
             Object options = exchange.safeValue(exchangeData, "options", new java.util.HashMap<String, Object>() {{}});
@@ -2403,7 +2403,7 @@ public class TestMain extends BaseTest
             Object spotId = "x-TKT5PX2F";
             Object swapId = "x-cvBPrNm9";
             Object inverseSwapId = "x-xcKtGhcu";
-            Object spotOrderRequest = null;
+            Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -2414,7 +2414,7 @@ public class TestMain extends BaseTest
             Object clientOrderId = Helpers.GetValue(spotOrderRequest, "newClientOrderId");
             Object spotIdString = String.valueOf(spotId);
             Assert(((String)clientOrderId).startsWith(((String)spotIdString)), Helpers.add(Helpers.add(Helpers.add("binance - spot clientOrderId: ", clientOrderId), " does not start with spotId"), spotIdString));
-            Object swapOrderRequest = null;
+            Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
@@ -2422,7 +2422,7 @@ public class TestMain extends BaseTest
             {
                 swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
             }
-            Object swapInverseOrderRequest = null;
+            Object swapInverseOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000)).join();
@@ -2438,7 +2438,7 @@ public class TestMain extends BaseTest
             Object clientOrderIdInverse = Helpers.GetValue(swapInverseOrderRequest, "newClientOrderId");
             Assert(((String)clientOrderIdInverse).startsWith(((String)inverseSwapId)), Helpers.add(Helpers.add(Helpers.add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
             // linear swap conditional order
-            Object swapAlgoOrderRequest = null;
+            Object swapAlgoOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new java.util.HashMap<String, Object>() {{
@@ -2454,7 +2454,7 @@ public class TestMain extends BaseTest
             {
                 swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
             }
-            Object createOrdersRequest = null;
+            Object createOrdersRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -2497,7 +2497,7 @@ public class TestMain extends BaseTest
 
             Exchange exchange = this.initOfflineExchange("okx");
             Object id = "6b9ad766b55dBCDE";
-            Object spotOrderRequest = null;
+            Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -2510,7 +2510,7 @@ public class TestMain extends BaseTest
             Assert(((String)clientOrderId).startsWith(((String)idString)), Helpers.add(Helpers.add(Helpers.add("okx - spot clientOrderId: ", clientOrderId), " does not start with id: "), idString));
             Object spotTag = Helpers.GetValue(Helpers.GetValue(spotOrderRequest, 0), "tag");
             Assert(Helpers.isEqual(spotTag, id), Helpers.add(Helpers.add(Helpers.add("okx - id: ", id), " different from spot tag: "), spotTag));
-            Object swapOrderRequest = null;
+            Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
@@ -2539,7 +2539,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("cryptocom");
             Object id = "CCXT";
             (exchange.loadMarkets()).join();
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -2564,7 +2564,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("bybit");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "CCXT";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "brokerId"), id), "id not in options");
             try
@@ -2592,7 +2592,7 @@ public class TestMain extends BaseTest
 
             Exchange exchange = this.initOfflineExchange("kucoin");
             Helpers.addElementToObject(exchange.options, "uta", false); // prevents fetching account mode inside createOrder
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object spotId = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(exchange.options, "partner"), "spot"), "id");
             Object spotKey = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(exchange.options, "partner"), "spot"), "key");
             Assert(Helpers.isEqual(spotId, "ccxt"), Helpers.add(Helpers.add("kucoin - id: ", spotId), " not in options"));
@@ -2655,7 +2655,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("kucoinfutures");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "ccxtfutures";
             Object futureId = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(exchange.options, "partner"), "future"), "id");
             Object futureKey = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(exchange.options, "partner"), "future"), "key");
@@ -2694,7 +2694,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("bitget");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "p4sve";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("bitget - id: ", id), " not in options"));
             try
@@ -2720,7 +2720,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("mexc");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "CCXT";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("mexc - id: ", id), " not in options"));
             (exchange.loadMarkets()).join();
@@ -2749,7 +2749,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("htx");
             // spot test
             Object id = "AA03022abc";
-            Object spotOrderRequest = null;
+            Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -2761,7 +2761,7 @@ public class TestMain extends BaseTest
             Object idString = String.valueOf(id);
             Assert(((String)clientOrderId).startsWith(((String)idString)), Helpers.add(Helpers.add(Helpers.add("htx - spot clientOrderId ", clientOrderId), " does not start with id: "), idString));
             // swap test
-            Object swapOrderRequest = null;
+            Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
@@ -2769,7 +2769,7 @@ public class TestMain extends BaseTest
             {
                 swapOrderRequest = jsonParse(exchange.last_request_body);
             }
-            Object swapInverseOrderRequest = null;
+            Object swapInverseOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000)).join();
@@ -2798,7 +2798,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("woo");
             // spot test
             Object id = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
-            Object spotOrderRequest = null;
+            Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -2810,7 +2810,7 @@ public class TestMain extends BaseTest
             Object idString = String.valueOf(id);
             Assert(((String)brokerId).startsWith(((String)idString)), Helpers.add(Helpers.add(Helpers.add("woo - broker_id: ", brokerId), " does not start with id: "), idString));
             // swap test
-            Object stopOrderRequest = null;
+            Object stopOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
@@ -2837,7 +2837,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("bitmart");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "CCXTxBitmart000";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "brokerId"), id), Helpers.add(Helpers.add("bitmart - id: ", id), " not in options"));
             (exchange.loadMarkets()).join();
@@ -2866,7 +2866,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("coinex");
             Object id = "x-167673045";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "brokerId"), id), Helpers.add(Helpers.add("coinex - id: ", id), " not in options"));
-            Object spotOrderRequest = null;
+            Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -2892,7 +2892,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("bingx");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "CCXT";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("bingx - id: ", id), " not in options"));
             try
@@ -2920,7 +2920,7 @@ public class TestMain extends BaseTest
 
             Exchange exchange = this.initOfflineExchange("phemex");
             Object id = "CCXT123456";
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -2947,7 +2947,7 @@ public class TestMain extends BaseTest
 
             Exchange exchange = this.initOfflineExchange("blofin");
             Object id = "ec6dd3a7dd982d0b";
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("LTC/USDT:USDT", "market", "buy", 1)).join();
@@ -2992,7 +2992,7 @@ public class TestMain extends BaseTest
             Helpers.addElementToObject(exchange.options, "portfolio", "random");
             Object id = "nfqkvdjp";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "brokerId"), id), "id not in options");
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000)).join();
@@ -3019,7 +3019,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("coinbase");
             Object id = "ccxt";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "brokerId"), id), "id not in options");
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDC", "limit", "buy", 1, 20000)).join();
@@ -3051,7 +3051,7 @@ public class TestMain extends BaseTest
             exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
             Object id = "CCXT";
             (exchange.loadMarkets()).join();
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000)).join();
@@ -3077,7 +3077,7 @@ public class TestMain extends BaseTest
 
             Exchange exchange = this.initOfflineExchange("xt");
             Object id = "CCXT";
-            Object spotOrderRequest = null;
+            Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
@@ -3087,7 +3087,7 @@ public class TestMain extends BaseTest
             }
             Object spotMedia = Helpers.GetValue(spotOrderRequest, "media");
             Assert(Helpers.isEqual(spotMedia, id), Helpers.add(Helpers.add(Helpers.add("xt - id: ", id), " different from swap tag: "), spotMedia));
-            Object swapOrderRequest = null;
+            Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
@@ -3143,7 +3143,7 @@ public class TestMain extends BaseTest
         put( "l1_chain_id", "11155111" );
         put( "liquidation_fee", "0.2" );
     }});
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "CCXT";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("paradex - id: ", id), " not in options"));
             (exchange.loadMarkets()).join();
@@ -3170,7 +3170,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("hashkey");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "10000700011";
             try
             {
@@ -3196,7 +3196,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("cryptomus");
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "sell", 1, 20000)).join();
@@ -3227,7 +3227,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("derive");
             Object id = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "id"), id), Helpers.add(Helpers.add("derive - id: ", id), " not in options"));
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 Object parameters = new java.util.HashMap<String, Object>() {{
@@ -3265,7 +3265,7 @@ public class TestMain extends BaseTest
             exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
             Object id = "CCXTMODE";
             (exchange.loadMarkets()).join();
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000)).join();
@@ -3292,7 +3292,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("backpack");
             exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
             exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "1400";
             try
             {
@@ -3318,7 +3318,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Exchange exchange = this.initOfflineExchange("toobit");
-            Object reqHeaders = null;
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             Object id = "177321641268789";
             try
             {
@@ -3346,7 +3346,7 @@ public class TestMain extends BaseTest
             Exchange exchange = this.initOfflineExchange("weex");
             Object id = "b-WEEX111125";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "partner"), id), Helpers.add(Helpers.add("weex - id: ", id), " not in options"));
-            Object request = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
                 (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();

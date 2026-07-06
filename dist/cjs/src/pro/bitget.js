@@ -77,7 +77,6 @@ class bitget extends bitget$1["default"] {
                 'watchTrades': {
                     'ignoreDuplicates': true,
                 },
-                'uta': false,
             },
             'streaming': {
                 'ping': this.ping,
