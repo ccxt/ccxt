@@ -2343,6 +2343,348 @@
                     }
                 ]
             }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "generation 2 fetch deposit",
+                "method": "fetchDeposit",
+                "input": [
+                    "745091135",
+                    "KRW"
+                ],
+                "httpResponse": {
+                    "type": "deposit",
+                    "uuid": "745091135",
+                    "currency": "KRW",
+                    "net_type": null,
+                    "txid": "95827992",
+                    "state": "ACCEPTED",
+                    "created_at": "2026-06-15T09:59:53+09:00",
+                    "done_at": "2026-06-15T10:00:12+09:00",
+                    "amount": "50000",
+                    "fee": "0",
+                    "transaction_type": "default"
+                },
+                "parsedResponse": {
+                    "id": "745091135",
+                    "txid": "95827992",
+                    "timestamp": 1781485193000,
+                    "datetime": "2026-06-15T09:59:53+09:00",
+                    "network": null,
+                    "addressFrom": null,
+                    "address": null,
+                    "addressTo": null,
+                    "amount": 50000,
+                    "type": "deposit",
+                    "currency": "KRW",
+                    "status": "ok",
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": 0,
+                        "rate": null
+                    },
+                    "info": {
+                        "type": "deposit",
+                        "uuid": "745091135",
+                        "currency": "KRW",
+                        "net_type": null,
+                        "txid": "95827992",
+                        "state": "ACCEPTED",
+                        "created_at": "2026-06-15T09:59:53+09:00",
+                        "done_at": "2026-06-15T10:00:12+09:00",
+                        "amount": "50000",
+                        "fee": "0",
+                        "transaction_type": "default"
+                    }
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "generation 2 fetch deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "BTC",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "type": "deposit",
+                        "uuid": "713493400",
+                        "currency": "BTC",
+                        "net_type": null,
+                        "txid": "20251015171930.95017703",
+                        "state": "DEPOSIT_ACCEPTED",
+                        "created_at": "2025-10-15T17:30:42+09:00",
+                        "done_at": "2025-10-15T17:30:42+09:00",
+                        "amount": "0.0000582",
+                        "fee": "0",
+                        "transaction_type": null
+                    },
+                    {
+                        "type": "deposit",
+                        "uuid": "110345419",
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "txid": "b4828e466357ce311861f9aa9e5c2b6bb06333b3910623e216c604f3fe90ecb1",
+                        "state": "DEPOSIT_ACCEPTED",
+                        "created_at": "2017-09-29T08:15:12+09:00",
+                        "done_at": "2017-09-29T08:36:02+09:00",
+                        "amount": "0.23602485",
+                        "fee": "0",
+                        "transaction_type": null
+                    },
+                    {
+                        "type": "deposit",
+                        "uuid": "110345418",
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "txid": "edc5b9318dc5fc29e015c9f41bf5ac7accb76954d70d97d2c804c64323ed7c53",
+                        "state": "DEPOSIT_ACCEPTED",
+                        "created_at": "2017-09-28T03:15:04+09:00",
+                        "done_at": "2017-09-28T03:32:02+09:00",
+                        "amount": "0.3999",
+                        "fee": "0",
+                        "transaction_type": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "110345418",
+                        "txid": "edc5b9318dc5fc29e015c9f41bf5ac7accb76954d70d97d2c804c64323ed7c53",
+                        "timestamp": 1506536104000,
+                        "datetime": "2017-09-28T03:15:04+09:00",
+                        "network": "BTC",
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 0.3999,
+                        "type": "deposit",
+                        "currency": "BTC",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "deposit",
+                            "uuid": "110345418",
+                            "currency": "BTC",
+                            "net_type": "BTC",
+                            "txid": "edc5b9318dc5fc29e015c9f41bf5ac7accb76954d70d97d2c804c64323ed7c53",
+                            "state": "DEPOSIT_ACCEPTED",
+                            "created_at": "2017-09-28T03:15:04+09:00",
+                            "done_at": "2017-09-28T03:32:02+09:00",
+                            "amount": "0.3999",
+                            "fee": "0",
+                            "transaction_type": null
+                        }
+                    },
+                    {
+                        "id": "110345419",
+                        "txid": "b4828e466357ce311861f9aa9e5c2b6bb06333b3910623e216c604f3fe90ecb1",
+                        "timestamp": 1506640512000,
+                        "datetime": "2017-09-29T08:15:12+09:00",
+                        "network": "BTC",
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 0.23602485,
+                        "type": "deposit",
+                        "currency": "BTC",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "deposit",
+                            "uuid": "110345419",
+                            "currency": "BTC",
+                            "net_type": "BTC",
+                            "txid": "b4828e466357ce311861f9aa9e5c2b6bb06333b3910623e216c604f3fe90ecb1",
+                            "state": "DEPOSIT_ACCEPTED",
+                            "created_at": "2017-09-29T08:15:12+09:00",
+                            "done_at": "2017-09-29T08:36:02+09:00",
+                            "amount": "0.23602485",
+                            "fee": "0",
+                            "transaction_type": null
+                        }
+                    },
+                    {
+                        "id": "713493400",
+                        "txid": "20251015171930.95017703",
+                        "timestamp": 1760517042000,
+                        "datetime": "2025-10-15T17:30:42+09:00",
+                        "network": null,
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 0.0000582,
+                        "type": "deposit",
+                        "currency": "BTC",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "deposit",
+                            "uuid": "713493400",
+                            "currency": "BTC",
+                            "net_type": null,
+                            "txid": "20251015171930.95017703",
+                            "state": "DEPOSIT_ACCEPTED",
+                            "created_at": "2025-10-15T17:30:42+09:00",
+                            "done_at": "2025-10-15T17:30:42+09:00",
+                            "amount": "0.0000582",
+                            "fee": "0",
+                            "transaction_type": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 KRW fetch deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "KRW"
+                ],
+                "httpResponse": [
+                    {
+                        "type": "deposit",
+                        "uuid": "745091135",
+                        "currency": "KRW",
+                        "net_type": null,
+                        "txid": "95827992",
+                        "state": "ACCEPTED",
+                        "created_at": "2026-06-15T09:59:53+09:00",
+                        "done_at": "2026-06-15T10:00:12+09:00",
+                        "amount": "50000",
+                        "fee": "0",
+                        "transaction_type": "default"
+                    },
+                    {
+                        "type": "deposit",
+                        "uuid": "141474872",
+                        "currency": "KRW",
+                        "net_type": null,
+                        "txid": "78058989",
+                        "state": "ACCEPTED",
+                        "created_at": "2025-09-30T16:38:18+09:00",
+                        "done_at": "2025-09-30T16:38:31+09:00",
+                        "amount": "10000",
+                        "fee": "0",
+                        "transaction_type": "default"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "141474872",
+                        "txid": "78058989",
+                        "timestamp": 1759217898000,
+                        "datetime": "2025-09-30T16:38:18+09:00",
+                        "network": null,
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 10000,
+                        "type": "deposit",
+                        "currency": "KRW",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "deposit",
+                            "uuid": "141474872",
+                            "currency": "KRW",
+                            "net_type": null,
+                            "txid": "78058989",
+                            "state": "ACCEPTED",
+                            "created_at": "2025-09-30T16:38:18+09:00",
+                            "done_at": "2025-09-30T16:38:31+09:00",
+                            "amount": "10000",
+                            "fee": "0",
+                            "transaction_type": "default"
+                        }
+                    },
+                    {
+                        "id": "745091135",
+                        "txid": "95827992",
+                        "timestamp": 1781485193000,
+                        "datetime": "2026-06-15T09:59:53+09:00",
+                        "network": null,
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 50000,
+                        "type": "deposit",
+                        "currency": "KRW",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "deposit",
+                            "uuid": "745091135",
+                            "currency": "KRW",
+                            "net_type": null,
+                            "txid": "95827992",
+                            "state": "ACCEPTED",
+                            "created_at": "2026-06-15T09:59:53+09:00",
+                            "done_at": "2026-06-15T10:00:12+09:00",
+                            "amount": "50000",
+                            "fee": "0",
+                            "transaction_type": "default"
+                        }
+                    }
+                ]
+            }
         ]
     }
 }

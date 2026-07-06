@@ -56,6 +56,8 @@ export default class bithumb extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
+                'fetchDeposit': true,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -107,6 +109,8 @@ export default class bithumb extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -2378,7 +2382,7 @@ export default class bithumb extends Exchange {
         //
         //     {"status": "0000"}
         //
-        // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals
+        // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
         //
         //     {
         //         "type": "withdraw",
@@ -2469,7 +2473,7 @@ export default class bithumb extends Exchange {
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawal', 'generation', 2);
         if (generation !== 2) {
-            throw new BadRequest (this.id + ' fetchWithdrawal is only supported for the generation 2 API');
+            throw new BadRequest (this.id + ' fetchWithdrawal() is only supported for the generation 2 API');
         }
         await this.loadMarketsGeneration (generation);
         if (code === undefined) {
@@ -2523,7 +2527,7 @@ export default class bithumb extends Exchange {
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'generation', 2);
         if (generation !== 2) {
-            throw new BadRequest (this.id + ' fetchWithdrawals is only supported for the generation 2 API');
+            throw new BadRequest (this.id + ' fetchWithdrawals() is only supported for the generation 2 API');
         }
         await this.loadMarketsGeneration (generation);
         const request: Dict = {};
@@ -2550,6 +2554,115 @@ export default class bithumb extends Exchange {
         //             "currency": "BTC",
         //             "net_type": "BTC",
         //             "state": "processing",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A1%B0%ED%9A%8C
+     * @param {string} id deposit id
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.txid] the transaction id for the deposit
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposit', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' fetchDeposit() is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposit() requires a code argument');
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        if (id !== undefined) {
+            request['uuid'] = id;
+        }
+        const response = await this.privateGetV1Deposit (this.extend (request, params));
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "DEPOSIT_ACCEPTED",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%90%ED%99%94-%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.page] the number of pages to return, default is 1
+     * @param {string} [params.state] the deposit state, for KRW, PROCESSING, ACCEPTED or CANCELLED, for others, DEPOSIT_PROCESSING, DEPOSIT_ACCEPTED, DEPOSIT_CANCELLED
+     * @param {string} [params.order_by] either asc or desc, desc is the default
+     * @param {string[]} [params.uuids] an array of uuid strings
+     * @param {string[]} [params.txids] an array of txid strings
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' fetchDeposits() is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        let currency: Currency = undefined;
+        if (code === 'KRW') {
+            currency = this.currency (code);
+            response = await this.privateGetV1DepositsKrw (this.extend (request, params));
+        } else {
+            if (code !== undefined) {
+                currency = this.currency (code);
+                request['currency'] = currency['id'];
+            }
+            response = await this.privateGetV1Deposits (this.extend (request, params));
+        }
+        //
+        //     [
+        //         {
+        //             "type": "deposit",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "DEPOSIT_ACCEPTED",
         //             "created_at": "2024-07-14T14:54:24+09:00",
         //             "done_at": null,
         //             "amount": "0.00010000",

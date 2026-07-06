@@ -69,7 +69,7 @@
             {
                 "description": "generation 1 fetchTickers",
                 "method": "fetchTickers",
-                "url": "https://api.bithumb.com/public/ticker/ALL_KRW",
+                "url": "https://api.bithumb.com/public/ticker/ALL_BTC",
                 "input": [
                     [
                         "USDC/BTC",
@@ -337,6 +337,37 @@
                 "description": "generation 2 KRW fetchWithdrawals",
                 "method": "fetchWithdrawals",
                 "url": "https://api.bithumb.com/v1/withdraws/krw",
+                "input": [
+                    "KRW"
+                ]
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "generation 2 fetchDeposit",
+                "method": "fetchDeposit",
+                "url": "https://api.bithumb.com/v1/deposit?currency=KRW&uuid=745091135",
+                "input": [
+                    "745091135",
+                    "KRW"
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "generation 2 fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bithumb.com/v1/deposits?limit=3&currency=BTC",
+                "input": [
+                    "BTC",
+                    null,
+                    3
+                ]
+            },
+            {
+                "description": "generation 2 KRW fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bithumb.com/v1/deposits/krw",
                 "input": [
                     "KRW"
                 ]
