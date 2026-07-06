@@ -394,7 +394,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privatePostBalance($params);
         return $this->parse_balance($response);
     }
@@ -410,7 +412,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
@@ -458,7 +462,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
@@ -476,7 +482,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetTickers($params);
         return $this->parse_tickers($response, $symbols);
     }
@@ -529,7 +537,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
@@ -565,7 +575,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'amount' => $amount,
@@ -594,7 +606,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         // a special case for btcbox – default $symbol is BTC/JPY
         if ($symbol === null) {
             $symbol = 'BTC/JPY';
@@ -695,7 +709,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         // a special case for btcbox – default $symbol is BTC/JPY
         if ($symbol === null) {
             $symbol = 'BTC/JPY';
@@ -722,7 +738,9 @@ class btcbox extends Exchange {
     }
 
     public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         // a special case for btcbox – default $symbol is BTC/JPY
         if ($symbol === null) {
             $symbol = 'BTC/JPY';

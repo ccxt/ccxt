@@ -17,7 +17,6 @@ class Exchange extends \ccxt\async\Exchange {
 // todo: fix the conflict of ccxt.exchanges vs ccxtpro.exchanges
 
 Exchange::$exchanges = array(
-    'aftermath',
     'alpaca',
     'apex',
     'aster',

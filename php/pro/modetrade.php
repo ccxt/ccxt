@@ -108,7 +108,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'orderbook';
             $market = $this->market($symbol);
             $topic = $market['id'] . '@' . $name;
@@ -170,7 +172,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'ticker';
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -262,7 +266,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $name = 'tickers';
             $topic = $name;
@@ -321,7 +327,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $name = 'bbos';
             $topic = $name;
@@ -397,7 +405,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if (($timeframe !== '1m') && ($timeframe !== '5m') && ($timeframe !== '15m') && ($timeframe !== '30m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
                 throw new NotSupported($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
             }
@@ -480,7 +490,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $topic = $market['id'] . '@trade';
@@ -701,7 +713,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {bool} [$params->trigger] true if $trigger order
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
             $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -739,7 +753,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {bool} [$params->trigger] true if $trigger order
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
             $params = $this->omit($params, 'stop');
@@ -1027,7 +1043,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols);
             if (($symbols !== null) && !$this->is_empty($symbols)) {
@@ -1229,7 +1247,9 @@ class modetrade extends \ccxt\async\modetrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $topic = 'balance';
             $messageHash = $topic;
             $request = array(

@@ -333,7 +333,6 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
-        'aftermath',
         'alpaca',
         'apex',
         'aster',

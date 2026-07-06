@@ -179,12 +179,16 @@ class deribit extends \ccxt\async\deribit {
              * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $interval = $this->safe_string($params, 'interval', '100ms');
             $params = $this->omit($params, 'interval');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($interval === 'raw') {
                 Async\await($this->authenticate());
             }
@@ -214,12 +218,16 @@ class deribit extends \ccxt\async\deribit {
              * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $url = $this->urls['api']['ws'];
             $interval = $this->safe_string($params, 'interval', '100ms');
             $params = $this->omit($params, 'interval');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($interval === 'raw') {
                 Async\await($this->authenticate());
             }
@@ -298,7 +306,9 @@ class deribit extends \ccxt\async\deribit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $url = $this->urls['api']['ws'];
             $channels = array();
@@ -729,7 +739,9 @@ class deribit extends \ccxt\async\deribit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate($params));
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
@@ -827,7 +839,9 @@ class deribit extends \ccxt\async\deribit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
             return $ohlcvs[$symbol][$timeframe];
@@ -929,7 +943,9 @@ class deribit extends \ccxt\async\deribit {
 
     public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, $symbolsArray = null, $params = array()) {
         return Async\async(function () use ($channelName, $channelDescriptor, $symbolsArray, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $rawSubscriptions = array();
             $messageHashes = array();
