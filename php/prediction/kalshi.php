@@ -1600,6 +1600,7 @@ class kalshi extends Exchange {
         $ticker = $this->safe_string($position, 'ticker');
         $outcomeObj = $this->safe_outcome($ticker, $market);
         $yesContracts = $this->safe_number($position, 'position');  // positive = long YES
+        $positionSide = null;
         $contractsValue = null;
         if ($yesContracts !== null) {
             $positionSide = ($yesContracts >= 0) ? 'long' : 'short';

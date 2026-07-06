@@ -1462,7 +1462,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         ticker = self.safe_string(position, 'ticker')
         outcomeObj = self.safe_outcome(ticker, market)
         yesContracts = self.safe_number(position, 'position')  # positive = long YES
-        positionSide: Str
+        positionSide = None
         contractsValue = None
         if yesContracts is not None:
             positionSide = 'long' if (yesContracts >= 0) else 'short'

@@ -1598,7 +1598,7 @@ export default class kalshi extends Exchange {
         const ticker = this.safeString (position, 'ticker');
         const outcomeObj = this.safeOutcome (ticker, market as any);
         const yesContracts = this.safeNumber (position, 'position');  // positive = long YES
-        let positionSide: Str;
+        let positionSide: Str = undefined;
         let contractsValue = undefined;
         if (yesContracts !== undefined) {
             positionSide = (yesContracts >= 0) ? 'long' : 'short';

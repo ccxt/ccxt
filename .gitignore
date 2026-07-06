@@ -43,4 +43,6 @@ bin/
 obj/
 __debug*
 *.o
-.custom_gitignorego/main
+.custom_gitignore
+go/main
+go/tests/main
