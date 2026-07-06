@@ -38,15 +38,10 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
     // check network entries
     if (!('networks' in skippedProperties)) {
         const networks = entry['networks'];
-        const networkKeys = Object.keys (networks);
-        const networkKeysLength = networkKeys.length;
-        if (networkKeysLength === 0 && ('skipCurrenciesWithoutNetworks' in skippedProperties)) {
-            return;
-        }
+        const networkKeys: string[] = Object.keys (networks);
         // check each network entry (they have somewhat similar structure as root currency structure)
-        const networksKeys = Object.keys (networks);
-        for (let i = 0; i < networksKeys.length; i++) {
-            const networkCode = networksKeys[i];
+        for (let i = 0; i < networkKeys.length; i++) {
+            const networkCode = networkKeys[i];
             const networkEntry = networks[networkCode];
             helperTestSharedCurrencyFormat (exchange, skippedProperties, method, networkEntry, networkFormat);
         }
