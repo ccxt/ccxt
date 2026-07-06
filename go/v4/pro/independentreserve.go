@@ -67,9 +67,11 @@ func  (this *IndependentreserveCore) WatchTrades(symbol any, optionalArgs ...any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes538 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes538)
+                retRes5412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes5412)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "?subscribe=ticker-"), ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))
@@ -169,9 +171,11 @@ func  (this *IndependentreserveCore) WatchOrderBook(symbol any, optionalArgs ...
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1398 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1398)
+                retRes14212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes14212)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {

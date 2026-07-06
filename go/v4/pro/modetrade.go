@@ -126,9 +126,11 @@ func  (this *ModetradeCore) WatchOrderBook(symbol any, optionalArgs ...any) <- c
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1068 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1068)
+                retRes10712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes10712)
+            }
             var name any = "orderbook"
             var market any = this.Market(symbol)
             var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
@@ -199,9 +201,11 @@ func  (this *ModetradeCore) WatchTicker(symbol any, optionalArgs ...any) <- chan
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1668 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1668)
+                retRes16912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes16912)
+            }
             var name any = "ticker"
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -212,9 +216,9 @@ func  (this *ModetradeCore) WatchTicker(symbol any, optionalArgs ...any) <- chan
             }
             var message any = this.Extend(request, params)
         
-                retRes17615 :=  (<-this.WatchPublic(topic, message))
-                ccxt.PanicOnError(retRes17615)
-                ch <- retRes17615
+                retRes18015 :=  (<-this.WatchPublic(topic, message))
+                ccxt.PanicOnError(retRes18015)
+                ch <- retRes18015
                 return nil
         
             }()
@@ -305,9 +309,11 @@ func  (this *ModetradeCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2568 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2568)
+                retRes26112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes26112)
+            }
             symbols = this.MarketSymbols(symbols)
             var name any = "tickers"
             var topic any = name
@@ -379,9 +385,11 @@ func  (this *ModetradeCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3138 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3138)
+                retRes32012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes32012)
+            }
             symbols = this.MarketSymbols(symbols)
             var name any = "bbos"
             var topic any = name
@@ -475,9 +483,11 @@ func  (this *ModetradeCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan 
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3878 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3878)
+                retRes39612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes39612)
+            }
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1m"))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "5m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "15m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "30m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1M")))) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")))
             }
@@ -566,9 +576,11 @@ func  (this *ModetradeCore) WatchTrades(symbol any, optionalArgs ...any) <- chan
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4688 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4688)
+                retRes47912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes47912)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
@@ -756,9 +768,9 @@ func  (this *ModetradeCore) Authenticate(optionalArgs ...any) <- chan any {
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes64215 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes64215)
-                ch <- retRes64215
+                retRes65415 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes65415)
+                ch <- retRes65415
                 return nil
         
             }()
@@ -772,8 +784,8 @@ func  (this *ModetradeCore) WatchPrivate(messageHash any, message any, optionalA
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes6468 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes6468)
+            retRes6588 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes6588)
             var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
             var requestId any = this.RequestId(url)
             var subscribe any = map[string]any {
@@ -781,9 +793,9 @@ func  (this *ModetradeCore) WatchPrivate(messageHash any, message any, optionalA
             }
             var request any = this.Extend(subscribe, message)
         
-                retRes65315 :=  (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-                ccxt.PanicOnError(retRes65315)
-                ch <- retRes65315
+                retRes66515 :=  (<-this.Watch(url, messageHash, request, messageHash, subscribe))
+                ccxt.PanicOnError(retRes66515)
+                ch <- retRes66515
                 return nil
         
             }()
@@ -797,8 +809,8 @@ func  (this *ModetradeCore) WatchPrivateMultiple(messageHashes any, message any,
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes6578 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes6578)
+            retRes6698 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes6698)
             var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
             var requestId any = this.RequestId(url)
             var subscribe any = map[string]any {
@@ -806,9 +818,9 @@ func  (this *ModetradeCore) WatchPrivateMultiple(messageHashes any, message any,
             }
             var request any = this.Extend(subscribe, message)
         
-                retRes66415 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
-                ccxt.PanicOnError(retRes66415)
-                ch <- retRes66415
+                retRes67615 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
+                ccxt.PanicOnError(retRes67615)
+                ch <- retRes67615
                 return nil
         
             }()
@@ -840,9 +852,11 @@ func  (this *ModetradeCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6818)
+                retRes69412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes69412)
+            }
             var trigger any = this.SafeBool2(params, "stop", "trigger", false)
             var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
             params = this.Omit(params, []any{"stop", "trigger"})
@@ -896,9 +910,11 @@ func  (this *ModetradeCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes7178 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7178)
+                retRes73212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes73212)
+            }
             var trigger any = this.SafeBool2(params, "stop", "trigger", false)
             var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
             params = this.Omit(params, "stop")
@@ -1200,9 +1216,11 @@ func  (this *ModetradeCore) WatchPositions(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes10038 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10038)
+                retRes102012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes102012)
+            }
             var messageHashes any = []any{}
             symbols = this.MarketSymbols(symbols)
             if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbols, nil))) && !ccxt.IsTrue(this.IsEmpty(symbols))) {
@@ -1427,9 +1445,11 @@ func  (this *ModetradeCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes12018 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12018)
+                retRes122012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes122012)
+            }
             var topic any = "balance"
             var messageHash any = topic
             var request any = map[string]any {
@@ -1438,9 +1458,9 @@ func  (this *ModetradeCore) WatchBalance(optionalArgs ...any) <- chan any {
             }
             var message any = this.Extend(request, params)
         
-                retRes120915 :=  (<-this.WatchPrivate(messageHash, message))
-                ccxt.PanicOnError(retRes120915)
-                ch <- retRes120915
+                retRes122915 :=  (<-this.WatchPrivate(messageHash, message))
+                ccxt.PanicOnError(retRes122915)
+                ch <- retRes122915
                 return nil
         
             }()
@@ -1615,10 +1635,10 @@ func  (this *ModetradeCore) Pong(client any, message any) <- chan any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                 
-            retRes13588 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+            retRes13788 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
                 "event": "pong",
             }))
-            ccxt.PanicOnError(retRes13588)
+            ccxt.PanicOnError(retRes13788)
                 return nil
             }()
             return ch

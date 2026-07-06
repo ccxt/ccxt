@@ -76,9 +76,11 @@ func  (this *MudrexCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes678 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes678)
+                retRes6812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes6812)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add("ticker:", symbol)
@@ -92,9 +94,9 @@ func  (this *MudrexCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
             }
             var request any = this.Extend(subscribe, params)
         
-                retRes8015 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes8015)
-                ch <- retRes8015
+                retRes8215 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes8215)
+                ch <- retRes8215
                 return nil
         
             }()
@@ -109,9 +111,11 @@ func  (this *MudrexCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes848)
+                retRes8712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes8712)
+            }
             symbols = this.MarketSymbols(symbols)
             var messageHashes any = []any{}
             var assets any = []any{}
@@ -161,9 +165,11 @@ func  (this *MudrexCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1148 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1148)
+                retRes11912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes11912)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var priceType any = this.SafeString(params, "price")
