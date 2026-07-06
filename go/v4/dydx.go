@@ -226,7 +226,7 @@ func (this *DydxCore) Describe() any {
 			"privateKey": false,
 		},
 		"options": map[string]any{
-			"mnemonic":             nil,
+			"privateKey":           nil,
 			"chainName":            "dydx-mainnet-1",
 			"chainId":              1,
 			"sandboxMode":          false,
@@ -1437,12 +1437,12 @@ func (this *DydxCore) RetrieveCredentials() any {
 	if IsTrue(!IsEqual(credentials, nil)) {
 		return credentials
 	}
-	var entropy any = this.SafeString(this.Options, "mnemonic")
-	if IsTrue(IsEqual(entropy, nil)) {
+	var privateKey any = this.SafeString(this.Options, "privateKey")
+	if IsTrue(IsEqual(privateKey, nil)) {
 		var signature any = this.SignOnboardingAction()
-		entropy = this.HashMessage(this.Base16ToBinary(Add(GetValue(signature, "r"), GetValue(signature, "s"))))
+		privateKey = this.HashMessage(this.Base16ToBinary(Add(GetValue(signature, "r"), GetValue(signature, "s"))))
 	}
-	credentials = this.RetrieveDydxCredentials(entropy)
+	credentials = this.RetrieveDydxCredentials(privateKey)
 	AddElementToObject(credentials, "privateKey", this.BinaryToBase16(GetValue(credentials, "privateKey")))
 	AddElementToObject(credentials, "publicKey", this.BinaryToBase16(GetValue(credentials, "publicKey")))
 	AddElementToObject(this.Options, "dydxCredentials", credentials)
