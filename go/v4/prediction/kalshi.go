@@ -2594,9 +2594,31 @@ func (this *KalshiCore) FetchEventsByQuery(queries any, limit any, optionalArgs 
 				break
 			}
 
-			fullEvent := (<-this.FetchRawEventByTicker(ccxt.GetValue(eventTickers, ei), rest))
-			ccxt.PanicOnError(fullEvent)
-			ccxt.AppendToArray(&rawEvents, fullEvent)
+			{
+				func(this *KalshiCore) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *KalshiCore) any {
+								// catch block:
+								if !ccxt.IsTrue((ccxt.IsInstance(e, ccxt.BadSymbol))) {
+									panic(e)
+								}
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					fullEvent := (<-this.FetchRawEventByTicker(ccxt.GetValue(eventTickers, ei), rest))
+					ccxt.PanicOnError(fullEvent)
+					ccxt.AppendToArray(&rawEvents, fullEvent)
+					return nil
+				}(this)
+
+			}
 		}
 
 		ch <- rawEvents

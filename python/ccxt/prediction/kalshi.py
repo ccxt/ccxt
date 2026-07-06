@@ -1934,8 +1934,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
             collectedLength = len(rawEvents)
             if (limit is not None) and (collectedLength >= limit):
                 break
-            fullEvent = await self.fetch_raw_event_by_ticker(eventTickers[ei], rest)
-            rawEvents.append(fullEvent)
+            # the series search can rank a ticker whose /events/{ticker} endpoint 404s(a series-only
+            # ticker, or one absent on the demo host) — skip it rather than failing the whole query
+            try:
+                fullEvent = await self.fetch_raw_event_by_ticker(eventTickers[ei], rest)
+                rawEvents.append(fullEvent)
+            except Exception as e:
+                if not (isinstance(e, BadSymbol)):
+                    raise e
         return rawEvents
 
     async def fetch_raw_event_by_ticker(self, ticker: str, params={}) -> Any:

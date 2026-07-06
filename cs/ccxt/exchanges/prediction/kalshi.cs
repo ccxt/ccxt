@@ -2357,8 +2357,17 @@ public partial class kalshi : PredictionExchange
             {
                 break;
             }
-            object fullEvent = await this.fetchRawEventByTicker(getValue(eventTickers, ei), rest);
-            ((IList<object>)rawEvents).Add(fullEvent);
+            try
+            {
+                object fullEvent = await this.fetchRawEventByTicker(getValue(eventTickers, ei), rest);
+                ((IList<object>)rawEvents).Add(fullEvent);
+            } catch(Exception e)
+            {
+                if (!isTrue((e is BadSymbol)))
+                {
+                    throw e;
+                }
+            }
         }
         return rawEvents;
     }

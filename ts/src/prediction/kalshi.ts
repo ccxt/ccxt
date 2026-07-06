@@ -2128,8 +2128,16 @@ export default class kalshi extends Exchange {
             if ((limit !== undefined) && (collectedLength >= limit)) {
                 break;
             }
-            const fullEvent = await this.fetchRawEventByTicker (eventTickers[ei], rest);
-            rawEvents.push (fullEvent);
+            // the series search can rank a ticker whose /events/{ticker} endpoint 404s (a series-only
+            // ticker, or one absent on the demo host) — skip it rather than failing the whole query
+            try {
+                const fullEvent = await this.fetchRawEventByTicker (eventTickers[ei], rest);
+                rawEvents.push (fullEvent);
+            } catch (e) {
+                if (!(e instanceof BadSymbol)) {
+                    throw e;
+                }
+            }
         }
         return rawEvents;
     }

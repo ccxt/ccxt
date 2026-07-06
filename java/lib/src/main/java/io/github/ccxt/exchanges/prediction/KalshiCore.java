@@ -2572,8 +2572,17 @@ final Object finalOi = oi;
                 {
                     break;
                 }
-                Object fullEvent = (this.fetchRawEventByTicker(Helpers.GetValue(eventTickers, ei), rest)).join();
-                ((java.util.List<Object>)rawEvents).add(fullEvent);
+                try
+                {
+                    Object fullEvent = (this.fetchRawEventByTicker(Helpers.GetValue(eventTickers, ei), rest)).join();
+                    ((java.util.List<Object>)rawEvents).add(fullEvent);
+                } catch(Exception e)
+                {
+                    if (!Helpers.isTrue((Helpers.isInstance(e, BadSymbol.class))))
+                    {
+                        throw e;
+                    }
+                }
             }
             return rawEvents;
         });

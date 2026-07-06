@@ -2144,8 +2144,16 @@ class kalshi extends Exchange {
                 if (($limit !== null) && ($collectedLength >= $limit)) {
                     break;
                 }
-                $fullEvent = Async\await($this->fetch_raw_event_by_ticker($eventTickers[$ei], $rest));
-                $rawEvents[] = $fullEvent;
+                // the series search can rank a ticker whose /events/{ticker} endpoint 404s (a series-only
+                // ticker, or one absent on the demo host) — skip it rather than failing the whole query
+                try {
+                    $fullEvent = Async\await($this->fetch_raw_event_by_ticker($eventTickers[$ei], $rest));
+                    $rawEvents[] = $fullEvent;
+                } catch (Exception $e) {
+                    if (!($e instanceof BadSymbol)) {
+                        throw $e;
+                    }
+                }
             }
             return $rawEvents;
         })();
