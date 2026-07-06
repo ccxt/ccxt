@@ -162,7 +162,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         options = self.safe_dict(self.options, 'watchTicker', {})
@@ -184,7 +185,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         topic = 'ticker'
         options = self.safe_dict(self.options, 'watchTicker', {})
@@ -255,7 +257,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.trade.detail'
@@ -277,7 +280,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         topic = 'trades'
         options = self.safe_dict(self.options, 'watchTrades', {})
@@ -339,7 +343,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -364,7 +369,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         subMessageHash = 'market.' + market['id'] + '.kline.' + interval
@@ -420,7 +426,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         allowedLimits = [5, 20, 150, 400]
@@ -460,7 +467,8 @@ class htx(ccxt.async_support.htx):
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         topic = 'orderbook'
         options = self.safe_dict(self.options, 'watchOrderBook', {})
@@ -771,7 +779,8 @@ class htx(ccxt.async_support.htx):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         marketId = '*'  # wildcard
         market = None
@@ -882,7 +891,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         subType = None
         market = None
@@ -1454,7 +1464,8 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         messageHash = ''
         if not self.is_empty(symbols):
@@ -1643,7 +1654,8 @@ class htx(ccxt.async_support.htx):
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params, 'linear')
         isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
         params = self.omit(params, ['isUnifiedAccount', 'unified'])
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = None
         channel = None
         marginMode = None

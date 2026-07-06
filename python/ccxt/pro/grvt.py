@@ -138,7 +138,8 @@ class grvt(ccxt.async_support.grvt):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], self.extend(params, {'callerMethodName': 'watchTicker'}))
         return tickers[symbol]
@@ -159,7 +160,8 @@ class grvt(ccxt.async_support.grvt):
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
         interval = None
         interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', 500)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         rawHashes = []
         messageHashes = []
@@ -298,7 +300,8 @@ class grvt(ccxt.async_support.grvt):
         :param str [params.limit]: 50, 200, 500, 1000(default 50)
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         rawHashes = []
         messageHashes = []
@@ -374,7 +377,8 @@ class grvt(ccxt.async_support.grvt):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
@@ -392,7 +396,8 @@ class grvt(ccxt.async_support.grvt):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -471,7 +476,8 @@ class grvt(ccxt.async_support.grvt):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -487,7 +493,8 @@ class grvt(ccxt.async_support.grvt):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBook', 'channel', 'v1.book.d')
         isSnapshot = channel == 'v1.book.s'
@@ -615,7 +622,8 @@ class grvt(ccxt.async_support.grvt):
         :param boolean [params.unifiedMargin]: use unified margin account
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         subAccountId = self.getSubAccountId(params)
         messageHashes = []
@@ -697,7 +705,8 @@ class grvt(ccxt.async_support.grvt):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.authenticate()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subAccountId = self.getSubAccountId(params)
         symbols = self.market_symbols(symbols)
         rawHashes = []
@@ -776,7 +785,8 @@ class grvt(ccxt.async_support.grvt):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         subAccountId = self.getSubAccountId(params)
         messageHashes = []

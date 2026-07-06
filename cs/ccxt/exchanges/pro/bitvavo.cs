@@ -64,7 +64,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async virtual Task<object> watchPublic(object name, object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add(name, "@"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -82,7 +85,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async virtual Task<object> watchPublicMultiple(object methodName, object channelName, object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object messageHashes = new List<object>() {methodName};
         object args = new List<object>() {};
@@ -130,7 +136,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object channel = "ticker24h";
         object tickers = await this.watchPublicMultiple(channel, channel, symbols, parameters);
@@ -191,7 +200,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object channel = "ticker24h";
         object tickers = await this.watchPublicMultiple("bidask", channel, symbols, parameters);
@@ -247,7 +259,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object trades = await this.watchPublic("trades", symbol, parameters);
         if (isTrue(this.newUpdates))
@@ -302,7 +317,10 @@ public partial class bitvavo : ccxt.bitvavo
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object name = "candles";
@@ -401,7 +419,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object name = "book";
@@ -622,7 +643,10 @@ public partial class bitvavo : ccxt.bitvavo
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -662,7 +686,10 @@ public partial class bitvavo : ccxt.bitvavo
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -712,7 +739,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return await this.watchRequest("privateCreateOrder", request);
@@ -735,7 +765,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         return await this.watchRequest("privateUpdateOrder", request);
@@ -754,7 +787,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.cancelOrderRequest(id, symbol, parameters);
         return await this.watchRequest("privateCancelOrder", request);
@@ -772,7 +808,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = new Dictionary<string, object>() {};
         object operatorId = null;
@@ -834,7 +873,10 @@ public partial class bitvavo : ccxt.bitvavo
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -862,7 +904,10 @@ public partial class bitvavo : ccxt.bitvavo
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrdersWs() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
         object orders = await this.watchRequest("privateGetOrders", request);
@@ -900,7 +945,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -931,7 +979,10 @@ public partial class bitvavo : ccxt.bitvavo
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTradesWs() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
         object myTrades = await this.watchRequest("privateGetTrades", request);
@@ -988,7 +1039,10 @@ public partial class bitvavo : ccxt.bitvavo
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.withdrawRequest(code, amount, address, tag, parameters);
         return await this.watchRequest("privateWithdrawAssets", request);
@@ -1028,7 +1082,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> fetchWithdrawalsWs(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
         object withdraws = await this.watchRequest("privateGetWithdrawalHistory", request);
@@ -1078,7 +1135,10 @@ public partial class bitvavo : ccxt.bitvavo
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
         object action = "getCandles";
         object ohlcv = await this.watchRequest(action, request);
@@ -1099,7 +1159,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> fetchDepositsWs(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = this.fetchDepositsRequest(code, since, limit, parameters);
         object deposits = await this.watchRequest("privateGetDepositHistory", request);
@@ -1142,7 +1205,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> fetchTradingFeesWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         return await this.watchRequest("privateGetAccount", parameters);
     }
@@ -1172,7 +1238,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> fetchCurrenciesWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         return await this.watchRequest("getAssets", parameters);
     }
 
@@ -1235,7 +1304,10 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<object> fetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         return await this.watchRequest("privateGetBalance", parameters);
     }

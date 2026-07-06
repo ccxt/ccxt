@@ -36,7 +36,10 @@ public partial class upbit : ccxt.upbit
     public async virtual Task<object> watchPublicMultiple(object symbols, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbols, null)))
         {
             symbols = this.symbols;
@@ -464,7 +467,10 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = "myOrder";
         object messageHash = "myOrder";
         object orders = await this.watchPrivate(symbol, channel, messageHash);
@@ -489,7 +495,10 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = "myOrder";
         object messageHash = "myTrades";
         object trades = await this.watchPrivate(symbol, channel, messageHash);
@@ -705,7 +714,10 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = "myAsset";
         object messageHash = "myAsset";
         return await this.watchPrivate(null, channel, messageHash);

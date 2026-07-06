@@ -5,10 +5,20 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
-import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
 import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
 import { utf8 } from '@scure/base';
+// websocket decompression backends are resolved once at startup so the message
+// hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
+// inflate is always raw deflate (no zlib header), hence node's inflateRawSync.
+let gunzipSync = undefined;
+let inflateRawSync = undefined;
+if (isNode) {
+    import(/* webpackIgnore: true */ 'node:zlib').then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateRawSync; }).catch(() => { });
+}
+else {
+    import(/* webpackMode: "eager" */ 'fflate').then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch(() => { });
+}
 export default class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
@@ -278,7 +288,7 @@ export default class Client {
                     arrayBuffer = gunzipSync(arrayBuffer);
                 }
                 else if (this.inflate) {
-                    arrayBuffer = inflateSync(arrayBuffer);
+                    arrayBuffer = inflateRawSync(arrayBuffer);
                 }
                 message = utf8.encode(arrayBuffer);
             }

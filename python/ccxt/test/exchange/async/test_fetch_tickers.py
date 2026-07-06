@@ -36,7 +36,10 @@ async def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, a
     for i in range(0, len(values)):
         # todo: symbol check here
         ticker = values[i]
-        test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+        try:
+            test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+        except Exception as ex:
+            await test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker)
     return response
 
 

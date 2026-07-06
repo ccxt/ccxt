@@ -373,7 +373,8 @@
     "piscina": "^4.9.3"
   },
   "optionalDependencies": {
-    "bufferutil": "4.1.0"
+    "bufferutil": "4.1.0",
+    "fflate": "0.8.3"
   },
   "peerDependencies": {
     "protobufjs": "^7.5.3"

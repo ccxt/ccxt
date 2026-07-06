@@ -138,7 +138,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("trades::", getValue(market, "symbol"));
         object url = "/trading-api/v1/market-data/trades";
@@ -214,7 +217,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), getValue(market, "id"));
@@ -299,7 +305,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object url = "/trading-api/v1/market-data/orderbook";
         object messageHash = add("orderbook::", getValue(market, "symbol"));
@@ -397,7 +406,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subscribeHash = "orders";
         object messageHash = subscribeHash;
         if (isTrue(!isEqual(symbol, null)))
@@ -525,7 +537,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subscribeHash = "myTrades";
         object messageHash = subscribeHash;
         if (isTrue(!isEqual(symbol, null)))
@@ -643,7 +658,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "topic", "assetAccounts" },
         };
@@ -747,7 +765,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subscribeHash = "positions";
         object messageHash = subscribeHash;
         if (isTrue(isTrue((!isEqual(symbols, null))) && !isTrue(this.isEmpty(symbols))))

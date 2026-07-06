@@ -677,7 +677,7 @@ class Exchange {
                     this.fetchDispatcher = new undiciModule.Agent(this.getDispatcherOptions(true));
                     // node:zlib for transparent gzip/br/deflate response decompression (see undiciBody),
                     // node:http for the reason phrases that undici.request responses do not carry
-                    this.zlibModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:zlib')); });
+                    this.zlibModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ 'node:zlib'); });
                     const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
                     this.httpStatusTexts = httpModule.STATUS_CODES;
                     this.fetchIsNative = true;

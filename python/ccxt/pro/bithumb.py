@@ -51,7 +51,8 @@ class bithumb(ccxt.async_support.bithumb):
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         url = self.urls['api']['ws']['public']
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         request = {
@@ -71,7 +72,8 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         marketIds = []
         messageHashes = []
@@ -187,7 +189,8 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
@@ -273,7 +276,8 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
@@ -383,7 +387,8 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         messageHash = 'myAsset'
@@ -464,7 +469,8 @@ class bithumb(ccxt.async_support.bithumb):
         :param str[] [params.codes]: market codes to filter orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         messageHash = 'myOrder'

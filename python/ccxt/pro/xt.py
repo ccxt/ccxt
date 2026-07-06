@@ -265,7 +265,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_ticker'(contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         options = self.safe_dict(self.options, 'watchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker')
@@ -286,7 +287,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_ticker'(contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         options = self.safe_dict(self.options, 'unWatchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker')
@@ -308,7 +310,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_tickers'(contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
@@ -333,7 +336,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_tickers'(contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_dict(self.options, 'unWatchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
@@ -359,7 +363,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         ohlcv = await self.subscribe(name, 'public', 'watchOHLCV', market, None, params)
@@ -379,7 +384,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         messageHash = 'unsubscribe::' + name
@@ -399,7 +405,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'trade@' + market['id']
         trades = await self.subscribe(name, 'public', 'watchTrades', market, None, params)
@@ -418,7 +425,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'trade@' + market['id']
         messageHash = 'unsubscribe::' + name
@@ -439,7 +447,8 @@ class xt(ccxt.async_support.xt):
         :param int [params.levels]: 5, 10, 20, or 50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
         params = self.omit(params, 'levels')
@@ -463,7 +472,8 @@ class xt(ccxt.async_support.xt):
         :param int [params.levels]: 5, 10, 20, or 50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
         params = self.omit(params, 'levels')
@@ -486,7 +496,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'order'
         market = None
         if symbol is not None:
@@ -509,7 +520,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the kucoin api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'trade'
         market = None
         if symbol is not None:
@@ -529,7 +541,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'balance'
         return await self.subscribe(name, 'private', 'watchBalance', None, None, params)
 
@@ -545,7 +558,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['contract'] + '/' + 'user'
         client = self.client(url)
         self.set_positions_cache(client)

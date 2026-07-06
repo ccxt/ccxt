@@ -285,7 +285,9 @@ class mudrex extends Exchange {
              * @param {string} [$params->price] "mark" to fetch mark price candles
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $priceType = $this->safe_string($params, 'price');
             $params = $this->omit($params, 'price');
@@ -370,7 +372,9 @@ class mudrex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_id' => $market['id'],
@@ -393,7 +397,9 @@ class mudrex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $response = Async\await($this->privateGetFutures($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data', array());
@@ -573,7 +579,9 @@ class mudrex extends Exchange {
              * @param {string} [$params->trade_currency] the settlement $currency to query the balance for
              * @return {array} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params, 'swap');
             $requested = $this->safe_string_n($params, array( 'trade_currency', 'tradeCurrency', 'currency' ));
@@ -635,7 +643,9 @@ class mudrex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_id' => $market['id'],
@@ -669,7 +679,9 @@ class mudrex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marginType = $this->safe_string($params, 'marginType', 'ISOLATED');
             $request = array(
@@ -709,7 +721,9 @@ class mudrex extends Exchange {
              * @param {string} [$params->trade_currency] the settlement currency for the order
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             // standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
             // an existing position through the riskorder endpoint, so a $positionId is required
@@ -787,7 +801,9 @@ class mudrex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -889,7 +905,9 @@ class mudrex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -915,7 +933,9 @@ class mudrex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -941,7 +961,9 @@ class mudrex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $q = array();
             if ($limit !== null) {
                 $q['limit'] = $limit;
@@ -1030,7 +1052,9 @@ class mudrex extends Exchange {
              * @param {string} [$params->trade_currency] the settlement currency to query positions for
              * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $q = array();
             $response = Async\await($this->privateGetFuturesPositions($this->extend($q, $params)));
             $data = $this->safe_value($response, 'data', array());
@@ -1064,7 +1088,9 @@ class mudrex extends Exchange {
              * @param {string} [$params->trade_currency] the settlement currency to filter $positions by
              * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $request = array();
             if ($limit !== null) {
@@ -1165,7 +1191,9 @@ class mudrex extends Exchange {
              * @param {float} [$params->amount] the $amount to close for a partial close, closes the whole position if not provided
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $positionId = $this->safe_string($params, 'position_id');
             $amount = $this->safe_value($params, 'amount');
             if ($positionId === null) {
@@ -1217,7 +1245,9 @@ class mudrex extends Exchange {
              * @param {string} [$params->position_id] the id of the position to add margin to, resolved from the $symbol if not provided
              * @return {array} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $positionId = $this->safe_string($params, 'position_id');
             if ($positionId === null) {
                 $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
@@ -1271,7 +1301,9 @@ class mudrex extends Exchange {
              * @param {string} [$params->trade_currency] the settlement currency to filter trades by
              * @return {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);

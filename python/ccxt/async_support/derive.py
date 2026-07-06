@@ -741,7 +741,8 @@ class derive(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
@@ -909,7 +910,8 @@ class derive(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1022,7 +1024,8 @@ class derive(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
@@ -1172,7 +1175,8 @@ class derive(Exchange, ImplicitAPI):
         :param float [params.max_fee]: *required* the maximum fee you are willing to pay for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
@@ -1355,7 +1359,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         subaccountId = None
         subaccountId, params = self.handle_derive_subaccount_id('editOrder', params)
@@ -1517,7 +1522,8 @@ class derive(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         subaccountId = None
@@ -1602,7 +1608,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1647,7 +1654,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
@@ -1738,7 +1746,8 @@ class derive(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         extendedParams = self.extend(params, {'status': 'open'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
@@ -1755,7 +1764,8 @@ class derive(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         extendedParams = self.extend(params, {'status': 'filled'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
@@ -1772,7 +1782,8 @@ class derive(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         extendedParams = self.extend(params, {'status': 'cancelled'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
@@ -1929,7 +1940,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subaccountId = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchOrderTrades', params)
         request = {
@@ -1999,7 +2011,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -2075,7 +2088,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subaccountId = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchPositions', params)
         request = {
@@ -2213,7 +2227,8 @@ class derive(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
@@ -2307,7 +2322,8 @@ class derive(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         deriveWalletAddress = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('fetchBalance', params)
         request = {
@@ -2398,7 +2414,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subaccountId = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchDeposits', params)
         request = {
@@ -2443,7 +2460,8 @@ class derive(Exchange, ImplicitAPI):
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subaccountId = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchWithdrawals', params)
         request = {

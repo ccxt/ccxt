@@ -99,7 +99,8 @@ class mexc(ccxt.async_support.mexc):
         :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         if market['spot']:
@@ -210,7 +211,8 @@ class mexc(ccxt.async_support.mexc):
         :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None)
         messageHashes = []
         firstSymbol = self.safe_string(symbols, 0)
@@ -416,7 +418,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
         marketType = None
         if symbols is None:
@@ -545,7 +548,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_value(self.options, 'timeframes', {})
@@ -731,7 +735,8 @@ class mexc(ccxt.async_support.mexc):
         :param str [params.frequency]: the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
@@ -916,7 +921,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
@@ -1020,7 +1026,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrades'
         market = None
         if symbol is not None:
@@ -1190,7 +1197,8 @@ class mexc(ccxt.async_support.mexc):
         :param str|None params['type']: the type of orders to retrieve, can be 'spot' or 'margin'
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders'
         market = None
         if symbol is not None:
@@ -1459,7 +1467,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'balance:' + type
@@ -1534,7 +1543,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'fundingRate:' + market['symbol']
         channel = 'sub.funding.rate'
@@ -1553,7 +1563,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'unsubscribe:fundingRate:' + market['symbol']
         url = None
@@ -1594,7 +1605,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'unsubscribe:ticker:' + market['symbol']
         url = None
@@ -1622,7 +1634,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None)
         messageHashes = []
         firstSymbol = self.safe_string(symbols, 0)
@@ -1678,7 +1691,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
         marketType = None
         if symbols is None:
@@ -1714,7 +1728,8 @@ class mexc(ccxt.async_support.mexc):
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_value(self.options, 'timeframes', {})
@@ -1746,7 +1761,8 @@ class mexc(ccxt.async_support.mexc):
         :param str [params.frequency]: the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'unsubscribe:orderbook:' + symbol
@@ -1777,7 +1793,8 @@ class mexc(ccxt.async_support.mexc):
         :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'unsubscribe:trades:' + symbol
