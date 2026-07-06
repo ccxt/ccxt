@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class coinex extends coinexRest {
     describe() {
@@ -66,21 +66,21 @@ export default class coinex extends coinexRest {
             'streaming': {},
             'exceptions': {
                 'exact': {
-                    '20001': BadRequest,
-                    '20002': NotSupported,
-                    '21001': AuthenticationError,
-                    '21002': AuthenticationError,
-                    '23001': RequestTimeout,
-                    '23002': RateLimitExceeded,
-                    '24001': ExchangeError,
-                    '24002': ExchangeNotAvailable,
-                    '30001': BadRequest,
-                    '30002': NotSupported,
-                    '31001': AuthenticationError,
-                    '31002': AuthenticationError,
-                    '33001': RequestTimeout,
-                    '33002': RateLimitExceeded,
-                    '34001': ExchangeError,
+                    '20001': BadRequest, // Invalid argument
+                    '20002': NotSupported, // Method unavailable
+                    '21001': AuthenticationError, // Authentication required
+                    '21002': AuthenticationError, // Incorrect signature
+                    '23001': RequestTimeout, // Request service timeout
+                    '23002': RateLimitExceeded, // Requests too frequently
+                    '24001': ExchangeError, // Internal error
+                    '24002': ExchangeNotAvailable, // Service unavailable temporarily
+                    '30001': BadRequest, // Invalid argument
+                    '30002': NotSupported, // Method unavailable
+                    '31001': AuthenticationError, // Authentication required
+                    '31002': AuthenticationError, // Incorrect signature
+                    '33001': RequestTimeout, // Request service timeout
+                    '33002': RateLimitExceeded, // Requests too frequently
+                    '34001': ExchangeError, // Internal error
                     '34002': ExchangeNotAvailable, // Service unavailable temporarily
                 },
                 'broad': {},
@@ -88,8 +88,10 @@ export default class coinex extends coinexRest {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     handleTicker(client, message) {
@@ -248,10 +250,12 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
      * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params, 'spot');
         await this.authenticate(type);
@@ -409,10 +413,12 @@ export default class coinex extends coinexRest {
      * @param {int} [since] the earliest time in ms to watch trades
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -626,10 +632,12 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[market['symbol']];
@@ -642,10 +650,12 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketIds = this.marketIds(symbols);
         let market = undefined;
         const messageHashes = [];
@@ -686,7 +696,7 @@ export default class coinex extends coinexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchTrades';
@@ -702,10 +712,12 @@ export default class coinex extends coinexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const subscribedSymbols = [];
         const messageHashes = [];
         let market = undefined;
@@ -747,10 +759,12 @@ export default class coinex extends coinexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const watchOrderBookSubscriptions = {};
         const messageHashes = [];
         let market = undefined;
@@ -806,14 +820,14 @@ export default class coinex extends coinexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 0, 1);
+        const bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {
@@ -895,10 +909,12 @@ export default class coinex extends coinexRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let messageHash = 'orders';
@@ -1223,10 +1239,12 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const marketIds = this.marketIds(symbols);
         const messageHashes = [];
         let market = undefined;

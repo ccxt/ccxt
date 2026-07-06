@@ -13,7 +13,8 @@ public partial class testMainClass : BaseTest
         object method = "watchTradesForSymbols";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object returnedSymbols = new List<object>() {};
+        while (isTrue(isLessThan(now, ends)) || isTrue(isLessThan(getArrayLength(returnedSymbols), getArrayLength(symbols))))
         {
             object response = null;
             object success = true;
@@ -28,7 +29,7 @@ public partial class testMainClass : BaseTest
                 }
                 now = exchange.milliseconds();
             }
-            if (isTrue(isEqual(success, true)))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
                 now = exchange.milliseconds();
@@ -37,12 +38,16 @@ public partial class testMainClass : BaseTest
                 {
                     object trade = getValue(response, i);
                     symbol = getValue(trade, "symbol");
+                    if (isTrue(isEqual(symbol, null)))
+                    {
+                        continue;
+                    }
                     testTrade(exchange, skippedProperties, method, trade, symbol, now);
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
-                }
-                if (!isTrue((inOp(skippedProperties, "timestamp"))))
-                {
-                    testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
+                    if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
+                    {
+                        ((IList<object>)returnedSymbols).Add(symbol);
+                    }
                 }
             }
         }

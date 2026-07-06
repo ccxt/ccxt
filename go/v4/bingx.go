@@ -13,16 +13,16 @@ func NewBingxCore() *BingxCore {
 	return p
 }
 
-func (this *BingxCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *BingxCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bingx",
 		"name":      "BingX",
-		"countries": []interface{}{"US"},
+		"countries": []any{"US"},
 		"rateLimit": 100,
 		"version":   "v1",
 		"certified": true,
 		"pro":       true,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                                 nil,
 			"spot":                                 true,
 			"margin":                               false,
@@ -30,6 +30,9 @@ func (this *BingxCore) Describe() interface{} {
 			"future":                               false,
 			"option":                               false,
 			"addMargin":                            true,
+			"borrowCrossMargin":                    false,
+			"borrowIsolatedMargin":                 false,
+			"borrowMargin":                         false,
 			"cancelAllOrders":                      true,
 			"cancelAllOrdersAfter":                 true,
 			"cancelOrder":                          true,
@@ -50,9 +53,18 @@ func (this *BingxCore) Describe() interface{} {
 			"createTrailingPercentOrder":           true,
 			"createTriggerOrder":                   true,
 			"editOrder":                            true,
+			"fetchAllGreeks":                       false,
 			"fetchBalance":                         true,
+			"fetchBorrowInterest":                  false,
+			"fetchBorrowRate":                      false,
+			"fetchBorrowRateHistories":             false,
+			"fetchBorrowRateHistory":               false,
+			"fetchBorrowRates":                     false,
+			"fetchBorrowRatesPerSymbol":            false,
 			"fetchCanceledOrders":                  true,
 			"fetchClosedOrders":                    true,
+			"fetchCrossBorrowRate":                 false,
+			"fetchCrossBorrowRates":                false,
 			"fetchCurrencies":                      true,
 			"fetchDepositAddress":                  true,
 			"fetchDepositAddresses":                false,
@@ -60,13 +72,18 @@ func (this *BingxCore) Describe() interface{} {
 			"fetchDeposits":                        true,
 			"fetchDepositWithdrawFee":              "emulated",
 			"fetchDepositWithdrawFees":             true,
+			"fetchFundingHistory":                  true,
 			"fetchFundingRate":                     true,
 			"fetchFundingRateHistory":              true,
 			"fetchFundingRates":                    true,
+			"fetchGreeks":                          false,
+			"fetchIsolatedBorrowRate":              false,
+			"fetchIsolatedBorrowRates":             false,
 			"fetchLeverage":                        true,
 			"fetchLiquidations":                    false,
 			"fetchMarginAdjustmentHistory":         false,
 			"fetchMarginMode":                      true,
+			"fetchMarketLeverageTiers":             true,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       true,
 			"fetchMarkPrice":                       true,
@@ -76,6 +93,8 @@ func (this *BingxCore) Describe() interface{} {
 			"fetchOHLCV":                           true,
 			"fetchOpenInterest":                    true,
 			"fetchOpenOrders":                      true,
+			"fetchOption":                          false,
+			"fetchOptionChain":                     false,
 			"fetchOrder":                           true,
 			"fetchOrderBook":                       true,
 			"fetchOrders":                          true,
@@ -90,8 +109,11 @@ func (this *BingxCore) Describe() interface{} {
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      true,
 			"fetchTransfers":                       true,
+			"fetchVolatilityHistory":               false,
 			"fetchWithdrawals":                     true,
 			"reduceMargin":                         true,
+			"repayCrossMargin":                     false,
+			"repayIsolatedMargin":                  false,
 			"sandbox":                              true,
 			"setLeverage":                          true,
 			"setMargin":                            true,
@@ -100,9 +122,9 @@ func (this *BingxCore) Describe() interface{} {
 			"transfer":                             true,
 		},
 		"hostname": "bingx.com",
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"fund":        "https://open-api.{hostname}/openApi",
 				"spot":        "https://open-api.{hostname}/openApi",
 				"swap":        "https://open-api.{hostname}/openApi",
@@ -115,44 +137,54 @@ func (this *BingxCore) Describe() interface{} {
 				"cswap":       "https://open-api.{hostname}/openApi",
 				"api":         "https://open-api.{hostname}/openApi",
 			},
-			"test": map[string]interface{}{
-				"swap": "https://open-api-vst.{hostname}/openApi",
+			"test": map[string]any{
+				"fund":        "https://open-api-vst.{hostname}/openApi",
+				"spot":        "https://open-api-vst.{hostname}/openApi",
+				"swap":        "https://open-api-vst.{hostname}/openApi",
+				"contract":    "https://open-api-vst.{hostname}/openApi",
+				"wallets":     "https://open-api-vst.{hostname}/openApi",
+				"user":        "https://open-api-vst.{hostname}/openApi",
+				"subAccount":  "https://open-api-vst.{hostname}/openApi",
+				"account":     "https://open-api-vst.{hostname}/openApi",
+				"copyTrading": "https://open-api-vst.{hostname}/openApi",
+				"cswap":       "https://open-api-vst.{hostname}/openApi",
+				"api":         "https://open-api-vst.{hostname}/openApi",
 			},
 			"www":      "https://bingx.com/",
 			"doc":      "https://bingx-api.github.io/docs/",
 			"referral": "https://bingx.com/invite/OHETOM",
 		},
-		"fees": map[string]interface{}{
+		"fees": map[string]any{
 			"tierBased": true,
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"feeSide": "get",
 				"maker":   this.ParseNumber("0.001"),
 				"taker":   this.ParseNumber("0.001"),
 			},
-			"swap": map[string]interface{}{
+			"swap": map[string]any{
 				"feeSide": "quote",
 				"maker":   this.ParseNumber("0.0002"),
 				"taker":   this.ParseNumber("0.0005"),
 			},
 		},
-		"requiredCredentials": map[string]interface{}{
+		"requiredCredentials": map[string]any{
 			"apiKey": true,
 			"secret": true,
 		},
-		"api": map[string]interface{}{
-			"fund": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+		"api": map[string]any{
+			"fund": map[string]any{
+				"v1": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
 							"account/balance": 1,
 						},
 					},
 				},
 			},
-			"spot": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"public": map[string]interface{}{
-						"get": map[string]interface{}{
+			"spot": map[string]any{
+				"v1": map[string]any{
+					"public": map[string]any{
+						"get": map[string]any{
 							"server/time":       1,
 							"common/symbols":    1,
 							"market/trades":     1,
@@ -163,16 +195,19 @@ func (this *BingxCore) Describe() interface{} {
 							"ticker/bookTicker": 1,
 						},
 					},
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
-							"trade/query":         1,
-							"trade/openOrders":    1,
-							"trade/historyOrders": 1,
-							"trade/myTrades":      2,
-							"user/commissionRate": 5,
-							"account/balance":     2,
+					"private": map[string]any{
+						"get": map[string]any{
+							"trade/query":          1,
+							"trade/openOrders":     1,
+							"trade/historyOrders":  1,
+							"trade/myTrades":       2,
+							"user/commissionRate":  5,
+							"account/balance":      2,
+							"oco/orderList":        5,
+							"oco/openOrderList":    5,
+							"oco/historyOrderList": 5,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"trade/order":               2,
 							"trade/cancel":              2,
 							"trade/batchOrders":         5,
@@ -180,43 +215,47 @@ func (this *BingxCore) Describe() interface{} {
 							"trade/cancelOrders":        5,
 							"trade/cancelOpenOrders":    5,
 							"trade/cancelAllAfter":      5,
+							"oco/order":                 5,
+							"oco/cancel":                5,
 						},
 					},
 				},
-				"v2": map[string]interface{}{
-					"public": map[string]interface{}{
-						"get": map[string]interface{}{
+				"v2": map[string]any{
+					"public": map[string]any{
+						"get": map[string]any{
 							"market/depth": 1,
 							"market/kline": 1,
+							"ticker/price": 1,
 						},
 					},
 				},
-				"v3": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+				"v3": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
 							"get/asset/transfer":       1,
 							"asset/transfer":           1,
 							"capital/deposit/hisrec":   1,
 							"capital/withdraw/history": 1,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"post/asset/transfer": 5,
 						},
 					},
 				},
 			},
-			"swap": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"public": map[string]interface{}{
-						"get": map[string]interface{}{
+			"swap": map[string]any{
+				"v1": map[string]any{
+					"public": map[string]any{
+						"get": map[string]any{
 							"ticker/price":            1,
 							"market/historicalTrades": 1,
 							"market/markPriceKlines":  1,
 							"trade/multiAssetsRules":  1,
+							"tradingRules":            1,
 						},
 					},
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+					"private": map[string]any{
+						"get": map[string]any{
 							"positionSide/dual":        5,
 							"trade/batchCancelReplace": 5,
 							"trade/fullOrder":          2,
@@ -229,7 +268,8 @@ func (this *BingxCore) Describe() interface{} {
 							"trade/assetMode":          5,
 							"user/marginAssets":        5,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
+							"trade/amend":              2,
 							"trade/cancelReplace":      2,
 							"positionSide/dual":        5,
 							"trade/batchCancelReplace": 5,
@@ -238,12 +278,14 @@ func (this *BingxCore) Describe() interface{} {
 							"twap/order":               5,
 							"twap/cancelOrder":         5,
 							"trade/assetMode":          5,
+							"trade/reverse":            5,
+							"trade/autoAddMargin":      5,
 						},
 					},
 				},
-				"v2": map[string]interface{}{
-					"public": map[string]interface{}{
-						"get": map[string]interface{}{
+				"v2": map[string]any{
+					"public": map[string]any{
+						"get": map[string]any{
 							"server/time":        1,
 							"quote/contracts":    1,
 							"quote/price":        1,
@@ -257,8 +299,8 @@ func (this *BingxCore) Describe() interface{} {
 							"quote/bookTicker":   1,
 						},
 					},
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+					"private": map[string]any{
+						"get": map[string]any{
 							"user/balance":        2,
 							"user/positions":      2,
 							"user/income":         2,
@@ -275,7 +317,8 @@ func (this *BingxCore) Describe() interface{} {
 							"user/commissionRate": 2,
 							"quote/bookTicker":    1,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
+							"trade/getVst":            5,
 							"trade/order":             2,
 							"trade/batchOrders":       2,
 							"trade/closeAllPositions": 2,
@@ -285,25 +328,30 @@ func (this *BingxCore) Describe() interface{} {
 							"trade/positionMargin":    5,
 							"trade/order/test":        2,
 						},
-						"delete": map[string]interface{}{
+						"delete": map[string]any{
 							"trade/order":         2,
 							"trade/batchOrders":   2,
 							"trade/allOpenOrders": 2,
 						},
 					},
 				},
-				"v3": map[string]interface{}{
-					"public": map[string]interface{}{
-						"get": map[string]interface{}{
+				"v3": map[string]any{
+					"public": map[string]any{
+						"get": map[string]any{
 							"quote/klines": 1,
+						},
+					},
+					"private": map[string]any{
+						"get": map[string]any{
+							"user/balance": 2,
 						},
 					},
 				},
 			},
-			"cswap": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"public": map[string]interface{}{
-						"get": map[string]interface{}{
+			"cswap": map[string]any{
+				"v1": map[string]any{
+					"public": map[string]any{
+						"get": map[string]any{
 							"market/contracts":    1,
 							"market/premiumIndex": 1,
 							"market/openInterest": 1,
@@ -312,8 +360,8 @@ func (this *BingxCore) Describe() interface{} {
 							"market/ticker":       1,
 						},
 					},
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+					"private": map[string]any{
+						"get": map[string]any{
 							"trade/leverage":      2,
 							"trade/forceOrders":   2,
 							"trade/allFillOrders": 2,
@@ -325,7 +373,7 @@ func (this *BingxCore) Describe() interface{} {
 							"user/positions":      2,
 							"user/balance":        2,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"trade/order":             2,
 							"trade/leverage":          2,
 							"trade/allOpenOrders":     2,
@@ -333,17 +381,17 @@ func (this *BingxCore) Describe() interface{} {
 							"trade/marginType":        2,
 							"trade/positionMargin":    2,
 						},
-						"delete": map[string]interface{}{
+						"delete": map[string]any{
 							"trade/allOpenOrders": 2,
 							"trade/cancelOrder":   2,
 						},
 					},
 				},
 			},
-			"contract": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+			"contract": map[string]any{
+				"v1": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
 							"allPosition": 2,
 							"allOrders":   2,
 							"balance":     2,
@@ -351,10 +399,10 @@ func (this *BingxCore) Describe() interface{} {
 					},
 				},
 			},
-			"wallets": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+			"wallets": map[string]any{
+				"v1": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
 							"capital/config/getall":                    5,
 							"capital/deposit/address":                  5,
 							"capital/innerTransfer/records":            1,
@@ -363,7 +411,7 @@ func (this *BingxCore) Describe() interface{} {
 							"capital/subAccount/innerTransfer/records": 1,
 							"capital/deposit/riskRecords":              5,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"capital/withdraw/apply":                5,
 							"capital/innerTransfer/apply":           5,
 							"capital/subAccountInnerTransfer/apply": 2,
@@ -372,15 +420,15 @@ func (this *BingxCore) Describe() interface{} {
 					},
 				},
 			},
-			"subAccount": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+			"subAccount": map[string]any{
+				"v1": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
 							"list":              10,
 							"assets":            2,
 							"allAccountBalance": 2,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"create":        10,
 							"apiKey/create": 2,
 							"apiKey/edit":   2,
@@ -390,27 +438,27 @@ func (this *BingxCore) Describe() interface{} {
 					},
 				},
 			},
-			"account": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+			"account": map[string]any{
+				"v1": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
 							"uid":                    1,
 							"apiKey/query":           2,
 							"account/apiPermissions": 5,
 							"allAccountBalance":      2,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"innerTransfer/authorizeSubAccount": 1,
 						},
 					},
 				},
-				"transfer": map[string]interface{}{
-					"v1": map[string]interface{}{
-						"private": map[string]interface{}{
-							"get": map[string]interface{}{
+				"transfer": map[string]any{
+					"v1": map[string]any{
+						"private": map[string]any{
+							"get": map[string]any{
 								"subAccount/asset/transferHistory": 1,
 							},
-							"post": map[string]interface{}{
+							"post": map[string]any{
 								"subAccount/transferAsset/supportCoins": 1,
 								"subAccount/transferAsset":              1,
 							},
@@ -418,66 +466,91 @@ func (this *BingxCore) Describe() interface{} {
 					},
 				},
 			},
-			"user": map[string]interface{}{
-				"auth": map[string]interface{}{
-					"private": map[string]interface{}{
-						"post": map[string]interface{}{
+			"user": map[string]any{
+				"auth": map[string]any{
+					"private": map[string]any{
+						"post": map[string]any{
 							"userDataStream": 2,
 						},
-						"put": map[string]interface{}{
+						"put": map[string]any{
 							"userDataStream": 2,
 						},
-						"delete": map[string]interface{}{
+						"delete": map[string]any{
 							"userDataStream": 2,
 						},
 					},
 				},
 			},
-			"copyTrading": map[string]interface{}{
-				"v1": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
-							"swap/trace/currentTrack": 2,
+			"copyTrading": map[string]any{
+				"v1": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
+							"swap/trace/currentTrack":        2,
+							"PFutures/traderDetail":          2,
+							"PFutures/profitHistorySummarys": 2,
+							"PFutures/profitDetail":          2,
+							"PFutures/tradingPairs":          2,
+							"spot/traderDetail":              2,
+							"spot/profitHistorySummarys":     2,
+							"spot/profitDetail":              2,
+							"spot/historyOrder":              2,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"swap/trace/closeTrackOrder": 2,
 							"swap/trace/setTPSL":         2,
+							"PFutures/setCommission":     2,
 							"spot/trader/sellOrder":      10,
 						},
 					},
 				},
 			},
-			"api": map[string]interface{}{
-				"v3": map[string]interface{}{
-					"private": map[string]interface{}{
-						"get": map[string]interface{}{
+			"api": map[string]any{
+				"v3": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
 							"asset/transfer":           1,
 							"asset/transferRecord":     5,
 							"capital/deposit/hisrec":   1,
 							"capital/withdraw/history": 1,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"post/asset/transfer": 1,
 						},
 					},
 				},
-				"asset": map[string]interface{}{
-					"v1": map[string]interface{}{
-						"private": map[string]interface{}{
-							"post": map[string]interface{}{
+				"asset": map[string]any{
+					"v1": map[string]any{
+						"private": map[string]any{
+							"post": map[string]any{
 								"transfer": 5,
 							},
 						},
-						"public": map[string]interface{}{
-							"get": map[string]interface{}{
+						"public": map[string]any{
+							"get": map[string]any{
 								"transfer/supportCoins": 5,
 							},
 						},
 					},
 				},
 			},
+			"agent": map[string]any{
+				"v1": map[string]any{
+					"private": map[string]any{
+						"get": map[string]any{
+							"account/inviteAccountList":       5,
+							"reward/commissionDataList":       5,
+							"account/inviteRelationCheck":     5,
+							"asset/depositDetailList":         5,
+							"reward/third/commissionDataList": 5,
+							"asset/partnerData":               5,
+							"commissionDataList/referralCode": 5,
+							"account/superiorCheck":           5,
+						},
+					},
+				},
+			},
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1m",
 			"3m":  "3m",
 			"5m":  "5m",
@@ -494,8 +567,8 @@ func (this *BingxCore) Describe() interface{} {
 			"1M":  "1M",
 		},
 		"precisionMode": TICK_SIZE,
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"400":                  BadRequest,
 				"401":                  AuthenticationError,
 				"403":                  PermissionDenied,
@@ -527,18 +600,18 @@ func (this *BingxCore) Describe() interface{} {
 				"Insufficient assets":  InsufficientFunds,
 				"illegal transferType": BadRequest,
 			},
-			"broad": map[string]interface{}{},
+			"broad": map[string]any{},
 		},
-		"commonCurrencies": map[string]interface{}{
+		"commonCurrencies": map[string]any{
 			"SNOW":     "Snowman",
 			"OMNI":     "OmniCat",
 			"NAP":      "$NAP",
 			"TRUMP":    "TRUMPMAGA",
 			"TRUMPSOL": "TRUMP",
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"defaultType": "spot",
-			"accountsByType": map[string]interface{}{
+			"accountsByType": map[string]any{
 				"funding": "fund",
 				"spot":    "spot",
 				"future":  "stdFutures",
@@ -546,7 +619,7 @@ func (this *BingxCore) Describe() interface{} {
 				"linear":  "USDTMPerp",
 				"inverse": "coinMPerp",
 			},
-			"accountsById": map[string]interface{}{
+			"accountsById": map[string]any{
 				"fund":       "funding",
 				"spot":       "spot",
 				"stdFutures": "future",
@@ -555,14 +628,14 @@ func (this *BingxCore) Describe() interface{} {
 			},
 			"recvWindow": Multiply(5, 1000),
 			"broker":     "CCXT",
-			"defaultNetworks": map[string]interface{}{
+			"defaultNetworks": map[string]any{
 				"ETH":  "ETH",
 				"USDT": "ERC20",
 				"USDC": "ERC20",
 				"BTC":  "BTC",
 				"LTC":  "LTC",
 			},
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"ARBITRUM": "ARB",
 				"MATIC":    "POLYGON",
 				"ZKSYNC":   "ZKSYNCERA",
@@ -570,13 +643,13 @@ func (this *BingxCore) Describe() interface{} {
 				"HBAR":     "HEDERA",
 			},
 		},
-		"features": map[string]interface{}{
-			"defaultForLinear": map[string]interface{}{
+		"features": map[string]any{
+			"defaultForLinear": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":   false,
 					"triggerPrice": true,
-					"triggerPriceType": map[string]interface{}{
+					"triggerPriceType": map[string]any{
 						"last":  true,
 						"mark":  true,
 						"index": true,
@@ -584,15 +657,15 @@ func (this *BingxCore) Describe() interface{} {
 					"triggerDirection": false,
 					"stopLossPrice":    true,
 					"takeProfitPrice":  true,
-					"attachedStopLossTakeProfit": map[string]interface{}{
-						"triggerPriceType": map[string]interface{}{
+					"attachedStopLossTakeProfit": map[string]any{
+						"triggerPriceType": map[string]any{
 							"last":  true,
 							"mark":  true,
 							"index": true,
 						},
 						"price": true,
 					},
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -606,30 +679,30 @@ func (this *BingxCore) Describe() interface{} {
 					"selfTradePrevention":    false,
 					"iceberg":                false,
 				},
-				"createOrders": map[string]interface{}{
+				"createOrders": map[string]any{
 					"max": 5,
 				},
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          512,
 					"daysBack":       30,
 					"untilDays":      30,
 					"symbolRequired": true,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": true,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          1000,
 					"daysBack":       20000,
@@ -638,7 +711,7 @@ func (this *BingxCore) Describe() interface{} {
 					"trailing":       false,
 					"symbolRequired": true,
 				},
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            1000,
 					"daysBack":         nil,
@@ -648,61 +721,62 @@ func (this *BingxCore) Describe() interface{} {
 					"trailing":         false,
 					"symbolRequired":   true,
 				},
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 1440,
 				},
 			},
-			"defaultForInverse": map[string]interface{}{
+			"defaultForInverse": map[string]any{
 				"extends": "defaultForLinear",
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"limit":     1000,
 					"daysBack":  nil,
 					"untilDays": nil,
 				},
 				"fetchOrders": nil,
 			},
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"extends": "defaultForLinear",
-				"fetchCurrencies": map[string]interface{}{
+				"fetchCurrencies": map[string]any{
 					"private": true,
 				},
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"triggerPriceType":           nil,
 					"attachedStopLossTakeProfit": nil,
 					"trailing":                   false,
 				},
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"limit":     1000,
 					"daysBack":  1,
 					"untilDays": 1,
 				},
 				"fetchOrders": nil,
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"limit":     100,
 					"untilDays": nil,
 				},
 			},
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "defaultForLinear",
 				},
-				"inverse": map[string]interface{}{
+				"inverse": map[string]any{
 					"extends": "defaultForInverse",
 				},
 			},
-			"defaultForFuture": map[string]interface{}{
+			"defaultForFuture": map[string]any{
 				"extends":     "defaultForLinear",
 				"fetchOrders": nil,
 			},
-			"future": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"future": map[string]any{
+				"linear": map[string]any{
 					"extends": "defaultForFuture",
 				},
-				"inverse": map[string]interface{}{
+				"inverse": map[string]any{
 					"extends": "defaultForFuture",
 				},
 			},
 		},
+		"rollingWindowSize": 2000,
 	})
 }
 
@@ -714,12 +788,12 @@ func (this *BingxCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the bingx server
  */
-func (this *BingxCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.SwapV2PublicGetServerTime(params))
@@ -733,7 +807,7 @@ func (this *BingxCore) FetchTime(optionalArgs ...interface{}) <-chan interface{}
 		//        }
 		//    }
 		//
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data")
 
 		ch <- this.SafeInteger(data, "serverTime")
 		return nil
@@ -746,26 +820,26 @@ func (this *BingxCore) FetchTime(optionalArgs ...interface{}) <-chan interface{}
  * @method
  * @name bingx#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *BingxCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		if !IsTrue(this.CheckRequiredCredentials(false)) {
 
-			ch <- map[string]interface{}{}
+			ch <- map[string]any{}
 			return nil
 		}
-		var isSandbox interface{} = this.SafeBool(this.Options, "sandboxMode", false)
+		var isSandbox any = this.SafeBool(this.Options, "sandboxMode", false)
 		if IsTrue(isSandbox) {
 
-			ch <- map[string]interface{}{}
+			ch <- map[string]any{}
 			return nil
 		}
 
@@ -773,122 +847,110 @@ func (this *BingxCore) FetchCurrencies(optionalArgs ...interface{}) <-chan inter
 		PanicOnError(response)
 		//
 		//    {
-		//      "code": 0,
-		//      "timestamp": 1702623271476,
-		//      "data": [
-		//        {
-		//          "coin": "BTC",
-		//          "name": "BTC",
-		//          "networkList": [
+		//        "code": "0",
+		//        "timestamp": "1779364918914",
+		//        "data": [
 		//            {
-		//              "name": "BTC",
-		//              "network": "BTC",
-		//              "isDefault": true,
-		//              "minConfirm": 2,
-		//              "withdrawEnable": true,
-		//              "depositEnable": true,
-		//              "withdrawFee": "0.0006",
-		//              "withdrawMax": "1.17522",
-		//              "withdrawMin": "0.0005",
-		//              "depositMin": "0.0002"
+		//                "coin": "BTC",
+		//                "name": "BTC",
+		//                "networkList": [
+		//                    {
+		//                        "name": "BTC",
+		//                        "network": "BTC",
+		//                        "isDefault": true,
+		//                        "minConfirm": "2",
+		//                        "withdrawEnable": true,
+		//                        "depositEnable": true,
+		//                        "withdrawFee": "0.00004",
+		//                        "withdrawMax": "64.77131128",
+		//                        "withdrawMin": "0.000046",
+		//                        "depositMin": "0.00009",
+		//                        "withdrawPrecision": "8",
+		//                        "depositPrecision": "8",
+		//                        "contractAddress": "",
+		//                        "needTagOrMemo": "false",
+		//                        "displayName": "BTC"
+		//                    },
+		//                    {
+		//                        "name": "BTC",
+		//                        "network": "BEP20",
+		//                        "isDefault": true,
+		//                        "minConfirm": "10",
+		//                        "withdrawEnable": true,
+		//                        "depositEnable": true,
+		//                        "withdrawFee": "0.000001",
+		//                        "withdrawMax": "64.77131128",
+		//                        "withdrawMin": "0.000065",
+		//                        "depositMin": "0.000012",
+		//                        "withdrawPrecision": "8",
+		//                        "depositPrecision": "18",
+		//                        "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+		//                        "needTagOrMemo": "false",
+		//                        "displayName": "BTCBEP20"
+		//                    }
+		//                ]
 		//            },
-		//            {
-		//              "name": "BTC",
-		//              "network": "BEP20",
-		//              "isDefault": false,
-		//              "minConfirm": 15,
-		//              "withdrawEnable": true,
-		//              "depositEnable": true,
-		//              "withdrawFee": "0.0000066",
-		//              "withdrawMax": "1.17522",
-		//              "withdrawMin": "0.0000066",
-		//              "depositMin": "0.0002"
-		//            }
-		//          ]
-		//        }
-		//      ]
-		//    }
+		//            ...
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
-		var result interface{} = map[string]interface{}{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry interface{} = GetValue(data, i)
-			var currencyId interface{} = this.SafeString(entry, "coin")
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var name interface{} = this.SafeString(entry, "name")
-			var networkList interface{} = this.SafeList(entry, "networkList")
-			var networks interface{} = map[string]interface{}{}
-			for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
-				var rawNetwork interface{} = GetValue(networkList, j)
-				var network interface{} = this.SafeString(rawNetwork, "network")
-				var networkCode interface{} = this.NetworkIdToCode(network)
-				var limits interface{} = map[string]interface{}{
-					"withdraw": map[string]interface{}{
-						"min": this.SafeNumber(rawNetwork, "withdrawMin"),
-						"max": this.SafeNumber(rawNetwork, "withdrawMax"),
-					},
-					"deposit": map[string]interface{}{
-						"min": this.SafeNumber(rawNetwork, "depositMin"),
-						"max": nil,
-					},
-				}
-				var precision interface{} = this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision")))
-				AddElementToObject(networks, networkCode, map[string]interface{}{
-					"info":      rawNetwork,
-					"id":        network,
-					"network":   networkCode,
-					"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
-					"active":    nil,
-					"deposit":   this.SafeBool(rawNetwork, "depositEnable"),
-					"withdraw":  this.SafeBool(rawNetwork, "withdrawEnable"),
-					"precision": precision,
-					"limits":    limits,
-				})
-			}
-			if !IsTrue((InOp(result, code))) {
-				AddElementToObject(result, code, map[string]interface{}{
-					"info":      entry,
-					"code":      code,
-					"id":        currencyId,
-					"precision": nil,
-					"name":      name,
-					"active":    nil,
-					"deposit":   nil,
-					"withdraw":  nil,
-					"networks":  networks,
-					"fee":       nil,
-					"limits":    nil,
-					"type":      "crypto",
-				})
-			} else {
-				var existing interface{} = GetValue(result, code)
-				var existingNetworks interface{} = this.SafeDict(existing, "networks", map[string]interface{}{})
-				var newNetworkCodes interface{} = ObjectKeys(networks)
-				for j := 0; IsLessThan(j, GetArrayLength(newNetworkCodes)); j++ {
-					var newNetworkCode interface{} = GetValue(newNetworkCodes, j)
-					if !IsTrue((InOp(existingNetworks, newNetworkCode))) {
-						AddElementToObject(existingNetworks, newNetworkCode, GetValue(networks, newNetworkCode))
-					}
-				}
-				AddElementToObject(GetValue(result, code), "networks", existingNetworks)
-			}
-		}
-		var codes interface{} = ObjectKeys(result)
-		for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
-			var code interface{} = GetValue(codes, i)
-			var currency interface{} = GetValue(result, code)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(currency))
-		}
+		var data any = this.SafeList(response, "data", []any{})
 
-		ch <- result
+		ch <- this.ParseCurrencies(data)
 		return nil
 
 	}()
 	return ch
 }
-func (this *BingxCore) FetchSpotMarkets(params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) ParseCurrency(rawCurrency any) any {
+	var currencyId any = this.SafeString(rawCurrency, "coin")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var name any = this.SafeString(rawCurrency, "name")
+	var networkList any = this.SafeList(rawCurrency, "networkList")
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
+		var rawNetwork any = GetValue(networkList, j)
+		var network any = this.SafeString(rawNetwork, "network")
+		var networkCode any = this.NetworkIdToCode(network, code)
+		var limits any = map[string]any{
+			"withdraw": map[string]any{
+				"min": this.SafeNumber(rawNetwork, "withdrawMin"),
+				"max": this.SafeNumber(rawNetwork, "withdrawMax"),
+			},
+			"deposit": map[string]any{
+				"min": this.SafeNumber(rawNetwork, "depositMin"),
+				"max": nil,
+			},
+		}
+		var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision")))
+		AddElementToObject(networks, networkCode, map[string]any{
+			"info":      rawNetwork,
+			"id":        network,
+			"network":   networkCode,
+			"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
+			"active":    nil,
+			"deposit":   this.SafeBool(rawNetwork, "depositEnable"),
+			"withdraw":  this.SafeBool(rawNetwork, "withdrawEnable"),
+			"precision": precision,
+			"limits":    limits,
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":      rawCurrency,
+		"code":      code,
+		"id":        currencyId,
+		"precision": nil,
+		"name":      name,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"networks":  networks,
+		"fee":       nil,
+		"limits":    nil,
+		"type":      "crypto",
+	})
+}
+func (this *BingxCore) FetchSpotMarkets(params any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
@@ -921,8 +983,8 @@ func (this *BingxCore) FetchSpotMarkets(params interface{}) <-chan interface{} {
 		//         }
 		//    }
 		//
-		var data interface{} = this.SafeDict(response, "data")
-		var markets interface{} = this.SafeList(data, "symbols", []interface{}{})
+		var data any = this.SafeDict(response, "data")
+		var markets any = this.SafeList(data, "symbols", []any{})
 
 		ch <- this.ParseMarkets(markets)
 		return nil
@@ -930,9 +992,9 @@ func (this *BingxCore) FetchSpotMarkets(params interface{}) <-chan interface{} {
 	}()
 	return ch
 }
-func (this *BingxCore) FetchSwapMarkets(params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchSwapMarkets(params any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
@@ -969,7 +1031,7 @@ func (this *BingxCore) FetchSwapMarkets(params interface{}) <-chan interface{} {
 		//        ]
 		//    }
 		//
-		var markets interface{} = this.SafeList(response, "data", []interface{}{})
+		var markets any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseMarkets(markets)
 		return nil
@@ -977,9 +1039,9 @@ func (this *BingxCore) FetchSwapMarkets(params interface{}) <-chan interface{} {
 	}()
 	return ch
 }
-func (this *BingxCore) FetchInverseSwapMarkets(params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchInverseSwapMarkets(params any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
@@ -1003,7 +1065,7 @@ func (this *BingxCore) FetchInverseSwapMarkets(params interface{}) <-chan interf
 		//         ]
 		//     }
 		//
-		var markets interface{} = this.SafeList(response, "data", []interface{}{})
+		var markets any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseMarkets(markets)
 		return nil
@@ -1011,58 +1073,58 @@ func (this *BingxCore) FetchInverseSwapMarkets(params interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *BingxCore) ParseMarket(market interface{}) interface{} {
-	var id interface{} = this.SafeString(market, "symbol")
-	var symbolParts interface{} = Split(id, "-")
-	var baseId interface{} = GetValue(symbolParts, 0)
-	var quoteId interface{} = GetValue(symbolParts, 1)
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var currency interface{} = this.SafeString(market, "currency")
-	var checkIsInverse interface{} = false
-	var checkIsLinear interface{} = true
-	var minTickSize interface{} = this.SafeNumber(market, "minTickSize")
+func (this *BingxCore) ParseMarket(market any) any {
+	var id any = this.SafeString(market, "symbol")
+	var symbolParts any = Split(id, "-")
+	var baseId any = GetValue(symbolParts, 0)
+	var quoteId any = GetValue(symbolParts, 1)
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var currency any = this.SafeString(market, "currency")
+	var checkIsInverse any = false
+	var checkIsLinear any = true
+	var minTickSize any = this.SafeNumber(market, "minTickSize")
 	if IsTrue(!IsEqual(minTickSize, nil)) {
 		// inverse swap market
 		currency = baseId
 		checkIsInverse = true
 		checkIsLinear = false
 	}
-	var settle interface{} = this.SafeCurrencyCode(currency)
-	var pricePrecision interface{} = this.SafeNumber(market, "tickSize")
+	var settle any = this.SafeCurrencyCode(currency)
+	var pricePrecision any = this.SafeNumber(market, "tickSize")
 	if IsTrue(IsEqual(pricePrecision, nil)) {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
-	var quantityPrecision interface{} = this.SafeNumber(market, "stepSize")
+	var quantityPrecision any = this.SafeNumber(market, "stepSize")
 	if IsTrue(IsEqual(quantityPrecision, nil)) {
 		quantityPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
-	var typeVar interface{} = Ternary(IsTrue((!IsEqual(settle, nil))), "swap", "spot")
-	var spot interface{} = IsEqual(typeVar, "spot")
-	var swap interface{} = IsEqual(typeVar, "swap")
-	var symbol interface{} = Add(Add(base, "/"), quote)
+	var typeVar any = Ternary(IsTrue((!IsEqual(settle, nil))), "swap", "spot")
+	var spot any = IsEqual(typeVar, "spot")
+	var swap any = IsEqual(typeVar, "swap")
+	var symbol any = Add(Add(base, "/"), quote)
 	if IsTrue(!IsEqual(settle, nil)) {
 		symbol = Add(symbol, Add(":", settle))
 	}
-	var fees interface{} = this.SafeDict(this.Fees, typeVar, map[string]interface{}{})
-	var contractSize interface{} = Ternary(IsTrue((swap)), this.ParseNumber("1"), nil)
-	var isActive interface{} = false
+	var fees any = this.SafeDict(this.Fees, typeVar, map[string]any{})
+	var contractSize any = Ternary(IsTrue((swap)), this.ParseNumber("1"), nil)
+	var isActive any = false
 	if IsTrue(IsTrue((IsEqual(this.SafeString(market, "apiStateOpen"), "true"))) && IsTrue((IsEqual(this.SafeString(market, "apiStateClose"), "true")))) {
 		isActive = true // swap active
 	} else if IsTrue(IsTrue(IsTrue(this.SafeBool(market, "apiStateSell")) && IsTrue(this.SafeBool(market, "apiStateBuy"))) && IsTrue((IsEqual(this.SafeString(market, "status"), "1")))) {
 		isActive = true // spot active
 	}
-	var isInverse interface{} = Ternary(IsTrue((spot)), nil, checkIsInverse)
-	var isLinear interface{} = Ternary(IsTrue((spot)), nil, checkIsLinear)
-	var minAmount interface{} = nil
+	var isInverse any = Ternary(IsTrue((spot)), nil, checkIsInverse)
+	var isLinear any = Ternary(IsTrue((spot)), nil, checkIsLinear)
+	var minAmount any = nil
 	if !IsTrue(spot) {
 		minAmount = this.SafeNumber2(market, "minQty", "tradeMinQuantity")
 	}
-	var timeOnline interface{} = this.SafeInteger(market, "timeOnline")
+	var timeOnline any = this.SafeInteger(market, "timeOnline")
 	if IsTrue(IsEqual(timeOnline, 0)) {
 		timeOnline = nil
 	}
-	return this.SafeMarketStructure(map[string]interface{}{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -1089,25 +1151,25 @@ func (this *BingxCore) ParseMarket(market interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": quantityPrecision,
 			"price":  pricePrecision,
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": minAmount,
 				"max": nil,
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": minTickSize,
 				"max": nil,
 			},
-			"cost": map[string]interface{}{
-				"min": this.SafeNumberN(market, []interface{}{"minNotional", "tradeMinUSDT", "minTradeValue"}),
+			"cost": map[string]any{
+				"min": this.SafeNumberN(market, []any{"minNotional", "tradeMinUSDT", "minTradeValue"}),
 				"max": this.SafeNumber(market, "maxNotional"),
 			},
 		},
@@ -1120,21 +1182,21 @@ func (this *BingxCore) ParseMarket(market interface{}) interface{} {
  * @method
  * @name bingx#fetchMarkets
  * @description retrieves data on all markets for bingx
- * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Spot%20trading%20symbols
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/USDT-M%20Perp%20Futures%20symbols
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Contract%20Information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *BingxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var requests interface{} = []interface{}{this.FetchSwapMarkets(params)}
-		var isSandbox interface{} = this.SafeBool(this.Options, "sandboxMode", false)
+		var requests any = []any{this.FetchSwapMarkets(params)}
+		var isSandbox any = this.SafeBool(this.Options, "sandboxMode", false)
 		if !IsTrue(isSandbox) {
 			AppendToArray(&requests, this.FetchInverseSwapMarkets(params))
 			AppendToArray(&requests, this.FetchSpotMarkets(params)) // sandbox is swap only
@@ -1142,10 +1204,10 @@ func (this *BingxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 
 		promises := (<-promiseAll(requests))
 		PanicOnError(promises)
-		var linearSwapMarkets interface{} = this.SafeList(promises, 0, []interface{}{})
-		var inverseSwapMarkets interface{} = this.SafeList(promises, 1, []interface{}{})
-		var spotMarkets interface{} = this.SafeList(promises, 2, []interface{}{})
-		var swapMarkets interface{} = this.ArrayConcat(linearSwapMarkets, inverseSwapMarkets)
+		var linearSwapMarkets any = this.SafeList(promises, 0, []any{})
+		var inverseSwapMarkets any = this.SafeList(promises, 1, []any{})
+		var spotMarkets any = this.SafeList(promises, 2, []any{})
+		var swapMarkets any = this.ArrayConcat(linearSwapMarkets, inverseSwapMarkets)
 
 		ch <- this.ArrayConcat(spotMarkets, swapMarkets)
 		return nil
@@ -1158,11 +1220,10 @@ func (this *BingxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
  * @method
  * @name bingx#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
- * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Kline%2FCandlestick%20Data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Kline%2FCandlestick%20Data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20Kline%2FCandlestick%20Data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20K-line%20Data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1172,9 +1233,9 @@ func (this *BingxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *BingxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -1183,24 +1244,26 @@ func (this *BingxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11068 := (<-this.LoadMarkets())
-		PanicOnError(retRes11068)
-		var paginate interface{} = false
+			retRes116912 := (<-this.LoadMarkets())
+			PanicOnError(retRes116912)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes111019 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
-			PanicOnError(retRes111019)
-			ch <- retRes111019
+			retRes117419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+			PanicOnError(retRes117419)
+			ch <- retRes117419
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
@@ -1210,12 +1273,12 @@ func (this *BingxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var until interface{} = this.SafeInteger2(params, "until", "endTime")
+		var until any = this.SafeInteger2(params, "until", "endTime")
 		if IsTrue(!IsEqual(until, nil)) {
-			params = this.Omit(params, []interface{}{"until"})
+			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "endTime", until)
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 
 			response = (<-this.SpotV1PublicGetMarketKline(this.Extend(request, params)))
@@ -1226,7 +1289,7 @@ func (this *BingxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 				response = (<-this.CswapV1PublicGetMarketKlines(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
-				var price interface{} = this.SafeString(params, "price")
+				var price any = this.SafeString(params, "price")
 				params = this.Omit(params, "price")
 				if IsTrue(IsEqual(price, "mark")) {
 
@@ -1274,9 +1337,9 @@ func (this *BingxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		//        ]
 		//    }
 		//
-		var ohlcvs interface{} = this.SafeValue(response, "data", []interface{}{})
+		var ohlcvs any = this.SafeValue(response, "data", []any{})
 		if !IsTrue(IsArray(ohlcvs)) {
-			ohlcvs = []interface{}{ohlcvs}
+			ohlcvs = []any{ohlcvs}
 		}
 
 		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
@@ -1285,7 +1348,7 @@ func (this *BingxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 	}()
 	return ch
 }
-func (this *BingxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "open": "19394.4",
@@ -1322,46 +1385,48 @@ func (this *BingxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	if IsTrue(IsArray(ohlcv)) {
-		return []interface{}{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+		return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 	}
-	return []interface{}{this.SafeInteger2(ohlcv, "time", "closeTime"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return []any{this.SafeInteger2(ohlcv, "time", "closeTime"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
 
 /**
  * @method
  * @name bingx#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Recent%20Trades%20List
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Recent%20Trades%20List
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *BingxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12538 := (<-this.LoadMarkets())
-		PanicOnError(retRes12538)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes131812 := (<-this.LoadMarkets())
+			PanicOnError(retRes131812)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 100)) // avoid API exception "limit should less than 100"
 		}
-		var response interface{} = nil
-		var marketType interface{} = nil
+		var response any = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTrades", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
@@ -1407,7 +1472,7 @@ func (this *BingxCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 		//      ]
 		//    }
 		//
-		var trades interface{} = this.SafeList(response, "data", []interface{}{})
+		var trades any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit)
 		return nil
@@ -1415,7 +1480,7 @@ func (this *BingxCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 	}()
 	return ch
 }
-func (this *BingxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// spot fetchTrades
 	//
@@ -1525,49 +1590,49 @@ func (this *BingxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var time interface{} = this.SafeIntegerN(trade, []interface{}{"time", "filledTm", "T", "tradeTime"})
-	var datetimeId interface{} = this.SafeString(trade, "filledTm")
+	var time any = this.SafeIntegerN(trade, []any{"time", "filledTm", "T", "tradeTime"})
+	var datetimeId any = this.SafeString(trade, "filledTm")
 	if IsTrue(!IsEqual(datetimeId, nil)) {
 		time = this.Parse8601(datetimeId)
 	}
 	if IsTrue(IsEqual(time, 0)) {
 		time = nil
 	}
-	var cost interface{} = this.SafeString(trade, "quoteQty")
+	var cost any = this.SafeString(trade, "quoteQty")
 	// const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
-	var currencyId interface{} = this.SafeStringN(trade, []interface{}{"currency", "N", "commissionAsset"})
-	var currencyCode interface{} = this.SafeCurrencyCode(currencyId)
-	var m interface{} = this.SafeBool(trade, "m")
-	var marketId interface{} = this.SafeString2(trade, "s", "symbol")
-	var isBuyerMaker interface{} = this.SafeBoolN(trade, []interface{}{"buyerMaker", "isBuyerMaker", "maker"})
-	var takeOrMaker interface{} = nil
+	var currencyId any = this.SafeStringN(trade, []any{"currency", "N", "commissionAsset"})
+	var currencyCode any = this.SafeCurrencyCode(currencyId)
+	var m any = this.SafeBool(trade, "m")
+	var marketId any = this.SafeString2(trade, "s", "symbol")
+	var isBuyerMaker any = this.SafeBoolN(trade, []any{"buyerMaker", "isBuyerMaker", "maker"})
+	var takeOrMaker any = nil
 	if IsTrue(IsTrue((!IsEqual(isBuyerMaker, nil))) || IsTrue((!IsEqual(m, nil)))) {
 		takeOrMaker = Ternary(IsTrue((IsTrue(isBuyerMaker) || IsTrue(m))), "maker", "taker")
 	}
-	var side interface{} = this.SafeStringLower2(trade, "side", "S")
+	var side any = this.SafeStringLower2(trade, "side", "S")
 	if IsTrue(IsEqual(side, nil)) {
 		if IsTrue(IsTrue((!IsEqual(isBuyerMaker, nil))) || IsTrue((!IsEqual(m, nil)))) {
 			side = Ternary(IsTrue((IsTrue(isBuyerMaker) || IsTrue(m))), "sell", "buy")
 			takeOrMaker = "taker"
 		}
 	}
-	var isBuyer interface{} = this.SafeBool(trade, "isBuyer")
+	var isBuyer any = this.SafeBool(trade, "isBuyer")
 	if IsTrue(!IsEqual(isBuyer, nil)) {
 		side = Ternary(IsTrue(isBuyer), "buy", "sell")
 	}
-	var isMaker interface{} = this.SafeBool(trade, "isMaker")
+	var isMaker any = this.SafeBool(trade, "isMaker")
 	if IsTrue(!IsEqual(isMaker, nil)) {
 		takeOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
-	var amount interface{} = this.SafeStringN(trade, []interface{}{"qty", "amount", "q"})
+	var amount any = this.SafeStringN(trade, []any{"qty", "amount", "q"})
 	if IsTrue(IsTrue(IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "swap"))) && IsTrue((InOp(trade, "volume")))) {
 		// private trade returns num of contracts instead of base currency (as the order-related methods do)
-		var contractSize interface{} = this.SafeString(GetValue(market, "info"), "tradeMinQuantity")
-		var volume interface{} = this.SafeString(trade, "volume")
+		var contractSize any = this.SafeString(GetValue(market, "info"), "tradeMinQuantity")
+		var volume any = this.SafeString(trade, "volume")
 		amount = Precise.StringMul(volume, contractSize)
 	}
-	return this.SafeTrade(map[string]interface{}{
-		"id":           this.SafeStringN(trade, []interface{}{"id", "t"}),
+	return this.SafeTrade(map[string]any{
+		"id":           this.SafeStringN(trade, []any{"id", "t"}),
 		"info":         trade,
 		"timestamp":    time,
 		"datetime":     this.Iso8601(time),
@@ -1576,10 +1641,10 @@ func (this *BingxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
 		"type":         this.SafeStringLower(trade, "o"),
 		"side":         this.ParseOrderSide(side),
 		"takerOrMaker": takeOrMaker,
-		"price":        this.SafeStringN(trade, []interface{}{"price", "p", "tradePrice"}),
+		"price":        this.SafeStringN(trade, []any{"price", "p", "tradePrice"}),
 		"amount":       amount,
 		"cost":         cost,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"cost":     this.ParseNumber(Precise.StringAbs(this.SafeString2(trade, "commission", "n"))),
 			"currency": currencyCode,
 		},
@@ -1590,35 +1655,37 @@ func (this *BingxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
  * @method
  * @name bingx#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Order%20Book
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *BingxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14888 := (<-this.LoadMarkets())
-		PanicOnError(retRes14888)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes155512 := (<-this.LoadMarkets())
+			PanicOnError(retRes155512)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var response interface{} = nil
-		var marketType interface{} = nil
+		var response any = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
@@ -1711,10 +1778,10 @@ func (this *BingxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 		//         }
 		//     }
 		//
-		var orderbook interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var nonce interface{} = this.SafeInteger(orderbook, "lastUpdateId")
-		var timestamp interface{} = this.SafeInteger2(orderbook, "T", "ts")
-		var result interface{} = this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
+		var orderbook any = this.SafeDict(response, "data", map[string]any{})
+		var nonce any = this.SafeInteger(orderbook, "lastUpdateId")
+		var timestamp any = this.SafeInteger2(orderbook, "T", "ts")
+		var result any = this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
 		AddElementToObject(result, "nonce", nonce)
 
 		ch <- result
@@ -1728,27 +1795,29 @@ func (this *BingxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
  * @method
  * @name bingx#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *BingxCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16018 := (<-this.LoadMarkets())
-		PanicOnError(retRes16018)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes167012 := (<-this.LoadMarkets())
+			PanicOnError(retRes167012)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "inverse")) {
 
 			response = (<-this.CswapV1PublicGetMarketPremiumIndex(this.Extend(request, params)))
@@ -1774,7 +1843,7 @@ func (this *BingxCore) FetchFundingRate(symbol interface{}, optionalArgs ...inte
 		//        ]
 		//    }
 		//
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data")
 
 		ch <- this.ParseFundingRate(data, market)
 		return nil
@@ -1787,28 +1856,44 @@ func (this *BingxCore) FetchFundingRate(symbol interface{}, optionalArgs ...inte
  * @method
  * @name bingx#fetchFundingRates
  * @description fetch the current funding rate for multiple symbols
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @param {string} [params.subType] "linear" or "inverse" (default is linear)
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *BingxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16428 := (<-this.LoadMarkets())
-		PanicOnError(retRes16428)
-		symbols = this.MarketSymbols(symbols, "swap", true)
+			retRes171512 := (<-this.LoadMarkets())
+			PanicOnError(retRes171512)
+		}
+		symbols = this.MarketSymbols(symbols, "swap", true, true, true)
+		var firstMarket any = this.GetMarketFromSymbols(symbols)
+		var subType any = "linear"
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var response any = nil
+		if IsTrue(IsEqual(subType, "inverse")) {
 
-		response := (<-this.SwapV2PublicGetQuotePremiumIndex(this.Extend(params)))
-		PanicOnError(response)
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+			response = (<-this.CswapV1PublicGetMarketPremiumIndex(params))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.SwapV2PublicGetQuotePremiumIndex(params))
+			PanicOnError(response)
+		}
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseFundingRates(data, symbols)
 		return nil
@@ -1816,7 +1901,7 @@ func (this *BingxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *BingxCore) ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "BTC-USDT",
@@ -1828,9 +1913,9 @@ func (this *BingxCore) ParseFundingRate(contract interface{}, optionalArgs ...in
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(contract, "symbol")
-	var nextFundingTimestamp interface{} = this.SafeInteger(contract, "nextFundingTime")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(contract, "symbol")
+	var nextFundingTimestamp any = this.SafeInteger(contract, "nextFundingTime")
+	return map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(marketId, market, "-", "swap"),
 		"markPrice":                this.SafeNumber(contract, "markPrice"),
@@ -1856,18 +1941,18 @@ func (this *BingxCore) ParseFundingRate(contract interface{}, optionalArgs ...in
  * @method
  * @name bingx#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1876,27 +1961,29 @@ func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17008 := (<-this.LoadMarkets())
-		PanicOnError(retRes17008)
-		var paginate interface{} = false
+			retRes178312 := (<-this.LoadMarkets())
+			PanicOnError(retRes178312)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes170419 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes170419)
-			ch <- retRes170419
+			retRes178819 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes178819)
+			ch <- retRes178819
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -1905,9 +1992,9 @@ func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var until interface{} = this.SafeInteger2(params, "until", "startTime")
+		var until any = this.SafeInteger2(params, "until", "startTime")
 		if IsTrue(!IsEqual(until, nil)) {
-			params = this.Omit(params, []interface{}{"until"})
+			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "startTime", until)
 		}
 
@@ -1927,7 +2014,7 @@ func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 		//        ]
 		//    }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseFundingRateHistories(data, market, since, limit)
 		return nil
@@ -1935,7 +2022,7 @@ func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 	}()
 	return ch
 }
-func (this *BingxCore) ParseFundingRateHistory(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "BTC-USDT",
@@ -1945,8 +2032,8 @@ func (this *BingxCore) ParseFundingRateHistory(contract interface{}, optionalArg
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(contract, "fundingTime")
-	return map[string]interface{}{
+	var timestamp any = this.SafeInteger(contract, "fundingTime")
+	return map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(this.SafeString(contract, "symbol"), market, "-", "swap"),
 		"fundingRate": this.SafeNumber(contract, "fundingRate"),
@@ -1957,29 +2044,146 @@ func (this *BingxCore) ParseFundingRateHistory(contract interface{}, optionalArg
 
 /**
  * @method
- * @name bingx#fetchOpenInterest
- * @description retrieves the open interest of a trading pair
- * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
- * @param {string} symbol unified CCXT market symbol
- * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @name bingx#fetchFundingHistory
+ * @description fetches historical funding received
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+ * @param {string} symbol unified symbol of the market to fetch the funding history for
+ * @param {int} [since] timestamp in ms of the earliest funding to fetch
+ * @param {int} [limit] the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding to fetch
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *BingxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		symbol := GetArg(optionalArgs, 0, nil)
+		_ = symbol
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17698 := (<-this.LoadMarkets())
-		PanicOnError(retRes17698)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes185612 := (<-this.LoadMarkets())
+			PanicOnError(retRes185612)
+		}
+		var paginate any = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
+
+			retRes186119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", params))
+			PanicOnError(retRes186119)
+			ch <- retRes186119
+			return nil
+		}
+		var request any = map[string]any{
+			"incomeType": "FUNDING_FEE",
+		}
+		var market any = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+			AddElementToObject(request, "symbol", GetValue(market, "id"))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "startTime", since)
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+		var until any = this.SafeInteger2(params, "until", "endTime")
+		if IsTrue(!IsEqual(until, nil)) {
+			params = this.Omit(params, []any{"until"})
+			AddElementToObject(request, "endTime", until)
+		}
+
+		response := (<-this.SwapV2PrivateGetUserIncome(this.Extend(request, params)))
+		PanicOnError(response)
+		//         {
+		//             "code": 0,
+		//             "msg": "",
+		//             "data": [
+		//                 {
+		//                 "symbol": "LDO-USDT",
+		//                 "incomeType": "FUNDING_FEE",
+		//                 "income": "-0.0292",
+		//                 "asset": "USDT",
+		//                 "info": "Funding Fee",
+		//                 "time": 1702713615000,
+		//                 "tranId": "170***6*2_3*9_20***97",
+		//                 "tradeId": "170***6*2_3*9_20***97"
+		//                 }
+		//             ]
+		//         }
+		var data any = this.SafeList(response, "data", []any{})
+
+		ch <- this.ParseIncomes(data, market, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BingxCore) ParseIncome(income any, optionalArgs ...any) any {
+	// {
+	//     "symbol": "LDO-USDT",
+	//     "incomeType": "FUNDING_FEE",
+	//     "income": "-0.0292",
+	//     "asset": "USDT",
+	//     "info": "Funding Fee",
+	//     "time": 1702713615000,
+	//     "tranId": "170***6*2_3*9_20***97",
+	//     "tradeId": "170***6*2_3*9_20***97"
+	// }
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(income, "symbol")
+	var currencyId any = this.SafeString(income, "asset")
+	var timestamp any = this.SafeInteger(income, "time")
+	return map[string]any{
+		"info":      income,
+		"symbol":    this.SafeSymbol(marketId, market, nil, "swap"),
+		"code":      this.SafeCurrencyCode(currencyId),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"id":        this.SafeString(income, "tranId"),
+		"amount":    this.SafeNumber(income, "income"),
+		"type":      "funding",
+	}
+}
+
+/**
+ * @method
+ * @name bingx#fetchOpenInterest
+ * @description retrieves the open interest of a trading pair
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Open%20Interest%20Statistics
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20Swap%20Open%20Positions
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *BingxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes194112 := (<-this.LoadMarkets())
+			PanicOnError(retRes194112)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "inverse")) {
 
 			response = (<-this.CswapV1PublicGetMarketOpenInterest(this.Extend(request, params)))
@@ -2017,12 +2221,12 @@ func (this *BingxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...int
 		//         ]
 		//     }
 		//
-		var result interface{} = map[string]interface{}{}
+		var result any = map[string]any{}
 		if IsTrue(GetValue(market, "inverse")) {
-			var data interface{} = this.SafeList(response, "data", []interface{}{})
-			result = this.SafeDict(data, 0, map[string]interface{}{})
+			var data any = this.SafeList(response, "data", []any{})
+			result = this.SafeDict(data, 0, map[string]any{})
 		} else {
-			result = this.SafeDict(response, "data", map[string]interface{}{})
+			result = this.SafeDict(response, "data", map[string]any{})
 		}
 
 		ch <- this.ParseOpenInterest(result, market)
@@ -2031,7 +2235,7 @@ func (this *BingxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...int
 	}()
 	return ch
 }
-func (this *BingxCore) ParseOpenInterest(interest interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	// linear swap
 	//
@@ -2051,11 +2255,11 @@ func (this *BingxCore) ParseOpenInterest(interest interface{}, optionalArgs ...i
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger2(interest, "time", "timestamp")
-	var id interface{} = this.SafeString(interest, "symbol")
-	var symbol interface{} = this.SafeSymbol(id, market, "-", "swap")
-	var openInterest interface{} = this.SafeNumber(interest, "openInterest")
-	return this.SafeOpenInterest(map[string]interface{}{
+	var timestamp any = this.SafeInteger2(interest, "time", "timestamp")
+	var id any = this.SafeString(interest, "symbol")
+	var symbol any = this.SafeSymbol(id, market, "-", "swap")
+	var openInterest any = this.SafeNumber(interest, "openInterest")
+	return this.SafeOpenInterest(map[string]any{
 		"symbol":             symbol,
 		"baseVolume":         nil,
 		"quoteVolume":        nil,
@@ -2071,28 +2275,30 @@ func (this *BingxCore) ParseOpenInterest(interest interface{}, optionalArgs ...i
  * @method
  * @name bingx#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
- * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *BingxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18648 := (<-this.LoadMarkets())
-		PanicOnError(retRes18648)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes203812 := (<-this.LoadMarkets())
+			PanicOnError(retRes203812)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 
 			response = (<-this.SpotV1PublicGetTicker24hr(this.Extend(request, params)))
@@ -2136,14 +2342,14 @@ func (this *BingxCore) FetchTicker(symbol interface{}, optionalArgs ...interface
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data")
+		var data any = this.SafeList(response, "data")
 		if IsTrue(!IsEqual(data, nil)) {
-			var first interface{} = this.SafeDict(data, 0, map[string]interface{}{})
+			var first any = this.SafeDict(data, 0, map[string]any{})
 
 			ch <- this.ParseTicker(first, market)
 			return nil
 		}
-		var dataDict interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var dataDict any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseTicker(dataDict, market)
 		return nil
@@ -2156,42 +2362,44 @@ func (this *BingxCore) FetchTicker(symbol interface{}, optionalArgs ...interface
  * @method
  * @name bingx#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
- * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *BingxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19288 := (<-this.LoadMarkets())
-		PanicOnError(retRes19288)
-		var market interface{} = nil
+			retRes210412 := (<-this.LoadMarkets())
+			PanicOnError(retRes210412)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
-			var firstSymbol interface{} = this.SafeString(symbols, 0)
+			var firstSymbol any = this.SafeString(symbols, 0)
 			if IsTrue(!IsEqual(firstSymbol, nil)) {
 				market = this.Market(firstSymbol)
 			}
 		}
-		var typeVar interface{} = nil
+		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTickers", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(typeVar, "spot")) {
 
 			response = (<-this.SpotV1PublicGetTicker24hr(params))
@@ -2236,7 +2444,7 @@ func (this *BingxCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
 		//         ]
 		//     }
 		//
-		var tickers interface{} = this.SafeList(response, "data")
+		var tickers any = this.SafeList(response, "data")
 
 		ch <- this.ParseTickers(tickers, symbols)
 		return nil
@@ -2249,30 +2457,33 @@ func (this *BingxCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
  * @method
  * @name bingx#fetchMarkPrice
  * @description fetches mark prices for the market
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *BingxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchMarkPrice(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19948 := (<-this.LoadMarkets())
-		PanicOnError(retRes19948)
-		var market interface{} = this.Market(symbol)
-		var subType interface{} = nil
+			retRes217312 := (<-this.LoadMarkets())
+			PanicOnError(retRes217312)
+		}
+		var market any = this.Market(symbol)
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.CswapV1PublicGetMarketPremiumIndex(this.Extend(request, params)))
@@ -2284,7 +2495,7 @@ func (this *BingxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interf
 		}
 		if IsTrue(IsArray(GetValue(response, "data"))) {
 
-			ch <- this.ParseTicker(this.SafeDict(GetValue(response, "data"), 0, map[string]interface{}{}), market)
+			ch <- this.ParseTicker(this.SafeDict(GetValue(response, "data"), 0, map[string]any{}), market)
 			return nil
 		}
 
@@ -2299,36 +2510,39 @@ func (this *BingxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interf
  * @method
  * @name bingx#fetchMarkPrices
  * @description fetches mark prices for multiple markets
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *BingxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchMarkPrices(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20528 := (<-this.LoadMarkets())
-		PanicOnError(retRes20528)
-		var market interface{} = nil
+			retRes223412 := (<-this.LoadMarkets())
+			PanicOnError(retRes223412)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
-			var firstSymbol interface{} = this.SafeString(symbols, 0)
+			var firstSymbol any = this.SafeString(symbols, 0)
 			if IsTrue(!IsEqual(firstSymbol, nil)) {
 				market = this.Market(firstSymbol)
 			}
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrices", market, params, "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.CswapV1PublicGetMarketPremiumIndex(params))
@@ -2367,7 +2581,7 @@ func (this *BingxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan inter
 		//         ]
 		//     }
 		//
-		var tickers interface{} = this.SafeList(response, "data")
+		var tickers any = this.SafeList(response, "data")
 
 		ch <- this.ParseTickers(tickers, symbols)
 		return nil
@@ -2375,7 +2589,7 @@ func (this *BingxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *BingxCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	// mark price
 	// {
@@ -2427,34 +2641,34 @@ func (this *BingxCore) ParseTicker(ticker interface{}, optionalArgs ...interface
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(ticker, "symbol")
-	var lastQty interface{} = this.SafeString(ticker, "lastQty")
+	var marketId any = this.SafeString(ticker, "symbol")
+	var lastQty any = this.SafeString(ticker, "lastQty")
 	// in spot markets, lastQty is not present
 	// it's (bad, but) the only way we can check the tickers origin
-	var typeVar interface{} = Ternary(IsTrue((IsEqual(lastQty, nil))), "spot", "swap")
+	var typeVar any = Ternary(IsTrue((IsEqual(lastQty, nil))), "spot", "swap")
 	market = this.SafeMarket(marketId, market, nil, typeVar)
-	var symbol interface{} = GetValue(market, "symbol")
-	var open interface{} = this.SafeString(ticker, "openPrice")
-	var high interface{} = this.SafeString(ticker, "highPrice")
-	var low interface{} = this.SafeString(ticker, "lowPrice")
-	var close interface{} = this.SafeString(ticker, "lastPrice")
-	var quoteVolume interface{} = this.SafeString(ticker, "quoteVolume")
-	var baseVolume interface{} = this.SafeString(ticker, "volume")
-	var percentage interface{} = this.SafeString(ticker, "priceChangePercent")
+	var symbol any = GetValue(market, "symbol")
+	var open any = this.SafeString(ticker, "openPrice")
+	var high any = this.SafeString(ticker, "highPrice")
+	var low any = this.SafeString(ticker, "lowPrice")
+	var close any = this.SafeString(ticker, "lastPrice")
+	var quoteVolume any = this.SafeString(ticker, "quoteVolume")
+	var baseVolume any = this.SafeString(ticker, "volume")
+	var percentage any = this.SafeString(ticker, "priceChangePercent")
 	if IsTrue(!IsEqual(percentage, nil)) {
 		percentage = Replace(percentage, "%", "")
 	}
-	var change interface{} = this.SafeString(ticker, "priceChange")
-	var ts interface{} = this.SafeInteger(ticker, "closeTime")
+	var change any = this.SafeString(ticker, "priceChange")
+	var ts any = this.SafeInteger(ticker, "closeTime")
 	if IsTrue(IsEqual(ts, 0)) {
 		ts = nil
 	}
-	var datetime interface{} = this.Iso8601(ts)
-	var bid interface{} = this.SafeString(ticker, "bidPrice")
-	var bidVolume interface{} = this.SafeString(ticker, "bidQty")
-	var ask interface{} = this.SafeString(ticker, "askPrice")
-	var askVolume interface{} = this.SafeString(ticker, "askQty")
-	return this.SafeTicker(map[string]interface{}{
+	var datetime any = this.Iso8601(ts)
+	var bid any = this.SafeString(ticker, "bidPrice")
+	var bidVolume any = this.SafeString(ticker, "bidQty")
+	var ask any = this.SafeString(ticker, "askPrice")
+	var askVolume any = this.SafeString(ticker, "askQty")
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     ts,
 		"datetime":      datetime,
@@ -2484,31 +2698,33 @@ func (this *BingxCore) ParseTicker(ticker interface{}, optionalArgs ...interface
  * @method
  * @name bingx#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
- * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
- * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Account%20Endpoints/Query%20Assets
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Account%20Assets
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Query%20Assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.standard] whether to fetch standard contract balances
  * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *BingxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22198 := (<-this.LoadMarkets())
-		PanicOnError(retRes22198)
-		var response interface{} = nil
-		var standard interface{} = nil
+			retRes240312 := (<-this.LoadMarkets())
+			PanicOnError(retRes240312)
+		}
+		var response any = nil
+		var standard any = nil
 		standardparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "standard", false)
 		standard = GetValue(standardparamsVariable, 0)
 		params = GetValue(standardparamsVariable, 1)
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchBalance", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
@@ -2534,7 +2750,7 @@ func (this *BingxCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.SwapV2PrivateGetUserBalance(marketTypeQuery))
+				response = (<-this.SwapV3PrivateGetUserBalance(marketTypeQuery))
 				PanicOnError(response)
 			}
 		}
@@ -2545,7 +2761,7 @@ func (this *BingxCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 	}()
 	return ch
 }
-func (this *BingxCore) ParseBalance(response interface{}) interface{} {
+func (this *BingxCore) ParseBalance(response any) any {
 	//
 	// standard
 	//
@@ -2608,62 +2824,52 @@ func (this *BingxCore) ParseBalance(response interface{}) interface{} {
 	//     {
 	//         "code": 0,
 	//         "msg": "",
-	//         "data": {
-	//             "balance": {
-	//                 "userId": "1177064765068660742",
+	//         "data": [
+	//             {
+	//                 "userId": "116***295",
 	//                 "asset": "USDT",
-	//                 "balance": "51.5198",
-	//                 "equity": "50.5349",
-	//                 "unrealizedProfit": "-0.9849",
-	//                 "realisedProfit": "-0.2134",
-	//                 "availableMargin": "49.1428",
-	//                 "usedMargin": "1.3922",
+	//                 "balance": "194.8212",
+	//                 "equity": "196.7431",
+	//                 "unrealizedProfit": "1.9219",
+	//                 "realisedProfit": "-109.2504",
+	//                 "availableMargin": "193.7609",
+	//                 "usedMargin": "1.0602",
 	//                 "freezedMargin": "0.0000",
 	//                 "shortUid": "12851936"
 	//             }
-	//         }
+	//         ]
 	//     }
 	//
-	var result interface{} = map[string]interface{}{
+	var result any = map[string]any{
 		"info": response,
 	}
-	var standardAndInverseBalances interface{} = this.SafeList(response, "data")
-	var firstStandardOrInverse interface{} = this.SafeDict(standardAndInverseBalances, 0)
-	var isStandardOrInverse interface{} = !IsEqual(firstStandardOrInverse, nil)
-	var spotData interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-	var spotBalances interface{} = this.SafeList2(spotData, "balances", "assets", []interface{}{})
-	var firstSpot interface{} = this.SafeDict(spotBalances, 0)
-	var isSpot interface{} = !IsEqual(firstSpot, nil)
-	if IsTrue(isStandardOrInverse) {
-		for i := 0; IsLessThan(i, GetArrayLength(standardAndInverseBalances)); i++ {
-			var balance interface{} = GetValue(standardAndInverseBalances, i)
-			var currencyId interface{} = this.SafeString(balance, "asset")
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var account interface{} = this.Account()
+	var contractBalances any = this.SafeList(response, "data")
+	var firstContractBalances any = this.SafeDict(contractBalances, 0)
+	var isContract any = !IsEqual(firstContractBalances, nil)
+	var spotData any = this.SafeDict(response, "data", map[string]any{})
+	var spotBalances any = this.SafeList2(spotData, "balances", "assets", []any{})
+	if IsTrue(isContract) {
+		for i := 0; IsLessThan(i, GetArrayLength(contractBalances)); i++ {
+			var balance any = GetValue(contractBalances, i)
+			var currencyId any = this.SafeString(balance, "asset")
+			if IsTrue(IsEqual(currencyId, nil)) {
+				break
+			}
+			var code any = this.SafeCurrencyCode(currencyId)
+			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString2(balance, "availableMargin", "availableBalance"))
 			AddElementToObject(account, "used", this.SafeString(balance, "usedMargin"))
 			AddElementToObject(account, "total", this.SafeString(balance, "maxWithdrawAmount"))
 			AddElementToObject(result, code, account)
 		}
-	} else if IsTrue(isSpot) {
+	} else {
 		for i := 0; IsLessThan(i, GetArrayLength(spotBalances)); i++ {
-			var balance interface{} = GetValue(spotBalances, i)
-			var currencyId interface{} = this.SafeString(balance, "asset")
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var account interface{} = this.Account()
+			var balance any = GetValue(spotBalances, i)
+			var currencyId any = this.SafeString(balance, "asset")
+			var code any = this.SafeCurrencyCode(currencyId)
+			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "free"))
 			AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-			AddElementToObject(result, code, account)
-		}
-	} else {
-		var linearSwapData interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var linearSwapBalance interface{} = this.SafeDict(linearSwapData, "balance")
-		if IsTrue(linearSwapBalance) {
-			var currencyId interface{} = this.SafeString(linearSwapBalance, "asset")
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var account interface{} = this.Account()
-			AddElementToObject(account, "free", this.SafeString(linearSwapBalance, "availableMargin"))
-			AddElementToObject(account, "used", this.SafeString(linearSwapBalance, "usedMargin"))
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -2674,30 +2880,32 @@ func (this *BingxCore) ParseBalance(response interface{}) interface{} {
  * @method
  * @name bingx#fetchPositionHistory
  * @description fetches historical positions
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Position%20History
  * @param {string} symbol unified contract symbol
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch
  * @param {object} [params] extra parameters specific to the exchange api endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *BingxCore) FetchPositionHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24648 := (<-this.LoadMarkets())
-		PanicOnError(retRes24648)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes263912 := (<-this.LoadMarkets())
+			PanicOnError(retRes263912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2709,7 +2917,7 @@ func (this *BingxCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
 		requestparamsVariable := this.HandleUntilOption("endTs", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "linear")) {
 
 			response = (<-this.SwapV1PrivateGetTradePositionHistory(this.Extend(request, params)))
@@ -2745,9 +2953,9 @@ func (this *BingxCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var records interface{} = this.SafeList(data, "positionHistory", []interface{}{})
-		var positions interface{} = this.ParsePositions(records)
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var records any = this.SafeList(data, "positionHistory", []any{})
+		var positions any = this.ParsePositions(records)
 
 		ch <- this.FilterBySymbolSinceLimit(positions, symbol, since, limit)
 		return nil
@@ -2760,46 +2968,48 @@ func (this *BingxCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
  * @method
  * @name bingx#fetchPositions
  * @description fetch all open positions
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
  * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.standard] whether to fetch standard contract positions
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *BingxCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25298 := (<-this.LoadMarkets())
-		PanicOnError(retRes25298)
+			retRes270612 := (<-this.LoadMarkets())
+			PanicOnError(retRes270612)
+		}
 		symbols = this.MarketSymbols(symbols)
-		var standard interface{} = nil
+		var standard any = nil
 		standardparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "standard", false)
 		standard = GetValue(standardparamsVariable, 0)
 		params = GetValue(standardparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(standard) {
 
 			response = (<-this.ContractV1PrivateGetAllPosition(params))
 			PanicOnError(response)
 		} else {
-			var market interface{} = nil
+			var market any = nil
 			if IsTrue(!IsEqual(symbols, nil)) {
 				symbols = this.MarketSymbols(symbols)
-				var firstSymbol interface{} = this.SafeString(symbols, 0)
+				var firstSymbol any = this.SafeString(symbols, 0)
 				if IsTrue(!IsEqual(firstSymbol, nil)) {
 					market = this.Market(firstSymbol)
 				}
 			}
-			var subType interface{} = nil
+			var subType any = nil
 			subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", market, params)
 			subType = GetValue(subTypeparamsVariable, 0)
 			params = GetValue(subTypeparamsVariable, 1)
@@ -2813,7 +3023,7 @@ func (this *BingxCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
 				PanicOnError(response)
 			}
 		}
-		var positions interface{} = this.SafeList(response, "data", []interface{}{})
+		var positions any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParsePositions(positions, symbols)
 		return nil
@@ -2826,30 +3036,32 @@ func (this *BingxCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name bingx#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *BingxCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26258 := (<-this.LoadMarkets())
-		PanicOnError(retRes26258)
-		var market interface{} = this.Market(symbol)
+			retRes280412 := (<-this.LoadMarkets())
+			PanicOnError(retRes280412)
+		}
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadRequest(Add(this.Id, " fetchPosition() supports swap markets only")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "inverse")) {
 
 			response = (<-this.CswapV1PrivateGetUserPositions(this.Extend(request, params)))
@@ -2859,8 +3071,8 @@ func (this *BingxCore) FetchPosition(symbol interface{}, optionalArgs ...interfa
 			response = (<-this.SwapV2PrivateGetUserPositions(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
-		var first interface{} = this.SafeDict(data, 0, map[string]interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
+		var first any = this.SafeDict(data, 0, map[string]any{})
 
 		ch <- this.ParsePosition(first, market)
 		return nil
@@ -2868,7 +3080,7 @@ func (this *BingxCore) FetchPosition(symbol interface{}, optionalArgs ...interfa
 	}()
 	return ch
 }
-func (this *BingxCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	// inverse swap
 	//
@@ -2953,15 +3165,15 @@ func (this *BingxCore) ParsePosition(position interface{}, optionalArgs ...inter
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(position, "symbol", "")
+	var marketId any = this.SafeString(position, "symbol", "")
 	marketId = Replace(marketId, "/", "-") // standard return different format
-	var isolated interface{} = this.SafeBool(position, "isolated")
-	var marginMode interface{} = nil
+	var isolated any = this.SafeBool(position, "isolated")
+	var marginMode any = nil
 	if IsTrue(!IsEqual(isolated, nil)) {
 		marginMode = Ternary(IsTrue(isolated), "isolated", "cross")
 	}
-	var timestamp interface{} = this.SafeInteger(position, "openTime")
-	return this.SafePosition(map[string]interface{}{
+	var timestamp any = this.SafeInteger(position, "openTime")
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "positionId"),
 		"symbol":                      this.SafeSymbol(marketId, market, "-", "swap"),
@@ -3001,20 +3213,20 @@ func (this *BingxCore) ParsePosition(position interface{}, optionalArgs ...inter
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CreateMarketOrderWithCost(symbol any, side any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes283615 := (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
-		PanicOnError(retRes283615)
-		ch <- retRes283615
+		retRes301615 := (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
+		PanicOnError(retRes301615)
+		ch <- retRes301615
 		return nil
 
 	}()
@@ -3028,20 +3240,20 @@ func (this *BingxCore) CreateMarketOrderWithCost(symbol interface{}, side interf
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes285015 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes285015)
-		ch <- retRes285015
+		retRes303015 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes303015)
+		ch <- retRes303015
 		return nil
 
 	}()
@@ -3055,26 +3267,26 @@ func (this *BingxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CreateMarketSellOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes286415 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-		PanicOnError(retRes286415)
-		ch <- retRes286415
+		retRes304415 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+		PanicOnError(retRes304415)
+		ch <- retRes304415
 		return nil
 
 	}()
 	return ch
 }
-func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	/**
 	 * @method
 	 * @ignore
@@ -3090,38 +3302,38 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market interface{} = this.Market(symbol)
-	var postOnly interface{} = nil
-	var marketType interface{} = nil
+	var market any = this.Market(symbol)
+	var postOnly any = nil
+	var marketType any = nil
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	typeVar = ToUpper(typeVar)
-	var request interface{} = map[string]interface{}{
+	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"type":   typeVar,
 		"side":   ToUpper(side),
 	}
-	var isMarketOrder interface{} = IsEqual(typeVar, "MARKET")
-	var isSpot interface{} = IsEqual(marketType, "spot")
-	var isTwapOrder interface{} = IsEqual(typeVar, "TWAP")
+	var isMarketOrder any = IsEqual(typeVar, "MARKET")
+	var isSpot any = IsEqual(marketType, "spot")
+	var isTwapOrder any = IsEqual(typeVar, "TWAP")
 	if IsTrue(IsTrue(isTwapOrder) && IsTrue(isSpot)) {
 		panic(BadSymbol(Add(this.Id, " createOrder() twap order supports swap contracts only")))
 	}
-	var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
-	var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
-	var triggerPrice interface{} = this.SafeString2(params, "stopPrice", "triggerPrice")
-	var isTriggerOrder interface{} = !IsEqual(triggerPrice, nil)
-	var isStopLossPriceOrder interface{} = !IsEqual(stopLossPrice, nil)
-	var isTakeProfitPriceOrder interface{} = !IsEqual(takeProfitPrice, nil)
-	var exchangeClientOrderId interface{} = Ternary(IsTrue(isSpot), "newClientOrderId", "clientOrderID")
-	var clientOrderId interface{} = this.SafeString2(params, exchangeClientOrderId, "clientOrderId")
+	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
+	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
+	var triggerPrice any = this.SafeString2(params, "stopPrice", "triggerPrice")
+	var isTriggerOrder any = !IsEqual(triggerPrice, nil)
+	var isStopLossPriceOrder any = !IsEqual(stopLossPrice, nil)
+	var isTakeProfitPriceOrder any = !IsEqual(takeProfitPrice, nil)
+	var exchangeClientOrderId any = Ternary(IsTrue(isSpot), "newClientOrderId", "clientOrderID")
+	var clientOrderId any = this.SafeString2(params, exchangeClientOrderId, "clientOrderId")
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, exchangeClientOrderId, clientOrderId)
 	}
-	var timeInForce interface{} = this.SafeStringUpper(params, "timeInForce")
+	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, IsEqual(timeInForce, "PostOnly"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
@@ -3133,14 +3345,14 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 		AddElementToObject(request, "timeInForce", "GTC")
 	}
 	if IsTrue(isSpot) {
-		var cost interface{} = this.SafeString2(params, "cost", "quoteOrderQty")
+		var cost any = this.SafeString2(params, "cost", "quoteOrderQty")
 		params = this.Omit(params, "cost")
 		if IsTrue(!IsEqual(cost, nil)) {
 			AddElementToObject(request, "quoteOrderQty", this.ParseToNumeric(this.CostToPrecision(symbol, cost)))
 		} else {
 			if IsTrue(IsTrue(isMarketOrder) && IsTrue((!IsEqual(price, nil)))) {
 				// keep the legacy behavior, to avoid  breaking the old spot-market-buying code
-				var calculatedCost interface{} = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
+				var calculatedCost any = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
 				AddElementToObject(request, "quoteOrderQty", this.ParseToNumeric(calculatedCost))
 			} else {
 				AddElementToObject(request, "quantity", this.ParseToNumeric(this.AmountToPrecision(symbol, amount)))
@@ -3160,7 +3372,7 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 				AddElementToObject(request, "type", "TRIGGER_MARKET")
 			}
 		} else if IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))) {
-			var stopTakePrice interface{} = Ternary(IsTrue((!IsEqual(stopLossPrice, nil))), stopLossPrice, takeProfitPrice)
+			var stopTakePrice any = Ternary(IsTrue((!IsEqual(stopLossPrice, nil))), stopLossPrice, takeProfitPrice)
 			if IsTrue(IsEqual(typeVar, "LIMIT")) {
 				AddElementToObject(request, "type", "TAKE_STOP_LIMIT")
 			} else if IsTrue(IsEqual(typeVar, "MARKET")) {
@@ -3170,7 +3382,7 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 		}
 	} else {
 		if IsTrue(isTwapOrder) {
-			var twapRequest interface{} = map[string]interface{}{
+			var twapRequest any = map[string]any{
 				"symbol":       GetValue(request, "symbol"),
 				"side":         GetValue(request, "side"),
 				"positionSide": Ternary(IsTrue((IsEqual(side, "buy"))), "LONG", "SHORT"),
@@ -3193,20 +3405,20 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 		if IsTrue(IsEqual(timeInForce, "FOK")) {
 			AddElementToObject(request, "timeInForce", "FOK")
 		}
-		var trailingAmount interface{} = this.SafeString(params, "trailingAmount")
-		var trailingPercent interface{} = this.SafeString2(params, "trailingPercent", "priceRate")
-		var trailingType interface{} = this.SafeString(params, "trailingType", "TRAILING_STOP_MARKET")
-		var isTrailingAmountOrder interface{} = !IsEqual(trailingAmount, nil)
-		var isTrailingPercentOrder interface{} = !IsEqual(trailingPercent, nil)
-		var isTrailing interface{} = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
-		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-		var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
+		var trailingAmount any = this.SafeString(params, "trailingAmount")
+		var trailingPercent any = this.SafeString2(params, "trailingPercent", "priceRate")
+		var trailingType any = this.SafeString(params, "trailingType", "TRAILING_STOP_MARKET")
+		var isTrailingAmountOrder any = !IsEqual(trailingAmount, nil)
+		var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
+		var isTrailing any = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
+		var stopLoss any = this.SafeValue(params, "stopLoss")
+		var takeProfit any = this.SafeValue(params, "takeProfit")
+		var hasStopLoss any = !IsEqual(stopLoss, nil)
+		var hasTakeProfit any = !IsEqual(takeProfit, nil)
 		if IsTrue(IsTrue((IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "LIMIT"))) || IsTrue((IsEqual(typeVar, "TRIGGER_LIMIT")))) || IsTrue((IsEqual(typeVar, "STOP")))) || IsTrue((IsEqual(typeVar, "TAKE_PROFIT"))))) && !IsTrue(isTrailing)) {
 			AddElementToObject(request, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
 		}
-		var reduceOnly interface{} = this.SafeBool(params, "reduceOnly", false)
+		var reduceOnly any = this.SafeBool(params, "reduceOnly", false)
 		if IsTrue(isTriggerOrder) {
 			AddElementToObject(request, "stopPrice", this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice)))
 			if IsTrue(IsTrue(isMarketOrder) || IsTrue((IsEqual(typeVar, "TRIGGER_MARKET")))) {
@@ -3237,49 +3449,49 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 			if IsTrue(isTrailingAmountOrder) {
 				AddElementToObject(request, "price", this.ParseToNumeric(trailingAmount))
 			} else if IsTrue(isTrailingPercentOrder) {
-				var requestTrailingPercent interface{} = Precise.StringDiv(trailingPercent, "100")
+				var requestTrailingPercent any = Precise.StringDiv(trailingPercent, "100")
 				AddElementToObject(request, "priceRate", this.ParseToNumeric(requestTrailingPercent))
 			}
 		}
-		if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
-			var stringifiedAmount interface{} = this.NumberToString(amount)
-			if IsTrue(isStopLoss) {
-				var slTriggerPrice interface{} = this.SafeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
-				var slWorkingType interface{} = this.SafeString(stopLoss, "workingType", "MARK_PRICE")
-				var slType interface{} = this.SafeString(stopLoss, "type", "STOP_MARKET")
-				var slRequest interface{} = map[string]interface{}{
+		if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
+			var stringifiedAmount any = this.NumberToString(amount)
+			if IsTrue(hasStopLoss) {
+				var slTriggerPrice any = this.SafeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
+				var slWorkingType any = this.SafeString(stopLoss, "workingType", "MARK_PRICE")
+				var slType any = this.SafeString(stopLoss, "type", "STOP_MARKET")
+				var slRequest any = map[string]any{
 					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, slTriggerPrice)),
 					"workingType": slWorkingType,
 					"type":        slType,
 				}
-				var slPrice interface{} = this.SafeString(stopLoss, "price")
+				var slPrice any = this.SafeString(stopLoss, "price")
 				if IsTrue(!IsEqual(slPrice, nil)) {
 					AddElementToObject(slRequest, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, slPrice)))
 				}
-				var slQuantity interface{} = this.SafeString(stopLoss, "quantity", stringifiedAmount)
+				var slQuantity any = this.SafeString(stopLoss, "quantity", stringifiedAmount)
 				AddElementToObject(slRequest, "quantity", this.ParseToNumeric(this.AmountToPrecision(symbol, slQuantity)))
 				AddElementToObject(request, "stopLoss", this.Json(slRequest))
 			}
-			if IsTrue(isTakeProfit) {
-				var tkTriggerPrice interface{} = this.SafeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
-				var tkWorkingType interface{} = this.SafeString(takeProfit, "workingType", "MARK_PRICE")
-				var tpType interface{} = this.SafeString(takeProfit, "type", "TAKE_PROFIT_MARKET")
-				var tpRequest interface{} = map[string]interface{}{
+			if IsTrue(hasTakeProfit) {
+				var tkTriggerPrice any = this.SafeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
+				var tkWorkingType any = this.SafeString(takeProfit, "workingType", "MARK_PRICE")
+				var tpType any = this.SafeString(takeProfit, "type", "TAKE_PROFIT_MARKET")
+				var tpRequest any = map[string]any{
 					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, tkTriggerPrice)),
 					"workingType": tkWorkingType,
 					"type":        tpType,
 				}
-				var slPrice interface{} = this.SafeString(takeProfit, "price")
+				var slPrice any = this.SafeString(takeProfit, "price")
 				if IsTrue(!IsEqual(slPrice, nil)) {
 					AddElementToObject(tpRequest, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, slPrice)))
 				}
-				var tkQuantity interface{} = this.SafeString(takeProfit, "quantity", stringifiedAmount)
+				var tkQuantity any = this.SafeString(takeProfit, "quantity", stringifiedAmount)
 				AddElementToObject(tpRequest, "quantity", this.ParseToNumeric(this.AmountToPrecision(symbol, tkQuantity)))
 				AddElementToObject(request, "takeProfit", this.Json(tpRequest))
 			}
 		}
-		var positionSide interface{} = nil
-		var hedged interface{} = this.SafeBool(params, "hedged", false)
+		var positionSide any = nil
+		var hedged any = this.SafeBool(params, "hedged", false)
 		if IsTrue(hedged) {
 			params = this.Omit(params, "reduceOnly")
 			if IsTrue(reduceOnly) {
@@ -3291,13 +3503,16 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 			positionSide = "BOTH"
 		}
 		AddElementToObject(request, "positionSide", positionSide)
-		var amountReq interface{} = amount
-		if !IsTrue(GetValue(market, "inverse")) {
-			amountReq = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
+		var closePosition any = this.SafeBool(params, "closePosition", false)
+		if !IsTrue(closePosition) {
+			var amountReq any = amount
+			if !IsTrue(GetValue(market, "inverse")) {
+				amountReq = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
+			}
+			AddElementToObject(request, "quantity", amountReq) // precision not available for inverse contracts
 		}
-		AddElementToObject(request, "quantity", amountReq) // precision not available for inverse contracts
 	}
-	params = this.Omit(params, []interface{}{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"})
+	params = this.Omit(params, []any{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"})
 	return this.Extend(request, params)
 }
 
@@ -3305,10 +3520,10 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
  * @method
  * @name bingx#createOrder
  * @description create a trade order
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20TWAP%20Order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Trade%20order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -3332,25 +3547,28 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
  * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
  * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
  * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31208 := (<-this.LoadMarkets())
-		PanicOnError(retRes31208)
-		var market interface{} = this.Market(symbol)
-		var test interface{} = this.SafeBool(params, "test", false)
+			retRes330512 := (<-this.LoadMarkets())
+			PanicOnError(retRes330512)
+		}
+		var market any = this.Market(symbol)
+		var test any = this.SafeBool(params, "test", false)
 		params = this.Omit(params, "test")
-		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		var response interface{} = nil
+		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 			if IsTrue(test) {
 
@@ -3445,8 +3663,8 @@ func (this *BingxCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 			response = this.FixStringifiedJsonMembers(response)
 			response = this.ParseJson(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var result interface{} = map[string]interface{}{}
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var result any = map[string]any{}
 		if IsTrue(GetValue(market, "swap")) {
 			if IsTrue(GetValue(market, "inverse")) {
 				result = response
@@ -3455,6 +3673,15 @@ func (this *BingxCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 			}
 		} else {
 			result = data
+		}
+		// when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+		var stopLoss any = this.SafeString(result, "stopLoss")
+		if IsTrue(IsTrue((!IsEqual(stopLoss, nil))) && IsTrue((IsEqual(GetIndexOf(stopLoss, "{"), 0)))) {
+			AddElementToObject(result, "stopLoss", this.ParseJson(stopLoss))
+		}
+		var takeProfit any = this.SafeString(result, "takeProfit")
+		if IsTrue(IsTrue((!IsEqual(takeProfit, nil))) && IsTrue((IsEqual(GetIndexOf(takeProfit, "{"), 0)))) {
+			AddElementToObject(result, "takeProfit", this.ParseJson(takeProfit))
 		}
 
 		ch <- this.ParseOrder(result, market)
@@ -3468,42 +3695,44 @@ func (this *BingxCore) CreateOrder(symbol interface{}, typeVar interface{}, side
  * @method
  * @name bingx#createOrders
  * @description create a list of trade orders
- * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
- * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32368 := (<-this.LoadMarkets())
-		PanicOnError(retRes32368)
-		var ordersRequests interface{} = []interface{}{}
-		var marketIds interface{} = []interface{}{}
+			retRes343212 := (<-this.LoadMarkets())
+			PanicOnError(retRes343212)
+		}
+		var ordersRequests any = []any{}
+		var marketIds any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var rawOrder interface{} = GetValue(orders, i)
-			var marketId interface{} = this.SafeString(rawOrder, "symbol")
-			var typeVar interface{} = this.SafeString(rawOrder, "type")
+			var rawOrder any = GetValue(orders, i)
+			var marketId any = this.SafeString(rawOrder, "symbol")
+			var typeVar any = this.SafeString(rawOrder, "type")
 			AppendToArray(&marketIds, marketId)
-			var side interface{} = this.SafeString(rawOrder, "side")
-			var amount interface{} = this.SafeNumber(rawOrder, "amount")
-			var price interface{} = this.SafeNumber(rawOrder, "price")
-			var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{}{})
-			var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+			var side any = this.SafeString(rawOrder, "side")
+			var amount any = this.SafeNumber(rawOrder, "amount")
+			var price any = this.SafeNumber(rawOrder, "price")
+			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+			var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 			AppendToArray(&ordersRequests, orderRequest)
 		}
-		var symbols interface{} = this.MarketSymbols(marketIds, nil, false, true, true)
-		var symbolsLength interface{} = GetArrayLength(symbols)
-		var market interface{} = this.Market(GetValue(symbols, 0))
-		var request interface{} = map[string]interface{}{}
-		var response interface{} = nil
+		var symbols any = this.MarketSymbols(marketIds, nil, false, true, true)
+		var symbolsLength any = GetArrayLength(symbols)
+		var market any = this.Market(GetValue(symbols, 0))
+		var request any = map[string]any{}
+		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 			if IsTrue(IsGreaterThan(symbolsLength, 5)) {
 				panic(InvalidOrder(Add(this.Id, " createOrders() can not create more than 5 orders at once for swap markets")))
@@ -3513,7 +3742,7 @@ func (this *BingxCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 			response = (<-this.SwapV2PrivatePostTradeBatchOrders(request))
 			PanicOnError(response)
 		} else {
-			var sync interface{} = this.SafeBool(params, "sync", false)
+			var sync any = this.SafeBool(params, "sync", false)
 			if IsTrue(sync) {
 				AddElementToObject(request, "sync", true)
 			}
@@ -3574,8 +3803,8 @@ func (this *BingxCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 			response = this.FixStringifiedJsonMembers(response)
 			response = this.ParseJson(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var result interface{} = this.SafeList(data, "orders", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var result any = this.SafeList(data, "orders", []any{})
 
 		ch <- this.ParseOrders(result, market)
 		return nil
@@ -3583,8 +3812,8 @@ func (this *BingxCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 	}()
 	return ch
 }
-func (this *BingxCore) ParseOrderSide(side interface{}) interface{} {
-	var sides interface{} = map[string]interface{}{
+func (this *BingxCore) ParseOrderSide(side any) any {
+	var sides any = map[string]any{
 		"BUY":   "buy",
 		"SELL":  "sell",
 		"SHORT": "sell",
@@ -3594,8 +3823,8 @@ func (this *BingxCore) ParseOrderSide(side interface{}) interface{} {
 	}
 	return this.SafeString(sides, side, side)
 }
-func (this *BingxCore) ParseOrderType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *BingxCore) ParseOrderType(typeVar any) any {
+	var types any = map[string]any{
 		"trigger_market":     "market",
 		"trigger_limit":      "limit",
 		"stop_limit":         "limit",
@@ -3605,7 +3834,7 @@ func (this *BingxCore) ParseOrderType(typeVar interface{}) interface{} {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// spot
 	// createOrder, createOrders, cancelOrder
@@ -3890,23 +4119,23 @@ func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var info interface{} = order
-	var newOrder interface{} = this.SafeDict2(order, "newOrderResponse", "orderOpenResponse")
+	var info any = order
+	var newOrder any = this.SafeDict2(order, "newOrderResponse", "orderOpenResponse")
 	if IsTrue(!IsEqual(newOrder, nil)) {
 		order = newOrder
 	}
-	var positionSide interface{} = this.SafeString2(order, "positionSide", "ps")
-	var marketType interface{} = Ternary(IsTrue((IsEqual(positionSide, nil))), "spot", "swap")
-	var marketId interface{} = this.SafeString2(order, "symbol", "s")
+	var positionSide any = this.SafeString2(order, "positionSide", "ps")
+	var marketType any = Ternary(IsTrue((IsEqual(positionSide, nil))), "spot", "swap")
+	var marketId any = this.SafeString2(order, "symbol", "s")
 	if IsTrue(IsEqual(market, nil)) {
 		market = this.SafeMarket(marketId, nil, nil, marketType)
 	}
-	var side interface{} = this.SafeStringLower2(order, "side", "S")
-	var timestamp interface{} = this.SafeIntegerN(order, []interface{}{"time", "transactTime", "E", "createdTime"})
-	var lastTradeTimestamp interface{} = this.SafeInteger2(order, "updateTime", "T")
-	var statusId interface{} = this.SafeStringUpperN(order, []interface{}{"status", "X", "orderStatus"})
-	var feeCurrencyCode interface{} = this.SafeString2(order, "feeAsset", "N")
-	var feeCost interface{} = this.SafeStringN(order, []interface{}{"fee", "commission", "n"})
+	var side any = this.SafeStringLower2(order, "side", "S")
+	var timestamp any = this.SafeIntegerN(order, []any{"time", "transactTime", "E", "createdTime"})
+	var lastTradeTimestamp any = this.SafeInteger2(order, "updateTime", "T")
+	var statusId any = this.SafeStringUpperN(order, []any{"status", "X", "orderStatus"})
+	var feeCurrencyCode any = this.SafeString2(order, "feeAsset", "N")
+	var feeCost any = this.SafeStringN(order, []any{"fee", "commission", "n"})
 	if IsTrue((IsEqual(feeCurrencyCode, nil))) {
 		if IsTrue(GetValue(market, "spot")) {
 			if IsTrue(IsEqual(side, "buy")) {
@@ -3918,8 +4147,8 @@ func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 			feeCurrencyCode = GetValue(market, "quote")
 		}
 	}
-	var stopLoss interface{} = this.SafeValue(order, "stopLoss")
-	var stopLossPrice interface{} = nil
+	var stopLoss any = this.SafeValue(order, "stopLoss")
+	var stopLossPrice any = nil
 	if IsTrue(IsTrue((!IsEqual(stopLoss, nil))) && IsTrue((!IsEqual(stopLoss, "")))) {
 		stopLossPrice = this.OmitZero(this.SafeString(stopLoss, "stopLoss"))
 	}
@@ -3930,8 +4159,8 @@ func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 		}
 		stopLossPrice = this.OmitZero(this.SafeString(stopLoss, "stopPrice"))
 	}
-	var takeProfit interface{} = this.SafeValue(order, "takeProfit")
-	var takeProfitPrice interface{} = nil
+	var takeProfit any = this.SafeValue(order, "takeProfit")
+	var takeProfitPrice any = nil
 	if IsTrue(IsTrue(!IsEqual(takeProfit, nil)) && IsTrue((!IsEqual(takeProfit, "")))) {
 		takeProfitPrice = this.OmitZero(this.SafeString(takeProfit, "takeProfit"))
 	}
@@ -3942,9 +4171,9 @@ func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 		}
 		takeProfitPrice = this.OmitZero(this.SafeString(takeProfit, "stopPrice"))
 	}
-	var rawType interface{} = this.SafeStringLower2(order, "type", "o")
-	var stopPrice interface{} = this.OmitZero(this.SafeString2(order, "StopPrice", "stopPrice"))
-	var triggerPrice interface{} = stopPrice
+	var rawType any = this.SafeStringLower2(order, "type", "o")
+	var stopPrice any = this.OmitZero(this.SafeString2(order, "StopPrice", "stopPrice"))
+	var triggerPrice any = stopPrice
 	if IsTrue(!IsEqual(stopPrice, nil)) {
 		if IsTrue(IsTrue((IsGreaterThan(GetIndexOf(rawType, "stop"), OpNeg(1)))) && IsTrue((IsEqual(stopLossPrice, nil)))) {
 			stopLossPrice = stopPrice
@@ -3955,10 +4184,10 @@ func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 			triggerPrice = nil
 		}
 	}
-	return this.SafeOrder(map[string]interface{}{
+	return this.SafeOrder(map[string]any{
 		"info":                info,
-		"id":                  this.SafeStringN(order, []interface{}{"orderId", "i", "mainOrderId"}),
-		"clientOrderId":       this.SafeStringN(order, []interface{}{"clientOrderID", "clientOrderId", "origClientOrderId", "c"}),
+		"id":                  this.SafeStringN(order, []any{"orderId", "i", "mainOrderId"}),
+		"clientOrderId":       this.SafeStringN(order, []any{"clientOrderID", "clientOrderId", "origClientOrderId", "c"}),
 		"symbol":              this.SafeSymbol(marketId, market, "-", marketType),
 		"timestamp":           timestamp,
 		"datetime":            this.Iso8601(timestamp),
@@ -3974,11 +4203,11 @@ func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 		"takeProfitPrice":     takeProfitPrice,
 		"average":             this.SafeString2(order, "avgPrice", "ap"),
 		"cost":                this.SafeString(order, "cummulativeQuoteQty"),
-		"amount":              this.SafeStringN(order, []interface{}{"origQty", "q", "quantity", "totalAmount"}),
+		"amount":              this.SafeStringN(order, []any{"origQty", "q", "quantity", "totalAmount"}),
 		"filled":              this.SafeString2(order, "executedQty", "z"),
 		"remaining":           nil,
 		"status":              this.ParseOrderStatus(statusId),
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": feeCurrencyCode,
 			"cost":     Precise.StringAbs(feeCost),
 		},
@@ -3986,8 +4215,8 @@ func (this *BingxCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 		"reduceOnly": this.SafeBool2(order, "reduceOnly", "ro"),
 	}, market)
 }
-func (this *BingxCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *BingxCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"NEW":              "open",
 		"PENDING":          "open",
 		"PARTIALLY_FILLED": "open",
@@ -4004,34 +4233,36 @@ func (this *BingxCore) ParseOrderStatus(status interface{}) interface{} {
  * @method
  * @name bingx#cancelOrder
  * @description cancels an open order
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20Order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20Order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20TWAP%20Order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20an%20Order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37608 := (<-this.LoadMarkets())
-		PanicOnError(retRes37608)
-		var isTwapOrder interface{} = this.SafeBool(params, "twap", false)
+			retRes395812 := (<-this.LoadMarkets())
+			PanicOnError(retRes395812)
+		}
+		var isTwapOrder any = this.SafeBool(params, "twap", false)
 		params = this.Omit(params, "twap")
-		var response interface{} = nil
-		var market interface{} = nil
+		var response any = nil
+		var market any = nil
 		if IsTrue(isTwapOrder) {
-			var twapRequest interface{} = map[string]interface{}{
+			var twapRequest any = map[string]any{
 				"mainOrderId": id,
 			}
 
@@ -4042,18 +4273,18 @@ func (this *BingxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 				panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 			}
 			market = this.Market(symbol)
-			var request interface{} = map[string]interface{}{
+			var request any = map[string]any{
 				"symbol": GetValue(market, "id"),
 			}
-			var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "clientOrderID")
-			params = this.Omit(params, []interface{}{"clientOrderId"})
+			var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientOrderID")
+			params = this.Omit(params, []any{"clientOrderId"})
 			if IsTrue(!IsEqual(clientOrderId, nil)) {
 				AddElementToObject(request, "clientOrderID", clientOrderId)
 			} else {
 				AddElementToObject(request, "orderId", id)
 			}
-			var typeVar interface{} = nil
-			var subType interface{} = nil
+			var typeVar any = nil
+			var subType any = nil
 			typeVarparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 			typeVar = GetValue(typeVarparamsVariable, 0)
 			params = GetValue(typeVarparamsVariable, 1)
@@ -4174,8 +4405,8 @@ func (this *BingxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 		//        }
 		//    }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var order interface{} = this.SafeDict(data, "order", data)
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var order any = this.SafeDict(data, "order", data)
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -4188,39 +4419,50 @@ func (this *BingxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
  * @method
  * @name bingx#cancelAllOrders
  * @description cancel all open orders
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
- * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20all%20Open%20Orders%20on%20a%20Symbol
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20all%20orders
  * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.type] 'spot' or 'swap' (default is 'spot' if symbol is not provided)
+ * @param {string} [params.subType] 'linear' or 'inverse' for swap markets (default is 'linear' if symbol is not provided)
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
-		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes39418 := (<-this.LoadMarkets())
-		PanicOnError(retRes39418)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
-			"symbol": GetValue(market, "id"),
+			retRes414012 := (<-this.LoadMarkets())
+			PanicOnError(retRes414012)
 		}
-		var response interface{} = nil
-		if IsTrue(GetValue(market, "spot")) {
+		var market any = nil
+		var request any = map[string]any{}
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+			AddElementToObject(request, "symbol", GetValue(market, "id"))
+		}
+		var marketType any = "spot"
+		var subType any = nil
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
+		marketType = GetValue(marketTypeparamsVariable, 0)
+		params = GetValue(marketTypeparamsVariable, 1)
+		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelAllOrders", market, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var response any = nil
+		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.SpotV1PrivatePostTradeCancelOpenOrders(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsTrue(GetValue(market, "swap")) {
-			if IsTrue(GetValue(market, "inverse")) {
+		} else if IsTrue(IsEqual(marketType, "swap")) {
+			if IsTrue(IsEqual(subType, "inverse")) {
 
 				response = (<-this.CswapV1PrivateDeleteTradeAllOpenOrders(this.Extend(request, params)))
 				PanicOnError(response)
@@ -4232,8 +4474,8 @@ func (this *BingxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 		} else {
 			panic(BadRequest(Add(this.Id, " cancelAllOrders is only supported for spot and swap markets.")))
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var orders interface{} = this.SafeList2(data, "success", "orders", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var orders any = this.SafeList2(data, "success", "orders", []any{})
 
 		ch <- this.ParseOrders(orders)
 		return nil
@@ -4246,49 +4488,51 @@ func (this *BingxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
  * @method
  * @name bingx#cancelOrders
  * @description cancel multiple orders
- * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
- * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes40858 := (<-this.LoadMarkets())
-		PanicOnError(retRes40858)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes429212 := (<-this.LoadMarkets())
+			PanicOnError(retRes429212)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var clientOrderIds interface{} = this.SafeValue(params, "clientOrderIds")
+		var clientOrderIds any = this.SafeValue(params, "clientOrderIds")
 		params = this.Omit(params, "clientOrderIds")
-		var idsToParse interface{} = ids
-		var areClientOrderIds interface{} = (!IsEqual(clientOrderIds, nil))
+		var idsToParse any = ids
+		var areClientOrderIds any = (!IsEqual(clientOrderIds, nil))
 		if IsTrue(areClientOrderIds) {
 			idsToParse = clientOrderIds
 		}
-		var parsedIds interface{} = []interface{}{}
+		var parsedIds any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(idsToParse)); i++ {
-			var id interface{} = GetValue(idsToParse, i)
-			var stringId interface{} = ToString(id)
+			var id any = GetValue(idsToParse, i)
+			var stringId any = ToString(id)
 			AppendToArray(&parsedIds, stringId)
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
-			var spotReqKey interface{} = Ternary(IsTrue(areClientOrderIds), "clientOrderIDs", "orderIds")
+			var spotReqKey any = Ternary(IsTrue(areClientOrderIds), "clientOrderIDs", "orderIds")
 			AddElementToObject(request, spotReqKey, Join(parsedIds, ","))
 
 			response = (<-this.SpotV1PrivatePostTradeCancelOrders(this.Extend(request, params)))
@@ -4303,8 +4547,8 @@ func (this *BingxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
 			response = (<-this.SwapV2PrivateDeleteTradeBatchOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var success interface{} = this.SafeList2(data, "success", "orders", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var success any = this.SafeList2(data, "success", "orders", []any{})
 
 		ch <- this.ParseOrders(success)
 		return nil
@@ -4317,30 +4561,32 @@ func (this *BingxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
  * @method
  * @name bingx#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20All%20After
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20After
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] spot or swap market
  * @returns {object} the api result
  */
-func (this *BingxCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41888 := (<-this.LoadMarkets())
-		PanicOnError(retRes41888)
-		var isActive interface{} = (IsGreaterThan(timeout, 0))
-		var request interface{} = map[string]interface{}{
+			retRes439712 := (<-this.LoadMarkets())
+			PanicOnError(retRes439712)
+		}
+		var isActive any = (IsGreaterThan(timeout, 0))
+		var request any = map[string]any{
 			"type":    Ternary(IsTrue((isActive)), "ACTIVATE", "CLOSE"),
 			"timeOut": Ternary(IsTrue((isActive)), (this.ParseToInt(Divide(timeout, 1000))), 0),
 		}
-		var response interface{} = nil
-		var typeVar interface{} = nil
+		var response any = nil
+		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
@@ -4378,34 +4624,36 @@ func (this *BingxCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ..
  * @method
  * @name bingx#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20details
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20details
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/TWAP%20Order%20Details
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.twap] if fetching twap order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42338 := (<-this.LoadMarkets())
-		PanicOnError(retRes42338)
-		var isTwapOrder interface{} = this.SafeBool(params, "twap", false)
+			retRes444412 := (<-this.LoadMarkets())
+			PanicOnError(retRes444412)
+		}
+		var isTwapOrder any = this.SafeBool(params, "twap", false)
 		params = this.Omit(params, "twap")
-		var response interface{} = nil
-		var market interface{} = nil
+		var response any = nil
+		var market any = nil
 		if IsTrue(isTwapOrder) {
-			var twapRequest interface{} = map[string]interface{}{
+			var twapRequest any = map[string]any{
 				"mainOrderId": id,
 			}
 
@@ -4416,12 +4664,12 @@ func (this *BingxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
 				panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 			}
 			market = this.Market(symbol)
-			var request interface{} = map[string]interface{}{
+			var request any = map[string]any{
 				"symbol":  GetValue(market, "id"),
 				"orderId": id,
 			}
-			var typeVar interface{} = nil
-			var subType interface{} = nil
+			var typeVar any = nil
+			var subType any = nil
 			typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 			typeVar = GetValue(typeVarparamsVariable, 0)
 			params = GetValue(typeVarparamsVariable, 1)
@@ -4444,8 +4692,8 @@ func (this *BingxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
 				}
 			}
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var order interface{} = this.SafeDict(data, "order", data)
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var order any = this.SafeDict(data, "order", data)
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -4458,19 +4706,19 @@ func (this *BingxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
  * @method
  * @name bingx#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {int} [params.orderId] Only return subsequent orders, and return the latest order by default
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -4479,18 +4727,20 @@ func (this *BingxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44108 := (<-this.LoadMarkets())
-		PanicOnError(retRes44108)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+			retRes462312 := (<-this.LoadMarkets())
+			PanicOnError(retRes462312)
+		}
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var typeVar interface{} = nil
+		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
@@ -4561,8 +4811,8 @@ func (this *BingxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
 		//       }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var orders interface{} = this.SafeList(data, "orders", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var orders any = this.SafeList(data, "orders", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -4575,20 +4825,20 @@ func (this *BingxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
  * @method
  * @name bingx#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Current%20Open%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Current%20All%20Open%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20all%20current%20pending%20orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Entrusted%20Order
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.twap] if fetching twap open orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -4597,20 +4847,22 @@ func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45038 := (<-this.LoadMarkets())
-		PanicOnError(retRes45038)
-		var market interface{} = nil
-		var request interface{} = map[string]interface{}{}
+			retRes471812 := (<-this.LoadMarkets())
+			PanicOnError(retRes471812)
+		}
+		var market any = nil
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
@@ -4622,7 +4874,7 @@ func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 			response = (<-this.SpotV1PrivateGetTradeOpenOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			var isTwapOrder interface{} = this.SafeBool(params, "twap", false)
+			var isTwapOrder any = this.SafeBool(params, "twap", false)
 			params = this.Omit(params, "twap")
 			if IsTrue(isTwapOrder) {
 
@@ -4777,8 +5029,8 @@ func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var orders interface{} = this.SafeList2(data, "orders", "list", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var orders any = this.SafeList2(data, "orders", "list", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -4791,9 +5043,9 @@ func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
  * @method
  * @name bingx#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
  * @param {string} symbol unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
@@ -4801,11 +5053,11 @@ func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @param {boolean} [params.standard] whether to fetch standard contract orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -4814,11 +5066,13 @@ func (this *BingxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes46898 := (<-this.LoadMarkets())
-		PanicOnError(retRes46898)
+			retRes490612 := (<-this.LoadMarkets())
+			PanicOnError(retRes490612)
+		}
 
 		orders := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
 		PanicOnError(orders)
@@ -4834,9 +5088,9 @@ func (this *BingxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
  * @method
  * @name bingx#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
  * @param {string} symbol unified market symbol of the canceled orders
  * @param {int} [since] timestamp in ms of the earliest order
@@ -4844,11 +5098,11 @@ func (this *BingxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @param {boolean} [params.standard] whether to fetch standard contract orders
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -4857,11 +5111,13 @@ func (this *BingxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan i
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47118 := (<-this.LoadMarkets())
-		PanicOnError(retRes47118)
+			retRes493012 := (<-this.LoadMarkets())
+			PanicOnError(retRes493012)
+		}
 
 		orders := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
 		PanicOnError(orders)
@@ -4877,11 +5133,11 @@ func (this *BingxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan i
  * @method
  * @name bingx#fetchCanceledAndClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Historical%20Orders
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4889,11 +5145,11 @@ func (this *BingxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan i
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @param {boolean} [params.standard] whether to fetch standard contract orders
  * @param {boolean} [params.twap] if fetching twap orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -4902,21 +5158,23 @@ func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47358 := (<-this.LoadMarkets())
-		PanicOnError(retRes47358)
-		var market interface{} = nil
-		var request interface{} = map[string]interface{}{}
+			retRes495612 := (<-this.LoadMarkets())
+			PanicOnError(retRes495612)
+		}
+		var market any = nil
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var standard interface{} = nil
-		var response interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		var standard any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
@@ -4938,13 +5196,13 @@ func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
 			response = (<-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			var isTwapOrder interface{} = this.SafeBool(params, "twap", false)
+			var isTwapOrder any = this.SafeBool(params, "twap", false)
 			params = this.Omit(params, "twap")
 			if IsTrue(isTwapOrder) {
 				AddElementToObject(request, "pageIndex", 1)
 				AddElementToObject(request, "pageSize", Ternary(IsTrue((IsEqual(limit, nil))), 100, limit))
 				AddElementToObject(request, "startTime", Ternary(IsTrue((IsEqual(since, nil))), 1, since))
-				var until interface{} = this.SafeInteger(params, "until", this.Milliseconds())
+				var until any = this.SafeInteger(params, "until", this.Milliseconds())
 				params = this.Omit(params, "until")
 				AddElementToObject(request, "endTime", until)
 
@@ -4960,8 +5218,8 @@ func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
 				PanicOnError(response)
 			}
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var orders interface{} = this.SafeList2(data, "orders", "list", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var orders any = this.SafeList2(data, "orders", "list", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -4974,32 +5232,34 @@ func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
  * @method
  * @name bingx#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20Transfer%20New
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
  * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49258 := (<-this.LoadMarkets())
-		PanicOnError(retRes49258)
-		var currency interface{} = this.Currency(code)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var subType interface{} = nil
+			retRes514812 := (<-this.LoadMarkets())
+			PanicOnError(retRes514812)
+		}
+		var currency any = this.Currency(code)
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("transfer", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
-		var toId interface{} = this.SafeString(accountsByType, toAccount, toAccount)
+		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
+		var toId any = this.SafeString(accountsByType, toAccount, toAccount)
 		if IsTrue(IsEqual(fromId, "swap")) {
 			if IsTrue(IsEqual(subType, "inverse")) {
 				fromId = "coinMPerp"
@@ -5014,7 +5274,7 @@ func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccoun
 				toId = "USDTMPerp"
 			}
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"fromAccount": fromId,
 			"toAccount":   toId,
 			"asset":       GetValue(currency, "id"),
@@ -5030,7 +5290,7 @@ func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccoun
 		//         "transferId": "1051450703949464903736"
 		//     }
 		//
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"info":        response,
 			"id":          this.SafeString(response, "transferId"),
 			"timestamp":   nil,
@@ -5051,7 +5311,7 @@ func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccoun
  * @method
  * @name bingx#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20transfer%20records%20new
  * @param {string} [code] unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
@@ -5059,11 +5319,11 @@ func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccoun
  * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
  * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchTransfers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -5072,21 +5332,23 @@ func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49878 := (<-this.LoadMarkets())
-		PanicOnError(retRes49878)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+			retRes521212 := (<-this.LoadMarkets())
+			PanicOnError(retRes521212)
+		}
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var fromAccount interface{} = this.SafeString(params, "fromAccount")
-		var toAccount interface{} = this.SafeString(params, "toAccount")
-		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
-		var toId interface{} = this.SafeString(accountsByType, toAccount, toAccount)
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var fromAccount any = this.SafeString(params, "fromAccount")
+		var toAccount any = this.SafeString(params, "toAccount")
+		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
+		var toId any = this.SafeString(accountsByType, toAccount, toAccount)
 		if IsTrue(IsTrue(IsEqual(fromId, nil)) || IsTrue(IsEqual(toId, nil))) {
 			panic(ExchangeError(Add(this.Id, " fromAccount & toAccount parameters are required")))
 		}
@@ -5096,17 +5358,17 @@ func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 		if IsTrue(!IsEqual(toAccount, nil)) {
 			AddElementToObject(request, "toAccount", toId)
 		}
-		params = this.Omit(params, []interface{}{"fromAccount", "toAccount"})
-		var maxLimit interface{} = 100
-		var paginate interface{} = false
+		params = this.Omit(params, []any{"fromAccount", "toAccount"})
+		var maxLimit any = 100
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes501219 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
-			PanicOnError(retRes501219)
-			ch <- retRes501219
+			retRes523819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
+			PanicOnError(retRes523819)
+			ch <- retRes523819
 			return nil
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -5137,7 +5399,7 @@ func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 		//         ]
 		//     }
 		//
-		var rows interface{} = this.SafeList(response, "rows", []interface{}{})
+		var rows any = this.SafeList(response, "rows", []any{})
 
 		ch <- this.ParseTransfers(rows, currency, since, limit)
 		return nil
@@ -5145,20 +5407,20 @@ func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *BingxCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var tranId interface{} = this.SafeString(transfer, "transferId")
-	var timestamp interface{} = this.SafeInteger(transfer, "timestamp")
-	var currencyId interface{} = this.SafeString(transfer, "asset")
-	var currencyCode interface{} = this.SafeCurrencyCode(currencyId, currency)
-	var status interface{} = this.SafeString(transfer, "status")
-	var accountsById interface{} = this.SafeDict(this.Options, "accountsById", map[string]interface{}{})
-	var fromId interface{} = this.SafeString(transfer, "fromAccount")
-	var toId interface{} = this.SafeString(transfer, "toAccount")
-	var fromAccount interface{} = this.SafeString(accountsById, fromId, fromId)
-	var toAccount interface{} = this.SafeString(accountsById, toId, toId)
-	return map[string]interface{}{
+	var tranId any = this.SafeString(transfer, "transferId")
+	var timestamp any = this.SafeInteger(transfer, "timestamp")
+	var currencyId any = this.SafeString(transfer, "asset")
+	var currencyCode any = this.SafeCurrencyCode(currencyId, currency)
+	var status any = this.SafeString(transfer, "status")
+	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var fromId any = this.SafeString(transfer, "fromAccount")
+	var toId any = this.SafeString(transfer, "toAccount")
+	var fromAccount any = this.SafeString(accountsById, fromId, fromId)
+	var toAccount any = this.SafeString(accountsById, toId, toId)
+	return map[string]any{
 		"info":        transfer,
 		"id":          tranId,
 		"timestamp":   timestamp,
@@ -5170,8 +5432,8 @@ func (this *BingxCore) ParseTransfer(transfer interface{}, optionalArgs ...inter
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *BingxCore) ParseTransferStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *BingxCore) ParseTransferStatus(status any) any {
+	var statuses any = map[string]any{
 		"CONFIRMED": "ok",
 	}
 	return this.SafeString(statuses, status, status)
@@ -5181,25 +5443,27 @@ func (this *BingxCore) ParseTransferStatus(status interface{}) interface{} {
  * @method
  * @name bingx#fetchDepositAddressesByNetwork
  * @description fetch the deposit addresses for a currency associated with this account
- * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+ * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
  */
-func (this *BingxCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes50838 := (<-this.LoadMarkets())
-		PanicOnError(retRes50838)
-		var currency interface{} = this.Currency(code)
-		var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
-		var recvWindow interface{} = this.SafeInteger(this.ParseParams, "recvWindow", defaultRecvWindow)
-		var request interface{} = map[string]interface{}{
+			retRes531012 := (<-this.LoadMarkets())
+			PanicOnError(retRes531012)
+		}
+		var currency any = this.Currency(code)
+		var defaultRecvWindow any = this.SafeInteger(this.Options, "recvWindow")
+		var recvWindow any = this.SafeInteger(params, "recvWindow", defaultRecvWindow)
+		var request any = map[string]any{
 			"coin":       GetValue(currency, "id"),
 			"offset":     0,
 			"limit":      1000,
@@ -5226,8 +5490,8 @@ func (this *BingxCore) FetchDepositAddressesByNetwork(code interface{}, optional
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeList(this.SafeDict(response, "data"), "data")
-		var parsed interface{} = this.ParseDepositAddresses(data, []interface{}{GetValue(currency, "code")}, false)
+		var data any = this.SafeList(this.SafeDict(response, "data"), "data")
+		var parsed any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")}, false)
 
 		ch <- this.IndexBy(parsed, "network")
 		return nil
@@ -5240,21 +5504,21 @@ func (this *BingxCore) FetchDepositAddressesByNetwork(code interface{}, optional
  * @method
  * @name bingx#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *BingxCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var network interface{} = this.SafeString(params, "network")
-		params = this.Omit(params, []interface{}{"network"})
+		var network any = this.SafeString(params, "network")
+		params = this.Omit(params, []any{"network"})
 
 		addressStructures := (<-this.FetchDepositAddressesByNetwork(code, params))
 		PanicOnError(addressStructures)
@@ -5263,15 +5527,15 @@ func (this *BingxCore) FetchDepositAddress(code interface{}, optionalArgs ...int
 			ch <- this.SafeDict(addressStructures, network)
 			return nil
 		} else {
-			var options interface{} = this.SafeDict(this.Options, "defaultNetworks")
-			var defaultNetworkForCurrency interface{} = this.SafeString(options, code)
+			var options any = this.SafeDict(this.Options, "defaultNetworks")
+			var defaultNetworkForCurrency any = this.SafeString(options, code)
 			if IsTrue(!IsEqual(defaultNetworkForCurrency, nil)) {
 
 				ch <- this.SafeDict(addressStructures, defaultNetworkForCurrency)
 				return nil
 			} else {
-				var keys interface{} = ObjectKeys(addressStructures)
-				var key interface{} = this.SafeString(keys, 0)
+				var keys any = ObjectKeys(addressStructures)
+				var key any = this.SafeString(keys, 0)
 
 				ch <- this.SafeDict(addressStructures, key)
 				return nil
@@ -5281,7 +5545,7 @@ func (this *BingxCore) FetchDepositAddress(code interface{}, optionalArgs ...int
 	}()
 	return ch
 }
-func (this *BingxCore) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
 	// {
 	//     "coinId":"4",
@@ -5293,15 +5557,15 @@ func (this *BingxCore) ParseDepositAddress(depositAddress interface{}, optionalA
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var tag interface{} = this.SafeString(depositAddress, "tag")
-	var currencyId interface{} = this.SafeString(depositAddress, "coin")
+	var tag any = this.SafeString(depositAddress, "tag")
+	var currencyId any = this.SafeString(depositAddress, "coin")
 	currency = this.SafeCurrency(currencyId, currency)
-	var code interface{} = GetValue(currency, "code")
-	var address interface{} = this.SafeString(depositAddress, "addressWithPrefix")
-	var networkdId interface{} = this.SafeString(depositAddress, "network")
-	var networkCode interface{} = this.NetworkIdToCode(networkdId, code)
+	var code any = GetValue(currency, "code")
+	var address any = this.SafeString(depositAddress, "addressWithPrefix")
+	var networkdId any = this.SafeString(depositAddress, "network")
+	var networkCode any = this.NetworkIdToCode(networkdId, code)
 	this.CheckAddress(address)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":     depositAddress,
 		"currency": code,
 		"network":  networkCode,
@@ -5314,16 +5578,16 @@ func (this *BingxCore) ParseDepositAddress(depositAddress interface{}, optionalA
  * @method
  * @name bingx#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Deposit%20records
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *BingxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -5332,13 +5596,15 @@ func (this *BingxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51858 := (<-this.LoadMarkets())
-		PanicOnError(retRes51858)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+			retRes541412 := (<-this.LoadMarkets())
+			PanicOnError(retRes541412)
+		}
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "coin", GetValue(currency, "id"))
@@ -5381,16 +5647,16 @@ func (this *BingxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
  * @method
  * @name bingx#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Withdraw%20records
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *BingxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -5399,13 +5665,15 @@ func (this *BingxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes52328 := (<-this.LoadMarkets())
-		PanicOnError(retRes52328)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+			retRes546312 := (<-this.LoadMarkets())
+			PanicOnError(retRes546312)
+		}
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "coin", GetValue(currency, "id"))
@@ -5445,7 +5713,7 @@ func (this *BingxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inte
 	}()
 	return ch
 }
-func (this *BingxCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// fetchDeposits
 	//
@@ -5495,34 +5763,34 @@ func (this *BingxCore) ParseTransaction(transaction interface{}, optionalArgs ..
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var data interface{} = this.SafeValue(transaction, "data")
-	var dataId interface{} = Ternary(IsTrue((IsEqual(data, nil))), nil, this.SafeString(data, "id"))
-	var id interface{} = this.SafeString(transaction, "id", dataId)
-	var address interface{} = this.SafeString(transaction, "address")
-	var tag interface{} = this.SafeString(transaction, "addressTag")
-	var timestamp interface{} = this.SafeInteger2(transaction, "insertTime", "timestamp")
-	var datetime interface{} = this.Iso8601(timestamp)
+	var data any = this.SafeValue(transaction, "data")
+	var dataId any = Ternary(IsTrue((IsEqual(data, nil))), nil, this.SafeString(data, "id"))
+	var id any = this.SafeString(transaction, "id", dataId)
+	var address any = this.SafeString(transaction, "address")
+	var tag any = this.SafeString(transaction, "addressTag")
+	var timestamp any = this.SafeInteger2(transaction, "insertTime", "timestamp")
+	var datetime any = this.Iso8601(timestamp)
 	if IsTrue(IsEqual(timestamp, nil)) {
 		datetime = this.SafeString(transaction, "applyTime")
 		timestamp = this.Parse8601(datetime)
 	}
-	var network interface{} = this.SafeString(transaction, "network")
-	var currencyId interface{} = this.SafeString(transaction, "coin")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
+	var network any = this.SafeString(transaction, "network")
+	var currencyId any = this.SafeString(transaction, "coin")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
 	if IsTrue(IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, network)))) && IsTrue(IsGreaterThanOrEqual(GetIndexOf(code, network), 0))) {
 		if IsTrue(!IsEqual(network, nil)) {
 			code = Replace(code, network, "")
 		}
 	}
-	var rawType interface{} = this.SafeString(transaction, "transferType")
-	var typeVar interface{} = Ternary(IsTrue((IsEqual(rawType, "0"))), "deposit", "withdrawal")
-	return map[string]interface{}{
+	var rawType any = this.SafeString(transaction, "transferType")
+	var typeVar any = Ternary(IsTrue((IsEqual(rawType, "0"))), "deposit", "withdrawal")
+	return map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        this.SafeString(transaction, "txId"),
 		"type":        typeVar,
 		"currency":    code,
-		"network":     this.NetworkIdToCode(network),
+		"network":     this.NetworkIdToCode(network, code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
 		"timestamp":   timestamp,
@@ -5535,7 +5803,7 @@ func (this *BingxCore) ParseTransaction(transaction interface{}, optionalArgs ..
 		"tagTo":       nil,
 		"updated":     nil,
 		"comment":     this.SafeString(transaction, "info"),
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": code,
 			"cost":     this.SafeNumber(transaction, "transactionFee"),
 			"rate":     nil,
@@ -5543,8 +5811,8 @@ func (this *BingxCore) ParseTransaction(transaction interface{}, optionalArgs ..
 		"internal": nil,
 	}
 }
-func (this *BingxCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *BingxCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"0":  "pending",
 		"1":  "ok",
 		"10": "pending",
@@ -5567,29 +5835,31 @@ func (this *BingxCore) ParseTransactionStatus(status interface{}) interface{} {
  * @method
  * @name bingx#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Change%20Margin%20Type
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Set%20Margin%20Type
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *BingxCore) SetMarginMode(marginMode interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes54018 := (<-this.LoadMarkets())
-		PanicOnError(retRes54018)
-		var market interface{} = this.Market(symbol)
+			retRes563412 := (<-this.LoadMarkets())
+			PanicOnError(retRes563412)
+		}
+		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
 		}
@@ -5600,64 +5870,64 @@ func (this *BingxCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
 		if IsTrue(IsTrue(!IsEqual(marginMode, "ISOLATED")) && IsTrue(!IsEqual(marginMode, "CROSSED"))) {
 			panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be isolated or cross")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol":     GetValue(market, "id"),
 			"marginType": marginMode,
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("setMarginMode", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		if IsTrue(IsEqual(subType, "inverse")) {
 
-			retRes542019 := (<-this.CswapV1PrivatePostTradeMarginType(this.Extend(request, params)))
-			PanicOnError(retRes542019)
-			ch <- retRes542019
+			retRes565419 := (<-this.CswapV1PrivatePostTradeMarginType(this.Extend(request, params)))
+			PanicOnError(retRes565419)
+			ch <- retRes565419
 			return nil
 		} else {
 
-			retRes542219 := (<-this.SwapV2PrivatePostTradeMarginType(this.Extend(request, params)))
-			PanicOnError(retRes542219)
-			ch <- retRes542219
+			retRes565619 := (<-this.SwapV2PrivatePostTradeMarginType(this.Extend(request, params)))
+			PanicOnError(retRes565619)
+			ch <- retRes565619
 			return nil
 		}
 
 	}()
 	return ch
 }
-func (this *BingxCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"type": 1,
 		}
 
-		retRes543015 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes543015)
-		ch <- retRes543015
+		retRes566415 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes566415)
+		ch <- retRes566415
 		return nil
 
 	}()
 	return ch
 }
-func (this *BingxCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"type": 2,
 		}
 
-		retRes543715 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes543715)
-		ch <- retRes543715
+		retRes567115 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes567115)
+		ch <- retRes567115
 		return nil
 
 	}()
@@ -5668,31 +5938,33 @@ func (this *BingxCore) ReduceMargin(symbol interface{}, amount interface{}, opti
  * @method
  * @name bingx#setMargin
  * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
- * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the bingx api endpoint
- * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *BingxCore) SetMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) SetMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var typeVar interface{} = this.SafeInteger(params, "type") // 1 increase margin 2 decrease margin
+		var typeVar any = this.SafeInteger(params, "type") // 1 increase margin 2 decrease margin
 		if IsTrue(IsEqual(typeVar, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")))
 		}
-		if !IsTrue(this.InArray(typeVar, []interface{}{1, 2})) {
+		if !IsTrue(this.InArray(typeVar, []any{1, 2})) {
 			panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes54588 := (<-this.LoadMarkets())
-		PanicOnError(retRes54588)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes569312 := (<-this.LoadMarkets())
+			PanicOnError(retRes569312)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"amount": this.AmountToPrecision(GetValue(market, "symbol"), amount),
 			"type":   typeVar,
@@ -5715,7 +5987,7 @@ func (this *BingxCore) SetMargin(symbol interface{}, amount interface{}, optiona
 	}()
 	return ch
 }
-func (this *BingxCore) ParseMarginModification(data interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "code": 0,
@@ -5726,8 +5998,8 @@ func (this *BingxCore) ParseMarginModification(data interface{}, optionalArgs ..
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var typeVar interface{} = this.SafeString(data, "type")
-	return map[string]interface{}{
+	var typeVar any = this.SafeString(data, "type")
+	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
 		"type":       Ternary(IsTrue((IsEqual(typeVar, "1"))), "add", "reduce"),
@@ -5745,27 +6017,29 @@ func (this *BingxCore) ParseMarginModification(data interface{}, optionalArgs ..
  * @method
  * @name bingx#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Leverage%20and%20Available%20Positions
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *BingxCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes55128 := (<-this.LoadMarkets())
-		PanicOnError(retRes55128)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes574912 := (<-this.LoadMarkets())
+			PanicOnError(retRes574912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "inverse")) {
 
 			response = (<-this.CswapV1PrivateGetTradeLeverage(this.Extend(request, params)))
@@ -5775,7 +6049,7 @@ func (this *BingxCore) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 			response = (<-this.SwapV2PrivateGetTradeLeverage(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseLeverage(data, market)
 		return nil
@@ -5783,7 +6057,7 @@ func (this *BingxCore) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 	}()
 	return ch
 }
-func (this *BingxCore) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	//
 	// linear swap
 	//
@@ -5814,8 +6088,8 @@ func (this *BingxCore) ParseLeverage(leverage interface{}, optionalArgs ...inter
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(leverage, "symbol")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(leverage, "symbol")
+	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"marginMode":    nil,
@@ -5828,48 +6102,50 @@ func (this *BingxCore) ParseLeverage(leverage interface{}, optionalArgs ...inter
  * @method
  * @name bingx#setLeverage
  * @description set the level of leverage for a market
- * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Leverage
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Modify%20Leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
  * @returns {object} response from the exchange
  */
-func (this *BingxCore) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
-		var side interface{} = this.SafeStringUpper(params, "side")
-		this.CheckRequiredArgument("setLeverage", side, "side", []interface{}{"LONG", "SHORT", "BOTH"})
+		var side any = this.SafeStringUpper(params, "side")
+		this.CheckRequiredArgument("setLeverage", side, "side", []any{"LONG", "SHORT", "BOTH"})
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes56188 := (<-this.LoadMarkets())
-		PanicOnError(retRes56188)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes585712 := (<-this.LoadMarkets())
+			PanicOnError(retRes585712)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
 			"side":     side,
 			"leverage": leverage,
 		}
 		if IsTrue(GetValue(market, "inverse")) {
 
-			retRes562619 := (<-this.CswapV1PrivatePostTradeLeverage(this.Extend(request, params)))
-			PanicOnError(retRes562619)
-			ch <- retRes562619
+			retRes586619 := (<-this.CswapV1PrivatePostTradeLeverage(this.Extend(request, params)))
+			PanicOnError(retRes586619)
+			ch <- retRes586619
 			return nil
 		} else {
 
-			retRes564419 := (<-this.SwapV2PrivatePostTradeLeverage(this.Extend(request, params)))
-			PanicOnError(retRes564419)
-			ch <- retRes564419
+			retRes588419 := (<-this.SwapV2PrivatePostTradeLeverage(this.Extend(request, params)))
+			PanicOnError(retRes588419)
+			ch <- retRes588419
 			return nil
 		}
 
@@ -5881,10 +6157,9 @@ func (this *BingxCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
  * @method
  * @name bingx#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20transaction%20details
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20historical%20transaction%20orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order%20Trade%20Detail
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -5892,11 +6167,11 @@ func (this *BingxCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
  * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
  * @param {string} params.orderId the order id required for inverse swap
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *BingxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -5905,44 +6180,46 @@ func (this *BingxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes56858 := (<-this.LoadMarkets())
-		PanicOnError(retRes56858)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{}
-		var fills interface{} = nil
-		var response interface{} = nil
-		var subType interface{} = nil
+			retRes592512 := (<-this.LoadMarkets())
+			PanicOnError(retRes592512)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{}
+		var fills any = nil
+		var response any = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMyTrades", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		if IsTrue(IsEqual(subType, "inverse")) {
-			var orderId interface{} = this.SafeString(params, "orderId")
+			var orderId any = this.SafeString(params, "orderId")
 			if IsTrue(IsEqual(orderId, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires an orderId argument for inverse swap trades")))
 			}
 
 			response = (<-this.CswapV1PrivateGetTradeAllFillOrders(this.Extend(request, params)))
 			PanicOnError(response)
-			fills = this.SafeList(response, "data", []interface{}{})
+			fills = this.SafeList(response, "data", []any{})
 		} else {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
-			var now interface{} = this.Milliseconds()
+			var now any = this.Milliseconds()
 			if IsTrue(!IsEqual(since, nil)) {
-				var startTimeReq interface{} = Ternary(IsTrue(GetValue(market, "spot")), "startTime", "startTs")
+				var startTimeReq any = Ternary(IsTrue(GetValue(market, "spot")), "startTime", "startTs")
 				AddElementToObject(request, startTimeReq, since)
 			} else if IsTrue(GetValue(market, "swap")) {
 				AddElementToObject(request, "startTs", Subtract(now, Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000))) // 30 days for swap
 			}
-			var until interface{} = this.SafeInteger(params, "until")
+			var until any = this.SafeInteger(params, "until")
 			params = this.Omit(params, "until")
 			if IsTrue(!IsEqual(until, nil)) {
-				var endTimeReq interface{} = Ternary(IsTrue(GetValue(market, "spot")), "endTime", "endTs")
+				var endTimeReq any = Ternary(IsTrue(GetValue(market, "spot")), "endTime", "endTs")
 				AddElementToObject(request, endTimeReq, until)
 			} else if IsTrue(GetValue(market, "swap")) {
 				AddElementToObject(request, "endTs", now)
@@ -5954,17 +6231,17 @@ func (this *BingxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 
 				response = (<-this.SpotV1PrivateGetTradeMyTrades(this.Extend(request, params)))
 				PanicOnError(response)
-				var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-				fills = this.SafeList(data, "fills", []interface{}{})
+				var data any = this.SafeDict(response, "data", map[string]any{})
+				fills = this.SafeList(data, "fills", []any{})
 			} else {
-				var tradingUnit interface{} = this.SafeStringUpper(params, "tradingUnit", "CONT")
+				var tradingUnit any = this.SafeStringUpper(params, "tradingUnit", "CONT")
 				params = this.Omit(params, "tradingUnit")
 				AddElementToObject(request, "tradingUnit", tradingUnit)
 
 				response = (<-this.SwapV2PrivateGetTradeAllFillOrders(this.Extend(request, params)))
 				PanicOnError(response)
-				var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-				fills = this.SafeList(data, "fill_orders", []interface{}{})
+				var data any = this.SafeDict(response, "data", map[string]any{})
+				fills = this.SafeList(data, "fill_orders", []any{})
 			}
 		}
 
@@ -5974,37 +6251,37 @@ func (this *BingxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *BingxCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	// currencie structure
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networks interface{} = this.SafeDict(fee, "networks", map[string]interface{}{})
-	var networkCodes interface{} = ObjectKeys(networks)
-	var networksLength interface{} = GetArrayLength(networkCodes)
-	var result interface{} = map[string]interface{}{
+	var networks any = this.SafeDict(fee, "networks", map[string]any{})
+	var networkCodes any = ObjectKeys(networks)
+	var networksLength any = GetArrayLength(networkCodes)
+	var result any = map[string]any{
 		"info": networks,
-		"withdraw": map[string]interface{}{
+		"withdraw": map[string]any{
 			"fee":        nil,
 			"percentage": nil,
 		},
-		"deposit": map[string]interface{}{
+		"deposit": map[string]any{
 			"fee":        nil,
 			"percentage": nil,
 		},
-		"networks": map[string]interface{}{},
+		"networks": map[string]any{},
 	}
 	if IsTrue(!IsEqual(networksLength, 0)) {
 		for i := 0; IsLessThan(i, networksLength); i++ {
-			var networkCode interface{} = GetValue(networkCodes, i)
-			var network interface{} = GetValue(networks, networkCode)
-			AddElementToObject(GetValue(result, "networks"), networkCode, map[string]interface{}{
-				"deposit": map[string]interface{}{
+			var networkCode any = GetValue(networkCodes, i)
+			var network any = GetValue(networks, networkCode)
+			AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+				"deposit": map[string]any{
 					"fee":        nil,
 					"percentage": nil,
 				},
-				"withdraw": map[string]interface{}{
+				"withdraw": map[string]any{
 					"fee":        this.SafeNumber(network, "fee"),
 					"percentage": false,
 				},
@@ -6022,32 +6299,34 @@ func (this *BingxCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...
  * @method
  * @name bingx#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *BingxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		codes := GetArg(optionalArgs, 0, nil)
 		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes58518 := (<-this.LoadMarkets())
-		PanicOnError(retRes58518)
+			retRes609312 := (<-this.LoadMarkets())
+			PanicOnError(retRes609312)
+		}
 
 		response := (<-this.FetchCurrencies(params))
 		PanicOnError(response)
-		var depositWithdrawFees interface{} = map[string]interface{}{}
-		var responseCodes interface{} = ObjectKeys(response)
+		var depositWithdrawFees any = map[string]any{}
+		var responseCodes any = ObjectKeys(response)
 		for i := 0; IsLessThan(i, GetArrayLength(responseCodes)); i++ {
-			var code interface{} = GetValue(responseCodes, i)
+			var code any = GetValue(responseCodes, i)
 			if IsTrue(IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))) {
-				var entry interface{} = GetValue(response, code)
+				var entry any = GetValue(response, code)
 				AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(entry))
 			}
 		}
@@ -6063,51 +6342,65 @@ func (this *BingxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-c
  * @method
  * @name bingx#withdraw
  * @description make a withdrawal
- * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
+ * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *BingxCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes58818 := (<-this.LoadMarkets())
-		PanicOnError(retRes58818)
-		var currency interface{} = this.Currency(code)
-		var walletType interface{} = this.SafeInteger(params, "walletType", 15)
-		var request interface{} = map[string]interface{}{
+			retRes612512 := (<-this.LoadMarkets())
+			PanicOnError(retRes612512)
+		}
+		var currency any = this.Currency(code)
+		var defaultWalletType any = 15 // spot
+		var walletType any = nil
+		walletTypeparamsVariable := this.HandleOptionAndParams2(params, "withdraw", "type", "walletType", defaultWalletType)
+		walletType = GetValue(walletTypeparamsVariable, 0)
+		params = GetValue(walletTypeparamsVariable, 1)
+		var walletTypes any = map[string]any{
+			"funding":   1,
+			"fund":      1,
+			"standard":  2,
+			"perpetual": 3,
+			"spot":      15,
+		}
+		walletType = this.SafeInteger(walletTypes, walletType, defaultWalletType)
+		var request any = map[string]any{
 			"coin":       GetValue(currency, "id"),
 			"address":    address,
 			"amount":     this.CurrencyToPrecision(code, amount),
 			"walletType": walletType,
 		}
-		var network interface{} = this.SafeStringUpper(params, "network")
+		var network any = this.SafeStringUpper(params, "network")
 		if IsTrue(!IsEqual(network, nil)) {
-			AddElementToObject(request, "network", this.NetworkCodeToId(network))
+			AddElementToObject(request, "network", this.NetworkCodeToId(network, GetValue(currency, "code")))
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "addressTag", tag)
 		}
-		params = this.Omit(params, []interface{}{"walletType", "network"})
+		params = this.Omit(params, []any{"walletType", "network"})
 
 		response := (<-this.WalletsV1PrivatePostCapitalWithdrawApply(this.Extend(request, params)))
 		PanicOnError(response)
-		var data interface{} = this.SafeValue(response, "data")
+		var data any = this.SafeValue(response, "data")
 
 		//    {
 		//        "code":0,
@@ -6122,17 +6415,17 @@ func (this *BingxCore) Withdraw(code interface{}, amount interface{}, address in
 	}()
 	return ch
 }
-func (this *BingxCore) ParseParams(params interface{}) interface{} {
+func (this *BingxCore) ParseParams(params any) any {
 	// const sortedParams = this.keysort (params);
-	var rawKeys interface{} = ObjectKeys(params)
-	var keys interface{} = this.Sort(rawKeys)
+	var rawKeys any = ObjectKeys(params)
+	var keys any = this.Sort(rawKeys)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-		var key interface{} = GetValue(keys, i)
-		var value interface{} = GetValue(params, key)
+		var key any = GetValue(keys, i)
+		var value any = GetValue(params, key)
 		if IsTrue(IsArray(value)) {
-			var arrStr interface{} = "["
+			var arrStr any = "["
 			for j := 0; IsLessThan(j, GetArrayLength(value)); j++ {
-				var arrayElement interface{} = GetValue(value, j)
+				var arrayElement any = GetValue(value, j)
 				if IsTrue(IsGreaterThan(j, 0)) {
 					arrStr = Add(arrStr, ",")
 				}
@@ -6149,18 +6442,18 @@ func (this *BingxCore) ParseParams(params interface{}) interface{} {
  * @method
  * @name bingx#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/User's%20Force%20Orders
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
  * @param {string} [symbol] unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the bingx api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -6169,18 +6462,20 @@ func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan i
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes59478 := (<-this.LoadMarkets())
-		PanicOnError(retRes59478)
-		var request interface{} = map[string]interface{}{
+			retRes620312 := (<-this.LoadMarkets())
+			PanicOnError(retRes620312)
+		}
+		var request any = map[string]any{
 			"autoCloseType": "LIQUIDATION",
 		}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -6191,12 +6486,12 @@ func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan i
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMyLiquidations", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
-		var liquidations interface{} = nil
+		var response any = nil
+		var liquidations any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.CswapV1PrivateGetTradeForceOrders(this.Extend(request, params)))
@@ -6228,7 +6523,7 @@ func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan i
 			//         ]
 			//     }
 			//
-			liquidations = this.SafeList(response, "data", []interface{}{})
+			liquidations = this.SafeList(response, "data", []any{})
 		} else {
 
 			response = (<-this.SwapV2PrivateGetTradeForceOrders(this.Extend(request, params)))
@@ -6262,8 +6557,8 @@ func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan i
 			//         }
 			//     }
 			//
-			var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-			liquidations = this.SafeList(data, "orders", []interface{}{})
+			var data any = this.SafeDict(response, "data", map[string]any{})
+			liquidations = this.SafeList(data, "orders", []any{})
 		}
 
 		ch <- this.ParseLiquidations(liquidations, market, since, limit)
@@ -6272,7 +6567,7 @@ func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan i
 	}()
 	return ch
 }
-func (this *BingxCore) ParseLiquidation(liquidation interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseLiquidation(liquidation any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "time": "int64",
@@ -6296,14 +6591,14 @@ func (this *BingxCore) ParseLiquidation(liquidation interface{}, optionalArgs ..
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(liquidation, "symbol")
-	var timestamp interface{} = this.SafeInteger(liquidation, "time")
-	var contractsString interface{} = this.SafeString(liquidation, "executedQty")
-	var contractSizeString interface{} = this.SafeString(market, "contractSize")
-	var priceString interface{} = this.SafeString(liquidation, "avgPrice")
-	var baseValueString interface{} = Precise.StringMul(contractsString, contractSizeString)
-	var quoteValueString interface{} = Precise.StringMul(baseValueString, priceString)
-	return this.SafeLiquidation(map[string]interface{}{
+	var marketId any = this.SafeString(liquidation, "symbol")
+	var timestamp any = this.SafeInteger(liquidation, "time")
+	var contractsString any = this.SafeString(liquidation, "executedQty")
+	var contractSizeString any = this.SafeString(market, "contractSize")
+	var priceString any = this.SafeString(liquidation, "avgPrice")
+	var baseValueString any = Precise.StringMul(contractsString, contractSizeString)
+	var quoteValueString any = Precise.StringMul(baseValueString, priceString)
+	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market),
 		"contracts":    this.ParseNumber(contractsString),
@@ -6320,30 +6615,33 @@ func (this *BingxCore) ParseLiquidation(liquidation interface{}, optionalArgs ..
  * @method
  * @name bingx#closePosition
  * @description closes open positions for a market
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20position%20by%20position%20ID
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] not used by bingx
  * @param {object} [params] extra parameters specific to the bingx api endpoint
  * @param {string|undefined} [params.positionId] the id of the position you would like to close
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		side := GetArg(optionalArgs, 0, nil)
 		_ = side
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes60898 := (<-this.LoadMarkets())
-		PanicOnError(retRes60898)
-		var market interface{} = this.Market(symbol)
-		var positionId interface{} = this.SafeString(params, "positionId")
-		var request interface{} = map[string]interface{}{}
-		var response interface{} = nil
+			retRes634812 := (<-this.LoadMarkets())
+			PanicOnError(retRes634812)
+		}
+		var market any = this.Market(symbol)
+		var positionId any = this.SafeString(params, "positionId")
+		var request any = map[string]any{}
+		var response any = nil
 		if IsTrue(!IsEqual(positionId, nil)) {
 
 			response = (<-this.SwapV1PrivatePostTradeClosePosition(this.Extend(request, params)))
@@ -6360,7 +6658,7 @@ func (this *BingxCore) ClosePosition(symbol interface{}, optionalArgs ...interfa
 				PanicOnError(response)
 			}
 		}
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data")
 
 		ch <- this.ParseOrder(data, market)
 		return nil
@@ -6373,39 +6671,41 @@ func (this *BingxCore) ClosePosition(symbol interface{}, optionalArgs ...interfa
  * @method
  * @name bitget#closePositions
  * @description closes open positions for a market
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
  * @param {object} [params] extra parameters specific to the bingx api endpoint
  * @param {string} [params.recvWindow] request valid time window value
- * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *BingxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) CloseAllPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes61588 := (<-this.LoadMarkets())
-		PanicOnError(retRes61588)
-		var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
-		var recvWindow interface{} = this.SafeInteger(this.ParseParams, "recvWindow", defaultRecvWindow)
-		var marketType interface{} = nil
+			retRes641912 := (<-this.LoadMarkets())
+			PanicOnError(retRes641912)
+		}
+		var defaultRecvWindow any = this.SafeInteger(this.Options, "recvWindow")
+		var recvWindow any = this.SafeInteger(params, "recvWindow", defaultRecvWindow)
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("closeAllPositions", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("closeAllPositions", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "margin")) {
 			panic(BadRequest(Add(Add(Add(this.Id, " closePositions () cannot be used for "), marketType), " markets")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"recvWindow": recvWindow,
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.CswapV1PrivatePostTradeCloseAllPositions(this.Extend(request, params)))
@@ -6415,11 +6715,11 @@ func (this *BingxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan int
 			response = (<-this.SwapV2PrivatePostTradeCloseAllPositions(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var success interface{} = this.SafeList(data, "success", []interface{}{})
-		var positions interface{} = []interface{}{}
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var success any = this.SafeList(data, "success", []any{})
+		var positions any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(success)); i++ {
-			var position interface{} = this.ParsePosition(map[string]interface{}{
+			var position any = this.ParsePosition(map[string]any{
 				"positionId": GetValue(success, i),
 			})
 			AppendToArray(&positions, position)
@@ -6436,19 +6736,19 @@ func (this *BingxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan int
  * @method
  * @name bingx#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *BingxCore) FetchPositionMode(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchPositionMode(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		response := (<-this.SwapV1PrivateGetPositionSideDual(params))
@@ -6463,10 +6763,10 @@ func (this *BingxCore) FetchPositionMode(optionalArgs ...interface{}) <-chan int
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var dualSidePosition interface{} = this.SafeString(data, "dualSidePosition")
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var dualSidePosition any = this.SafeString(data, "dualSidePosition")
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"info":   response,
 			"hedged": (IsEqual(dualSidePosition, "true")),
 		}
@@ -6480,33 +6780,33 @@ func (this *BingxCore) FetchPositionMode(optionalArgs ...interface{}) <-chan int
  * @method
  * @name bingx#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} symbol not used by bingx setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *BingxCore) SetPositionMode(hedged interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var dualSidePosition interface{} = nil
+		var dualSidePosition any = nil
 		if IsTrue(hedged) {
 			dualSidePosition = "true"
 		} else {
 			dualSidePosition = "false"
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"dualSidePosition": dualSidePosition,
 		}
 
-		retRes626815 := (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
-		PanicOnError(retRes626815)
+		retRes653015 := (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
+		PanicOnError(retRes653015)
 		//
 		//     {
 		//         code: '0',
@@ -6515,7 +6815,7 @@ func (this *BingxCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 		//         data: { dualSidePosition: 'false' }
 		//     }
 		//
-		ch <- retRes626815
+		ch <- retRes653015
 		return nil
 
 	}()
@@ -6526,8 +6826,8 @@ func (this *BingxCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
  * @method
  * @name bingx#editOrder
  * @description cancels an order and places a new order
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  // spot
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order  // swap
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -6551,27 +6851,29 @@ func (this *BingxCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
  * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
  * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
  * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BingxCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := GetArg(optionalArgs, 1, nil)
 		_ = price
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes63038 := (<-this.LoadMarkets())
-		PanicOnError(retRes63038)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+			retRes656612 := (<-this.LoadMarkets())
+			PanicOnError(retRes656612)
+		}
+		var market any = this.Market(symbol)
+		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		AddElementToObject(request, "cancelOrderId", id)
 		AddElementToObject(request, "cancelReplaceMode", "STOP_ON_FAILURE")
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 
 			response = (<-this.SwapV1PrivatePostTradeCancelReplace(this.Extend(request, params)))
@@ -6581,7 +6883,7 @@ func (this *BingxCore) EditOrder(id interface{}, symbol interface{}, typeVar int
 			response = (<-this.SpotV1PrivatePostTradeOrderCancelReplace(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data")
 
 		ch <- this.ParseOrder(data, market)
 		return nil
@@ -6594,28 +6896,30 @@ func (this *BingxCore) EditOrder(id interface{}, symbol interface{}, typeVar int
  * @method
  * @name bingx#fetchMarginMode
  * @description fetches the margin mode of the trading pair
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Margin%20Type
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Margin%20Type
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *BingxCore) FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64208 := (<-this.LoadMarkets())
-		PanicOnError(retRes64208)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes668512 := (<-this.LoadMarkets())
+			PanicOnError(retRes668512)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var subType interface{} = nil
-		var response interface{} = nil
+		var subType any = nil
+		var response any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarginMode", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
@@ -6628,7 +6932,7 @@ func (this *BingxCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 			response = (<-this.SwapV2PrivateGetTradeMarginType(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseMarginMode(data, market)
 		return nil
@@ -6636,13 +6940,13 @@ func (this *BingxCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 	}()
 	return ch
 }
-func (this *BingxCore) ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(marginMode, "symbol")
-	var marginType interface{} = this.SafeStringLower(marginMode, "marginType")
+	var marketId any = this.SafeString(marginMode, "symbol")
+	var marginType any = this.SafeStringLower(marginMode, "marginType")
 	marginType = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", marginType)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":       marginMode,
 		"symbol":     this.SafeSymbol(marketId, market, "-", "swap"),
 		"marginMode": marginType,
@@ -6653,30 +6957,31 @@ func (this *BingxCore) ParseMarginMode(marginMode interface{}, optionalArgs ...i
  * @method
  * @name bingx#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
- * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
- * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Trading%20Commission%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20Trading%20Commission%20Rate
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Trade%20Commission%20Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *BingxCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BingxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64808 := (<-this.LoadMarkets())
-		PanicOnError(retRes64808)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes674712 := (<-this.LoadMarkets())
+			PanicOnError(retRes674712)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
-		var commission interface{} = map[string]interface{}{}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var response any = nil
+		var commission any = map[string]any{}
 		if IsTrue(GetValue(market, "spot")) {
 
 			response = (<-this.SpotV1PrivateGetUserCommissionRate(this.Extend(request, params)))
@@ -6692,7 +6997,7 @@ func (this *BingxCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
 			//         }
 			//     }
 			//
-			commission = data
+			commission = this.SafeDict(response, "data", map[string]any{})
 		} else {
 			if IsTrue(GetValue(market, "inverse")) {
 
@@ -6709,7 +7014,7 @@ func (this *BingxCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
 				//         }
 				//     }
 				//
-				commission = data
+				commission = this.SafeDict(response, "data", map[string]any{})
 			} else {
 
 				response = (<-this.SwapV2PrivateGetUserCommissionRate(params))
@@ -6726,7 +7031,8 @@ func (this *BingxCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
 				//         }
 				//     }
 				//
-				commission = this.SafeDict(data, "commission", map[string]interface{}{})
+				var data any = this.SafeDict(response, "data", map[string]any{})
+				commission = this.SafeDict(data, "commission", map[string]any{})
 			}
 		}
 
@@ -6736,7 +7042,7 @@ func (this *BingxCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
 	}()
 	return ch
 }
-func (this *BingxCore) ParseTradingFee(fee interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BingxCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "takerCommissionRate": 0.001,
@@ -6745,8 +7051,8 @@ func (this *BingxCore) ParseTradingFee(fee interface{}, optionalArgs ...interfac
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol interface{} = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
-	return map[string]interface{}{
+	var symbol any = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
+	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
 		"maker":      this.SafeNumber(fee, "makerCommissionRate"),
@@ -6755,20 +7061,20 @@ func (this *BingxCore) ParseTradingFee(fee interface{}, optionalArgs ...interfac
 		"tierBased":  false,
 	}
 }
-func (this *BingxCore) CustomEncode(params interface{}) interface{} {
+func (this *BingxCore) CustomEncode(params any) any {
 	// const sortedParams = this.keysort (params);
-	var rawKeys interface{} = ObjectKeys(params)
-	var keys interface{} = this.Sort(rawKeys)
-	var adjustedValue interface{} = nil
-	var result interface{} = nil
+	var rawKeys any = ObjectKeys(params)
+	var keys any = this.Sort(rawKeys)
+	var adjustedValue any = nil
+	var result any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-		var key interface{} = GetValue(keys, i)
-		var value interface{} = GetValue(params, key)
+		var key any = GetValue(keys, i)
+		var value any = GetValue(params, key)
 		if IsTrue(IsArray(value)) {
-			var arrStr interface{} = nil
+			var arrStr any = nil
 			for j := 0; IsLessThan(j, GetArrayLength(value)); j++ {
-				var arrayElement interface{} = GetValue(value, j)
-				var isString interface{} = (IsString(arrayElement))
+				var arrayElement any = GetValue(value, j)
+				var isString any = (IsString(arrayElement))
 				if IsTrue(isString) {
 					if IsTrue(IsGreaterThan(j, 0)) {
 						arrStr = Add(arrStr, Add(Add(Add(",", "\""), ToString(arrayElement)), "\""))
@@ -6794,28 +7100,120 @@ func (this *BingxCore) CustomEncode(params interface{}) interface{} {
 	}
 	return result
 }
-func (this *BingxCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+
+/**
+ * @method
+ * @name bingx#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *BingxCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes687412 := (<-this.LoadMarkets())
+			PanicOnError(retRes687412)
+		}
+		var market any = this.Market(symbol)
+		if !IsTrue(GetValue(market, "swap")) {
+			panic(BadRequest(Add(this.Id, " fetchMarketLeverageTiers() supports swap markets only")))
+		}
+		var request any = map[string]any{
+			"symbol": GetValue(market, "id"),
+		}
+
+		response := (<-this.SwapV1PrivateGetMaintMarginRatio(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "code": 0,
+		//         "msg": "",
+		//         "timestamp": 1767789967284,
+		//         "data": [
+		//             {
+		//                 "tier": "Tier 1",
+		//                 "symbol": "ETH-USDT",
+		//                 "minPositionVal": "0",
+		//                 "maxPositionVal": "900000",
+		//                 "maintMarginRatio": "0.003300",
+		//                 "maintAmount": "0.000000"
+		//             }
+		//         ]
+		//     }
+		//
+		var data any = this.SafeList(response, "data", []any{})
+
+		ch <- this.ParseMarketLeverageTiers(data, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BingxCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
+	//
+	//     [
+	//         {
+	//             "tier": "Tier 1",
+	//             "symbol": "ETH-USDT",
+	//             "minPositionVal": "0",
+	//             "maxPositionVal": "900000",
+	//             "maintMarginRatio": "0.003300",
+	//             "maintAmount": "0.000000"
+	//         }
+	//     ]
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var tiers any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(info)); i++ {
+		var tier any = this.SafeDict(info, i)
+		var tierString any = this.SafeString(tier, "tier")
+		var tierParts any = Split(tierString, " ")
+		var marketId any = this.SafeString(tier, "symbol")
+		market = this.SafeMarket(marketId, market, nil, "swap")
+		AppendToArray(&tiers, map[string]any{
+			"tier":                  this.SafeNumber(tierParts, 1),
+			"symbol":                this.SafeSymbol(marketId, market),
+			"currency":              this.SafeString(market, "settle"),
+			"minNotional":           this.SafeNumber(tier, "minPositionVal"),
+			"maxNotional":           this.SafeNumber(tier, "maxPositionVal"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintMarginRatio"),
+			"maxLeverage":           nil,
+			"info":                  tier,
+		})
+	}
+	return tiers
+}
+func (this *BingxCore) Sign(path any, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var typeVar interface{} = GetValue(section, 0)
-	var version interface{} = GetValue(section, 1)
-	var access interface{} = GetValue(section, 2)
-	var isSandbox interface{} = this.SafeBool(this.Options, "sandboxMode", false)
-	if IsTrue(IsTrue(isSandbox) && IsTrue((!IsEqual(typeVar, "swap")))) {
+	var typeVar any = GetValue(section, 0)
+	var version any = GetValue(section, 1)
+	var access any = GetValue(section, 2)
+	var isSandbox any = this.SafeBool(this.Options, "sandboxMode", false)
+	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), typeVar))
+	if IsTrue(IsTrue(isSandbox) && IsTrue(IsEqual(url, nil))) {
 		panic(NotSupported(Add(Add(Add(this.Id, " does not have a testnet/sandbox URL for "), typeVar), " endpoints")))
 	}
-	var url interface{} = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), typeVar))
 	path = this.ImplodeParams(path, params)
-	var versionIsTransfer interface{} = (IsEqual(version, "transfer"))
-	var versionIsAsset interface{} = (IsEqual(version, "asset"))
+	var versionIsTransfer any = (IsEqual(version, "transfer"))
+	var versionIsAsset any = (IsEqual(version, "asset"))
 	if IsTrue(IsTrue(versionIsTransfer) || IsTrue(versionIsAsset)) {
 		if IsTrue(versionIsTransfer) {
 			typeVar = "account/transfer"
@@ -6842,17 +7240,17 @@ func (this *BingxCore) Sign(path interface{}, optionalArgs ...interface{}) inter
 		}
 	} else if IsTrue(IsEqual(access, "private")) {
 		this.CheckRequiredCredentials()
-		var isJsonContentType interface{} = (IsTrue((IsTrue((IsEqual(typeVar, "subAccount"))) || IsTrue((IsEqual(typeVar, "account/transfer"))))) && IsTrue((IsEqual(method, "POST"))))
-		var parsedParams interface{} = nil
-		var encodeRequest interface{} = nil
+		var isJsonContentType any = (IsTrue((IsTrue((IsEqual(typeVar, "subAccount"))) || IsTrue((IsEqual(typeVar, "account/transfer"))))) && IsTrue((IsEqual(method, "POST"))))
+		var parsedParams any = nil
+		var encodeRequest any = nil
 		if IsTrue(isJsonContentType) {
 			encodeRequest = this.CustomEncode(params)
 		} else {
 			parsedParams = this.ParseParams(params)
 			encodeRequest = this.Rawencode(parsedParams, true)
 		}
-		var signature interface{} = this.Hmac(this.Encode(encodeRequest), this.Encode(this.Secret), sha256)
-		headers = map[string]interface{}{
+		var signature any = this.Hmac(this.Encode(encodeRequest), this.Encode(this.Secret), sha256)
+		headers = map[string]any{
 			"X-BX-APIKEY":  this.ApiKey,
 			"X-SOURCE-KEY": this.SafeString(this.Options, "broker", "CCXT"),
 		}
@@ -6861,25 +7259,25 @@ func (this *BingxCore) Sign(path interface{}, optionalArgs ...interface{}) inter
 			AddElementToObject(params, "signature", signature)
 			body = this.Json(params)
 		} else {
-			var query interface{} = this.Urlencode(parsedParams, true)
+			var query any = this.Urlencode(parsedParams, true)
 			url = Add(url, Add(Add(Add(Add("?", query), "&"), "signature="), signature))
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *BingxCore) Nonce() interface{} {
+func (this *BingxCore) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *BingxCore) SetSandboxMode(enable interface{}) {
+func (this *BingxCore) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	AddElementToObject(this.Options, "sandboxMode", enable)
 }
-func (this *BingxCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *BingxCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
@@ -6891,14 +7289,14 @@ func (this *BingxCore) HandleErrors(httpCode interface{}, reason interface{}, ur
 	//        }
 	//    }
 	//
-	var code interface{} = this.SafeString(response, "code")
-	var message interface{} = this.SafeString(response, "msg")
-	var transferErrorMsg interface{} = this.SafeString(response, "transferErrorMsg") // handling with errors from transfer endpoint
+	var code any = this.SafeString(response, "code")
+	var message any = this.SafeString(response, "msg")
+	var transferErrorMsg any = this.SafeString(response, "transferErrorMsg") // handling with errors from transfer endpoint
 	if IsTrue(IsTrue((!IsEqual(transferErrorMsg, nil))) || IsTrue((IsTrue(!IsEqual(code, nil)) && IsTrue(!IsEqual(code, "0"))))) {
 		if IsTrue(!IsEqual(transferErrorMsg, nil)) {
 			message = transferErrorMsg
 		}
-		var feedback interface{} = Add(Add(this.Id, " "), body)
+		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
@@ -6907,8 +7305,8 @@ func (this *BingxCore) HandleErrors(httpCode interface{}, reason interface{}, ur
 	return nil
 }
 
-func (this *BingxCore) Init(userConfig map[string]interface{}) {
+func (this *BingxCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

@@ -121,11 +121,6 @@ public partial class upbit : Exchange
         return await this.callAsync ("publicGetOrderbookInstruments",parameters);
     }
 
-    public async Task<object> publicGetOrderbookSupportedLevels (object parameters = null)
-    {
-        return await this.callAsync ("publicGetOrderbookSupportedLevels",parameters);
-    }
-
     public async Task<object> privateGetAccounts (object parameters = null)
     {
         return await this.callAsync ("privateGetAccounts",parameters);
@@ -221,6 +216,11 @@ public partial class upbit : Exchange
         return await this.callAsync ("privatePostOrders",parameters);
     }
 
+    public async Task<object> privatePostOrdersTest (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrdersTest",parameters);
+    }
+
     public async Task<object> privatePostOrdersCancelAndNew (object parameters = null)
     {
         return await this.callAsync ("privatePostOrdersCancelAndNew",parameters);
@@ -269,6 +269,11 @@ public partial class upbit : Exchange
     public async Task<object> privateDeleteOrdersUuids (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOrdersUuids",parameters);
+    }
+
+    public async Task<object> privateDeleteWithdrawsCoin (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteWithdrawsCoin",parameters);
     }
 
 }

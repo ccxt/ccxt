@@ -49,7 +49,7 @@ sign in, must be called prior to using other authenticated methods
 
 
 ```javascript
-ndax.signIn ([params])
+ndax.signIn (params?)
 ```
 
 
@@ -69,7 +69,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-ndax.fetchCurrencies ([params])
+ndax.fetchCurrencies (params?)
 ```
 
 
@@ -89,7 +89,7 @@ retrieves data on all markets for ndax
 
 
 ```javascript
-ndax.fetchMarkets ([params])
+ndax.fetchMarkets (params?)
 ```
 
 
@@ -99,7 +99,7 @@ ndax.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidoc.ndax.io/#getl2snapshot  
 
@@ -111,7 +111,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-ndax.fetchOrderBook (symbol[, limit, params])
+ndax.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -121,7 +121,7 @@ ndax.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidoc.ndax.io/#getlevel1  
 
@@ -132,7 +132,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-ndax.fetchTicker (symbol[, params])
+ndax.fetchTicker (symbol, params?)
 ```
 
 
@@ -156,7 +156,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-ndax.fetchOHLCV (symbol, timeframe[, since, limit, params])
+ndax.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -166,7 +166,7 @@ ndax.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -178,7 +178,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-ndax.fetchTrades (symbol[, since, limit, params])
+ndax.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -188,7 +188,7 @@ ndax.fetchTrades (symbol[, since, limit, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://apidoc.ndax.io/#getuseraccounts  
 
@@ -198,7 +198,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-ndax.fetchAccounts ([params])
+ndax.fetchAccounts (params?)
 ```
 
 
@@ -208,7 +208,7 @@ ndax.fetchAccounts ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://apidoc.ndax.io/#getaccountpositions  
 
@@ -218,7 +218,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-ndax.fetchBalance ([params])
+ndax.fetchBalance (params?)
 ```
 
 
@@ -228,7 +228,7 @@ ndax.fetchBalance ([params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://apidoc.ndax.io/#getaccounttransactions  
 
@@ -241,7 +241,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-ndax.fetchLedger ([code, since, limit, params])
+ndax.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -251,7 +251,7 @@ ndax.fetchLedger ([code, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidoc.ndax.io/#sendorder  
 
@@ -268,7 +268,7 @@ create a trade order
 
 
 ```javascript
-ndax.createOrder (symbol, type, side, amount[, price, params])
+ndax.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -278,7 +278,7 @@ ndax.createOrder (symbol, type, side, amount[, price, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://apidoc.ndax.io/#gettradeshistory  
 
@@ -291,7 +291,7 @@ fetch all trades made by the user
 
 
 ```javascript
-ndax.fetchMyTrades (symbol[, since, limit, params])
+ndax.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -301,7 +301,7 @@ ndax.fetchMyTrades (symbol[, since, limit, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidoc.ndax.io/#cancelallorders  
 
@@ -312,7 +312,7 @@ cancel all open orders
 
 
 ```javascript
-ndax.cancelAllOrders (symbol[, params])
+ndax.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -322,7 +322,7 @@ ndax.cancelAllOrders (symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidoc.ndax.io/#cancelorder  
 
@@ -335,7 +335,7 @@ cancels an open order
 
 
 ```javascript
-ndax.cancelOrder (id, symbol[, params])
+ndax.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -345,7 +345,7 @@ ndax.cancelOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidoc.ndax.io/#getopenorders  
 
@@ -358,7 +358,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-ndax.fetchOpenOrders (symbol[, since, limit, params])
+ndax.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -368,7 +368,7 @@ ndax.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidoc.ndax.io/#getorderhistory  
 
@@ -381,7 +381,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-ndax.fetchOrders (symbol[, since, limit, params])
+ndax.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -391,7 +391,7 @@ ndax.fetchOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidoc.ndax.io/#getorderstatus  
 
@@ -403,7 +403,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-ndax.fetchOrder (id, symbol[, params])
+ndax.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -413,7 +413,7 @@ ndax.fetchOrder (id, symbol[, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://apidoc.ndax.io/#getorderhistorybyorderid  
 
@@ -427,7 +427,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-ndax.fetchOrderTrades (id, symbol[, since, limit, params])
+ndax.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -437,7 +437,7 @@ ndax.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -447,7 +447,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-ndax.fetchDepositAddress (code[, params])
+ndax.fetchDepositAddress (code, params?)
 ```
 
 
@@ -457,7 +457,7 @@ ndax.fetchDepositAddress (code[, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -467,7 +467,7 @@ create a currency deposit address
 
 
 ```javascript
-ndax.createDepositAddress (code[, params])
+ndax.createDepositAddress (code, params?)
 ```
 
 
@@ -477,7 +477,7 @@ ndax.createDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://apidoc.ndax.io/#getdeposits  
 
@@ -490,7 +490,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-ndax.fetchDeposits (code[, since, limit, params])
+ndax.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -500,7 +500,7 @@ ndax.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://apidoc.ndax.io/#getwithdraws  
 
@@ -513,7 +513,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-ndax.fetchWithdrawals (code[, since, limit, params])
+ndax.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -523,7 +523,7 @@ ndax.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -536,7 +536,7 @@ make a withdrawal
 
 
 ```javascript
-ndax.withdraw (code, amount, address, tag[, params])
+ndax.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -546,7 +546,7 @@ ndax.withdraw (code, amount, address, tag[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidoc.ndax.io/#subscribelevel1  
 
@@ -557,7 +557,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-ndax.watchTicker (symbol[, params])
+ndax.watchTicker (symbol, params?)
 ```
 
 
@@ -567,7 +567,7 @@ ndax.watchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidoc.ndax.io/#subscribetrades  
 
@@ -580,7 +580,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-ndax.watchTrades (symbol[, since, limit, params])
+ndax.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -604,7 +604,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-ndax.watchOHLCV (symbol, timeframe[, since, limit, params])
+ndax.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -614,7 +614,7 @@ ndax.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidoc.ndax.io/#subscribelevel2  
 
@@ -626,6 +626,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-ndax.watchOrderBook (symbol[, limit, params])
+ndax.watchOrderBook (symbol, limit?, params?)
 ```
 

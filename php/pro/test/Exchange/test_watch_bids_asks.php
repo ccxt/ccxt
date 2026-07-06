@@ -10,13 +10,12 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_bids_asks($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $without_symbol = test_watch_bids_asks_helper($exchange, $skipped_properties, null);
         $with_symbol = test_watch_bids_asks_helper($exchange, $skipped_properties, [$symbol]);
-        Async\await(Promise\all([$with_symbol, $without_symbol]));
+        \React\Async\await(\React\Promise\all([$with_symbol, $without_symbol]));
     }) ();
 }
 
@@ -29,9 +28,9 @@ function test_watch_bids_asks_helper($exchange, $skipped_properties, $arg_symbol
         while ($now < $ends) {
             $success = true;
             $should_return = false;
-            $response = null;
+            $response = array();
             try {
-                $response = Async\await($exchange->watch_bids_asks($arg_symbols, $arg_params));
+                $response = \React\Async\await($exchange->watch_bids_asks($arg_symbols, $arg_params));
             } catch(\Throwable $e) {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
@@ -51,7 +50,7 @@ function test_watch_bids_asks_helper($exchange, $skipped_properties, $arg_symbol
                 return false;
             }
             if ($success === true) {
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
                 $values = is_array($response) ? array_values($response) : array();
                 $checked_symbol = null;
                 if ($arg_symbols !== null && count($arg_symbols) === 1) {

@@ -18,7 +18,7 @@ export default class binanceus extends binance {
         return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
-            'countries': ['US'],
+            'countries': ['US'], // US
             'certified': false,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
@@ -39,8 +39,26 @@ export default class binanceus extends binance {
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
                 'fees': 'https://www.binance.us/en/fee/schedule',
             },
+            'has': {
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrderWs': false,
+                'createStopLossOrderWs': false,
+                'createTakeProfitOrderWs': false,
+                'fetchPositionForSymbolWs': false,
+                'fetchPositionsForSymbolWs': false,
+                'fetchPositionsWs': false,
+                'fetchPositionWs': false,
+                'unWatchPositions': false,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMarkPrice': false,
+                'watchMarkPrices': false,
+                'watchMyLiquidations': false,
+                'watchMyLiquidationsForSymbols': false,
+                'watchPosition': false,
+                'watchPositions': false,
+            },
             'options': {
-                'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
                 'fetchMarkets': {

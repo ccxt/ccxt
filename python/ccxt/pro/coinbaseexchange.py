@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -14,6 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.precise import Precise
 
 
 class coinbaseexchange(ccxt.async_support.coinbaseexchange):
@@ -65,7 +66,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         }
 
     async def subscribe(self, name, symbol=None, messageHashStart=None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         messageHash = messageHashStart
         productIds = []
@@ -77,7 +79,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
-        subscribe: dict = {
+        subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -88,7 +90,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         return await self.watch(url, messageHash, request, messageHash)
 
     async def subscribe_multiple(self, name, symbols=[], messageHashStart=None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         symbols = self.market_symbols(symbols)
         messageHashes = []
@@ -102,7 +105,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
-        subscribe: dict = {
+        subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -117,7 +120,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         name = 'ticker'
         return await self.subscribe(name, symbol, name, params)
@@ -128,9 +131,10 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise BadSymbol(self.id + ' watchTickers requires a non-empty symbols array')
@@ -138,7 +142,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         messageHash = 'ticker'
         ticker = await self.subscribe_multiple(channel, symbols, messageHash, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -150,9 +154,10 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'matches'
         trades = await self.subscribe(name, symbol, name, params)
@@ -167,12 +172,13 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise BadRequest(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'matches'
         trades = await self.subscribe_multiple(name, symbols, name, params)
@@ -189,11 +195,12 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'user'
         messageHash = 'myTrades'
@@ -210,10 +217,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         symbols = self.market_symbols(symbols, None, False)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'user'
         messageHash = 'myTrades'
         authentication = self.authenticate()
@@ -231,9 +239,10 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         name = 'user'
         messageHash = 'orders'
@@ -252,11 +261,12 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'user'
         messageHash = 'orders'
@@ -272,13 +282,14 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise BadRequest(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         name = 'level2'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         messageHashes = []
@@ -286,7 +297,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             marketId = marketIds[i]
             messageHashes.append(name + ':' + marketId)
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'type': 'subscribe',
             'product_ids': marketIds,
             'channels': [
@@ -294,7 +305,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             ],
         }
         request = self.extend(subscribe, params)
-        subscription: dict = {
+        subscription = {
             'messageHash': name,
             'symbols': symbols,
             'marketIds': marketIds,
@@ -310,15 +321,16 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         name = 'level2'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'type': 'subscribe',
             'product_ids': [
                 market['id'],
@@ -328,7 +340,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             ],
         }
         request = self.extend(subscribe, params)
-        subscription: dict = {
+        subscription = {
             'messageHash': messageHash,
             'symbol': symbol,
             'marketId': market['id'],
@@ -386,7 +398,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # private trades
         # {
@@ -443,10 +455,10 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if 'maker_fee_rate' in trade:
             isMaker = True
             parsed['takerOrMaker'] = 'maker'
-            feeRate = self.safe_number(trade, 'maker_fee_rate')
+            feeRate = self.safe_string(trade, 'maker_fee_rate')
         else:
             parsed['takerOrMaker'] = 'taker'
-            feeRate = self.safe_number(trade, 'taker_fee_rate')
+            feeRate = self.safe_string(trade, 'taker_fee_rate')
             # side always represents the maker side of the trade
             # so if we're taker, we invert it
             currentSide = parsed['side']
@@ -460,17 +472,17 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         feeCurrency = market['quote']
         feeCost = None
         if (parsed['cost'] is not None) and (feeRate is not None):
-            cost = self.safe_number(parsed, 'cost')
-            feeCost = cost * feeRate
+            cost = self.safe_string(parsed, 'cost')
+            feeCost = Precise.string_mul(cost, feeRate)
         parsed['fee'] = {
-            'rate': feeRate,
-            'cost': feeCost,
+            'rate': self.parse_number(feeRate),
+            'cost': self.parse_number(feeCost),
             'currency': feeCurrency,
         }
         return parsed
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             'filled': 'closed',
             'canceled': 'canceled',
         }
@@ -588,27 +600,31 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                             previousOrder['trades'] = []
                         previousOrder['trades'].append(trade)
                         previousOrder['lastTradeTimestamp'] = trade['timestamp']
-                        totalCost = 0
-                        totalAmount = 0
+                        totalCost = '0'
+                        totalAmount = '0'
                         trades = previousOrder['trades']
                         for i in range(0, len(trades)):
                             tradeEntry = trades[i]
-                            totalCost = self.sum(totalCost, tradeEntry['cost'])
-                            totalAmount = self.sum(totalAmount, tradeEntry['amount'])
-                        if totalAmount > 0:
-                            previousOrder['average'] = totalCost / totalAmount
-                        previousOrder['cost'] = totalCost
-                        if previousOrder['filled'] is not None:
-                            previousOrder['filled'] += trade['amount']
+                            totalCost = self.safe_string(tradeEntry, 'cost', '0')
+                            totalAmount = self.safe_string(tradeEntry, 'amount', '0')
+                        if not Precise.string_eq(totalAmount, '0'):
+                            previousOrder['average'] = self.parse_number(Precise.string_div(totalCost, totalAmount))
+                        previousOrder['cost'] = self.parse_number(totalCost)
+                        previousOrderFilled = self.safe_string(previousOrder, 'filled')
+                        if previousOrderFilled is not None:
+                            previousOrder['filled'] = self.parse_number(Precise.string_add(previousOrderFilled, self.safe_string(trade, 'amount')))
                             if previousOrder['amount'] is not None:
-                                previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled']
+                                previousOrder['remaining'] = self.parse_number(Precise.string_sub(self.safe_string(previousOrder, 'amount'), self.safe_string(previousOrder, 'filled')))
                         if previousOrder['fee'] is None:
                             previousOrder['fee'] = {
                                 'cost': 0,
-                                'currency': trade['fee']['currency'],
+                                'currency': self.safe_string(trade['fee'], 'currency'),
                             }
-                        if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
-                            previousOrder['fee']['cost'] = self.sum(previousOrder['fee']['cost'], trade['fee']['cost'])
+                        if (previousOrder['fee']['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
+                            previousOrder['fee']['cost'] = self.sum(previousOrder['fee']['cost'], self.safe_number(trade['fee'], 'cost'))
+                            previousOrderFee = self.safe_dict(previousOrder, 'fee')
+                            tradeFee = self.safe_dict(trade, 'fee')
+                            previousOrder['fee']['cost'] = self.parse_number(Precise.string_add(self.safe_string(previousOrderFee, 'cost'), self.safe_string(tradeFee, 'cost')))
                         # update the newUpdates count
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
@@ -625,28 +641,28 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
         marketId = self.safe_string(order, 'product_id')
         symbol = self.safe_symbol(marketId)
         side = self.safe_string(order, 'side')
         price = self.safe_number(order, 'price')
-        amount = self.safe_number_2(order, 'size', 'funds')
+        amount = self.safe_string_2(order, 'size', 'funds')
         time = self.safe_string(order, 'time')
         timestamp = self.parse8601(time)
         reason = self.safe_string(order, 'reason')
         status = self.parse_ws_order_status(reason)
         orderType = self.safe_string(order, 'order_type')
-        remaining = self.safe_number(order, 'remaining_size')
+        remaining = self.safe_string(order, 'remaining_size')
         type = self.safe_string(order, 'type')
         filled = None
         if (amount is not None) and (remaining is not None):
-            filled = amount - remaining
+            filled = Precise.string_sub(amount, remaining)
         elif type == 'received':
-            filled = 0
+            filled = '0'
             if amount is not None:
-                remaining = amount - filled
+                remaining = Precise.string_sub(amount, filled)
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -662,11 +678,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'price': price,
             'stopPrice': None,
             'triggerPrice': None,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'cost': None,
             'average': None,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(remaining),
             'status': status,
             'fee': None,
             'trades': None,
@@ -703,7 +719,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(ticker, idMessageHash)
         return message
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "type": "ticker",
@@ -811,7 +827,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             orderbook = self.orderbooks[symbol]
             timestamp = self.parse8601(self.safe_string(message, 'time'))
             changes = self.safe_value(message, 'changes', [])
-            sides: dict = {
+            sides = {
                 'sell': 'asks',
                 'buy': 'bids',
             }
@@ -870,7 +886,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods: dict = {
+        methods = {
             'snapshot': self.handle_order_book,
             'l2update': self.handle_order_book,
             'subscribe': self.handle_subscription_status,

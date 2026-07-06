@@ -40,6 +40,7 @@ public partial class bitfinex : Exchange
                 { "createTrailingPercentOrder", false },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -60,6 +61,7 @@ public partial class bitfinex : Exchange
                 { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -77,6 +79,8 @@ public partial class bitfinex : Exchange
                 { "fetchOpenInterests", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
@@ -92,6 +96,7 @@ public partial class bitfinex : Exchange
                 { "fetchTradingFees", true },
                 { "fetchTransactionFees", null },
                 { "fetchTransactions", "emulated" },
+                { "fetchVolatilityHistory", false },
                 { "reduceMargin", false },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -297,6 +302,7 @@ public partial class bitfinex : Exchange
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
+                { "defaultCurrencyPrecision", 8 },
                 { "exchangeTypes", new Dictionary<string, object>() {
                     { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
@@ -491,11 +497,6 @@ public partial class bitfinex : Exchange
         return (inOp(getValue(this.options, "fiat"), code));
     }
 
-    public virtual object getCurrencyId(object code)
-    {
-        return add("f", code);
-    }
-
     public virtual object getCurrencyName(object code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
@@ -532,7 +533,7 @@ public partial class bitfinex : Exchange
      * @description the latest known information on the availability of the exchange API
      * @see https://docs.bitfinex.com/reference/rest-public-platform-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     public async override Task<object> fetchStatus(object parameters = null)
     {
@@ -566,69 +567,55 @@ public partial class bitfinex : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsInfoPromise = this.publicGetConfPubInfoPair(parameters);
-        object futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(parameters);
-        object marginIdsPromise = this.publicGetConfPubListPairMargin(parameters);
-        var spotMarketsInfofuturesMarketsInfomarginIdsVariable = await promiseAll(new List<object>() {spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise});
-        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[0];
-        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[1];
-        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[2];
-        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, new List<object>() {});
-        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, new List<object>() {});
+        object labels = new List<object>() {"pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"};
+        object config = String.Join(",", ((IList<object>)labels).ToArray());
+        object request = new Dictionary<string, object>() {
+            { "config", config },
+        };
+        var spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable = await this.publicGetConfConfig(this.extend(request, parameters));
+        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[0];
+        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[1];
+        var securitiesMarketsIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[2];
+        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[3];
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        marginIds = this.safeValue(marginIds, 0, new List<object>() {});
-        //
-        //    [
-        //        "1INCH:USD",
-        //        [
-        //           null,
-        //           null,
-        //           null,
-        //           "2.0",
-        //           "100000.0",
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null
-        //        ]
-        //    ]
-        //
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
-            object pair = getValue(markets, i);
-            object id = this.safeStringUpper(pair, 0);
-            object market = this.safeValue(pair, 1, new Dictionary<string, object>() {});
+            object pairObj = getValue(markets, i);
+            object id = this.safeStringUpper(pairObj, 0);
+            object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
             object spot = true;
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "F0"), 0)))
+            object type = null;
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)id), "F0"), 0)))
             {
                 spot = false;
+                type = "swap";
+            } else
+            {
+                type = "spot";
             }
-            object swap = !isTrue(spot);
+            object swap = isEqual(type, "swap");
             object baseId = null;
             object quoteId = null;
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, ":"), 0)))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)id), ":"), 0)))
             {
-                object parts = ((string)id).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+                object parts = ((string)((string)id)).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 baseId = getValue(parts, 0);
                 quoteId = getValue(parts, 1);
             } else
             {
-                baseId = slice(id, 0, 3);
-                quoteId = slice(id, 3, 6);
+                baseId = slice(((string)id), 0, 3);
+                quoteId = slice(((string)id), 3, 6);
             }
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object splitBase = ((string)bs).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
-            object splitQuote = ((string)quote).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
-            bs = this.safeString(splitBase, 0);
-            quote = this.safeString(splitQuote, 0);
+            object splitBase = ((string)((string)bs)).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
+            object splitQuote = ((string)((string)quote)).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
+            bs = ((string)this.safeString(splitBase, 0));
+            quote = ((string)this.safeString(splitQuote, 0));
             object symbol = add(add(bs, "/"), quote);
-            baseId = this.getCurrencyId(baseId);
-            quoteId = this.getCurrencyId(quoteId);
+            // baseId = 'f' + baseId;
+            // quoteId = 'f' + quoteId;
             object settle = null;
             object settleId = null;
             if (isTrue(swap))
@@ -639,11 +626,6 @@ public partial class bitfinex : Exchange
             }
             object minOrderSizeString = this.safeString(market, 3);
             object maxOrderSizeString = this.safeString(market, 4);
-            object margin = false;
-            if (isTrue(isTrue(spot) && isTrue(this.inArray(id, marginIds))))
-            {
-                margin = true;
-            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", add("t", id) },
                 { "symbol", symbol },
@@ -653,14 +635,15 @@ public partial class bitfinex : Exchange
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", settleId },
-                { "type", ((bool) isTrue(spot)) ? "spot" : "swap" },
+                { "type", type },
                 { "spot", spot },
-                { "margin", margin },
+                { "tradfi", this.inArray(id, securitiesMarketsIds) },
+                { "margin", (isTrue(spot) && isTrue(this.inArray(id, marginIds))) },
                 { "swap", swap },
                 { "future", false },
                 { "option", false },
                 { "active", true },
-                { "contract", swap },
+                { "contract", !isTrue(spot) },
                 { "linear", ((bool) isTrue(swap)) ? true : null },
                 { "inverse", ((bool) isTrue(swap)) ? false : null },
                 { "contractSize", ((bool) isTrue(swap)) ? this.parseNumber("1") : null },
@@ -708,7 +691,7 @@ public partial class bitfinex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status"};
+        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"};
         object config = String.Join(",", ((IList<object>)labels).ToArray());
         object request = new Dictionary<string, object>() {
             { "config", config },
@@ -807,6 +790,7 @@ public partial class bitfinex : Exchange
             { "fees", this.indexBy(this.safeList(response, 7, new List<object>() {}), 0) },
             { "networks", this.safeList(response, 8, new List<object>() {}) },
             { "statuses", this.indexBy(this.safeList(response, 9, new List<object>() {}), 0) },
+            { "marginables", this.safeList(response, 10, new List<object>() {}) },
         };
         object indexedNetworks = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(getValue(indexed, "networks"))); postFixIncrement(ref i))
@@ -818,10 +802,15 @@ public partial class bitfinex : Exchange
             // for GOlang transpiler, do with "safe" method
             object networksList = this.safeList(indexedNetworks, networkName, new List<object>() {});
             ((IList<object>)networksList).Add(networkId);
-            ((IDictionary<string,object>)indexedNetworks)[(string)networkName] = networksList;
+            ((IDictionary<string,object>)indexedNetworks)[(string)((string)networkName)] = networksList;
         }
         object ids = this.safeList(response, 0, new List<object>() {});
-        object result = new Dictionary<string, object>() {};
+        return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
+    }
+
+    public virtual object parseCurrenciesCustom(object ids, object indexed, object indexedNetworks)
+    {
+        object allowedIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -829,75 +818,81 @@ public partial class bitfinex : Exchange
             {
                 continue;
             }
-            object code = this.safeCurrencyCode(id);
-            object label = this.safeList(getValue(indexed, "label"), id, new List<object>() {});
-            object name = this.safeString(label, 1);
-            object pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
-            object rawType = this.safeString(pool, 1);
-            object isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
-            object type = null;
-            if (isTrue(isCryptoCoin))
-            {
-                type = "crypto";
-            }
-            object feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
-            object fees = this.safeList(feeValues, 1, new List<object>() {});
-            object fee = this.safeNumber(fees, 1);
-            object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
-            object precision = "8"; // default precision, todo: fix "magic constants"
-            object fid = add("f", id);
-            object dwStatuses = this.safeList(getValue(indexed, "statuses"), id, new List<object>() {});
-            object depositEnabled = isEqual(this.safeInteger(dwStatuses, 1), 1);
-            object withdrawEnabled = isEqual(this.safeInteger(dwStatuses, 2), 1);
-            object networks = new Dictionary<string, object>() {};
-            object netwokIds = this.safeList(indexedNetworks, id, new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(netwokIds)); postFixIncrement(ref j))
-            {
-                object networkId = getValue(netwokIds, j);
-                object network = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", networkId },
-                    { "id", ((string)networkId).ToLower() },
-                    { "network", networkId },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", fid },
-                { "uppercaseId", id },
-                { "code", code },
-                { "info", new List<object>() {id, label, pool, feeValues, undl} },
-                { "type", type },
-                { "name", name },
-                { "active", true },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", fee },
-                { "precision", parseInt(precision) },
+            ((IList<object>)allowedIds).Add(id);
+        }
+        object result = new Dictionary<string, object>() {};
+        object arr = this.toArray(allowedIds);
+        for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseCurrencyCustom(getValue(arr, i), indexed, indexedNetworks);
+            object code = getValue(parsed, "code");
+            ((IDictionary<string,object>)result)[(string)code] = parsed;
+        }
+        return result;
+    }
+
+    public virtual object parseCurrencyCustom(object id, object indexed, object indexedNetworks)
+    {
+        object code = this.safeCurrencyCode(id);
+        object label = this.safeList(getValue(indexed, "label"), id, new List<object>() {});
+        object name = this.safeString(label, 1);
+        object pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
+        object rawType = this.safeString(pool, 1);
+        object isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
+        object type = ((bool) isTrue(isCryptoCoin)) ? "crypto" : null;
+        object feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
+        object fees = this.safeList(feeValues, 1, new List<object>() {});
+        object fee = this.safeNumber(fees, 1);
+        object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
+        object precision = this.safeString(this.options, "defaultCurrencyPrecision", "8");
+        object networks = new Dictionary<string, object>() {};
+        object networkIds = this.safeList(indexedNetworks, id, new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+        {
+            object networkId = getValue(networkIds, j);
+            object network = this.networkIdToCode(networkId, code);
+            object dwStatuses = this.safeList(getValue(indexed, "statuses"), networkId, new List<object>() {});
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", networkId },
+                { "id", ((string)networkId).ToLower() },
+                { "network", networkId },
+                { "active", null },
+                { "deposit", isEqual(this.safeInteger(dwStatuses, 1), 1) },
+                { "withdraw", isEqual(this.safeInteger(dwStatuses, 2), 1) },
+                { "fee", null },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(this.parsePrecision(precision)) },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", fee },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", new List<object>() {id, label, pool, feeValues, undl} },
+            { "type", type },
+            { "name", name },
+            { "active", true },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", fee },
+            { "precision", this.parseNumber(precision) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", fee },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "margin", this.inArray(id, getValue(indexed, "marginables")) },
+        });
     }
 
     /**
@@ -906,14 +901,17 @@ public partial class bitfinex : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.bitfinex.com/reference/rest-auth-wallets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountsByType = this.safeValue(this.options, "v2AccountsByType", new Dictionary<string, object>() {});
         object requestedType = this.safeString(parameters, "type", "exchange");
         object accountType = this.safeString(accountsByType, requestedType, requestedType);
@@ -939,8 +937,8 @@ public partial class bitfinex : Exchange
             }
             object type = this.safeString(balance, 0);
             object currencyId = this.safeStringLower(balance, 1, "");
-            object start = subtract(((string)currencyId).Length, 2);
-            object isDerivativeCode = isEqual(slice(currencyId, start, null), "f0");
+            object start = subtract(((string)((string)currencyId)).Length, 2);
+            object isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "f0");
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             object derivativeCondition = (!isTrue(isDerivative) || isTrue(isDerivativeCode));
             if (isTrue(isTrue((isEqual(accountType, type))) && isTrue(derivativeCondition)))
@@ -964,14 +962,17 @@ public partial class bitfinex : Exchange
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountsByType = this.safeValue(this.options, "v2AccountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount);
         if (isTrue(isEqual(fromId, null)))
@@ -1101,8 +1102,8 @@ public partial class bitfinex : Exchange
         if (isTrue(isEqual(type, "derivatives")))
         {
             currencyId = this.safeString(underlying, 0, transferId);
-            object start = subtract(getArrayLength(currencyId), 2);
-            object isDerivativeCode = isEqual(slice(currencyId, start, null), "F0");
+            object start = subtract(((string)((string)currencyId)).Length, 2);
+            object isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "F0");
             if (!isTrue(isDerivativeCode))
             {
                 currencyId = add(currencyId, "F0");
@@ -1125,12 +1126,15 @@ public partial class bitfinex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object precision = this.safeValue(this.options, "precision", "R0");
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -1211,20 +1215,19 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object length = getArrayLength(ticker);
-        object isFetchTicker = isTrue((isEqual(length, 10))) || isTrue((isEqual(length, 16)));
+        object firstValue = this.safeNumber(ticker, 0);
+        object isFetchTicker = !isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
         object symbol = null;
         object minusIndex = 0;
-        object isFundingCurrency = false;
         if (isTrue(isFetchTicker))
         {
             minusIndex = 1;
-            isFundingCurrency = (isEqual(length, 16));
         } else
         {
             object marketId = this.safeString(ticker, 0);
             market = this.safeMarket(marketId, market);
-            isFundingCurrency = (isEqual(length, 17));
         }
+        object isFundingCurrency = isGreaterThanOrEqual(length, 17);
         symbol = this.safeSymbol(null, market);
         object last = null;
         object bid = null;
@@ -1289,12 +1292,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-public-tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -1355,12 +1361,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1407,10 +1416,10 @@ public partial class bitfinex : Exchange
         object amountString = this.safeString(tradeList, amountIndex);
         object priceIndex = ((bool) isTrue(isPrivate)) ? 5 : 3;
         object priceString = this.safeString(tradeList, priceIndex);
-        if (isTrue(isEqual(getValue(amountString, 0), "-")))
+        if (isTrue(isEqual(getValue(((string)amountString), 0), "-")))
         {
             side = "sell";
-            amountString = Precise.stringAbs(amountString);
+            amountString = Precise.stringAbs(((string)amountString));
         } else
         {
             side = "buy";
@@ -1468,12 +1477,15 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1541,7 +1553,10 @@ public partial class bitfinex : Exchange
         timeframe ??= "1m";
         limit ??= 100;
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1743,7 +1758,7 @@ public partial class bitfinex : Exchange
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object amountString = this.amountToPrecision(symbol, amount);
-        amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+        amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : ((string)Precise.stringNeg(amountString));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "amount", amountString },
@@ -1846,12 +1861,15 @@ public partial class bitfinex : Exchange
      * @param {string} [params.price_aux_limit] order price for stop limit orders
      * @param {string} [params.price_oco_stop] OCO stop price
      * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.privatePostAuthWOrderSubmit(request);
@@ -1924,12 +1942,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-auth-order-multi
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -1940,7 +1961,7 @@ public partial class bitfinex : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(((string)symbol), type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(new List<object>() {"on", orderRequest});
         }
         object request = new Dictionary<string, object>() {
@@ -1992,12 +2013,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "all", 1 },
         };
@@ -2021,12 +2045,15 @@ public partial class bitfinex : Exchange
      * @param {string} id order id
      * @param {string} symbol Not used by bitfinex cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object cid = this.safeValue2(parameters, "cid", "clientOrderId"); // client order id
         object request = null;
         object market = null;
@@ -2068,12 +2095,15 @@ public partial class bitfinex : Exchange
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object numericIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
@@ -2159,7 +2189,7 @@ public partial class bitfinex : Exchange
      * @param {string} id order id
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2185,7 +2215,7 @@ public partial class bitfinex : Exchange
      * @param {string} id order id
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2212,12 +2242,15 @@ public partial class bitfinex : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         object response = null;
@@ -2290,13 +2323,16 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2386,7 +2422,7 @@ public partial class bitfinex : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2395,7 +2431,10 @@ public partial class bitfinex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object orderId = parseInt(id);
         object request = new Dictionary<string, object>() {
@@ -2424,12 +2463,15 @@ public partial class bitfinex : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {
             { "end", this.milliseconds() },
@@ -2469,12 +2511,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "op_renew", 1 },
         };
@@ -2488,12 +2533,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
         object network = this.safeString(parameters, "network", code);
@@ -2654,14 +2702,14 @@ public partial class bitfinex : Exchange
             tag = this.safeString(data, 3);
             type = "withdrawal";
             object networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(((string)networkId).ToUpper()); // withdraw returns in lowercase
+            network = this.networkIdToCode(((string)((string)networkId)).ToUpper(), code); // withdraw returns in lowercase
         } else if (isTrue(isEqual(transactionLength, 22)))
         {
             id = this.safeString(transaction, 0);
             object currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             object networkId = this.safeString(transaction, 2);
-            network = this.networkIdToCode(networkId);
+            network = this.networkIdToCode(networkId, code);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));
@@ -2720,12 +2768,15 @@ public partial class bitfinex : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://docs.bitfinex.com/reference/rest-auth-summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostAuthRSummary(parameters);
         //
         //      Response Spec:
@@ -2805,9 +2856,9 @@ public partial class bitfinex : Exchange
         object takerFee = this.safeNumber(takerData, 0);
         object takerFeeFiat = this.safeNumber(takerData, 2);
         object takerFeeDeriv = this.safeNumber(takerData, 5);
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(((object)this.symbols), i);
             object market = this.market(symbol);
             object fee = new Dictionary<string, object>() {
                 { "info", response },
@@ -2843,12 +2894,15 @@ public partial class bitfinex : Exchange
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
@@ -2863,7 +2917,7 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "uppercaseId");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             response = await this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters));
         } else
         {
@@ -2910,13 +2964,16 @@ public partial class bitfinex : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
         object network = this.safeString(parameters, "network", code);
@@ -3002,12 +3059,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-auth-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.privatePostAuthRPositions(parameters);
         //
@@ -3302,12 +3362,15 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3333,7 +3396,7 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "uppercaseId");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             response = await this.privatePostAuthRLedgersCurrencyHist(this.extend(request, parameters));
         } else
         {
@@ -3372,7 +3435,7 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
      * @param {string[]} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -3381,7 +3444,10 @@ public partial class bitfinex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRates() requires a symbols argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marketIds = this.marketIds(symbols);
         object request = new Dictionary<string, object>() {
             { "keys", String.Join(",", ((IList<object>)marketIds).ToArray()) },
@@ -3431,7 +3497,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3440,7 +3506,10 @@ public partial class bitfinex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3624,12 +3693,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
      * @param {string[]} [symbols] a list of unified CCXT market symbols
      * @param {object} [params] exchange specific parameters
-     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object marketIds = new List<object>() {"ALL"};
         if (isTrue(!isEqual(symbols, null)))
@@ -3680,12 +3752,15 @@ public partial class bitfinex : Exchange
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "keys", getValue(market, "id") },
@@ -3737,13 +3812,16 @@ public partial class bitfinex : Exchange
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] the time in ms of the latest record to retrieve as a unix timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3885,12 +3963,15 @@ public partial class bitfinex : Exchange
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3992,7 +4073,10 @@ public partial class bitfinex : Exchange
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
@@ -4029,7 +4113,7 @@ public partial class bitfinex : Exchange
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
@@ -4050,12 +4134,15 @@ public partial class bitfinex : Exchange
      * @param {string} id the order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "id", new List<object> {this.parseToNumeric(id)} },
         };
@@ -4134,12 +4221,15 @@ public partial class bitfinex : Exchange
      * @param {int} [params.leverage] leverage for a derivative order, supported by derivative symbol orders only, the value should be between 1 and 100 inclusive
      * @param {int} [params.clientOrderId] a unique client order id for the order
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "id", this.parseToNumeric(id) },
@@ -4147,7 +4237,7 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(amount, null)))
         {
             object amountString = this.amountToPrecision(symbol, amount);
-            amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+            amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : ((string)Precise.stringNeg(amountString));
             ((IDictionary<string,object>)request)["amount"] = amountString;
         }
         object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");

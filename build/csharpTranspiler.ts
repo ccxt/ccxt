@@ -3,13 +3,14 @@ import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
-import { promisify } from 'util';
+import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
@@ -18,8 +19,6 @@ import { unCamelCase } from "../js/src/base/functions.js";
 ansi.nice
 
 type dict = { [key: string]: string }
-
-const promisedWriteFile = promisify (fs.writeFile);
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
@@ -35,7 +34,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         checkCreateFolder (path);
     }
     overwriteFile (path, content);
-    writeFile (path, content);
+    fs.writeFileSync (path, content);
 }
 
 // this is necessary because for some reason
@@ -102,7 +101,15 @@ class NewTranspiler {
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
             [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
             //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
-            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            // Match ArrayCache variables and cast to appropriate type based on variable name
+            // Order matters: check most specific types first
+            [/((?:this\.)?\w*ArrayCacheBySymbolBySide\w*)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolBySide)$2'],
+            [/((?:this\.)?\w*ArrayCacheByTimestamp\w*)(\.hashmap)/gm, '($1 as ArrayCacheByTimestamp)$2'],
+            [/((?:this\.)?\w*ArrayCacheBySymbolById\w*)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            // General ArrayCache pattern (must not match the specific types above)
+            [/((?:this\.)?\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)(\.hashmap)/gm, '($1 as ArrayCache)$2'],
+            // Fallback for other variables (keep original behavior for backwards compatibility)
+            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCache)$2'],
             [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
@@ -358,6 +365,22 @@ class NewTranspiler {
             return addTaskIfNeeded('object'); // default if type is unknown;
         }
 
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` identifier, which is not a valid C# type without a generic arg.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
+        // Tuple return types like `[Dict, Str]` belong to internal multi-return helpers
+        // (e.g. createOrderRequest) that aren't part of the unified API. C# has no inline
+        // tuple syntax matching `[A, B]`, so treat them as an untyped array — exactly how
+        // they transpiled before being annotated (they were `any[]`). The generated
+        // wrapper only needs to compile; these helpers are never called through it.
+        if (wrappedType.startsWith('[') && wrappedType.endsWith(']')) {
+            wrappedType = 'any[]';
+        }
+
         if (wrappedType === 'string[][]') {
             return addTaskIfNeeded('List<List<string>>');
         }
@@ -489,6 +512,8 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -536,6 +561,10 @@ class NewTranspiler {
             return `return (Int64)res;`;
         }
 
+        if (unwrappedType === 'double') {
+            return `return (double)res;`;
+        }
+
         // handle the typescript type Dict
         if (unwrappedType === 'Dict') {
             return `return (Dictionary<string, object>)res;`;
@@ -546,6 +575,9 @@ class NewTranspiler {
         if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
                 returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+            } else if (unwrappedType === 'List<string>' || unwrappedType === 'List<String>') {
+                // string is a primitive with no `new string(object)` constructor — cast each element instead
+                returnStatement = `return ((IList<object>)res).Select(item => (item as string)).ToList();`
             } else {
                 returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
             }
@@ -729,7 +761,9 @@ class NewTranspiler {
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const baseFile: any = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileCSharpByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types
@@ -770,6 +804,7 @@ class NewTranspiler {
 
             const file = fileHeader + baseMethods + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
+            log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
         }
     }
 
@@ -1185,7 +1220,7 @@ class NewTranspiler {
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
         const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.cs', file[1])))
+        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
     }
 
     transpileBaseTestsToCSharp () {
@@ -1207,7 +1242,7 @@ class NewTranspiler {
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
 
@@ -1222,7 +1257,17 @@ class NewTranspiler {
                 [/assert/g, 'Assert'],
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                [ /testSharedMethods\./gm, '' ], // deepEqual added
+                // Match ArrayCache variables and cast to appropriate type based on variable name
+                // Order matters: check most specific types first
+                [/(\w*ArrayCacheBySymbolBySide\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolBySide).hashmap)'],
+                [/(\w*ArrayCacheByTimestamp\w*)\.hashmap/g, '(($1 as ArrayCacheByTimestamp).hashmap)'],
+                [/(\w*ArrayCacheBySymbolById\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolById).hashmap)'],
+                // General ArrayCache pattern (must not match the specific types above)
+                [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.hashmap/g, '(($1 as ArrayCache).hashmap)'],
+                // Match stored/cached variables
+                [/\bstored\.hashmap/g, '((stored as ArrayCache).hashmap)'],
+                [/\bcached\.hashmap/g, '((cached as ArrayCache).hashmap)'],
             ]).trim ()
 
             const contentLines = content.split ('\n');
@@ -1230,6 +1275,7 @@ class NewTranspiler {
 
             const file = [
                 'using ccxt;',
+                'using ccxt.pro;',
                 'namespace Tests;',
                 '',
                 this.createGeneratedHeader().join('\n'),
@@ -1358,6 +1404,8 @@ class NewTranspiler {
                 [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
+                // apply 'getPreTranspilationRegexes' here, bcz in CS we don't have pre-transpilation regexes
+                [/exchange.jsonStringifyWithNull/g, 'json'],
             ];
 
             if (isWs) {
@@ -1425,18 +1473,21 @@ async function runMain () {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
+    const baseClassOnly = process.argv.includes ('--baseClass')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
-    if (ws) {
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+    } else if (ws) {
         await transpiler.transpileWS (force)
     } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        await parallelizeTranspiling (exchangeIds)
     } else {
         await transpiler.transpileEverything (force, child, baseOnly, examples)
     }

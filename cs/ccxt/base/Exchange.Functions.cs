@@ -143,6 +143,19 @@ public partial class Exchange
         //     return (List<string>)a;
         // }
 
+        if (a is IDictionary<string, object>)
+        {
+            // var b = (Dictionary<string, object>)a;
+            var b2 = (IDictionary<string, object>)a;
+            var outList2 = new List<object>();
+            var keys2 = new List<string>(((IDictionary<string, object>)a).Keys);
+            foreach (string key in keys2)
+            {
+                outList2.Add(b2[key]);
+            }
+            return outList2;
+        }
+
         var b = (dict)a;
         var outList = new List<object>();
         var keys = new List<string>(((dict)a).Keys);
@@ -255,12 +268,6 @@ public partial class Exchange
     // }
 
 
-    public string uuidv1()
-    {
-        return Guid.NewGuid().ToString(); //stub
-    }
-
-
     public List<object> extractParams(object str)
     {
         var regex = new Regex(@"\{([^\}]+)\}");
@@ -334,8 +341,4 @@ public partial class Exchange
         // return null;
     }
 
-    public object ordered(object ob)
-    {
-        return ob; //stub
-    }
 }

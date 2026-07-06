@@ -21,6 +21,8 @@
 * [watchTickers](#watchtickers)
 * [watchOrderBook](#watchorderbook)
 * [watchTrades](#watchtrades)
+* [watchBalance](#watchbalance)
+* [watchOrders](#watchorders)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -38,7 +40,7 @@ retrieves data on all markets for bithumb
 
 
 ```javascript
-bithumb.fetchMarkets ([params])
+bithumb.fetchMarkets (params?)
 ```
 
 
@@ -48,7 +50,7 @@ bithumb.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C  
 
@@ -58,7 +60,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bithumb.fetchBalance ([params])
+bithumb.fetchBalance (params?)
 ```
 
 
@@ -68,7 +70,7 @@ bithumb.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C  
 
@@ -80,7 +82,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bithumb.fetchOrderBook (symbol[, limit, params])
+bithumb.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -90,7 +92,7 @@ bithumb.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all  
 
@@ -101,7 +103,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bithumb.fetchTickers (symbols[, params])
+bithumb.fetchTickers (symbols, params?)
 ```
 
 
@@ -111,7 +113,7 @@ bithumb.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C  
 
@@ -122,7 +124,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bithumb.fetchTicker (symbol[, params])
+bithumb.fetchTicker (symbol, params?)
 ```
 
 
@@ -146,7 +148,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bithumb.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bithumb.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -156,7 +158,7 @@ bithumb.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD  
 
@@ -169,7 +171,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bithumb.fetchTrades (symbol[, since, limit, params])
+bithumb.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -179,7 +181,7 @@ bithumb.fetchTrades (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -199,7 +201,7 @@ create a trade order
 
 
 ```javascript
-bithumb.createOrder (symbol, type, side, amount[, price, params])
+bithumb.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -209,7 +211,7 @@ bithumb.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C  
 
@@ -221,7 +223,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bithumb.fetchOrder (id, symbol[, params])
+bithumb.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -231,7 +233,7 @@ bithumb.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C  
 
@@ -244,7 +246,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bithumb.fetchOpenOrders (symbol[, since, limit, params])
+bithumb.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -254,7 +256,7 @@ bithumb.fetchOpenOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0  
 
@@ -266,7 +268,7 @@ cancels an open order
 
 
 ```javascript
-bithumb.cancelOrder (id, symbol[, params])
+bithumb.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -276,7 +278,7 @@ bithumb.cancelOrder (id, symbol[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8  
 
@@ -290,7 +292,7 @@ make a withdrawal
 
 
 ```javascript
-bithumb.withdraw (code, amount, address, tag[, params])
+bithumb.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -312,7 +314,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bithumb.watchTicker (symbol[, params])
+bithumb.watchTicker (symbol, params?)
 ```
 
 
@@ -322,7 +324,7 @@ bithumb.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0  
 
@@ -333,7 +335,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bithumb.watchTickers (symbols[, params])
+bithumb.watchTickers (symbols, params?)
 ```
 
 
@@ -355,7 +357,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bithumb.watchOrderBook (symbol[, limit, params])
+bithumb.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -378,6 +380,50 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bithumb.watchTrades (symbol[, since, limit, params])
+bithumb.watchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+watch balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>bithumb</code>](#bithumb)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bithumb.watchBalance (params?)
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>bithumb</code>](#bithumb)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.codes | <code>Array&lt;string&gt;</code> | No | market codes to filter orders |
+
+
+```javascript
+bithumb.watchOrders (symbol, since?, limit?, params?)
 ```
 

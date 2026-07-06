@@ -51,7 +51,7 @@
 remove margin from a position
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449  
 
@@ -63,7 +63,7 @@ remove margin from a position
 
 
 ```javascript
-exmo.reduceMargin (symbol, amount[, params])
+exmo.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -73,7 +73,7 @@ exmo.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3  
 
@@ -85,7 +85,7 @@ add margin
 
 
 ```javascript
-exmo.addMargin (symbol, amount[, params])
+exmo.addMargin (symbol, amount, params?)
 ```
 
 
@@ -95,7 +95,7 @@ exmo.addMargin (symbol, amount[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**
 
@@ -109,7 +109,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-exmo.fetchTradingFees ([params])
+exmo.fetchTradingFees (params?)
 ```
 
 
@@ -121,7 +121,7 @@ exmo.fetchTradingFees ([params])
 please use fetchDepositWithdrawFees instead
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a list of [transaction fees structures](https://docs.ccxt.com/#/?id=fees-structure)
+**Returns**: <code>object</code> - a list of [transaction fees structures](https://docs.ccxt.com/?id=fees-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2  
 
@@ -132,7 +132,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-exmo.fetchTransactionFees (codes[, params])
+exmo.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -142,7 +142,7 @@ exmo.fetchTransactionFees (codes[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a list of [transaction fees structures](https://docs.ccxt.com/#/?id=fees-structure)
+**Returns**: <code>object</code> - a list of [transaction fees structures](https://docs.ccxt.com/?id=fees-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2  
 
@@ -153,7 +153,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-exmo.fetchDepositWithdrawFees (codes[, params])
+exmo.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -177,7 +177,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-exmo.fetchCurrencies ([params])
+exmo.fetchCurrencies (params?)
 ```
 
 
@@ -197,7 +197,7 @@ retrieves data on all markets for exmo
 
 
 ```javascript
-exmo.fetchMarkets ([params])
+exmo.fetchMarkets (params?)
 ```
 
 
@@ -222,7 +222,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-exmo.fetchOHLCV (symbol, timeframe[, since, limit, params])
+exmo.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -232,7 +232,7 @@ exmo.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -247,7 +247,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-exmo.fetchBalance ([params])
+exmo.fetchBalance (params?)
 ```
 
 
@@ -257,7 +257,7 @@ exmo.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871  
 
@@ -269,7 +269,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-exmo.fetchOrderBook (symbol[, limit, params])
+exmo.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -279,7 +279,7 @@ exmo.fetchOrderBook (symbol[, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbol
+**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbol
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871  
 
@@ -291,7 +291,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-exmo.fetchOrderBooks (symbols[, limit, params])
+exmo.fetchOrderBooks (symbols, limit?, params?)
 ```
 
 
@@ -301,7 +301,7 @@ exmo.fetchOrderBooks (symbols[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385  
 
@@ -312,7 +312,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-exmo.fetchTickers (symbols[, params])
+exmo.fetchTickers (symbols, params?)
 ```
 
 
@@ -322,7 +322,7 @@ exmo.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385  
 
@@ -333,7 +333,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-exmo.fetchTicker (symbol[, params])
+exmo.fetchTicker (symbol, params?)
 ```
 
 
@@ -343,7 +343,7 @@ exmo.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#5a5a9c0d-cf17-47f6-9d62-6d4404ebd5ac  
 
@@ -356,7 +356,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-exmo.fetchTrades (symbol[, since, limit, params])
+exmo.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -366,7 +366,7 @@ exmo.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -384,7 +384,7 @@ fetch all trades made by the user
 
 
 ```javascript
-exmo.fetchMyTrades (symbol[, since, limit, params])
+exmo.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -394,7 +394,7 @@ exmo.fetchMyTrades (symbol[, since, limit, params])
 create a market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd  
 
@@ -407,7 +407,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-exmo.createMarketOrderWithCost (symbol, side, cost[, params])
+exmo.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -417,7 +417,7 @@ exmo.createMarketOrderWithCost (symbol, side, cost[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd  
 
@@ -429,7 +429,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-exmo.createMarketBuyOrderWithCost (symbol, cost[, params])
+exmo.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -439,7 +439,7 @@ exmo.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd  
 
@@ -451,7 +451,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-exmo.createMarketSellOrderWithCost (symbol, cost[, params])
+exmo.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -461,7 +461,7 @@ exmo.createMarketSellOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -485,7 +485,7 @@ create a trade order
 
 
 ```javascript
-exmo.createOrder (symbol, type, side, amount[, price, params])
+exmo.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -495,7 +495,7 @@ exmo.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -514,7 +514,7 @@ cancels an open order
 
 
 ```javascript
-exmo.cancelOrder (id, symbol[, params])
+exmo.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -524,7 +524,7 @@ exmo.cancelOrder (id, symbol[, params])
 *spot only* fetches information on an order made by the user
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot  
 
@@ -536,7 +536,7 @@ exmo.cancelOrder (id, symbol[, params])
 
 
 ```javascript
-exmo.fetchOrder (id, symbol[, params])
+exmo.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -546,7 +546,7 @@ exmo.fetchOrder (id, symbol[, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -565,7 +565,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-exmo.fetchOrderTrades (id, symbol[, since, limit, params])
+exmo.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -575,7 +575,7 @@ exmo.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -593,7 +593,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-exmo.fetchOpenOrders (symbol[, since, limit, params])
+exmo.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -603,7 +603,7 @@ exmo.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -621,7 +621,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-exmo.fetchCanceledOrders (symbol[, since, limit, params])
+exmo.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -631,7 +631,7 @@ exmo.fetchCanceledOrders (symbol[, since, limit, params])
 *margin only* edit a trade order
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  // margin  
 
@@ -652,7 +652,7 @@ exmo.fetchCanceledOrders (symbol[, since, limit, params])
 
 
 ```javascript
-exmo.editOrder (id, symbol, type, side[, amount, price, params])
+exmo.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -662,7 +662,7 @@ exmo.editOrder (id, symbol, type, side[, amount, price, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e  
 
@@ -673,7 +673,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-exmo.fetchDepositAddress (code[, params])
+exmo.fetchDepositAddress (code, params?)
 ```
 
 
@@ -683,7 +683,7 @@ exmo.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325  
 
@@ -697,7 +697,7 @@ make a withdrawal
 
 
 ```javascript
-exmo.withdraw (code, amount, address, tag[, params])
+exmo.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -707,7 +707,7 @@ exmo.withdraw (code, amount, address, tag[, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7  
 
@@ -720,7 +720,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-exmo.fetchDepositsWithdrawals ([code, since, limit, params])
+exmo.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -730,7 +730,7 @@ exmo.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706  
 
@@ -743,7 +743,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-exmo.fetchWithdrawals (code[, since, limit, params])
+exmo.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -753,7 +753,7 @@ exmo.fetchWithdrawals (code[, since, limit, params])
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706  
 
@@ -765,7 +765,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-exmo.fetchWithdrawal (id, code[, params])
+exmo.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -775,7 +775,7 @@ exmo.fetchWithdrawal (id, code[, params])
 fetch information on a deposit
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706  
 
@@ -787,7 +787,7 @@ fetch information on a deposit
 
 
 ```javascript
-exmo.fetchDeposit (id, code[, params])
+exmo.fetchDeposit (id, code, params?)
 ```
 
 
@@ -797,7 +797,7 @@ exmo.fetchDeposit (id, code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706  
 
@@ -810,7 +810,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-exmo.fetchDeposits (code[, since, limit, params])
+exmo.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -820,7 +820,7 @@ exmo.fetchDeposits (code[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -829,7 +829,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-exmo.watchBalance ([params])
+exmo.watchBalance (params?)
 ```
 
 
@@ -839,7 +839,7 @@ exmo.watchBalance ([params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471  
 
@@ -850,7 +850,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-exmo.watchTicker (symbol[, params])
+exmo.watchTicker (symbol, params?)
 ```
 
 
@@ -860,7 +860,7 @@ exmo.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471  
 
@@ -871,7 +871,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-exmo.watchTickers ([symbols, params])
+exmo.watchTickers (symbols?, params?)
 ```
 
 
@@ -881,7 +881,7 @@ exmo.watchTickers ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -893,7 +893,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-exmo.watchTrades (symbol[, since, limit, params])
+exmo.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -903,7 +903,7 @@ exmo.watchTrades (symbol[, since, limit, params])
 get the list of trades associated with the user
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -915,7 +915,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-exmo.watchMyTrades (symbol[, since, limit, params])
+exmo.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -925,7 +925,7 @@ exmo.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -936,7 +936,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-exmo.watchOrderBook (symbol[, limit, params])
+exmo.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -946,7 +946,7 @@ exmo.watchOrderBook (symbol[, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -963,6 +963,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-exmo.watchOrders (symbol[, since, limit, params])
+exmo.watchOrders (symbol, since?, limit?, params?)
 ```
 

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.poloniex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -42,7 +42,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': None,  # has but not fully implemented
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -57,6 +57,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': True,
@@ -74,6 +75,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': None,  # has but not implemented
+                'fetchGreeks': False,
                 'fetchLedger': None,  # has but not implemented
                 'fetchLeverage': True,
                 'fetchLiquidations': None,  # has but not implemented
@@ -84,6 +86,8 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -100,6 +104,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'sandbox': True,
@@ -495,7 +500,7 @@ class poloniex(Exchange, ImplicitAPI):
                     '10020': BadSymbol,  # Invalid currency
                     '10041': BadSymbol,  # Symbol frozen for trading
                     '21340': OnMaintenance,  # No order creation/cancelation is allowed is in Maintenane Mode
-                    '21341': InvalidOrder,  # Post-only orders type allowed is in Post Only Mode
+                    '21341': InvalidOrder,  # Post-only orders(type) allowed is in Post Only Mode
                     '21342': InvalidOrder,  # Price is higher than highest bid is in Maintenance Mode
                     '21343': InvalidOrder,  # Price is lower than lowest bid is in Maintenance Mode
                     '21351': AccountSuspended,  # Trading for self account is frozen. Contact support
@@ -652,7 +657,7 @@ class poloniex(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 500)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -919,6 +924,7 @@ class poloniex(Exchange, ImplicitAPI):
         type = 'swap'
         if alias is not None:
             type = 'future'
+        marketType = 'future' if (type == 'future') else 'swap'
         return {
             'id': id,
             'symbol': symbol,
@@ -928,7 +934,7 @@ class poloniex(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'future' if (type == 'future') else 'swap',
+            'type': marketType,
             'spot': False,
             'margin': False,
             'swap': type == 'swap',
@@ -1070,11 +1076,11 @@ class poloniex(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbols is not None:
             symbols = self.market_symbols(symbols, None, True, True, False)
             symbolsLength = len(symbols)
@@ -1145,140 +1151,67 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+        https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetCurrencies(self.extend(params, {'includeMultiChainCurrencies': True}))
+        response = self.publicGetV2Currencies(params)
         #
-        #     [
-        #      {
-        #        "USDT": {
-        #           "id": 214,
-        #           "name": "Tether USD",
-        #           "description": "Sweep to Main Account",
-        #           "type": "address",
-        #           "withdrawalFee": "0.00000000",
-        #           "minConf": 2,
-        #           "depositAddress": null,
-        #           "blockchain": "OMNI",
-        #           "delisted": False,
-        #           "tradingState": "NORMAL",
-        #           "walletState": "DISABLED",
-        #           "walletDepositState": "DISABLED",
-        #           "walletWithdrawalState": "DISABLED",
-        #           "supportCollateral": True,
-        #           "supportBorrow": True,
-        #           "parentChain": null,
-        #           "isMultiChain": True,
-        #           "isChildChain": False,
-        #           "childChains": [
-        #             "USDTBSC",
-        #             "USDTETH",
-        #             "USDTSOL",
-        #             "USDTTRON"
-        #           ]
-        #        }
-        #      },
-        #      ...
-        #      {
-        #        "USDTBSC": {
-        #              "id": 582,
-        #              "name": "Binance-Peg BSC-USD",
-        #              "description": "Sweep to Main Account",
-        #              "type": "address",
-        #              "withdrawalFee": "0.00000000",
-        #              "minConf": 15,
-        #              "depositAddress": null,
-        #              "blockchain": "BSC",
-        #              "delisted": False,
-        #              "tradingState": "OFFLINE",
-        #              "walletState": "ENABLED",
-        #              "walletDepositState": "ENABLED",
-        #              "walletWithdrawalState": "DISABLED",
-        #              "supportCollateral": False,
-        #              "supportBorrow": False,
-        #              "parentChain": "USDT",
-        #              "isMultiChain": True,
-        #              "isChildChain": True,
-        #              "childChains": []
-        #        }
-        #      },
-        #      ...
-        #     ]
+        #    [
+        #        {
+        #            "id": 668,
+        #            "coin": "ADA",
+        #            "delisted": False,
+        #            "tradeEnable": True,
+        #            "name": "Cardano",
+        #            "networkList": [
+        #                {
+        #                    "id": 668,
+        #                    "coin": "ADA",
+        #                    "name": "Cardano",
+        #                    "currencyType": "address",
+        #                    "blockchain": "ADA",
+        #                    "withdrawalEnable": True,
+        #                    "depositEnable": True,
+        #                    "depositAddress": null,
+        #                    "withdrawMin": "5.00000000",
+        #                    "decimals": 6,
+        #                    "withdrawFee": "3.00000000",
+        #                    "minConfirm": 30,
+        #                    "contractAddress": null
+        #                }
+        #            ],
+        #            "supportCollateral": False,
+        #            "supportBorrow": False
+        #        },
         #
-        result: dict = {}
-        # poloniex has a complicated structure of currencies, so we handle them differently
-        # at first, turn the response into a normal dictionary
-        currenciesDict = {}
-        for i in range(0, len(response)):
-            item = self.safe_dict(response, i)
-            ids = list(item.keys())
-            id = self.safe_string(ids, 0)
-            currenciesDict[id] = item[id]
-        keys = list(currenciesDict.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            entry = currenciesDict[id]
-            code = self.safe_currency_code(id)
-            # skip childChains, are collected in parentChain loop
-            if self.safe_bool(entry, 'isChildChain'):
-                continue
-            allChainEntries = []
-            childChains = self.safe_list(entry, 'childChains', [])
-            if childChains is not None:
-                for j in range(0, len(childChains)):
-                    childChainId = childChains[j]
-                    childNetworkEntry = self.safe_dict(currenciesDict, childChainId)
-                    allChainEntries.append(childNetworkEntry)
-            allChainEntries.append(entry)
-            networks: dict = {}
-            for j in range(0, len(allChainEntries)):
-                chainEntry = allChainEntries[j]
-                networkName = self.safe_string(chainEntry, 'blockchain')
-                networkCode = self.network_id_to_code(networkName, code)
-                specialNetworkId = self.safe_string(childChains, j, id)  # in case it's primary chain, defeault to ID
-                networks[networkCode] = {
-                    'info': chainEntry,
-                    'id': specialNetworkId,  # we need self for deposit/withdrawal, instead of friendly name
-                    'numericId': self.safe_integer(chainEntry, 'id'),
-                    'network': networkCode,
-                    'active': self.safe_bool(chainEntry, 'walletState'),
-                    'deposit': self.safe_string(chainEntry, 'walletDepositState') == 'ENABLED',
-                    'withdraw': self.safe_string(chainEntry, 'walletWithdrawalState') == 'ENABLED',
-                    'fee': self.safe_number(chainEntry, 'withdrawalFee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'code': code,
-                'id': id,
-                'numericId': self.safe_integer(entry, 'id'),
-                'type': 'crypto',
-                'name': self.safe_string(entry, 'name'),
+        return self.parse_currencies(response)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        entry = currency
+        id = self.safe_string(entry, 'coin')
+        code = self.safe_currency_code(id)
+        networks = {}
+        chains = self.safe_list(entry, 'networkList', [])
+        chainsLength = len(chains)
+        for j in range(0, chainsLength):
+            chain = chains[j]
+            chainId = self.safe_string(chain, 'blockchain')
+            networkCode = self.network_id_to_code(chainId, code)
+            networks[networkCode] = {
+                'info': chain,
+                'id': chainId,
+                'name': None,
+                'code': networkCode,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'deposit': self.safe_bool(chain, 'depositEnable'),
+                'withdraw': self.safe_bool(chain, 'withdrawalEnable'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'decimals'))),
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'withdrawMin'),
                         'max': None,
                     },
                     'deposit': {
@@ -1286,9 +1219,22 @@ class poloniex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(entry, 'name'),
+            'code': code,
+            'type': None,
+            'precision': None,
+            'info': entry,
+            'networks': networks,
+            'deposit': None,
+            'withdraw': None,
+            'active': None,
+            'fee': None,
+            'limits': None,
+            'margin': self.safe_bool(entry, 'supportBorrow'),
+        })
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -1299,11 +1245,11 @@ class poloniex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if market['contract']:
@@ -1477,11 +1423,11 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1533,20 +1479,20 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         isContract = self.in_array(marketType, ['swap', 'future'])
-        request: dict = {
+        request = {
             # 'from': 12345678,  # A 'trade Id'. The query begins at ‘from'.
             # 'direction': 'PRE',  # PRE, NEXT The direction before or after ‘from'.
         }
@@ -1557,7 +1503,7 @@ class poloniex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         if isContract and symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         request, params = self.handle_until_option(endKey, request, params)
         if isContract:
             raw = self.swapPrivateGetV3TradeOrderTrades(self.extend(request, params))
@@ -1620,7 +1566,7 @@ class poloniex(Exchange, ImplicitAPI):
         return result
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1750,8 +1696,8 @@ class poloniex(Exchange, ImplicitAPI):
         id = self.safe_string_n(order, ['orderNumber', 'id', 'orderId', 'ordId'])
         fee = None
         feeCurrency = self.safe_string_2(order, 'tokenFeeCurrency', 'feeCcy')
-        feeCost: Str = None
-        feeCurrencyCode: Str = None
+        feeCost = None
+        feeCurrencyCode = None
         rate = self.safe_string(order, 'fee')
         if feeCurrency is None:
             feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
@@ -1799,7 +1745,7 @@ class poloniex(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_type(self, status):
-        statuses: dict = {
+        statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -1833,11 +1779,11 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: set True to fetch trigger orders instead of regular orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1848,7 +1794,7 @@ class poloniex(Exchange, ImplicitAPI):
             request['limit'] = max(limit, max)
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        response = None
+        response = []
         if marketType != 'spot':
             raw = self.swapPrivateGetV3TradeOrderOpens(self.extend(request, params))
             #
@@ -1890,7 +1836,7 @@ class poloniex(Exchange, ImplicitAPI):
             #                "qCcy": "USDT"
             #            },
             #
-            response = self.safe_list(raw, 'data')
+            response = self.safe_list(raw, 'data', [])
         elif isTrigger:
             response = self.privateGetSmartorders(self.extend(request, params))
         else:
@@ -1918,7 +1864,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        extension: dict = {'status': 'open'}
+        extension = {'status': 'open'}
         return self.parse_orders(response, market, since, limit, extension)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1932,11 +1878,11 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2008,11 +1954,11 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': side.upper(),  # uppercase, both for spot & swap
             # 'timeInForce': timeInForce,  # matches unified values
@@ -2021,13 +1967,13 @@ class poloniex(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         request, params = self.order_request(symbol, type, side, amount, request, price, params)
-        response = None
+        response = {}
         if market['swap'] or market['future']:
             responseInitial = self.swapPrivatePostV3TradeOrder(self.extend(request, params))
             #
             # {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             #
-            response = self.safe_dict(responseInitial, 'data')
+            response = self.safe_dict(responseInitial, 'data', {})
         elif triggerPrice is not None:
             response = self.privatePostSmartorders(self.extend(request, params))
         else:
@@ -2040,7 +1986,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def order_request(self, symbol, type, side, amount, request, price=None, params={}):
+    def order_request(self, symbol, type, side, amount, request, price: Num = None, params={}):
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         market = self.market(symbol)
         if market['contract']:
@@ -2119,19 +2065,19 @@ class poloniex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request: dict = {
+        request = {
             'id': id,
             # 'timeInForce': timeInForce,
         }
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         request, params = self.order_request(symbol, type, side, amount, request, price, params)
-        response = None
+        response = {}
         if triggerPrice is not None:
             response = self.privatePutSmartordersId(self.extend(request, params))
         else:
@@ -2159,13 +2105,13 @@ class poloniex(Exchange, ImplicitAPI):
         # @param {string} symbol unified symbol of the market the order was made in
         # @param {object} [params] extra parameters specific to the exchange API endpoint
         # @param {boolean} [params.trigger] True if canceling a trigger order
-        # @returns {object} An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        # @returns {object} An `order structure <https://docs.ccxt.com/?id=order-structure>`
         #
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if not market['spot']:
             request['symbol'] = market['id']
             request['ordId'] = id
@@ -2180,14 +2126,14 @@ class poloniex(Exchange, ImplicitAPI):
             #        }
             #    }
             #
-            return self.parse_order(self.safe_dict(raw, 'data'))
+            return self.parse_order(self.safe_dict(raw, 'data', {}))
         clientOrderId = self.safe_value(params, 'clientOrderId')
         if clientOrderId is not None:
             id = clientOrderId
         request['id'] = id
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['clientOrderId', 'trigger', 'stop'])
-        response = None
+        response = {}
         if isTrigger:
             response = self.privateDeleteSmartordersId(self.extend(request, params))
         else:
@@ -2214,20 +2160,20 @@ class poloniex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if canceling trigger orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             # 'accountTypes': 'SPOT',
             'symbols': [],
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbols'] = [
                 market['id'],
             ]
-        response = None
+        response = []
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'swap' or marketType == 'future':
@@ -2246,7 +2192,7 @@ class poloniex(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            response = self.safe_list(raw, 'data')
+            response = self.safe_list(raw, 'data', [])
             return self.parse_orders(response, market)
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
@@ -2284,11 +2230,11 @@ class poloniex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching a trigger order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         id = str(id)
-        request: dict = {
+        request = {
             'id': id,
         }
         market = None
@@ -2301,7 +2247,7 @@ class poloniex(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet')
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        response = None
+        response = {}
         if isTrigger:
             response = self.privateGetSmartordersId(self.extend(request, params))
             response = self.safe_value(response, 0)
@@ -2349,10 +2295,10 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         trades = self.privateGetOrdersIdTrades(self.extend(request, params))
@@ -2380,7 +2326,7 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_trades(trades)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -2422,7 +2368,7 @@ class poloniex(Exchange, ImplicitAPI):
         https://api-docs.poloniex.com/v3/futures/api/account/balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         marketType = None
@@ -2468,7 +2414,7 @@ class poloniex(Exchange, ImplicitAPI):
             #
             data = self.safe_dict(responseRaw, 'data', {})
             return self.parse_balance(data)
-        request: dict = {
+        request = {
             'accountType': 'SPOT',
         }
         response = self.privateGetAccountsBalances(self.extend(request, params))
@@ -2497,7 +2443,7 @@ class poloniex(Exchange, ImplicitAPI):
         https://api-docs.poloniex.com/spot/api/private/account#fee-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privateGetFeeinfo(params)
@@ -2509,7 +2455,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "volume30D" : "0.00"
         #     }
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
@@ -2532,11 +2478,11 @@ class poloniex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -2602,7 +2548,7 @@ class poloniex(Exchange, ImplicitAPI):
 
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
@@ -2623,7 +2569,7 @@ class poloniex(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
@@ -2665,7 +2611,7 @@ class poloniex(Exchange, ImplicitAPI):
         address = self.safe_string(response, 'address')
         if address is None:
             address = self.safe_string(response, networkEntry['id'])
-        tag: Str = None
+        tag = None
         self.check_address(address)
         if networkEntry is not None:
             depositAddress = self.safe_string(networkEntry['info'], 'depositAddress')
@@ -2691,14 +2637,14 @@ class poloniex(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, fromAccount)
-        request: dict = {
+        request = {
             'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
             'fromAccount': fromId,
@@ -2741,17 +2687,25 @@ class poloniex(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
-        params = extraParams
-        request['amount'] = self.currency_to_precision(code, amount)
-        request['address'] = address
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'address': address,
+        }
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is None:
+            # we need to know the network to find out the currency-junction
+            raise ArgumentsRequired(self.id + ' withdraw requires a network parameter for ' + code + '.')
+        request['network'] = self.network_code_to_id(networkCode, code)
         if tag is not None:
             request['paymentId'] = tag
-        response = self.privatePostWalletsWithdraw(self.extend(request, params))
+        response = self.privatePostV2WalletsWithdraw(self.extend(request, params))
         #
         #     {
         #         "response": "Withdrew 1.00000000 USDT.",
@@ -2759,18 +2713,14 @@ class poloniex(Exchange, ImplicitAPI):
         #         "withdrawalNumber": 13449869
         #     }
         #
-        withdrawResponse = {
-            'response': response,
-            'withdrawNetworkEntry': networkEntry,
-        }
-        return self.parse_transaction(withdrawResponse, currency)
+        return self.parse_transaction(response, currency)
 
     def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
         start = self.parse_to_int(since / 1000) if (since is not None) else now - 10 * year
-        request: dict = {
+        request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
         }
@@ -2858,11 +2808,11 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         response = self.fetch_transactions_helper(code, since, limit, params)
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
         withdrawals = self.safe_value(response, 'withdrawals', [])
@@ -2882,10 +2832,10 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         response = self.fetch_transactions_helper(code, since, limit, params)
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
         withdrawals = self.safe_value(response, 'withdrawals', [])
@@ -2900,7 +2850,7 @@ class poloniex(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         response = self.publicGetCurrencies(self.extend(params, {'includeMultiChainCurrencies': True}))
@@ -2927,7 +2877,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        data: dict = {}
+        data = {}
         for i in range(0, len(response)):
             entry = response[i]
             currencies = list(entry.keys())
@@ -2935,7 +2885,7 @@ class poloniex(Exchange, ImplicitAPI):
             data[currencyId] = entry[currencyId]
         return self.parse_deposit_withdraw_fees(data, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
         #
         #         {
         #             "1CR": {
@@ -2957,7 +2907,7 @@ class poloniex(Exchange, ImplicitAPI):
         #             },
         #         }
         #
-        depositWithdrawFees: dict = {}
+        depositWithdrawFees = {}
         codes = self.market_codes(codes)
         responseKeys = list(response.keys())
         for i in range(0, len(responseKeys)):
@@ -2973,9 +2923,9 @@ class poloniex(Exchange, ImplicitAPI):
                     for j in range(0, len(childChains)):
                         networkId = childChains[j]
                         networkId = networkId.replace(code, '')
-                        networkCode = self.network_id_to_code(networkId)
+                        networkCode = self.network_id_to_code(networkId, currency['code'])
                         networkInfo = self.safe_value(response, networkId)
-                        networkObject: dict = {}
+                        networkObject = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
                         networkObject[networkCode] = {
                             'withdraw': {
@@ -2992,20 +2942,21 @@ class poloniex(Exchange, ImplicitAPI):
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         depositWithdrawFee = self.deposit_withdraw_fee({})
-        depositWithdrawFee['info'][currency['code']] = fee
+        currencyCode = self.safe_string(currency, 'code')
+        depositWithdrawFee['info'][currencyCode] = fee
         networkId = self.safe_string(fee, 'blockchain')
         withdrawFee = self.safe_number(fee, 'withdrawalFee')
-        withdrawResult: dict = {
+        withdrawResult = {
             'fee': withdrawFee,
             'percentage': False if (withdrawFee is not None) else None,
         }
-        depositResult: dict = {
+        depositResult = {
             'fee': None,
             'percentage': None,
         }
         depositWithdrawFee['withdraw'] = withdrawResult
         depositWithdrawFee['deposit'] = depositResult
-        networkCode = self.network_id_to_code(networkId)
+        networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
         depositWithdrawFee['networks'][networkCode] = {
             'withdraw': withdrawResult,
             'deposit': depositResult,
@@ -3022,7 +2973,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         response = self.fetch_transactions_helper(code, since, limit, params)
         currency = None
@@ -3033,7 +2984,7 @@ class poloniex(Exchange, ImplicitAPI):
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
             'AWAITING APPROVAL': 'pending',
@@ -3145,12 +3096,12 @@ class poloniex(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
         if marginMode is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"')
-        hedged: Bool = None
+        hedged = None
         hedged, params = self.handle_param_bool(params, 'hedged', False)
         if hedged:
             if not ('posSide' in params):
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"')
-        request: dict = {
+        request = {
             'lever': leverage,
             'mgnMode': marginMode.upper(),
             'symbol': market['id'],
@@ -3166,11 +3117,11 @@ class poloniex(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         marginMode = None
@@ -3219,11 +3170,11 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_leverage(response, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
-        shortLeverage: Int = None
-        longLeverage: Int = None
-        marketId: Str = None
-        marginMode: Str = None
-        data = self.safe_list(leverage, 'data')
+        shortLeverage = None
+        longLeverage = None
+        marketId = None
+        marginMode = None
+        data = self.safe_list(leverage, 'data', [])
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
@@ -3285,7 +3236,7 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         mode = 'HEDGE' if hedged else 'ONE_WAY'
-        request: dict = {
+        request = {
             'posMode': mode,
         }
         response = self.swapPrivatePostV3PositionMode(self.extend(request, params))
@@ -3307,7 +3258,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract positions
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3425,7 +3376,7 @@ class poloniex(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         amount = self.amount_to_precision(symbol, amount)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'amt': Precise.string_abs(amount),
             'type': type.upper(),  # 'ADD' or 'REDUCE'
@@ -3476,7 +3427,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, -amount, 'reduce', params)
 
@@ -3486,17 +3437,19 @@ class poloniex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['spot']
         if self.in_array(api, ['swapPublic', 'swapPrivate']):
             url = self.urls['api']['swap']
+        if method == 'GET' and ('symbol' in params):
+            params['symbol'] = self.encode_uri_component(params['symbol'])  # handle symbols like 索拉拉/USDT'
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         if api == 'public' or api == 'swapPublic':

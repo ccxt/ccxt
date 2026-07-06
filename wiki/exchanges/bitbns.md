@@ -26,7 +26,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 
 | Param | Type | Required | Description |
@@ -35,7 +35,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-bitbns.fetchStatus ([params])
+bitbns.fetchStatus (params?)
 ```
 
 
@@ -54,7 +54,7 @@ retrieves data on all markets for bitbns
 
 
 ```javascript
-bitbns.fetchMarkets ([params])
+bitbns.fetchMarkets (params?)
 ```
 
 
@@ -64,7 +64,7 @@ bitbns.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -75,7 +75,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitbns.fetchOrderBook (symbol[, limit, params])
+bitbns.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -85,7 +85,7 @@ bitbns.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -95,7 +95,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitbns.fetchTickers (symbols[, params])
+bitbns.fetchTickers (symbols, params?)
 ```
 
 
@@ -105,7 +105,7 @@ bitbns.fetchTickers (symbols[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -114,7 +114,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitbns.fetchBalance ([params])
+bitbns.fetchBalance (params?)
 ```
 
 
@@ -124,7 +124,7 @@ bitbns.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -146,7 +146,7 @@ create a trade order
 
 
 ```javascript
-bitbns.createOrder (symbol, type, side, amount[, price, params])
+bitbns.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -156,7 +156,7 @@ bitbns.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -173,7 +173,7 @@ cancels an open order
 
 
 ```javascript
-bitbns.cancelOrder (id, symbol[, params])
+bitbns.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -183,7 +183,7 @@ bitbns.cancelOrder (id, symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status  
 
@@ -195,7 +195,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitbns.fetchOrder (id, symbol[, params])
+bitbns.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -205,7 +205,7 @@ bitbns.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -223,7 +223,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitbns.fetchOpenOrders (symbol[, since, limit, params])
+bitbns.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -233,7 +233,7 @@ bitbns.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -245,7 +245,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitbns.fetchMyTrades (symbol[, since, limit, params])
+bitbns.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -255,7 +255,7 @@ bitbns.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -267,7 +267,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitbns.fetchTrades (symbol[, since, limit, params])
+bitbns.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -277,7 +277,7 @@ bitbns.fetchTrades (symbol[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -289,7 +289,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitbns.fetchDeposits (code[, since, limit, params])
+bitbns.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -299,7 +299,7 @@ bitbns.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -311,7 +311,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitbns.fetchWithdrawals (code[, since, limit, params])
+bitbns.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -321,7 +321,7 @@ bitbns.fetchWithdrawals (code[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitbns</code>](#bitbns)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -331,6 +331,6 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitbns.fetchDepositAddress (code[, params])
+bitbns.fetchDepositAddress (code, params?)
 ```
 

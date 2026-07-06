@@ -8,23 +8,23 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestOmit() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]interface{}{}, "foo"), map[string]interface{}{})
-	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]interface{}{
+	}, map[string]any{}, exchange)
+	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]any{}, "foo"), map[string]any{})
+	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]any{
 		"foo": 2,
-	}, "foo"), map[string]interface{}{})
-	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]interface{}{
+	}, "foo"), map[string]any{})
+	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]any{
 		"foo": 2,
 		"bar": 3,
-	}, "foo"), map[string]interface{}{
+	}, "foo"), map[string]any{
 		"bar": 3,
 	})
-	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]interface{}{
+	AssertDeepEqual(exchange, nil, "testOmit", exchange.Omit(map[string]any{
 		"foo": 2,
 		"bar": 3,
-	}, []interface{}{"foo"}), map[string]interface{}{
+	}, []any{"foo"}), map[string]any{
 		"bar": 3,
 	})
 }

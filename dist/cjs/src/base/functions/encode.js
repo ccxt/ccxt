@@ -2,25 +2,25 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var index = require('../../static_dependencies/scure-base/index.js');
-var utils = require('../../static_dependencies/noble-curves/abstract/utils.js');
+var base = require('@scure/base');
+var utils_js = require('@noble/curves/utils.js');
 var msgpack = require('../../static_dependencies/messagepack/msgpack.js');
-var index$1 = require('../../static_dependencies/qs/index.js');
+var index = require('../../static_dependencies/qs/index.js');
 
 // ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedObject = (object) => ((typeof object === 'string') &&
-    (object.length >= 2) &&
-    ((object[0] === '{') || (object[0] === '['))), binaryToString = index.utf8.encode, stringToBinary = index.utf8.decode, stringToBase64 = (string) => index.base64.encode(index.utf8.decode(string)), base64ToString = (string) => index.utf8.encode(index.base64.decode(string)), base64ToBinary = index.base64.decode, binaryToBase64 = index.base64.encode, base16ToBinary = index.base16.decode, binaryToBase16 = index.base16.encode, base58ToBinary = index.base58.decode, binaryToBase58 = index.base58.encode, binaryConcat = utils.concatBytes, binaryConcatArray = (arr) => utils.concatBytes(...arr), urlencode = (object, sort = false) => index$1["default"].stringify(object), urlencodeNested = (object) => index$1["default"].stringify(object) // implemented only in python
-, urlencodeWithArrayRepeat = (object) => index$1["default"].stringify(object, { arrayFormat: 'repeat' }), rawencode = (object, sort = false) => index$1["default"].stringify(object, { encode: false }), encode = index.utf8.decode // lol
-, decode = index.utf8.encode
+    // (object.length >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
+    ((object[0] === '{') || (object[0] === '['))), binaryToString = base.utf8.encode, stringToBinary = base.utf8.decode, stringToBase64 = (string) => base.base64.encode(base.utf8.decode(string)), base64ToString = (string) => base.utf8.encode(base.base64.decode(string)), base64ToBinary = base.base64.decode, binaryToBase64 = base.base64.encode, base16ToBinary = base.hex.decode, binaryToBase16 = base.hex.encode, base58ToBinary = base.base58.decode, binaryToBase58 = base.base58.encode, binaryConcat = utils_js.concatBytes, binaryConcatArray = (arr) => utils_js.concatBytes(...arr), urlencode = (object, sort = false) => index["default"].stringify(object), urlencodeNested = (object) => index["default"].stringify(object, { encodeValuesOnly: true }) // implemented only in python
+, urlencodeWithArrayRepeat = (object) => index["default"].stringify(object, { arrayFormat: 'repeat' }), rawencode = (object, sort = false) => index["default"].stringify(object, { encode: false }), encode = base.utf8.decode // lol
+, decode = base.utf8.encode
 // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 , urlencodeBase64 = (payload) => {
     const payload64 = (typeof payload === 'string') ? stringToBase64(payload) : binaryToBase64(payload);
     return payload64.replace(/[=]+$/, '')
         .replace(/\+/g, '-')
         .replace(/\//g, '_');
-}, numberToLE = (n, padding) => utils.numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => utils.numberToBytesBE(BigInt(n), padding);
+}, numberToLE = (n, padding) => utils_js.numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => utils_js.numberToBytesBE(BigInt(n), padding);
 function packb(req) {
     return msgpack.serialize(req);
 }

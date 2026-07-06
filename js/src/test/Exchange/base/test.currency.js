@@ -4,10 +4,14 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 function testCurrency(exchange, skippedProperties, method, entry) {
+    if (entry === undefined) {
+        return;
+    }
     const format = {
-        'id': 'btc',
+        'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
     };
     // todo: remove fee from empty
@@ -56,7 +60,21 @@ function testCurrency(exchange, skippedProperties, method, entry) {
         return;
     }
     //
-    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    try {
+        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    }
+    catch (e) {
+        const message = exchange.exceptionMessage(e);
+        // check structure if key is numeric, not string
+        if (message.indexOf('"id" key') >= 0) {
+            // @ts-ignore
+            format['id'] = 123;
+            testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        }
+        else {
+            assert(message === '', message);
+        }
+    }
     //
     testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'fee', '0');

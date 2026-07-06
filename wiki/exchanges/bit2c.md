@@ -23,7 +23,7 @@
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://bit2c.co.il/home/api#balance  
 
@@ -33,7 +33,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bit2c.fetchBalance ([params])
+bit2c.fetchBalance (params?)
 ```
 
 
@@ -43,7 +43,7 @@ bit2c.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bit2c.co.il/home/api#orderb  
 
@@ -55,7 +55,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bit2c.fetchOrderBook (symbol[, limit, params])
+bit2c.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -65,7 +65,7 @@ bit2c.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://bit2c.co.il/home/api#ticker  
 
@@ -76,7 +76,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bit2c.fetchTicker (symbol[, params])
+bit2c.fetchTicker (symbol, params?)
 ```
 
 
@@ -86,7 +86,7 @@ bit2c.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -103,7 +103,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bit2c.fetchTrades (symbol[, since, limit, params])
+bit2c.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -113,7 +113,7 @@ bit2c.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://bit2c.co.il/home/api#balance  
 
@@ -123,7 +123,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bit2c.fetchTradingFees ([params])
+bit2c.fetchTradingFees (params?)
 ```
 
 
@@ -133,7 +133,7 @@ bit2c.fetchTradingFees ([params])
 create a trade order
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bit2c.co.il/home/api#addo  
 
@@ -148,7 +148,7 @@ create a trade order
 
 
 ```javascript
-bit2c.createOrder (symbol, type, side, amount[, price, params])
+bit2c.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -158,7 +158,7 @@ bit2c.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bit2c.co.il/home/api#cancelo  
 
@@ -170,7 +170,7 @@ cancels an open order
 
 
 ```javascript
-bit2c.cancelOrder (id, symbol[, params])
+bit2c.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -180,7 +180,7 @@ bit2c.cancelOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bit2c.co.il/home/api#geto  
 
@@ -193,7 +193,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bit2c.fetchOpenOrders (symbol[, since, limit, params])
+bit2c.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -203,7 +203,7 @@ bit2c.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bit2c.co.il/home/api#getoid  
 
@@ -215,7 +215,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bit2c.fetchOrder (id, symbol[, params])
+bit2c.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -225,7 +225,7 @@ bit2c.fetchOrder (id, symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://bit2c.co.il/home/api#orderh  
 
@@ -238,7 +238,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bit2c.fetchMyTrades (symbol[, since, limit, params])
+bit2c.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -248,7 +248,7 @@ bit2c.fetchMyTrades (symbol[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bit2c</code>](#bit2c)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://bit2c.co.il/home/api#addc  
 
@@ -259,6 +259,6 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bit2c.fetchDepositAddress (code[, params])
+bit2c.fetchDepositAddress (code, params?)
 ```
 

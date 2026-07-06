@@ -1,7 +1,4 @@
-- [Watchpositions.d](./examples/js/)
-
-
- ```javascript
- export {};
-//# sourceMappingURL=watchPositions.d.ts.map 
+```javascript
+export {};
+//# sourceMappingURL=watchPositions.d.ts.map
 ```

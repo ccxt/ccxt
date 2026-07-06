@@ -16,9 +16,11 @@ from ccxt.test.exchange.base import test_order_book  # noqa E402
 
 async def test_fetch_order_books(exchange, skipped_properties):
     method = 'fetchOrderBooks'
-    symbol = exchange.symbols[0]
+    symbols = exchange.symbols
+    assert symbols is not None, exchange.id + ' ' + method + ' requires exchange.symbols to be loaded'
+    symbol = symbols[0]
     order_books = await exchange.fetch_order_books([symbol])
-    assert isinstance(order_books, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(order_books)
+    assert exchange.is_dictionary(order_books), exchange.id + ' ' + method + ' must return a dict. ' + exchange.json(order_books)
     order_book_keys = list(order_books.keys())
     assert len(order_book_keys), exchange.id + ' ' + method + ' returned 0 length data'
     for i in range(0, len(order_book_keys)):

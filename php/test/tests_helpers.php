@@ -336,6 +336,25 @@ function get_env_vars() {
     return ENV_VARS;
 }
 
+function is_windows(): bool {
+    if (defined('PHP_OS_FAMILY')) {
+        return PHP_OS_FAMILY === 'Windows';
+    }
+    return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+}
+
+function is_linux(): bool {
+    if (defined('PHP_OS_FAMILY')) {
+        return PHP_OS_FAMILY === 'Linux';
+    }
+    return stripos(PHP_OS, 'Linux') !== false;
+}
+
+function is_amd64(): bool {
+    $m = php_uname('m'); // machine type
+    return $m === 'x86_64' || $m === 'amd64' || $m === 'AMD64';
+}
+
 function set_fetch_response($exchange, $data) {
     $exchange->fetch_result = $data;
     return $exchange;

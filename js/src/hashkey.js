@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hashkey.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class hashkey
@@ -20,7 +20,7 @@ export default class hashkey extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'hashkey',
             'name': 'HashKey Global',
-            'countries': ['BM'],
+            'countries': ['BM'], // Bermuda
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
@@ -29,10 +29,10 @@ export default class hashkey extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -140,20 +140,20 @@ export default class hashkey extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true, // emulated for spot markets
+                'fetchTradingFees': true, // for spot markets only
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -175,7 +175,7 @@ export default class hashkey extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98',
+                'logo': 'https://github.com/user-attachments/assets/3dd65db2-5da9-4ecc-93ac-6d420f36261c',
                 'api': {
                     'public': 'https://api-glb.hashkey.com',
                     'private': 'https://api-glb.hashkey.com',
@@ -198,7 +198,7 @@ export default class hashkey extends Exchange {
                         'quote/v1/klines': 1,
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
+                        'quote/v1/ticker/bookTicker': 1, // not unified
                         'quote/v1/depth/merged': 1,
                         'quote/v1/markPrice': 1,
                         'quote/v1/index': 1,
@@ -224,10 +224,12 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrder': 1,
+                        'api/v1/coinInfo': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1,
                         'api/v1/account/trades': 5,
                         'api/v1/account/type': 5,
+                        'api/v1/account/chainType': 1,
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 5,
                         'api/v1/spot/subAccount/openOrders': 1,
@@ -248,6 +250,8 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/batchOrders': 5,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
+                        'api/v1/futures/marginType': 1,
+                        'api/v1/futures/positionMargin': 1,
                         'api/v1/futures/position/trading-stop': 3,
                         'api/v1/futures/batchOrders': 5,
                         'api/v1/account/assetTransfer': 1,
@@ -399,8 +403,8 @@ export default class hashkey extends Exchange {
                         'trailing': false,
                         'leverage': false,
                         'marketBuyByCost': true,
-                        'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'marketBuyRequiresPrice': true, // todo fix
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -427,7 +431,7 @@ export default class hashkey extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -460,169 +464,169 @@ export default class hashkey extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '0001': BadRequest,
-                    '0002': AuthenticationError,
-                    '0003': RateLimitExceeded,
-                    '0102': AuthenticationError,
-                    '0103': AuthenticationError,
-                    '0104': PermissionDenied,
-                    '0201': ExchangeError,
-                    '0202': PermissionDenied,
-                    '0206': BadRequest,
-                    '0207': BadRequest,
-                    '0209': BadRequest,
-                    '0210': BadRequest,
-                    '0211': OrderNotFound,
-                    '0401': InsufficientFunds,
-                    '0402': BadRequest,
-                    '-1000': ExchangeError,
-                    '-1001': ExchangeError,
-                    '-100010': BadSymbol,
-                    '-100012': BadSymbol,
-                    '-1002': AuthenticationError,
-                    '-1004': BadRequest,
-                    '-1005': PermissionDenied,
-                    '-1006': ExchangeError,
-                    '-1007': RequestTimeout,
-                    '-1014': InvalidOrder,
-                    '-1015': InvalidOrder,
-                    '-1020': OperationRejected,
-                    '-1021': InvalidNonce,
-                    '-1024': BadRequest,
-                    '-1101': ExchangeNotAvailable,
-                    '-1115': InvalidOrder,
-                    '-1117': InvalidOrder,
-                    '-1123': InvalidOrder,
-                    '-1124': InvalidOrder,
-                    '-1126': InvalidOrder,
-                    '-1129': BadRequest,
-                    '-1130': BadRequest,
-                    '-1132': BadRequest,
-                    '-1133': BadRequest,
-                    '-1135': BadRequest,
-                    '-1136': BadRequest,
-                    '-1138': InvalidOrder,
-                    '-1137': InvalidOrder,
-                    '-1139': OrderImmediatelyFillable,
-                    '-1140': InvalidOrder,
-                    '-1141': DuplicateOrderId,
-                    '-1142': OrderNotFillable,
-                    '-1143': OrderNotFound,
-                    '-1144': OperationRejected,
-                    '-1145': NotSupported,
-                    '-1146': RequestTimeout,
-                    '-1147': RequestTimeout,
-                    '-1148': InvalidOrder,
-                    '-1149': OperationRejected,
-                    '-1150': OperationFailed,
-                    '-1151': OperationRejected,
-                    '-1152': AccountNotEnabled,
-                    '-1153': InvalidOrder,
-                    '-1154': InvalidOrder,
-                    '-1155': OperationRejected,
-                    '-1156': OperationFailed,
-                    '-1157': OperationFailed,
-                    '-1158': OperationFailed,
-                    '-1159': AccountNotEnabled,
-                    '-1160': AccountNotEnabled,
-                    '-1161': OperationFailed,
-                    '-1162': ContractUnavailable,
-                    '-1163': InvalidAddress,
-                    '-1164': OperationFailed,
-                    '-1165': ArgumentsRequired,
-                    '-1166': OperationRejected,
-                    '-1167': BadRequest,
-                    '-1168': BadRequest,
-                    '-1169': PermissionDenied,
-                    '-1170': PermissionDenied,
-                    '-1171': PermissionDenied,
-                    '-1172': BadRequest,
-                    '-1173': BadRequest,
-                    '-1174': PermissionDenied,
-                    '-1175': BadRequest,
-                    '-1176': BadRequest,
-                    '-1177': InvalidOrder,
-                    '-1178': AccountNotEnabled,
-                    '-1179': AccountSuspended,
-                    '-1181': ExchangeError,
-                    '-1193': OperationRejected,
-                    '-1194': OperationRejected,
-                    '-1195': BadRequest,
-                    '-1196': BadRequest,
-                    '-1200': BadRequest,
-                    '-1201': BadRequest,
-                    '-1202': BadRequest,
-                    '-1203': BadRequest,
-                    '-1204': BadRequest,
-                    '-1205': AccountNotEnabled,
-                    '-1206': BadRequest,
-                    '-1207': BadRequest,
-                    '-1208': BadRequest,
-                    '-1209': BadRequest,
-                    '-2001': ExchangeNotAvailable,
-                    '-2002': OperationFailed,
-                    '-2003': OperationFailed,
-                    '-2004': OperationFailed,
-                    '-2005': RequestTimeout,
-                    '-2010': OperationRejected,
-                    '-2011': OperationRejected,
-                    '-2016': OperationRejected,
-                    '-2017': OperationRejected,
-                    '-2018': OperationRejected,
-                    '-2019': PermissionDenied,
-                    '-2020': PermissionDenied,
-                    '-2021': PermissionDenied,
-                    '-2022': OperationRejected,
-                    '-2023': AuthenticationError,
-                    '-2024': AccountNotEnabled,
-                    '-2025': AccountNotEnabled,
-                    '-2026': BadRequest,
-                    '-2027': OperationRejected,
-                    '-2028': OperationRejected,
-                    '-2029': OperationRejected,
-                    '-2030': InsufficientFunds,
-                    '-2031': NotSupported,
-                    '-2032': OperationRejected,
-                    '-2033': OperationFailed,
-                    '-2034': InsufficientFunds,
-                    '-2035': OperationRejected,
-                    '-2036': NotSupported,
-                    '-2037': ExchangeError,
-                    '-2038': InsufficientFunds,
-                    '-2039': NotSupported,
-                    '-2040': ExchangeNotAvailable,
-                    '-2041': BadRequest,
-                    '-2042': OperationRejected,
-                    '-2043': OperationRejected,
-                    '-2044': BadRequest,
-                    '-2045': BadRequest,
-                    '-2046': BadRequest,
-                    '-2048': BadRequest,
-                    '-2049': BadRequest,
-                    '-2050': BadRequest,
-                    '-2051': OperationRejected,
-                    '-2052': OperationRejected,
-                    '-2053': OperationRejected,
-                    '-2054': BadRequest,
-                    '-2055': BadRequest,
-                    '-2056': BadRequest,
-                    '-2057': BadRequest,
-                    '-3117': PermissionDenied,
-                    '-3143': PermissionDenied,
-                    '-3144': PermissionDenied,
-                    '-3145': DDoSProtection,
-                    '-4001': BadRequest,
-                    '-4002': BadRequest,
-                    '-4003': InsufficientFunds,
-                    '-4004': BadRequest,
-                    '-4005': BadRequest,
-                    '-4006': AccountNotEnabled,
-                    '-4007': NotSupported,
-                    '-4008': AccountNotEnabled,
-                    '-4009': PermissionDenied,
-                    '-4010': PermissionDenied,
-                    '-4011': ExchangeError,
-                    '-4012': ExchangeError,
+                    '0001': BadRequest, // Required field '%s' missing or invalid.
+                    '0002': AuthenticationError, // Incorrect signature
+                    '0003': RateLimitExceeded, // Rate limit exceeded
+                    '0102': AuthenticationError, // Invalid APIKey
+                    '0103': AuthenticationError, // APIKey expired
+                    '0104': PermissionDenied, // The accountId defined is not permissible
+                    '0201': ExchangeError, // Instrument not found
+                    '0202': PermissionDenied, // Invalid IP
+                    '0206': BadRequest, // Unsupported order type
+                    '0207': BadRequest, // Invalid price
+                    '0209': BadRequest, // Invalid price precision
+                    '0210': BadRequest, // Price outside of allowed range
+                    '0211': OrderNotFound, // Order not found
+                    '0401': InsufficientFunds, // Insufficient asset
+                    '0402': BadRequest, // Invalid asset
+                    '-1000': ExchangeError, // An unknown error occurred while processing the request
+                    '-1001': ExchangeError, // Internal error
+                    '-100010': BadSymbol, // Invalid Symbols!
+                    '-100012': BadSymbol, // Parameter symbol [String] missing!
+                    '-1002': AuthenticationError, // Unauthorized operation
+                    '-1004': BadRequest, // Bad request
+                    '-1005': PermissionDenied, // No permission
+                    '-1006': ExchangeError, // Execution status unknown
+                    '-1007': RequestTimeout, // Timeout waiting for response from server
+                    '-1014': InvalidOrder, // Unsupported order combination
+                    '-1015': InvalidOrder, // Too many new orders
+                    '-1020': OperationRejected, // Unsupported operation
+                    '-1021': InvalidNonce, // Timestamp for this request is outside of the recvWindow
+                    '-1024': BadRequest, // Duplicate request
+                    '-1101': ExchangeNotAvailable, // Feature has been offline
+                    '-1115': InvalidOrder, // Invalid timeInForce
+                    '-1117': InvalidOrder, // Invalid order side
+                    '-1123': InvalidOrder, // Invalid client order id
+                    '-1124': InvalidOrder, // Invalid price
+                    '-1126': InvalidOrder, // Invalid quantity
+                    '-1129': BadRequest, // Invalid parameters, quantity and amount are not allowed to be sent at the same time.
+                    '-1130': BadRequest, // Illegal parameter '%s'
+                    '-1132': BadRequest, // Order price greater than the maximum
+                    '-1133': BadRequest, // Order price lower than the minimum
+                    '-1135': BadRequest, // Order quantity greater than the maximum
+                    '-1136': BadRequest, // Order quantity lower than the minimum
+                    '-1138': InvalidOrder, // Order has been partially cancelled
+                    '-1137': InvalidOrder, // Order quantity precision too large
+                    '-1139': OrderImmediatelyFillable, // Order has been filled
+                    '-1140': InvalidOrder, // Order amount lower than the minimum
+                    '-1141': DuplicateOrderId, // Duplicate order
+                    '-1142': OrderNotFillable, // Order has been cancelled
+                    '-1143': OrderNotFound, // Order not found on order book
+                    '-1144': OperationRejected, // Order has been locked
+                    '-1145': NotSupported, // Cancellation on this order type not supported
+                    '-1146': RequestTimeout, // Order creation timeout
+                    '-1147': RequestTimeout, // Order cancellation timeout
+                    '-1148': InvalidOrder, // Order amount precision too large
+                    '-1149': OperationRejected, // Order creation failed
+                    '-1150': OperationFailed, // Order cancellation failed
+                    '-1151': OperationRejected, // The trading pair is not open yet
+                    '-1152': AccountNotEnabled, // User does not exist
+                    '-1153': InvalidOrder, // Invalid price type
+                    '-1154': InvalidOrder, // Invalid position side
+                    '-1155': OperationRejected, // The trading pair is not available for api trading
+                    '-1156': OperationFailed, // Limit maker order creation failed
+                    '-1157': OperationFailed, // Modify futures margin failed
+                    '-1158': OperationFailed, // Reduce margin is forbidden
+                    '-1159': AccountNotEnabled, // Finance account already exists
+                    '-1160': AccountNotEnabled, // Account does not exist
+                    '-1161': OperationFailed, // Balance transfer failed
+                    '-1162': ContractUnavailable, // Unsupport contract address
+                    '-1163': InvalidAddress, // Illegal withdrawal address
+                    '-1164': OperationFailed, // Withdraw failed
+                    '-1165': ArgumentsRequired, // Withdrawal amount cannot be null
+                    '-1166': OperationRejected, // Withdrawal amount exceeds the daily limit
+                    '-1167': BadRequest, // Withdrawal amount less than the minimum
+                    '-1168': BadRequest, // Illegal withdrawal amount
+                    '-1169': PermissionDenied, // Withdraw not allowed
+                    '-1170': PermissionDenied, // Deposit not allowed
+                    '-1171': PermissionDenied, // Withdrawal address not in whitelist
+                    '-1172': BadRequest, // Invalid from account id
+                    '-1173': BadRequest, // Invalid to account i
+                    '-1174': PermissionDenied, // Transfer not allowed between the same account
+                    '-1175': BadRequest, // Invalid fiat deposit status
+                    '-1176': BadRequest, // Invalid fiat withdrawal status
+                    '-1177': InvalidOrder, // Invalid fiat order type
+                    '-1178': AccountNotEnabled, // Brokerage account does not exist
+                    '-1179': AccountSuspended, // Address owner is not true
+                    '-1181': ExchangeError, // System error
+                    '-1193': OperationRejected, // Order creation count exceeds the limit
+                    '-1194': OperationRejected, // Market order creation forbidden
+                    '-1195': BadRequest, // Market order long position cannot exceed %s above the market price
+                    '-1196': BadRequest, // Market order short position cannot be below %s of the market price
+                    '-1200': BadRequest, // Order buy quantity too small
+                    '-1201': BadRequest, // Order buy quantity too large
+                    '-1202': BadRequest, // Order sell quantity too small
+                    '-1203': BadRequest, // Order sell quantity too large
+                    '-1204': BadRequest, // From account must be a main account
+                    '-1205': AccountNotEnabled, // Account not authorized
+                    '-1206': BadRequest, // Order amount greater than the maximum
+                    '-1207': BadRequest, // The status of deposit is invalid
+                    '-1208': BadRequest, // The orderType of fiat is invalid
+                    '-1209': BadRequest, // The status of withdraw is invalid
+                    '-2001': ExchangeNotAvailable, // Platform is yet to open trading
+                    '-2002': OperationFailed, // The number of open orders exceeds the limit 300
+                    '-2003': OperationFailed, // Position size cannot meet target leverage
+                    '-2004': OperationFailed, // Adjust leverage fail
+                    '-2005': RequestTimeout, // Adjust leverage timeout
+                    '-2010': OperationRejected, // New order rejected
+                    '-2011': OperationRejected, // Order cancellation rejected
+                    '-2016': OperationRejected, // API key creation exceeds the limit
+                    '-2017': OperationRejected, // Open orders exceeds the limit of the trading pair
+                    '-2018': OperationRejected, // Trade user creation exceeds the limit
+                    '-2019': PermissionDenied, // Trader and omnibus user not allowed to login app
+                    '-2020': PermissionDenied, // Not allowed to trade this trading pair
+                    '-2021': PermissionDenied, // Not allowed to trade this trading pair
+                    '-2022': OperationRejected, // Order batch size exceeds the limit
+                    '-2023': AuthenticationError, // Need to pass KYC verification
+                    '-2024': AccountNotEnabled, // Fiat account does not exist
+                    '-2025': AccountNotEnabled, // Custody account not exist
+                    '-2026': BadRequest, // Invalid type
+                    '-2027': OperationRejected, // Exceed maximum time range of 30 days
+                    '-2028': OperationRejected, // The search is limited to data within the last one month
+                    '-2029': OperationRejected, // The search is limited to data within the last three months
+                    '-2030': InsufficientFunds, // Insufficient margin
+                    '-2031': NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                    '-2032': OperationRejected, // After the transaction, your %s position will account for %s of the total position, which poses concentration risk. Do you want to continue with the transaction?
+                    '-2033': OperationFailed, // Order creation failed. Please verify if the order parameters comply with the trading rules
+                    '-2034': InsufficientFunds, // Trade account holding limit is zero
+                    '-2035': OperationRejected, // The sub account has been frozen and cannot transfer
+                    '-2036': NotSupported, // We do not support queries for records exceeding 30 days
+                    '-2037': ExchangeError, // Position and order data error
+                    '-2038': InsufficientFunds, // Insufficient margin
+                    '-2039': NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                    '-2040': ExchangeNotAvailable, // There is a request being processed. Please try again later
+                    '-2041': BadRequest, // Token does not exist
+                    '-2042': OperationRejected, // You have passed the trade limit, please pay attention to the risks
+                    '-2043': OperationRejected, // Maximum allowed leverage reached, please lower your leverage
+                    '-2044': BadRequest, // This order price is unreasonable to exceed (or be lower than) the liquidation price
+                    '-2045': BadRequest, // Price too low, please order again!
+                    '-2046': BadRequest, // Price too high, please order again!
+                    '-2048': BadRequest, // Exceed the maximum number of conditional orders of %s
+                    '-2049': BadRequest, // Create stop order buy price too big
+                    '-2050': BadRequest, // Create stop order sell price too small
+                    '-2051': OperationRejected, // Create order rejected
+                    '-2052': OperationRejected, // Create stop profit-loss plan order reject
+                    '-2053': OperationRejected, // Position not enough
+                    '-2054': BadRequest, // Invalid long stop profit price
+                    '-2055': BadRequest, // Invalid long stop loss price
+                    '-2056': BadRequest, // Invalid short stop profit price
+                    '-2057': BadRequest, // Invalid short stop loss price
+                    '-3117': PermissionDenied, // Invalid permission
+                    '-3143': PermissionDenied, // According to KYC and risk assessment, your trading account has exceeded the limit.
+                    '-3144': PermissionDenied, // Currently, your trading account has exceeded its limit and is temporarily unable to perform transfers
+                    '-3145': DDoSProtection, // Please DO NOT submit request too frequently
+                    '-4001': BadRequest, // Invalid asset
+                    '-4002': BadRequest, // Withdrawal amount less than Minimum Withdrawal Amount
+                    '-4003': InsufficientFunds, // Insufficient Balance
+                    '-4004': BadRequest, // Invalid bank account number
+                    '-4005': BadRequest, // Assets are not listed
+                    '-4006': AccountNotEnabled, // KYC is not certified
+                    '-4007': NotSupported, // Withdrawal channels are not supported
+                    '-4008': AccountNotEnabled, // This currency does not support this customer type
+                    '-4009': PermissionDenied, // No withdrawal permission
+                    '-4010': PermissionDenied, // Withdrawals on the same day exceed the maximum limit for a single day
+                    '-4011': ExchangeError, // System error
+                    '-4012': ExchangeError, // Parameter error
                     '-4013': OperationFailed, // Withdraw repeatly
                 },
                 'broad': {},
@@ -653,7 +657,7 @@ export default class hashkey extends Exchange {
      * @description the latest known information on the availability of the exchange API
      * @see https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const response = await this.publicGetApiV1Ping(params);
@@ -1171,65 +1175,63 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
-        for (let i = 0; i < coins.length; i++) {
-            const currecy = coins[i];
-            const currencyId = this.safeString(currecy, 'coinId');
-            const code = this.safeCurrencyCode(currencyId);
-            const networks = this.safeList(currecy, 'chainTypes');
-            const parsedNetworks = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString(network, 'chainType');
-                const networkCode = this.networkCodeToId(networkId);
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(network, 'minWithdrawQuantity'),
-                            'max': this.parseNumber(this.omitZero(this.safeString(network, 'maxWithdrawQuantity'))),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(network, 'minDepositQuantity'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool(network, 'allowDeposit'),
-                    'withdraw': this.safeBool(network, 'allowWithdraw'),
-                    'fee': this.safeNumber(network, 'withdrawFee'),
-                    'precision': undefined,
-                    'info': network,
-                };
-            }
-            const rawType = this.safeString(currecy, 'tokenType');
-            const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'precision': undefined,
-                'type': type,
-                'name': this.safeString(currecy, 'coinFullName'),
-                'active': undefined,
-                'deposit': this.safeBool(currecy, 'allowDeposit'),
-                'withdraw': this.safeBool(currecy, 'allowWithdraw'),
-                'fee': undefined,
+        return this.parseCurrencies(coins);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'coinId');
+        const code = this.safeCurrencyCode(currencyId);
+        const networks = this.safeList(rawCurrency, 'chainTypes');
+        const parsedNetworks = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            const networkId = this.safeString(network, 'chainType');
+            const networkCode = this.networkCodeToId(networkId, code);
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(network, 'minWithdrawQuantity'),
+                        'max': this.parseNumber(this.omitZero(this.safeString(network, 'maxWithdrawQuantity'))),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(network, 'minDepositQuantity'),
                         'max': undefined,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            });
+                'active': undefined,
+                'deposit': this.safeBool(network, 'allowDeposit'),
+                'withdraw': this.safeBool(network, 'allowWithdraw'),
+                'fee': this.safeNumber(network, 'withdrawFee'),
+                'precision': undefined,
+                'info': network,
+            };
         }
-        return result;
+        const rawType = this.safeString(rawCurrency, 'tokenType');
+        const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'precision': undefined,
+            'type': type,
+            'name': this.safeString(rawCurrency, 'coinFullName'),
+            'active': undefined,
+            'deposit': this.safeBool(rawCurrency, 'allowDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'allowWithdraw'),
+            'fee': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -1239,10 +1241,12 @@ export default class hashkey extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1278,10 +1282,12 @@ export default class hashkey extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1324,7 +1330,9 @@ export default class hashkey extends Exchange {
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchMyTrades';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1388,7 +1396,7 @@ export default class hashkey extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             if (accountId !== undefined) {
                 request['subAccountId'] = accountId;
                 response = await this.privateGetApiV1FuturesSubAccountUserTrades(this.extend(request, params));
@@ -1543,7 +1551,9 @@ export default class hashkey extends Exchange {
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOHLCV';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, methodName, 'paginate');
         if (paginate) {
@@ -1615,10 +1625,12 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1650,10 +1662,12 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetQuoteV1Ticker24hr(params);
         return this.parseTickers(response, symbols);
@@ -1712,7 +1726,9 @@ export default class hashkey extends Exchange {
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         const response = await this.publicGetQuoteV1TickerPrice(this.extend(request, params));
@@ -1747,10 +1763,12 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account ID, for Master Key only
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const methodName = 'fetchBalance';
         let marketType = 'spot';
@@ -1861,10 +1879,12 @@ export default class hashkey extends Exchange {
      * @param {string} code unified currency code (default is 'USDT')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -1913,7 +1933,7 @@ export default class hashkey extends Exchange {
         }
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': this.safeString(currency, 'code'),
             'network': undefined,
             'address': address,
             'tag': tag,
@@ -1930,11 +1950,13 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
      * @param {int} [params.fromId] starting ID (To be released)
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchDeposits';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -1979,11 +2001,13 @@ export default class hashkey extends Exchange {
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchWithdrawals';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2038,11 +2062,13 @@ export default class hashkey extends Exchange {
      * @param {string} [params.network] network for withdraw
      * @param {string} [params.clientOrderId] client order id
      * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2055,7 +2081,7 @@ export default class hashkey extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chainType'] = this.networkCodeToId(networkCode);
+            request['chainType'] = this.networkCodeToId(networkCode, currency['code']);
         }
         const response = await this.privatePostApiV1AccountWithdraw(this.extend(request, params));
         //
@@ -2189,10 +2215,12 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the transfer
      * @param {string} [params.remark] a note for the transfer
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2237,10 +2265,12 @@ export default class hashkey extends Exchange {
      * @description fetch all the accounts associated with a profile
      * @see https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetApiV1AccountType(params);
         //
         //     [
@@ -2312,7 +2342,7 @@ export default class hashkey extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
      * @param {int} [params.accountType] spot, swap, custody
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchLedger';
@@ -2324,7 +2354,9 @@ export default class hashkey extends Exchange {
         if (until === undefined) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires an until argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {};
         request['startTime'] = since;
@@ -2365,8 +2397,8 @@ export default class hashkey extends Exchange {
     }
     parseLedgerEntryType(type) {
         const types = {
-            '1': 'trade',
-            '2': 'fee',
+            '1': 'trade', // transfer
+            '2': 'fee', // trade
             '51': 'transfer',
             '900': 'deposit',
             '904': 'withdraw',
@@ -2443,10 +2475,12 @@ export default class hashkey extends Exchange {
      * @param {string} [params.timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
      * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
      * @param {float} [params.triggerPrice] *swap markets only* The price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['spot']) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
@@ -2465,10 +2499,12 @@ export default class hashkey extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
@@ -2495,14 +2531,16 @@ export default class hashkey extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'PO'
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
         const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         if (triggerPrice !== undefined) {
             throw new NotSupported(this.id + ' trigger orders are not supported for spot markets');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const isMarketBuy = (type === 'market') && (side === 'buy');
         const cost = this.safeString(params, 'cost');
@@ -2740,10 +2778,12 @@ export default class hashkey extends Exchange {
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSwapOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.privatePostApiV1FuturesOrder(this.extend(request, params));
@@ -2778,10 +2818,12 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the api endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -2898,12 +2940,14 @@ export default class hashkey extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
      * @param {bool} [params.trigger] *swap markets only* true for canceling a trigger order (default false)
      * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const methodName = 'cancelOrder';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId === undefined) {
@@ -2994,7 +3038,9 @@ export default class hashkey extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3033,11 +3079,13 @@ export default class hashkey extends Exchange {
      * @param {string} [symbol] unified market symbol (not used by hashkey)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         const methodName = 'cancelOrders';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const orderIds = ids.join(',');
         request['ids'] = orderIds;
@@ -3049,7 +3097,7 @@ export default class hashkey extends Exchange {
         [marketType, params] = this.handleMarketTypeAndParams(methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds(request);
             //
             //     {
             //         "code": "0000",
@@ -3058,7 +3106,7 @@ export default class hashkey extends Exchange {
             //
         }
         else if (marketType === 'swap') {
-            response = this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds(request);
         }
         else {
             throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
@@ -3081,12 +3129,14 @@ export default class hashkey extends Exchange {
      * @param {string} [params.accountId] *spot markets only* account id to fetch the order from
      * @param {bool} [params.trigger] *swap markets only* true for fetching a trigger order (default false)
      * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         const methodName = 'fetchOrder';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let clientOrderId = undefined;
         [clientOrderId, params] = this.handleParamString(params, 'clientOrderId');
@@ -3190,12 +3240,14 @@ export default class hashkey extends Exchange {
      * @param {bool} [params.trigger] *swap markets only* true for fetching trigger orders (default false)
      * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
      * @param {string} [params.accountId] account id to fetch the orders from
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOpenOrders';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3227,10 +3279,12 @@ export default class hashkey extends Exchange {
      * @param {string} [params.orderId] the id of the order to fetch
      * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
      * @param {string} [params.accountId] account id to fetch the orders from
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenSpotOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let methodName = 'fetchOpenSpotOrders';
         [methodName, params] = this.handleParamString(params, 'methodName', methodName);
         let market = undefined;
@@ -3297,7 +3351,7 @@ export default class hashkey extends Exchange {
      * @param {bool} [params.trigger] true for fetching trigger orders (default false)
      * @param {bool} [params.stop] an alternative for trigger param
      * @param {string} [params.accountId] account id to fetch the orders from
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenSwapOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let methodName = 'fetchOpenSwapOrders';
@@ -3394,12 +3448,14 @@ export default class hashkey extends Exchange {
      * @param {bool} [params.trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
      * @param {bool} [params.stop] *swap markets only* the id of the order to start from an alternative for trigger param
      * @param {string} [params.accountId] account id to fetch the orders from
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchCanceledAndClosedOrders';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3463,7 +3519,7 @@ export default class hashkey extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             let isTrigger = false;
             [isTrigger, params] = this.handleTriggerOptionAndParams(params, methodName, isTrigger);
             if (isTrigger) {
@@ -3754,10 +3810,12 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3779,10 +3837,12 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {
             'timestamp': this.milliseconds(),
@@ -3836,14 +3896,16 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.fromId] the id of the entry to start from
      * @param {int} [params.endId] the id of the entry to end with
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -3890,7 +3952,7 @@ export default class hashkey extends Exchange {
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         const methodName = 'fetchPositions';
@@ -3903,7 +3965,9 @@ export default class hashkey extends Exchange {
                 throw new NotSupported(this.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         return await this.fetchPositionsForSymbol(symbols[0], this.extend({ 'methodName': 'fetchPositions' }, params));
     }
     /**
@@ -3915,10 +3979,12 @@ export default class hashkey extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsForSymbol(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let methodName = 'fetchPosition';
         [methodName, params] = this.handleParamString(params, 'methodName', methodName);
@@ -3994,10 +4060,12 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4020,7 +4088,7 @@ export default class hashkey extends Exchange {
         const leverageValue = this.safeNumber(leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -4040,7 +4108,9 @@ export default class hashkey extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'leverage': leverage,
         };
@@ -4058,15 +4128,138 @@ export default class hashkey extends Exchange {
     }
     /**
      * @method
+     * @name hashkey#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        marginMode = marginMode.toUpperCase();
+        if (marginMode === 'CROSSED') {
+            marginMode = 'CROSS';
+        }
+        if ((marginMode !== 'CROSS') && (marginMode !== 'ISOLATED')) {
+            throw new ArgumentsRequired(this.id + ' setMarginMode() marginMode must be either cross or isolated');
+        }
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new BadSymbol(this.id + ' setMarginMode() supports swap markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        };
+        return await this.privatePostApiV1FuturesMarginType(this.extend(request, params));
+    }
+    /**
+     * @method
+     * @name hashkey#addMargin
+     * @description add margin
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async addMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'add', params);
+    }
+    /**
+     * @method
+     * @name hashkey#reduceMargin
+     * @description remove margin from a position
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async reduceMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
+    }
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new BadSymbol(this.id + ' modifyMarginHelper() supports swap markets only');
+        }
+        let side = undefined;
+        [side, params] = this.handleParamString(params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"');
+        }
+        side = side.toUpperCase();
+        if ((side !== 'LONG') && (side !== 'SHORT')) {
+            throw new ArgumentsRequired(this.id + ' ' + type + 'Margin() params["side"] must be either long or short');
+        }
+        let amountString = this.numberToString(amount);
+        if (type === 'reduce') {
+            amountString = Precise.stringMul(amountString, '-1');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'amount': amountString,
+        };
+        const response = await this.privatePostApiV1FuturesPositionMargin(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0000",
+        //         "symbol": "BTCUSDT-PERPETUAL",
+        //         "margin": "12344.345",
+        //         "timestamp": "1726869763318"
+        //     }
+        //
+        return this.extend(this.parseMarginModification(response, market), {
+            'type': type,
+            'amount': amount,
+        });
+    }
+    parseMarginModification(data, market = undefined) {
+        const marketId = this.safeString(data, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'swap');
+        const timestamp = this.safeInteger(data, 'timestamp');
+        const errorCode = this.safeString(data, 'code');
+        const success = errorCode === '0000';
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': this.safeNumber(data, 'margin'),
+            'code': market['settle'],
+            'status': (success) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    /**
+     * @method
      * @name hashkey#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetApiV1ExchangeInfo(params);
         // response is the same as in fetchMarkets()
         const data = this.safeList(response, 'contracts', []);
@@ -4175,14 +4368,16 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const methodName = 'fetchTradingFee';
         let response = undefined;
@@ -4210,12 +4405,14 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#fetchTradingFees
      * @description *for spot markets only* fetch the trading fees for multiple markets
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetApiV1AccountVipInfo(params);
         //
         //     {
@@ -4339,8 +4536,8 @@ export default class hashkey extends Exchange {
             return undefined;
         }
         let errorInArray = false;
-        let responseCodeString = this.safeString(response, 'code', undefined);
-        const responseCodeInteger = this.safeInteger(response, 'code', undefined); // some codes in response are returned as '0000' others as 0
+        let responseCodeString = this.safeString(response, 'code');
+        const responseCodeInteger = this.safeInteger(response, 'code'); // some codes in response are returned as '0000' others as 0
         if (responseCodeInteger === 0) {
             const result = this.safeList(response, 'result', []); // for batch methods
             for (let i = 0; i < result.length; i++) {

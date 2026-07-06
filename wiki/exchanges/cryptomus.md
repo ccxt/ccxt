@@ -33,7 +33,7 @@ retrieves data on all markets for the exchange
 
 
 ```javascript
-cryptomus.fetchMarkets ([params])
+cryptomus.fetchMarkets (params?)
 ```
 
 
@@ -53,7 +53,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-cryptomus.fetchCurrencies ([params])
+cryptomus.fetchCurrencies (params?)
 ```
 
 
@@ -63,7 +63,7 @@ cryptomus.fetchCurrencies ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://doc.cryptomus.com/personal/market-cap/tickers  
 
@@ -74,7 +74,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cryptomus.fetchTickers ([symbols, params])
+cryptomus.fetchTickers (symbols?, params?)
 ```
 
 
@@ -84,7 +84,7 @@ cryptomus.fetchTickers ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://doc.cryptomus.com/personal/market-cap/orderbook  
 
@@ -97,7 +97,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cryptomus.fetchOrderBook (symbol[, limit, params])
+cryptomus.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -107,7 +107,7 @@ cryptomus.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://doc.cryptomus.com/personal/market-cap/trades  
 
@@ -120,7 +120,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-cryptomus.fetchTrades (symbol[, since, limit, params])
+cryptomus.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -130,7 +130,7 @@ cryptomus.fetchTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://doc.cryptomus.com/personal/converts/balance  
 
@@ -140,7 +140,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-cryptomus.fetchBalance ([params])
+cryptomus.fetchBalance (params?)
 ```
 
 
@@ -150,7 +150,7 @@ cryptomus.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -171,7 +171,7 @@ create a trade order
 
 
 ```javascript
-cryptomus.createOrder (symbol, type, side, amount[, price, params])
+cryptomus.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -181,7 +181,7 @@ cryptomus.createOrder (symbol, type, side, amount[, price, params])
 cancels an open limit order
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.cryptomus.com/personal/exchange/limit-order-cancellation  
 
@@ -193,7 +193,7 @@ cancels an open limit order
 
 
 ```javascript
-cryptomus.cancelOrder (id, symbol[, params])
+cryptomus.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -203,7 +203,7 @@ cryptomus.cancelOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.cryptomus.com/personal/exchange/history-of-completed-orders  
 
@@ -221,7 +221,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-cryptomus.fetchOrders (symbol[, since, limit, params])
+cryptomus.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -231,7 +231,7 @@ cryptomus.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.cryptomus.com/personal/exchange/list-of-active-orders  
 
@@ -249,7 +249,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-cryptomus.fetchOpenOrders (symbol[, since, limit, params])
+cryptomus.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -259,7 +259,7 @@ cryptomus.fetchOpenOrders (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://trade-docs.coinlist.co/?javascript--nodejs#list-fees  
 
@@ -269,6 +269,6 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-cryptomus.fetchTradingFees ([params])
+cryptomus.fetchTradingFees (params?)
 ```
 

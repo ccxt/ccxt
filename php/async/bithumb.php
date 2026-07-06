@@ -11,12 +11,11 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class bithumb extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bithumb',
@@ -269,14 +268,6 @@ class bithumb extends Exchange {
                             ),
                         ),
                     ),
-                    'USDT' => array(
-                        'limits' => array(
-                            'cost' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                    ),
                 ),
             ),
             'commonCurrencies' => array(
@@ -299,7 +290,7 @@ class bithumb extends Exchange {
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bithumb
@@ -317,7 +308,7 @@ class bithumb extends Exchange {
                 $request = array(
                     'quoteId' => $quotes[$i],
                 );
-                $promises[] = $this->publicGetTickerALLQuoteId ($this->extend($request, $params));
+                $promises[] = $this->publicGetTickerALLQuoteId($this->extend($request, $params));
                 //
                 //    {
                 //        "status" => "0000",
@@ -359,7 +350,7 @@ class bithumb extends Exchange {
                 $quote = $quotes[$i];
                 $quoteId = $quote;
                 $response = $results[$i];
-                $data = $this->safe_dict($response, 'data');
+                $data = $this->safe_dict($response, 'data', array());
                 $extension = $this->safe_dict($quoteCurrencies, $quote, array());
                 $currencyIds = is_array($data) ? array_keys($data) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
@@ -370,7 +361,7 @@ class bithumb extends Exchange {
                     $market = $data[$currencyId];
                     $base = $this->safe_currency_code($currencyId);
                     $active = true;
-                    if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
+                    if ((gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market)))) {
                         $numElements = count($market);
                         if ($numElements === 0) {
                             $active = false;
@@ -426,7 +417,7 @@ class bithumb extends Exchange {
                 }
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -446,7 +437,7 @@ class bithumb extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -454,18 +445,20 @@ class bithumb extends Exchange {
              * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'currency' => 'ALL',
             );
-            $response = Async\await($this->privatePostInfoBalance ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostInfoBalance($this->extend($request, $params)));
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -475,9 +468,11 @@ class bithumb extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'baseId' => $market['baseId'],
@@ -486,7 +481,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 30, max 30
             }
-            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -510,7 +505,7 @@ class bithumb extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'timestamp');
             return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -562,7 +557,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -571,9 +566,11 @@ class bithumb extends Exchange {
              *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $result = array();
             $quoteCurrencies = $this->safe_dict($this->options, 'quoteCurrencies', array());
             $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
@@ -582,7 +579,7 @@ class bithumb extends Exchange {
                 $request = array(
                     'quoteId' => $quotes[$i],
                 );
-                $promises[] = $this->publicGetTickerALLQuoteId ($this->extend($request, $params));
+                $promises[] = $this->publicGetTickerALLQuoteId($this->extend($request, $params));
             }
             $responses = Async\await(Promise\all($promises));
             for ($i = 0; $i < count($quotes); $i++) {
@@ -624,10 +621,10 @@ class bithumb extends Exchange {
                 }
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -636,15 +633,17 @@ class bithumb extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetTickerBaseIdQuoteId ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTickerBaseIdQuoteId($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -666,7 +665,7 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -690,7 +689,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -704,14 +703,16 @@ class bithumb extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -737,7 +738,7 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -818,7 +819,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -829,9 +830,11 @@ class bithumb extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'baseId' => $market['baseId'],
@@ -840,7 +843,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 20, max 100
             }
-            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -857,10 +860,10 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -875,9 +878,11 @@ class bithumb extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_currency' => $market['id'],
@@ -891,7 +896,7 @@ class bithumb extends Exchange {
             } else {
                 $method = 'privatePostTradeMarket' . $this->capitalize($side);
             }
-            $response = Async\await($this->$method ($this->extend($request, $params)));
+            $response = Async\await($this->$method($this->extend($request, $params)));
             $id = $this->safe_string($response, 'order_id');
             if ($id === null) {
                 throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
@@ -903,10 +908,10 @@ class bithumb extends Exchange {
                 'side' => $side,
                 'id' => $id,
             ), $market);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -916,12 +921,14 @@ class bithumb extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_id' => $id,
@@ -929,7 +936,7 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            $response = Async\await($this->privatePostInfoOrderDetail ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostInfoOrderDetail($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -959,7 +966,7 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_order($this->extend($data, array( 'order_id' => $id )), $market);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -1069,7 +1076,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1080,12 +1087,14 @@ class bithumb extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 100;
@@ -1098,7 +1107,7 @@ class bithumb extends Exchange {
             if ($since !== null) {
                 $request['after'] = $since;
             }
-            $response = Async\await($this->privatePostInfoOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostInfoOrders($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -1118,10 +1127,10 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1131,7 +1140,7 @@ class bithumb extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1150,7 +1159,7 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            $response = Async\await($this->privatePostTradeCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeCancel($this->extend($request, $params)));
             //
             //    {
             //       'status' => 'string',
@@ -1159,19 +1168,19 @@ class bithumb extends Exchange {
             return $this->safe_order(array(
                 'info' => $response,
             ));
-        }) ();
+        })();
     }
 
-    public function cancel_unified_order(array $order, $params = array ()) {
+    public function cancel_unified_order(array $order, $params = array()) {
         return Async\async(function () use ($order, $params) {
             $request = array(
                 'side' => $order['side'],
             );
-            return Async\await($this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params)));
-        }) ();
+            return Async\await($this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params)));
+        })();
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1183,11 +1192,13 @@ class bithumb extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'units' => $amount,
@@ -1202,12 +1213,12 @@ class bithumb extends Exchange {
                     $request['destination'] = $tag;
                 }
             }
-            $response = Async\await($this->privatePostTradeBtcWithdrawal ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeBtcWithdrawal($this->extend($request, $params)));
             //
             // array( "status" : "0000")
             //
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1257,7 +1268,7 @@ class bithumb extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));

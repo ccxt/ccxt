@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
-            object response = null;
+            object response = new List<object>() {};
             object success = true;
             try
             {
@@ -37,10 +37,6 @@ public partial class testMainClass : BaseTest
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
-                }
-                if (!isTrue((inOp(skippedProperties, "timestampSort"))))
-                {
-                    testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
                 }
             }
         }

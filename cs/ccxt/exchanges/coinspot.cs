@@ -119,24 +119,42 @@ public partial class coinspot : Exchange
                 { "private", new Dictionary<string, object>() {
                     { "post", new List<object>() {"orders", "orders/history", "my/coin/deposit", "my/coin/send", "quote/buy", "quote/sell", "my/balances", "my/orders", "my/buy", "my/sell", "my/buy/cancel", "my/sell/cancel", "ro/my/balances", "ro/my/balances/{cointype}", "ro/my/deposits", "ro/my/withdrawals", "ro/my/transactions", "ro/my/transactions/{cointype}", "ro/my/transactions/open", "ro/my/transactions/{cointype}/open", "ro/my/sendreceive", "ro/my/affiliatepayments", "ro/my/referralpayments"} },
                 } },
+                { "v2", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new List<object>() {"latest", "latest/{cointype}", "latest/{cointype}/{markettype}", "buyprice/{cointype}", "buyprice/{cointype}/{markettype}", "sellprice/{cointype}", "sellprice/{cointype}/{markettype}", "orders/open/{cointype}", "orders/open/{cointype}/{markettype}", "orders/completed/{cointype}", "orders/completed/{cointype}/{markettype}", "orders/summary/completed/{cointype}", "orders/summary/completed/{cointype}/{markettype}"} },
+                    } },
+                    { "private", new Dictionary<string, object>() {
+                        { "post", new List<object>() {"status", "my/coin/deposit", "quote/buy/now", "quote/sell/now", "quote/swap/now", "my/buy", "my/buy/edit", "my/sell", "my/sell/edit", "my/buy/now", "my/sell/now", "my/swap/now", "my/buy/cancel", "my/buy/cancel/all", "my/sell/cancel", "my/sell/cancel/all", "my/coin/withdraw/senddetails", "my/coin/withdraw/send", "ro/status", "ro/orders/market/open", "ro/orders/market/completed", "ro/my/balances", "ro/my/balance/{cointype}", "ro/my/orders/market/open", "ro/my/orders/limit/open", "ro/my/orders/completed", "ro/my/orders/market/completed", "ro/my/sendreceive", "ro/my/deposits", "ro/my/withdrawals", "ro/my/affiliatepayments", "ro/my/referralpayments"} },
+                    } },
+                } },
             } },
             { "markets", new Dictionary<string, object>() {
-                { "ADA/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "ada" },
-                    { "symbol", "ADA/AUD" },
-                    { "base", "ADA" },
-                    { "quote", "AUD" },
-                    { "baseId", "ada" },
-                    { "quoteId", "aud" },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
                 { "BTC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", "btc" },
                     { "symbol", "BTC/AUD" },
                     { "base", "BTC" },
                     { "quote", "AUD" },
                     { "baseId", "btc" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "BTC/USDT", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "btc" },
+                    { "symbol", "BTC/USDT" },
+                    { "base", "BTC" },
+                    { "quote", "USDT" },
+                    { "baseId", "btc" },
+                    { "quoteId", "usdt" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "USDT/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "usdt" },
+                    { "symbol", "USDT/AUD" },
+                    { "base", "USDT" },
+                    { "quote", "AUD" },
+                    { "baseId", "usdt" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -151,22 +169,32 @@ public partial class coinspot : Exchange
                     { "type", "spot" },
                     { "spot", true },
                 }) },
+                { "ADA/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "ada" },
+                    { "symbol", "ADA/AUD" },
+                    { "base", "ADA" },
+                    { "quote", "AUD" },
+                    { "baseId", "ada" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "SOL/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "sol" },
+                    { "symbol", "SOL/AUD" },
+                    { "base", "SOL" },
+                    { "quote", "AUD" },
+                    { "baseId", "sol" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
                 { "XRP/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", "xrp" },
                     { "symbol", "XRP/AUD" },
                     { "base", "XRP" },
                     { "quote", "AUD" },
                     { "baseId", "xrp" },
-                    { "quoteId", "aud" },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
-                { "LTC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "ltc" },
-                    { "symbol", "LTC/AUD" },
-                    { "base", "LTC" },
-                    { "quote", "AUD" },
-                    { "baseId", "ltc" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -181,32 +209,22 @@ public partial class coinspot : Exchange
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "RFOX/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "rfox" },
-                    { "symbol", "RFOX/AUD" },
-                    { "base", "RFOX" },
+                { "LTC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "ltc" },
+                    { "symbol", "LTC/AUD" },
+                    { "base", "LTC" },
                     { "quote", "AUD" },
-                    { "baseId", "rfox" },
+                    { "baseId", "ltc" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "POWR/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "powr" },
-                    { "symbol", "POWR/AUD" },
-                    { "base", "POWR" },
+                { "XLM/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "xlm" },
+                    { "symbol", "XLM/AUD" },
+                    { "base", "XLM" },
                     { "quote", "AUD" },
-                    { "baseId", "powr" },
-                    { "quoteId", "aud" },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
-                { "NEO/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "neo" },
-                    { "symbol", "NEO/AUD" },
-                    { "base", "NEO" },
-                    { "quote", "AUD" },
-                    { "baseId", "neo" },
+                    { "baseId", "xlm" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -231,22 +249,32 @@ public partial class coinspot : Exchange
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "XLM/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "xlm" },
-                    { "symbol", "XLM/AUD" },
-                    { "base", "XLM" },
+                { "A/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "eos" },
+                    { "symbol", "A/AUD" },
+                    { "base", "A" },
                     { "quote", "AUD" },
-                    { "baseId", "xlm" },
+                    { "baseId", "eos" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "RHOC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "rhoc" },
-                    { "symbol", "RHOC/AUD" },
-                    { "base", "RHOC" },
+                { "NEO/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "neo" },
+                    { "symbol", "NEO/AUD" },
+                    { "base", "NEO" },
                     { "quote", "AUD" },
-                    { "baseId", "rhoc" },
+                    { "baseId", "ans" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "POWR/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "powr" },
+                    { "symbol", "POWR/AUD" },
+                    { "base", "POWR" },
+                    { "quote", "AUD" },
+                    { "baseId", "powr" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -257,6 +285,16 @@ public partial class coinspot : Exchange
                     { "base", "GAS" },
                     { "quote", "AUD" },
                     { "baseId", "gas" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "RHOC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "rhoc" },
+                    { "symbol", "RHOC/AUD" },
+                    { "base", "RHOC" },
+                    { "quote", "AUD" },
+                    { "baseId", "rhoc" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -363,12 +401,15 @@ public partial class coinspot : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.coinspot.com.au/api#listmybalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
         object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
         //
@@ -398,12 +439,15 @@ public partial class coinspot : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -456,15 +500,18 @@ public partial class coinspot : Exchange
      * @see https://www.coinspot.com.au/api#latestprices
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object response = await this.publicGetLatest(parameters);
-        object id = getValue(market, "id");
+        object id = this.safeString(market, "id", "");
         id = ((string)id).ToLower();
         object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         //
@@ -479,7 +526,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeDict(prices, id);
+        object ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
 
@@ -490,12 +537,15 @@ public partial class coinspot : Exchange
      * @see https://www.coinspot.com.au/api#latestprices
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetLatest(parameters);
         //
         //    {
@@ -540,12 +590,15 @@ public partial class coinspot : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -572,12 +625,15 @@ public partial class coinspot : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -713,13 +769,20 @@ public partial class coinspot : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object method = add("privatePostMy", this.capitalize(side));
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
+        object sideUpper = ((string)side).ToUpper();
         if (isTrue(isEqual(type, "market")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -730,8 +793,23 @@ public partial class coinspot : Exchange
             { "amount", amount },
             { "rate", price },
         };
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
-        return this.parseOrder(response);
+        object response = null;
+        if (isTrue(isEqual(sideUpper, "BUY")))
+        {
+            response = await this.privatePostMyBuy(this.extend(request, parameters));
+        } else if (isTrue(isEqual(sideUpper, "SELL")))
+        {
+            response = await this.privatePostMySell(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder only support buy/sell side")) ;
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -743,7 +821,7 @@ public partial class coinspot : Exchange
      * @param {string} id order id
      * @param {string} symbol not used by coinspot cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -773,13 +851,33 @@ public partial class coinspot : Exchange
         });
     }
 
+    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (!isTrue(response))
+        {
+            return null;  // fallback to default error handler
+        }
+        object status = this.safeString(response, "status");
+        if (isTrue(isEqual(status, "error")))
+        {
+            object feedback = add(add(this.id, " "), this.json(response));
+            throw new ExchangeError ((string)feedback) ;
+        }
+        return null;
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
-        if (isTrue(isEqual(api, "private")))
+        object isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object version = ((bool) isTrue(isVersionedApi)) ? getValue(api, 0) : null;
+        object accessType = ((bool) isTrue(isVersionedApi)) ? getValue(api, 1) : api;
+        object endpoint = add("/", this.implodeParams(path, parameters));
+        object fullPath = ((bool) isTrue((!isEqual(version, null)))) ? add(add("/", version), endpoint) : endpoint;
+        object url = add(getValue(getValue(this.urls, "api"), accessType), fullPath);
+        if (isTrue(isEqual(accessType, "private")))
         {
             this.checkRequiredCredentials();
             object nonce = this.nonce();

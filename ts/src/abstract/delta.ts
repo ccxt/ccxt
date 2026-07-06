@@ -22,6 +22,8 @@ interface Exchange {
     publicGetHistorySparklines (params?: {}): Promise<implicitReturnType>;
     publicGetSettings (params?: {}): Promise<implicitReturnType>;
     privateGetOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersClientOrderIdClientOid (params?: {}): Promise<implicitReturnType>;
     privateGetProductsProductIdOrdersLeverage (params?: {}): Promise<implicitReturnType>;
     privateGetPositionsMargined (params?: {}): Promise<implicitReturnType>;
     privateGetPositions (params?: {}): Promise<implicitReturnType>;
@@ -35,8 +37,9 @@ interface Exchange {
     privateGetUsersTradingPreferences (params?: {}): Promise<implicitReturnType>;
     privateGetSubAccounts (params?: {}): Promise<implicitReturnType>;
     privateGetProfile (params?: {}): Promise<implicitReturnType>;
+    privateGetRateLimitsQuota (params?: {}): Promise<implicitReturnType>;
+    privateGetHeartbeat (params?: {}): Promise<implicitReturnType>;
     privateGetDepositsAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostOrders (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersBracket (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
@@ -44,6 +47,8 @@ interface Exchange {
     privatePostPositionsChangeMargin (params?: {}): Promise<implicitReturnType>;
     privatePostPositionsCloseAll (params?: {}): Promise<implicitReturnType>;
     privatePostWalletsSubAccountBalanceTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostHeartbeatCreate (params?: {}): Promise<implicitReturnType>;
+    privatePostHeartbeat (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersCancelAfter (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersLeverage (params?: {}): Promise<implicitReturnType>;
     privatePutOrders (params?: {}): Promise<implicitReturnType>;
@@ -52,6 +57,7 @@ interface Exchange {
     privatePutPositionsAutoTopup (params?: {}): Promise<implicitReturnType>;
     privatePutUsersUpdateMmp (params?: {}): Promise<implicitReturnType>;
     privatePutUsersResetMmp (params?: {}): Promise<implicitReturnType>;
+    privatePutUsersMarginMode (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersAll (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersBatch (params?: {}): Promise<implicitReturnType>;

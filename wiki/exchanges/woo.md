@@ -57,6 +57,7 @@
 * [fetchConvertTrade](#fetchconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchConvertCurrencies](#fetchconvertcurrencies)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchOrderBook](#watchorderbook)
 * [unWatchOrderBook](#unwatchorderbook)
 * [watchTicker](#watchticker)
@@ -73,6 +74,7 @@
 * [watchMyTrades](#watchmytrades)
 * [watchPositions](#watchpositions)
 * [watchBalance](#watchbalance)
+* [watchFundingRate](#watchfundingrate)
 
 <a name="fetchStatus" id="fetchstatus"></a>
 
@@ -80,7 +82,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/systemInfo  
 
@@ -90,7 +92,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-woo.fetchStatus ([params])
+woo.fetchStatus (params?)
 ```
 
 
@@ -110,7 +112,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-woo.fetchTime ([params])
+woo.fetchTime (params?)
 ```
 
 
@@ -130,7 +132,7 @@ retrieves data on all markets for woo
 
 
 ```javascript
-woo.fetchMarkets ([params])
+woo.fetchMarkets (params?)
 ```
 
 
@@ -140,7 +142,7 @@ woo.fetchMarkets ([params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/marketTrades  
 
@@ -153,7 +155,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-woo.fetchTrades (symbol[, since, limit, params])
+woo.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -163,7 +165,7 @@ woo.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee  
 
@@ -176,7 +178,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-woo.fetchTradingFee (symbol[, params])
+woo.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -186,7 +188,7 @@ woo.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://developer.woox.io/api-reference/endpoint/account/get_account_info  
 
@@ -196,7 +198,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-woo.fetchTradingFees ([params])
+woo.fetchTradingFees (params?)
 ```
 
 
@@ -216,7 +218,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-woo.fetchCurrencies ([params])
+woo.fetchCurrencies (params?)
 ```
 
 
@@ -226,7 +228,7 @@ woo.fetchCurrencies ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.woox.io/#send-order  
 
@@ -238,7 +240,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-woo.createMarketBuyOrderWithCost (symbol, cost[, params])
+woo.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -248,7 +250,7 @@ woo.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.woox.io/#send-order  
 
@@ -260,7 +262,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-woo.createMarketSellOrderWithCost (symbol, cost[, params])
+woo.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -270,7 +272,7 @@ woo.createMarketSellOrderWithCost (symbol, cost[, params])
 create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.woox.io/#send-algo-order  
 
@@ -287,7 +289,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-woo.createTrailingAmountOrder (symbol, type, side, amount[, price, trailingAmount, trailingTriggerPrice, params])
+woo.createTrailingAmountOrder (symbol, type, side, amount, price?, trailingAmount, trailingTriggerPrice, params?)
 ```
 
 
@@ -297,7 +299,7 @@ woo.createTrailingAmountOrder (symbol, type, side, amount[, price, trailingAmoun
 create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.woox.io/#send-algo-order  
 
@@ -314,7 +316,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-woo.createTrailingPercentOrder (symbol, type, side, amount[, price, trailingPercent, trailingTriggerPrice, params])
+woo.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent, trailingTriggerPrice, params?)
 ```
 
 
@@ -324,7 +326,7 @@ woo.createTrailingPercentOrder (symbol, type, side, amount[, price, trailingPerc
 create a trade order
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -355,7 +357,7 @@ create a trade order
 
 
 ```javascript
-woo.createOrder (symbol, type, side, amount[, price, params])
+woo.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -365,7 +367,7 @@ woo.createOrder (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -393,7 +395,7 @@ edit a trade order
 
 
 ```javascript
-woo.editOrder (id, symbol, type, side, amount[, price, params])
+woo.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -403,7 +405,7 @@ woo.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -420,7 +422,7 @@ cancels an open order
 
 
 ```javascript
-woo.cancelOrder (id, symbol[, params])
+woo.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -430,7 +432,7 @@ woo.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -446,7 +448,7 @@ cancel all open orders in a market
 
 
 ```javascript
-woo.cancelAllOrders (symbol[, params])
+woo.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -467,7 +469,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-woo.cancelAllOrdersAfter (timeout[, params])
+woo.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -477,7 +479,7 @@ woo.cancelAllOrdersAfter (timeout[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -494,7 +496,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-woo.fetchOrder (id, symbol[, params])
+woo.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -504,7 +506,7 @@ woo.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -525,7 +527,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woo.fetchOrders (symbol[, since, limit, params])
+woo.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -535,7 +537,7 @@ woo.fetchOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -557,7 +559,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woo.fetchOpenOrders (symbol[, since, limit, params])
+woo.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -567,7 +569,7 @@ woo.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -589,7 +591,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woo.fetchClosedOrders (symbol[, since, limit, params])
+woo.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -599,7 +601,7 @@ woo.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/orderbook  
 
@@ -611,7 +613,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-woo.fetchOrderBook (symbol[, limit, params])
+woo.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -636,7 +638,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-woo.fetchOHLCV (symbol, timeframe[, since, limit, params])
+woo.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -646,7 +648,7 @@ woo.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.woox.io/#get-trades  
 
@@ -660,7 +662,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-woo.fetchOrderTrades (id, symbol[, since, limit, params])
+woo.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -670,7 +672,7 @@ woo.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/trading/get_transactions  
 
@@ -684,7 +686,7 @@ fetch all trades made by the user
 
 
 ```javascript
-woo.fetchMyTrades (symbol[, since, limit, params])
+woo.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -694,7 +696,7 @@ woo.fetchMyTrades (symbol[, since, limit, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**
 
@@ -708,7 +710,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-woo.fetchAccounts ([params])
+woo.fetchAccounts (params?)
 ```
 
 
@@ -718,7 +720,7 @@ woo.fetchAccounts ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.woox.io/#get-current-holding-get-balance-new  
 
@@ -728,7 +730,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-woo.fetchBalance ([params])
+woo.fetchBalance (params?)
 ```
 
 
@@ -738,7 +740,7 @@ woo.fetchBalance ([params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit  
 
@@ -749,7 +751,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-woo.fetchDepositAddress (code[, params])
+woo.fetchDepositAddress (code, params?)
 ```
 
 
@@ -759,7 +761,7 @@ woo.fetchDepositAddress (code[, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history  
 
@@ -772,7 +774,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-woo.fetchLedger ([code, since, limit, params])
+woo.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -782,7 +784,7 @@ woo.fetchLedger ([code, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history  
 
@@ -795,7 +797,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-woo.fetchDeposits (code[, since, limit, params])
+woo.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -805,7 +807,7 @@ woo.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history  
 
@@ -818,7 +820,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-woo.fetchWithdrawals (code[, since, limit, params])
+woo.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -828,7 +830,7 @@ woo.fetchWithdrawals (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history  
 
@@ -841,7 +843,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-woo.fetchDepositsWithdrawals ([code, since, limit, params])
+woo.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -851,7 +853,7 @@ woo.fetchDepositsWithdrawals ([code, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.woox.io/#get-transfer-history  
 
@@ -865,7 +867,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-woo.transfer (code, amount, fromAccount, toAccount[, params])
+woo.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -875,7 +877,7 @@ woo.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history  
 
@@ -889,7 +891,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-woo.fetchTransfers (code[, since, limit, params])
+woo.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -899,9 +901,9 @@ woo.fetchTransfers (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.woox.io/#token-withdraw  
+**See**: https://docs.woox.io/#token-withdraw-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -913,7 +915,7 @@ make a withdrawal
 
 
 ```javascript
-woo.withdraw (code, amount, address, tag[, params])
+woo.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -923,7 +925,7 @@ woo.withdraw (code, amount, address, tag[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://docs.woox.io/#repay-interest  
 
@@ -936,7 +938,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-woo.repayMargin (code, amount, symbol[, params])
+woo.repayMargin (code, amount, symbol, params?)
 ```
 
 
@@ -946,7 +948,7 @@ woo.repayMargin (code, amount, symbol[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history  
 
@@ -960,7 +962,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-woo.fetchFundingHistory ([symbol, since, limit, params])
+woo.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -970,7 +972,7 @@ woo.fetchFundingHistory ([symbol, since, limit, params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate  
 
@@ -981,7 +983,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-woo.fetchFundingInterval (symbol[, params])
+woo.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -991,7 +993,7 @@ woo.fetchFundingInterval (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate  
 
@@ -1002,7 +1004,7 @@ fetch the current funding rate
 
 
 ```javascript
-woo.fetchFundingRate (symbol[, params])
+woo.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1012,7 +1014,7 @@ woo.fetchFundingRate (symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate  
 
@@ -1023,7 +1025,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-woo.fetchFundingRates (symbols[, params])
+woo.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1033,7 +1035,7 @@ woo.fetchFundingRates (symbols[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory  
 
@@ -1041,14 +1043,14 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-woo.fetchFundingRateHistory (symbol[, since, limit, params])
+woo.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1070,7 +1072,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-woo.setPositionMode (hedged, symbol[, params])
+woo.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1080,7 +1082,7 @@ woo.setPositionMode (hedged, symbol[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**
 
@@ -1097,7 +1099,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-woo.fetchLeverage (symbol[, params])
+woo.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1125,7 +1127,7 @@ set the level of leverage for a market
 
 
 ```javascript
-woo.setLeverage (leverage[, symbol, params])
+woo.setLeverage (leverage, symbol?, params?)
 ```
 
 
@@ -1135,7 +1137,7 @@ woo.setLeverage (leverage[, symbol, params])
 add margin
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.woox.io/#update-isolated-margin-setting  
 
@@ -1148,7 +1150,7 @@ add margin
 
 
 ```javascript
-woo.addMargin (symbol, amount[, params])
+woo.addMargin (symbol, amount, params?)
 ```
 
 
@@ -1158,7 +1160,7 @@ woo.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.woox.io/#update-isolated-margin-setting  
 
@@ -1171,7 +1173,7 @@ remove margin from a position
 
 
 ```javascript
-woo.reduceMargin (symbol, amount[, params])
+woo.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -1181,7 +1183,7 @@ woo.reduceMargin (symbol, amount[, params])
 fetch data on an open position
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/futures/get_positions  
 
@@ -1192,7 +1194,7 @@ fetch data on an open position
 
 
 ```javascript
-woo.fetchPosition (symbol[, params])
+woo.fetchPosition (symbol, params?)
 ```
 
 
@@ -1202,7 +1204,7 @@ woo.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/futures/get_positions  
 
@@ -1213,7 +1215,7 @@ fetch all open positions
 
 
 ```javascript
-woo.fetchPositions ([symbols, params])
+woo.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1223,7 +1225,7 @@ woo.fetchPositions ([symbols, params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.woox.io/#get-quote-rfq  
 
@@ -1236,7 +1238,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-woo.fetchConvertQuote (fromCode, toCode[, amount, params])
+woo.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1246,7 +1248,7 @@ woo.fetchConvertQuote (fromCode, toCode[, amount, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.woox.io/#send-quote-rft  
 
@@ -1260,7 +1262,7 @@ convert from one currency to another
 
 
 ```javascript
-woo.createConvertTrade (id, fromCode, toCode[, amount, params])
+woo.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1270,7 +1272,7 @@ woo.createConvertTrade (id, fromCode, toCode[, amount, params])
 fetch the data for a conversion trade
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.woox.io/#get-quote-trade  
 
@@ -1282,7 +1284,7 @@ fetch the data for a conversion trade
 
 
 ```javascript
-woo.fetchConvertTrade (id[, code, params])
+woo.fetchConvertTrade (id, code?, params?)
 ```
 
 
@@ -1292,7 +1294,7 @@ woo.fetchConvertTrade (id[, code, params])
 fetch the users history of conversion trades
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.woox.io/#get-quote-trades  
 
@@ -1306,7 +1308,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-woo.fetchConvertTradeHistory ([code, since, limit, params])
+woo.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -1326,7 +1328,28 @@ fetches all available currencies that can be converted
 
 
 ```javascript
-woo.fetchConvertCurrencies ([params])
+woo.fetchConvertCurrencies (params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.woox.io/#get-all-position-info-new  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -1336,7 +1359,7 @@ woo.fetchConvertCurrencies ([params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1353,7 +1376,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-woo.watchOrderBook (symbol[, limit, params])
+woo.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1363,7 +1386,7 @@ woo.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1378,7 +1401,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-woo.unWatchOrderBook (symbol[, params])
+woo.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1388,7 +1411,7 @@ woo.unWatchOrderBook (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -1398,7 +1421,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-woo.watchTicker (symbol[, params])
+woo.watchTicker (symbol, params?)
 ```
 
 
@@ -1408,7 +1431,7 @@ woo.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -1418,7 +1441,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-woo.unWatchTicker (symbol[, params])
+woo.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1428,7 +1451,7 @@ woo.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.woox.io/#24h-tickers  
 
@@ -1439,7 +1462,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-woo.watchTickers (symbols[, params])
+woo.watchTickers (symbols, params?)
 ```
 
 
@@ -1449,7 +1472,7 @@ woo.watchTickers (symbols[, params])
 stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.woox.io/#24h-tickers  
 
@@ -1460,7 +1483,7 @@ stops watching a price ticker, a statistical calculation with the information ca
 
 
 ```javascript
-woo.unWatchTickers (symbols[, params])
+woo.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1470,7 +1493,7 @@ woo.unWatchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.woox.io/#bbos  
 
@@ -1481,7 +1504,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-woo.watchBidsAsks ([symbols, params])
+woo.watchBidsAsks (symbols?, params?)
 ```
 
 
@@ -1491,7 +1514,7 @@ woo.watchBidsAsks ([symbols, params])
 unWatches best bid & ask for symbols
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.woox.io/#bbos  
 
@@ -1502,7 +1525,7 @@ unWatches best bid & ask for symbols
 
 
 ```javascript
-woo.unWatchBidsAsks ([symbols, params])
+woo.unWatchBidsAsks (symbols?, params?)
 ```
 
 
@@ -1526,7 +1549,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-woo.watchOHLCV (symbol, timeframe[, since, limit, params])
+woo.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1549,7 +1572,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-woo.unWatchOHLCV (symbol, timeframe[, params])
+woo.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1559,7 +1582,7 @@ woo.unWatchOHLCV (symbol, timeframe[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.woox.io/#trade  
 
@@ -1572,7 +1595,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-woo.watchTrades (symbol[, since, limit, params])
+woo.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1582,7 +1605,7 @@ woo.watchTrades (symbol[, since, limit, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.woox.io/#trade  
 
@@ -1593,7 +1616,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-woo.unWatchTrades (symbol[, params])
+woo.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1603,7 +1626,7 @@ woo.unWatchTrades (symbol[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1621,7 +1644,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-woo.watchOrders (symbol[, since, limit, params])
+woo.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1631,7 +1654,7 @@ woo.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -1649,7 +1672,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-woo.watchMyTrades (symbol[, since, limit, params])
+woo.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1663,16 +1686,16 @@ watch all open positions
 
 **See**: https://docs.woox.io/#position-push  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
-| since |  |  |
-| limit |  |  |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-woo.watchPositions (symbols, since, limit, params[])
+woo.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1682,7 +1705,7 @@ woo.watchPositions (symbols, since, limit, params[])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.woox.io/#balance  
 
@@ -1692,6 +1715,27 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-woo.watchBalance ([params])
+woo.watchBalance (params?)
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.woox.io/#estfundingrate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.watchFundingRate (symbol, params?)
 ```
 

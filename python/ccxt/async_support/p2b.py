@@ -149,9 +149,8 @@ class p2b(Exchange, ImplicitAPI):
                 '1d': '1d',
             },
             'urls': {
-                'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
+                'logo': 'https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -444,9 +443,10 @@ class p2b(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicGetTickers(params)
         #
         #    {
@@ -484,11 +484,12 @@ class p2b(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -590,11 +591,12 @@ class p2b(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.interval]: 0(default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -640,14 +642,15 @@ class p2b(Exchange, ImplicitAPI):
         :param int [limit]: 1-100, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int params['lastId']: order id
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         lastId = self.safe_integer(params, 'lastId')
         if lastId is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires an extra parameter params["lastId"]')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'lastId': lastId,
         }
@@ -737,7 +740,7 @@ class p2b(Exchange, ImplicitAPI):
             'amount': self.safe_string(trade, 'amount'),
             'cost': self.safe_string(trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': self.safe_string(market, 'quote'),
                 'cost': self.safe_string_2(trade, 'fee', 'deal_fee'),
             },
         }, market)
@@ -756,9 +759,10 @@ class p2b(Exchange, ImplicitAPI):
         :param int [params.offset]: default=0, with self value the last candles are returned
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'interval': timeframe,
         }
@@ -819,9 +823,10 @@ class p2b(Exchange, ImplicitAPI):
         https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privatePostAccountBalances(params)
         #
         #    {
@@ -856,7 +861,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {
+        result = {
             'info': response,
         }
         keys = list(response.keys())
@@ -866,7 +871,7 @@ class p2b(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             used = self.safe_string(balance, 'freeze')
             available = self.safe_string(balance, 'available')
-            account: dict = {
+            account = {
                 'free': available,
                 'used': used,
             }
@@ -885,13 +890,14 @@ class p2b(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if type == 'market':
             raise BadRequest(self.id + ' createOrder() can only accept orders with type "limit"')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -932,13 +938,14 @@ class p2b(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'orderId': id,
         }
@@ -981,13 +988,14 @@ class p2b(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires the symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -1035,11 +1043,12 @@ class p2b(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.safe_market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
         }
         if limit is not None:
@@ -1086,11 +1095,12 @@ class p2b(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         if until is None:
@@ -1103,10 +1113,12 @@ class p2b(Exchange, ImplicitAPI):
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchMyTrades() the time between since and params["until"] cannot be greater than 24 hours')
         market = self.market(symbol)
-        request: dict = {
+        sinceSec = self.parse_to_int(since / 1000)
+        untilSec = self.parse_to_int(until / 1000)
+        request = {
             'market': market['id'],
-            'startTime': self.parse_to_int(since / 1000),
-            'endTime': self.parse_to_int(until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         }
         if limit is not None:
             request['limit'] = limit
@@ -1155,12 +1167,13 @@ class p2b(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: 0-10000, default=0
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         if until is None:
@@ -1172,9 +1185,11 @@ class p2b(Exchange, ImplicitAPI):
             since = until - 86400000
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchClosedOrders() the time between since and params["until"] cannot be greater than 24 hours')
-        request: dict = {
-            'startTime': self.parse_to_int(since / 1000),
-            'endTime': self.parse_to_int(until / 1000),
+        sinceSec = self.parse_to_int(since / 1000)
+        untilSec = self.parse_to_int(until / 1000)
+        request = {
+            'startTime': sinceSec,
+            'endTime': untilSec,
         }
         if market is not None:
             request['market'] = market['id']
@@ -1285,7 +1300,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':

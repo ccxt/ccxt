@@ -34,7 +34,11 @@
 * [setMarginMode](#setmarginmode)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchOpenInterests](#fetchopeninterests)
 * [fetchLiquidations](#fetchliquidations)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
+* [fetchSettlementHistory](#fetchsettlementhistory)
+* [closePosition](#closeposition)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchLiquidations](#watchliquidations)
@@ -65,7 +69,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitmex.fetchCurrencies ([params])
+bitmex.fetchCurrencies (params?)
 ```
 
 
@@ -85,7 +89,7 @@ retrieves data on all markets for bitmex
 
 
 ```javascript
-bitmex.fetchMarkets ([params])
+bitmex.fetchMarkets (params?)
 ```
 
 
@@ -95,7 +99,7 @@ bitmex.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/User/User_getMargin  
 
@@ -105,7 +109,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitmex.fetchBalance ([params])
+bitmex.fetchBalance (params?)
 ```
 
 
@@ -115,7 +119,7 @@ bitmex.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2  
 
@@ -127,7 +131,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmex.fetchOrderBook (symbol[, limit, params])
+bitmex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -137,7 +141,7 @@ bitmex.fetchOrderBook (symbol[, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders  
 
@@ -149,7 +153,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitmex.fetchOrder (id, symbol[, params])
+bitmex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -159,7 +163,7 @@ bitmex.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders  
 
@@ -174,7 +178,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitmex.fetchOrders (symbol[, since, limit, params])
+bitmex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -184,7 +188,7 @@ bitmex.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders  
 
@@ -197,7 +201,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitmex.fetchOpenOrders (symbol[, since, limit, params])
+bitmex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -207,7 +211,7 @@ bitmex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders  
 
@@ -220,7 +224,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitmex.fetchClosedOrders (symbol[, since, limit, params])
+bitmex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -230,7 +234,7 @@ bitmex.fetchClosedOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory  
 
@@ -244,7 +248,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitmex.fetchMyTrades (symbol[, since, limit, params])
+bitmex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -254,7 +258,7 @@ bitmex.fetchMyTrades (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory  
 
@@ -267,7 +271,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitmex.fetchLedger ([code, since, limit, params])
+bitmex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -277,7 +281,7 @@ bitmex.fetchLedger ([code, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory  
 
@@ -290,7 +294,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-bitmex.fetchDepositsWithdrawals ([code, since, limit, params])
+bitmex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -300,7 +304,7 @@ bitmex.fetchDepositsWithdrawals ([code, since, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get  
 
@@ -311,7 +315,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmex.fetchTicker (symbol[, params])
+bitmex.fetchTicker (symbol, params?)
 ```
 
 
@@ -321,7 +325,7 @@ bitmex.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices  
 
@@ -332,7 +336,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitmex.fetchTickers (symbols[, params])
+bitmex.fetchTickers (symbols, params?)
 ```
 
 
@@ -357,7 +361,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitmex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -367,7 +371,7 @@ bitmex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Trade/Trade_get  
 
@@ -381,7 +385,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitmex.fetchTrades (symbol[, since, limit, params])
+bitmex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -409,7 +413,7 @@ create a trade order
 
 
 ```javascript
-bitmex.createOrder (symbol, type, side, amount[, price, params])
+bitmex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -419,7 +423,7 @@ bitmex.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Order/Order_cancel  
 
@@ -431,7 +435,7 @@ cancels an open order
 
 
 ```javascript
-bitmex.cancelOrder (id, symbol[, params])
+bitmex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -441,7 +445,7 @@ bitmex.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Order/Order_cancel  
 
@@ -453,7 +457,7 @@ cancel multiple orders
 
 
 ```javascript
-bitmex.cancelOrders (ids, symbol[, params])
+bitmex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -463,7 +467,7 @@ bitmex.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll  
 
@@ -474,7 +478,7 @@ cancel all open orders
 
 
 ```javascript
-bitmex.cancelAllOrders (symbol[, params])
+bitmex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -495,7 +499,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-bitmex.cancelAllOrdersAfter (timeout[, params])
+bitmex.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -505,7 +509,7 @@ bitmex.cancelAllOrdersAfter (timeout[, params])
 fetch the set leverage for all contract markets
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Position/Position_get  
 
@@ -516,7 +520,7 @@ fetch the set leverage for all contract markets
 
 
 ```javascript
-bitmex.fetchLeverages ([symbols, params])
+bitmex.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -526,7 +530,7 @@ bitmex.fetchLeverages ([symbols, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Position/Position_get  
 
@@ -537,7 +541,7 @@ fetch all open positions
 
 
 ```javascript
-bitmex.fetchPositions (symbols[, params])
+bitmex.fetchPositions (symbols, params?)
 ```
 
 
@@ -547,7 +551,7 @@ bitmex.fetchPositions (symbols[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal  
 
@@ -561,7 +565,7 @@ make a withdrawal
 
 
 ```javascript
-bitmex.withdraw (code, amount, address, tag[, params])
+bitmex.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -571,7 +575,7 @@ bitmex.withdraw (code, amount, address, tag[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices  
 
@@ -582,7 +586,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-bitmex.fetchFundingRates (symbols[, params])
+bitmex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -592,7 +596,7 @@ bitmex.fetchFundingRates (symbols[, params])
 Fetches the history of funding rates
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Funding/Funding_get  
 
@@ -600,7 +604,7 @@ Fetches the history of funding rates
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms for ending date filter |
 | params.reverse | <code>bool</code> | No | if true, will sort results newest first |
@@ -610,7 +614,7 @@ Fetches the history of funding rates
 
 
 ```javascript
-bitmex.fetchFundingRateHistory (symbol[, since, limit, params])
+bitmex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -632,7 +636,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bitmex.setLeverage (leverage, symbol[, params])
+bitmex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -654,7 +658,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-bitmex.setMarginMode (marginMode, symbol[, params])
+bitmex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -664,7 +668,7 @@ bitmex.setMarginMode (marginMode, symbol[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress  
 
@@ -676,7 +680,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitmex.fetchDepositAddress (code[, params])
+bitmex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -686,7 +690,7 @@ bitmex.fetchDepositAddress (code[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig  
 
@@ -697,7 +701,28 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitmex.fetchDepositWithdrawFees (codes[, params])
+bitmex.fetchDepositWithdrawFees (codes, params?)
+```
+
+
+<a name="fetchOpenInterests" id="fetchopeninterests"></a>
+
+### fetchOpenInterests{docsify-ignore}
+Retrieves the open interest for a list of symbols
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://docs.bitmex.com/api-explorer/get-stats  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified CCXT market symbols |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+bitmex.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -707,7 +732,7 @@ bitmex.fetchDepositWithdrawFees (codes[, params])
 retrieves the public liquidations of a trading pair
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get  
 
@@ -722,7 +747,82 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-bitmex.fetchLiquidations (symbol[, since, limit, params])
+bitmex.fetchLiquidations (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>Array&lt;object&gt;</code> - an [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://www.bitmex.com/api/explorer/#!/Position/Position_get  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmex.fetchPositionsADLRank (symbols?, params?)
+```
+
+
+<a name="fetchSettlementHistory" id="fetchsettlementhistory"></a>
+
+### fetchSettlementHistory{docsify-ignore}
+fetches historical settlement records
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
+
+**See**: https://docs.bitmex.com/api-explorer/get-settlements  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the settlement history |
+| since | <code>int</code> | No | timestamp in ms |
+| limit | <code>int</code> | No | number of records |
+| params | <code>object</code> | No | exchange specific params |
+| params.until | <code>int</code> | No | timestamp in ms EXCHANGE SPECIFIC PARAMETERS |
+| params.filter | <code>string</code> | No | generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {} |
+| params.columns | <code>string</code> | No | array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect |
+| params.start | <code>int</code> | No | possible values are >= 0 starting point for results, default value = 0 |
+| params.reverse | <code>boolean</code> | No | if true, will sort results newest first, default value = false |
+
+
+```javascript
+bitmex.fetchSettlementHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="closePosition" id="closeposition"></a>
+
+### closePosition{docsify-ignore}
+closes open positions for a market
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.bitmex.com/api-explorer/order-new
+- https://docs.bitmex.com/api-explorer/order-close-position
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| side | <code>string</code> | Yes | the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied |
+| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+
+
+```javascript
+bitmex.closePosition (symbol, side, params?)
 ```
 
 
@@ -732,7 +832,7 @@ bitmex.fetchLiquidations (symbol[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
@@ -743,7 +843,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmex.watchTicker (symbol[, params])
+bitmex.watchTicker (symbol, params?)
 ```
 
 
@@ -753,7 +853,7 @@ bitmex.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
@@ -764,7 +864,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmex.watchTickers (symbols[, params])
+bitmex.watchTickers (symbols, params?)
 ```
 
 
@@ -787,7 +887,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-bitmex.watchLiquidations (symbol[, since, limit, params])
+bitmex.watchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -810,7 +910,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-bitmex.watchLiquidationsForSymbols (symbols[, since, limit, params])
+bitmex.watchLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -820,7 +920,7 @@ bitmex.watchLiquidationsForSymbols (symbols[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
@@ -830,7 +930,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitmex.watchBalance ([params])
+bitmex.watchBalance (params?)
 ```
 
 
@@ -840,7 +940,7 @@ bitmex.watchBalance ([params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
@@ -853,7 +953,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitmex.watchTrades (symbol[, since, limit, params])
+bitmex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -876,7 +976,7 @@ watch all open positions
 
 
 ```javascript
-bitmex.watchPositions (symbols[, since, limit, params])
+bitmex.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -886,7 +986,7 @@ bitmex.watchPositions (symbols[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
@@ -899,7 +999,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitmex.watchOrders (symbol[, since, limit, params])
+bitmex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -909,7 +1009,7 @@ bitmex.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
@@ -922,7 +1022,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitmex.watchMyTrades (symbol[, since, limit, params])
+bitmex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -932,7 +1032,7 @@ bitmex.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#OrderBookL2  
 
@@ -944,7 +1044,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmex.watchOrderBook (symbol[, limit, params])
+bitmex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -954,7 +1054,7 @@ bitmex.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#OrderBookL2  
 
@@ -966,7 +1066,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmex.watchOrderBookForSymbols (symbols[, limit, params])
+bitmex.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -976,7 +1076,7 @@ bitmex.watchOrderBookForSymbols (symbols[, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
@@ -989,7 +1089,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-bitmex.watchTradesForSymbols (symbols[, since, limit, params])
+bitmex.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1013,6 +1113,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmex.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitmex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 

@@ -9,8 +9,8 @@ export { encodeRlp } from "./rlp-encode.js";
 /**
  *  An RLP-encoded structure.
  */
-export declare type RlpStructuredData = string | Array<RlpStructuredData>;
+export type RlpStructuredData = string | Array<RlpStructuredData>;
 /**
  *  An RLP-encoded structure, which allows Uint8Array.
  */
-export declare type RlpStructuredDataish = string | Uint8Array | Array<RlpStructuredDataish>;
+export type RlpStructuredDataish = string | Uint8Array | Array<RlpStructuredDataish>;

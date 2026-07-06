@@ -8,11 +8,11 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestParsePrecision() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	Assert(IsEqual(exchange.ParsePrecision("15"), "0.000000000000001"))
-	Assert(IsEqual(exchange.ParsePrecision("1"), "0.1"))
-	Assert(IsEqual(exchange.ParsePrecision("0"), "1"))
-	Assert(IsEqual(exchange.ParsePrecision("-5"), "100000"))
+	}, map[string]any{}, exchange)
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("15"), "0.000000000000001"))
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("1"), "0.1"))
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("0"), "1"))
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("-5"), "100000"))
 }

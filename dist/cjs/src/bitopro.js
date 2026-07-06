@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitopro$1 = require('./abstract/bitopro.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bitopro extends bitopro$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitopro',
             'name': 'BitoPro',
-            'countries': ['TW'],
+            'countries': ['TW'], // Taiwan
             'version': 'v3',
             'rateLimit': 100,
             'pro': true,
@@ -188,16 +188,16 @@ class bitopro extends bitopro$1["default"] {
                         'orders/open': 1,
                     },
                     'post': {
-                        'orders/{pair}': 1 / 2,
-                        'orders/batch': 20 / 3,
+                        'orders/{pair}': 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
                         'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
                         'orders': 5, // 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': 2 / 3,
-                        'orders/all': 5,
+                        'orders/{pair}/{id}': 2 / 3, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': 5, // 2/s => 10/2 = 5
                         'orders/{pair}': 5, // 2/s => 10/2 = 5
                     },
                 },
@@ -248,7 +248,7 @@ class bitopro extends bitopro$1["default"] {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo implement
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
@@ -323,16 +323,16 @@ class bitopro extends bitopro$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Unsupported currency.': errors.BadRequest,
-                    'Unsupported order type': errors.BadRequest,
-                    'Invalid body': errors.BadRequest,
-                    'Invalid Signature': errors.AuthenticationError,
+                    'Unsupported currency.': errors.BadRequest, // {"error":"Unsupported currency."}
+                    'Unsupported order type': errors.BadRequest, // {"error":"Unsupported order type"}
+                    'Invalid body': errors.BadRequest, // {"error":"Invalid body"}
+                    'Invalid Signature': errors.AuthenticationError, // {"error":"Invalid Signature"}
                     'Address not in whitelist.': errors.BadRequest,
                 },
                 'broad': {
-                    'Invalid amount': errors.InvalidOrder,
-                    'Balance for ': errors.InsufficientFunds,
-                    'Invalid ': errors.BadRequest,
+                    'Invalid amount': errors.InvalidOrder, // {"error":"Invalid amount 0.0000000001, decimal limit is 8."}
+                    'Balance for ': errors.InsufficientFunds, // {"error":"Balance for eth not enough, only has 0, but ordered 0.01."}
+                    'Invalid ': errors.BadRequest, // {"error":"Invalid price -1."}
                     'Wrong parameter': errors.BadRequest, // {"error":"Wrong parameter: from"}
                 },
             },
@@ -349,7 +349,6 @@ class bitopro extends bitopro$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetProvisioningCurrencies(params);
-        const currencies = this.safeList(response, 'data', []);
         //
         //     {
         //         "data":[
@@ -366,44 +365,39 @@ class bitopro extends bitopro$1["default"] {
         //         ]
         //     }
         //
-        const result = {};
+        const currencies = this.safeList(response, 'data', []);
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
         const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const deposit = this.safeBool(currency, 'deposit');
-            const withdraw = this.safeBool(currency, 'withdraw');
-            const fee = this.safeNumber(currency, 'withdrawFee');
-            const withdrawMin = this.safeNumber(currency, 'minWithdraw');
-            const withdrawMax = this.safeNumber(currency, 'maxWithdraw');
-            const limits = {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        const deposit = this.safeBool(rawCurrency, 'deposit');
+        const withdraw = this.safeBool(rawCurrency, 'withdraw');
+        const isFiat = this.inArray(code, fiatCurrencies);
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'name': undefined,
+            'active': deposit && withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': this.safeNumber(rawCurrency, 'withdrawFee'),
+            'precision': undefined,
+            'limits': {
                 'withdraw': {
-                    'min': withdrawMin,
-                    'max': withdrawMax,
+                    'min': this.safeNumber(rawCurrency, 'minWithdraw'),
+                    'max': this.safeNumber(rawCurrency, 'maxWithdraw'),
                 },
                 'amount': {
                     'min': undefined,
                     'max': undefined,
                 },
-            };
-            const isFiat = this.inArray(code, fiatCurrencies);
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'info': currency,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'name': undefined,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': undefined,
-                'limits': limits,
-                'networks': undefined,
-            };
-        }
-        return result;
+            },
+            'networks': undefined,
+        });
     }
     /**
      * @method
@@ -544,10 +538,12 @@ class bitopro extends bitopro$1["default"] {
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -576,10 +572,12 @@ class bitopro extends bitopro$1["default"] {
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTickers();
         const tickers = this.safeList(response, 'data', []);
         //
@@ -607,10 +605,12 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -739,10 +739,12 @@ class bitopro extends bitopro$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -769,10 +771,12 @@ class bitopro extends bitopro$1["default"] {
      * @description fetch the trading fees for multiple markets
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetProvisioningLimitationsAndFees(params);
         const tradingFeeRate = this.safeDict(response, 'tradingFeeRate', {});
         const first = this.safeValue(tradingFeeRate, 0);
@@ -876,7 +880,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const resolution = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -995,10 +1001,12 @@ class bitopro extends bitopro$1["default"] {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_account_balance.md
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountsBalance(params);
         const balances = this.safeList(response, 'data', []);
         //
@@ -1026,7 +1034,7 @@ class bitopro extends bitopro$1["default"] {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return (status === undefined) ? undefined : this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1128,10 +1136,12 @@ class bitopro extends bitopro$1["default"] {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'type': type,
@@ -1187,13 +1197,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': id,
@@ -1235,13 +1247,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const id = market['uppercaseId'];
         const request = {};
@@ -1267,10 +1281,12 @@ class bitopro extends bitopro$1["default"] {
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'pair': market['id'], // optional
         };
@@ -1304,13 +1320,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'orderId': id,
@@ -1351,13 +1369,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1414,10 +1434,12 @@ class bitopro extends bitopro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1437,7 +1459,7 @@ class bitopro extends bitopro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
@@ -1454,13 +1476,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1563,7 +1587,7 @@ class bitopro extends bitopro$1["default"] {
             'txid': this.safeString(transaction, 'txid'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'amount': this.safeNumber(transaction, 'total'),
             'status': this.parseTransactionStatus(status),
             'timestamp': timestamp,
@@ -1593,13 +1617,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -1645,13 +1671,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -1695,13 +1723,15 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} id withdrawal id
      * @param {string} code unified currency code of the currency withdrawn, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawal(id, code = undefined, params = {}) {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawal() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'serial': id,
@@ -1737,11 +1767,13 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
@@ -1753,7 +1785,7 @@ class bitopro extends bitopro$1["default"] {
             const networks = this.safeDict(this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper(params, 'network');
             params = this.omit(params, ['network']);
-            const networkId = this.safeString(networks, requestedNetwork);
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, requestedNetwork);
             if (networkId === undefined) {
                 throw new errors.ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }
@@ -1810,10 +1842,12 @@ class bitopro extends bitopro$1["default"] {
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetProvisioningCurrencies(params);
         //
         //     {
@@ -1846,7 +1880,7 @@ class bitopro extends bitopro$1["default"] {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json(params);
                 const payload = this.stringToBase64(body);
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1861,7 +1895,7 @@ class bitopro extends bitopro$1["default"] {
                 };
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

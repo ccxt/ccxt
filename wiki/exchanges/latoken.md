@@ -41,7 +41,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-latoken.fetchTime ([params])
+latoken.fetchTime (params?)
 ```
 
 
@@ -61,7 +61,7 @@ retrieves data on all markets for latoken
 
 
 ```javascript
-latoken.fetchMarkets ([params])
+latoken.fetchMarkets (params?)
 ```
 
 
@@ -80,7 +80,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-latoken.fetchCurrencies ([params])
+latoken.fetchCurrencies (params?)
 ```
 
 
@@ -90,7 +90,7 @@ latoken.fetchCurrencies ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser  
 
@@ -100,7 +100,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-latoken.fetchBalance ([params])
+latoken.fetchBalance (params?)
 ```
 
 
@@ -110,7 +110,7 @@ latoken.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook  
 
@@ -122,7 +122,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-latoken.fetchOrderBook (symbol[, limit, params])
+latoken.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -132,7 +132,7 @@ latoken.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker  
 
@@ -143,7 +143,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-latoken.fetchTicker (symbol[, params])
+latoken.fetchTicker (symbol, params?)
 ```
 
 
@@ -153,7 +153,7 @@ latoken.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers  
 
@@ -164,7 +164,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-latoken.fetchTickers (symbols[, params])
+latoken.fetchTickers (symbols, params?)
 ```
 
 
@@ -174,7 +174,7 @@ latoken.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair  
 
@@ -187,7 +187,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-latoken.fetchTrades (symbol[, since, limit, params])
+latoken.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -197,7 +197,7 @@ latoken.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**
 
@@ -212,7 +212,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-latoken.fetchTradingFee (symbol[, params])
+latoken.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -222,7 +222,7 @@ latoken.fetchTradingFee (symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -239,7 +239,7 @@ fetch all trades made by the user
 
 
 ```javascript
-latoken.fetchMyTrades (symbol[, since, limit, params])
+latoken.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -249,7 +249,7 @@ latoken.fetchMyTrades (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -267,7 +267,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-latoken.fetchOpenOrders (symbol[, since, limit, params])
+latoken.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -277,7 +277,7 @@ latoken.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -297,7 +297,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-latoken.fetchOrders (symbol[, since, limit, params])
+latoken.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -307,7 +307,7 @@ latoken.fetchOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -324,7 +324,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-latoken.fetchOrder (id[, symbol, params])
+latoken.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -334,7 +334,7 @@ latoken.fetchOrder (id[, symbol, params])
 create a trade order
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -356,7 +356,7 @@ create a trade order
 
 
 ```javascript
-latoken.createOrder (symbol, type, side, amount[, price, params])
+latoken.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -366,7 +366,7 @@ latoken.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -383,7 +383,7 @@ cancels an open order
 
 
 ```javascript
-latoken.cancelOrder (id, symbol[, params])
+latoken.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -393,7 +393,7 @@ latoken.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -409,7 +409,7 @@ cancel all open orders in a market
 
 
 ```javascript
-latoken.cancelAllOrders (symbol[, params])
+latoken.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -421,7 +421,7 @@ latoken.cancelAllOrders (symbol[, params])
 use fetchDepositsWithdrawals instead
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions  
 
@@ -434,7 +434,7 @@ use fetchDepositsWithdrawals instead
 
 
 ```javascript
-latoken.fetchTransactions (code[, since, limit, params])
+latoken.fetchTransactions (code, since?, limit?, params?)
 ```
 
 
@@ -444,7 +444,7 @@ latoken.fetchTransactions (code[, since, limit, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers  
 
@@ -457,7 +457,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-latoken.fetchTransfers (code[, since, limit, params])
+latoken.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -467,7 +467,7 @@ latoken.fetchTransfers (code[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -486,6 +486,6 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-latoken.transfer (code, amount, fromAccount, toAccount[, params])
+latoken.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 

@@ -1,0 +1,269 @@
+{
+    "ETH/USDC:USDC": {
+        "id": "ETH-USDC",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 0.001,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01,
+            "base": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 200
+            },
+            "amount": {
+                "min": 1,
+                "max": 80000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETH-USDC",
+            "baseAsset": "ETH",
+            "marginAsset": "USDC",
+            "quoteAsset": "USDC",
+            "contractFactor": "0.001",
+            "limitMaxQty": "80000000",
+            "limitMinQty": "1",
+            "marketMaxQty": "8000",
+            "marketMinQty": "1",
+            "pricePrecision": "8",
+            "basePrecision": "8",
+            "feeRateTaker": "0.0006",
+            "feeRateMaker": "0.0002",
+            "liqFeeRate": "0.0006",
+            "openBuyLimitRateMax": "0.05",
+            "openSellLimitRateMax": "100",
+            "openBuyLimitRateMin": "0.98",
+            "openSellLimitRateMin": "0.05",
+            "priceOrderPrecision": "2",
+            "baseShowPrecision": "2",
+            "maxLeverageLevel": "200",
+            "volumePrecision": "3",
+            "maxLimitOrderNum": "200",
+            "maxPlanOrderNum": "10",
+            "reverse": false,
+            "onboardTime": "1751630400000",
+            "status": "NORMAL"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH-USDT",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 0.01,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01,
+            "base": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 200
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETH-USDT",
+            "baseAsset": "ETH",
+            "marginAsset": "USDT",
+            "quoteAsset": "USDT",
+            "contractFactor": "0.01",
+            "limitMaxQty": "1000000",
+            "limitMinQty": "1",
+            "marketMaxQty": "200000",
+            "marketMinQty": "1",
+            "pricePrecision": "8",
+            "basePrecision": "8",
+            "feeRateTaker": "0.0006",
+            "feeRateMaker": "0.0002",
+            "liqFeeRate": "0.0006",
+            "openBuyLimitRateMax": "0.05",
+            "openSellLimitRateMax": "100",
+            "openBuyLimitRateMin": "0.98",
+            "openSellLimitRateMin": "0.05",
+            "priceOrderPrecision": "2",
+            "baseShowPrecision": "2",
+            "maxLeverageLevel": "200",
+            "volumePrecision": "2",
+            "maxLimitOrderNum": "200",
+            "maxPlanOrderNum": "10",
+            "reverse": false,
+            "onboardTime": "1701100800000",
+            "status": "NORMAL"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "DOGE/USDC:USDC": {
+        "id": "DOGE-USDC",
+        "lowercaseId": null,
+        "symbol": "DOGE/USDC:USDC",
+        "base": "DOGE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "DOGE",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001,
+            "base": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 75
+            },
+            "amount": {
+                "min": 1,
+                "max": 80000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "DOGE-USDC",
+            "baseAsset": "DOGE",
+            "marginAsset": "USDC",
+            "quoteAsset": "USDC",
+            "contractFactor": "1",
+            "limitMaxQty": "80000000",
+            "limitMinQty": "1",
+            "marketMaxQty": "5000000",
+            "marketMinQty": "1",
+            "pricePrecision": "8",
+            "basePrecision": "8",
+            "feeRateTaker": "0.0006",
+            "feeRateMaker": "0.0002",
+            "liqFeeRate": "0.0006",
+            "openBuyLimitRateMax": "0.05",
+            "openSellLimitRateMax": "100",
+            "openBuyLimitRateMin": "0.98",
+            "openSellLimitRateMin": "0.05",
+            "priceOrderPrecision": "5",
+            "baseShowPrecision": "5",
+            "maxLeverageLevel": "75",
+            "volumePrecision": "0",
+            "maxLimitOrderNum": "200",
+            "maxPlanOrderNum": "10",
+            "reverse": false,
+            "onboardTime": "1751630400000",
+            "status": "NORMAL"
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}

@@ -4,16 +4,16 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 require('./utils/base58.js');
 var errors = require('./utils/errors.js');
-require('./utils/events.js');
+var properties = require('./utils/properties.js');
 require('./utils/fixednumber.js');
 var maths = require('./utils/maths.js');
-var properties = require('./utils/properties.js');
 require('./utils/utf8.js');
 require('../../base/functions/platform.js');
 require('../../base/functions/encode.js');
 require('../../base/functions/crypto.js');
-require('../noble-hashes/sha3.js');
-require('../noble-hashes/sha256.js');
+require('../../base/functions/io.js');
+require('@noble/hashes/sha3.js');
+require('@noble/hashes/sha2.js');
 
 // ----------------------------------------------------------------------------
 
@@ -32,18 +32,7 @@ require('../noble-hashes/sha256.js');
  *
  *  @_subsection api/abi/abi-coder:Fragments  [about-fragments]
  */
-var __classPrivateFieldSet = (globalThis && globalThis.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (globalThis && globalThis.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _TokenString_instances, _TokenString_offset, _TokenString_tokens, _TokenString_subTokenString, _ParamType_instances, _ParamType_walkAsync;
+var _a;
 // [ "a", "b" ] => { "a": 1, "b": 1 }
 function setify(items) {
     const result = new Set();
@@ -77,17 +66,25 @@ const regexIdPrefix = new RegExp("^([a-zA-Z$_][a-zA-Z0-9$_]*)");
 const regexId = new RegExp("^([a-zA-Z$_][a-zA-Z0-9$_]*)$");
 const regexType = new RegExp("^(address|bool|bytes([0-9]*)|string|u?int([0-9]*))$");
 class TokenString {
+    #offset;
+    #tokens;
+    get offset() { return this.#offset; }
+    get length() { return this.#tokens.length - this.#offset; }
     constructor(tokens) {
-        _TokenString_instances.add(this);
-        _TokenString_offset.set(this, void 0);
-        _TokenString_tokens.set(this, void 0);
-        __classPrivateFieldSet(this, _TokenString_offset, 0, "f");
-        __classPrivateFieldSet(this, _TokenString_tokens, tokens.slice(), "f");
+        this.#offset = 0;
+        this.#tokens = tokens.slice();
     }
-    get offset() { return __classPrivateFieldGet(this, _TokenString_offset, "f"); }
-    get length() { return __classPrivateFieldGet(this, _TokenString_tokens, "f").length - __classPrivateFieldGet(this, _TokenString_offset, "f"); }
-    clone() { return new TokenString(__classPrivateFieldGet(this, _TokenString_tokens, "f")); }
-    reset() { __classPrivateFieldSet(this, _TokenString_offset, 0, "f"); }
+    clone() { return new _a(this.#tokens); }
+    reset() { this.#offset = 0; }
+    #subTokenString(from = 0, to = 0) {
+        return new _a(this.#tokens.slice(from, to).map((t) => {
+            return Object.freeze(Object.assign({}, t, {
+                match: (t.match - from),
+                linkBack: (t.linkBack - from),
+                linkNext: (t.linkNext - from),
+            }));
+        }));
+    }
     // Pops and returns the value of the next token, if it is a keyword in allowed; throws if out of tokens
     popKeyword(allowed) {
         const top = this.peek();
@@ -109,8 +106,8 @@ class TokenString {
         if (top.type !== "OPEN_PAREN") {
             throw new Error("bad start");
         }
-        const result = __classPrivateFieldGet(this, _TokenString_instances, "m", _TokenString_subTokenString).call(this, __classPrivateFieldGet(this, _TokenString_offset, "f") + 1, top.match + 1);
-        __classPrivateFieldSet(this, _TokenString_offset, top.match + 1, "f");
+        const result = this.#subTokenString(this.#offset + 1, top.match + 1);
+        this.#offset = top.match + 1;
         return result;
     }
     // Pops and returns the items within "(" ITEM1 "," ITEM2 "," ... ")"
@@ -120,20 +117,20 @@ class TokenString {
             throw new Error("bad start");
         }
         const result = [];
-        while (__classPrivateFieldGet(this, _TokenString_offset, "f") < top.match - 1) {
+        while (this.#offset < top.match - 1) {
             const link = this.peek().linkNext;
-            result.push(__classPrivateFieldGet(this, _TokenString_instances, "m", _TokenString_subTokenString).call(this, __classPrivateFieldGet(this, _TokenString_offset, "f") + 1, link));
-            __classPrivateFieldSet(this, _TokenString_offset, link, "f");
+            result.push(this.#subTokenString(this.#offset + 1, link));
+            this.#offset = link;
         }
-        __classPrivateFieldSet(this, _TokenString_offset, top.match + 1, "f");
+        this.#offset = top.match + 1;
         return result;
     }
     // Returns the top Token, throwing if out of tokens
     peek() {
-        if (__classPrivateFieldGet(this, _TokenString_offset, "f") >= __classPrivateFieldGet(this, _TokenString_tokens, "f").length) {
+        if (this.#offset >= this.#tokens.length) {
             throw new Error("out-of-bounds");
         }
-        return __classPrivateFieldGet(this, _TokenString_tokens, "f")[__classPrivateFieldGet(this, _TokenString_offset, "f")];
+        return this.#tokens[this.#offset];
     }
     // Returns the next value, if it is a keyword in `allowed`
     peekKeyword(allowed) {
@@ -150,29 +147,20 @@ class TokenString {
     }
     // Returns the next token; throws if out of tokens
     pop() {
-        var _a;
         const result = this.peek();
-        __classPrivateFieldSet(this, _TokenString_offset, (_a = __classPrivateFieldGet(this, _TokenString_offset, "f"), _a++, _a), "f");
+        this.#offset++;
         return result;
     }
     toString() {
         const tokens = [];
-        for (let i = __classPrivateFieldGet(this, _TokenString_offset, "f"); i < __classPrivateFieldGet(this, _TokenString_tokens, "f").length; i++) {
-            const token = __classPrivateFieldGet(this, _TokenString_tokens, "f")[i];
+        for (let i = this.#offset; i < this.#tokens.length; i++) {
+            const token = this.#tokens[i];
             tokens.push(`${token.type}:${token.text}`);
         }
         return `<TokenString ${tokens.join(" ")}>`;
     }
 }
-_TokenString_offset = new WeakMap(), _TokenString_tokens = new WeakMap(), _TokenString_instances = new WeakSet(), _TokenString_subTokenString = function _TokenString_subTokenString(from = 0, to = 0) {
-    return new TokenString(__classPrivateFieldGet(this, _TokenString_tokens, "f").slice(from, to).map((t) => {
-        return Object.freeze(Object.assign({}, t, {
-            match: (t.match - from),
-            linkBack: (t.linkBack - from),
-            linkNext: (t.linkNext - from),
-        }));
-    }));
-};
+_a = TokenString;
 function lex(text) {
     const tokens = [];
     const throwError = (message) => {
@@ -310,7 +298,6 @@ class ParamType {
      *  @private
      */
     constructor(guard, name, type, baseType, indexed, components, arrayLength, arrayChildren) {
-        _ParamType_instances.add(this);
         errors.assertPrivate(guard, _guard, "ParamType");
         Object.defineProperty(this, internal, { value: ParamTypeInternal });
         if (components) {
@@ -449,6 +436,64 @@ class ParamType {
         }
         return process(this.type, value);
     }
+    #walkAsync(promises, value, process, setValue) {
+        if (this.isArray()) {
+            if (!Array.isArray(value)) {
+                throw new Error("invalid array value");
+            }
+            if (this.arrayLength !== -1 && value.length !== this.arrayLength) {
+                throw new Error("array is wrong length");
+            }
+            const childType = this.arrayChildren;
+            const result = value.slice();
+            result.forEach((value, index) => {
+                childType.#walkAsync(promises, value, process, (value) => {
+                    result[index] = value;
+                });
+            });
+            setValue(result);
+            return;
+        }
+        if (this.isTuple()) {
+            const components = this.components;
+            // Convert the object into an array
+            let result;
+            if (Array.isArray(value)) {
+                result = value.slice();
+            }
+            else {
+                if (value == null || typeof (value) !== "object") {
+                    throw new Error("invalid tuple value");
+                }
+                result = components.map((param) => {
+                    if (!param.name) {
+                        throw new Error("cannot use object value with unnamed components");
+                    }
+                    if (!(param.name in value)) {
+                        throw new Error(`missing value for component ${param.name}`);
+                    }
+                    return value[param.name];
+                });
+            }
+            if (result.length !== this.components.length) {
+                throw new Error("array is wrong length");
+            }
+            result.forEach((value, index) => {
+                components[index].#walkAsync(promises, value, process, (value) => {
+                    result[index] = value;
+                });
+            });
+            setValue(result);
+            return;
+        }
+        const result = process(this.type, value);
+        if (result.then) {
+            promises.push((async function () { setValue(await result); })());
+        }
+        else {
+            setValue(result);
+        }
+    }
     /**
      *  Walks the **ParamType** with %%value%%, asynchronously calling
      *  %%process%% on each type, destructing the %%value%% recursively.
@@ -459,7 +504,7 @@ class ParamType {
     async walkAsync(value, process) {
         const promises = [];
         const result = [value];
-        __classPrivateFieldGet(this, _ParamType_instances, "m", _ParamType_walkAsync).call(this, promises, value, process, (value) => {
+        this.#walkAsync(promises, value, process, (value) => {
             result[0] = value;
         });
         if (promises.length) {
@@ -557,64 +602,5 @@ class ParamType {
         return (value && value[internal] === ParamTypeInternal);
     }
 }
-_ParamType_instances = new WeakSet(), _ParamType_walkAsync = function _ParamType_walkAsync(promises, value, process, setValue) {
-    if (this.isArray()) {
-        if (!Array.isArray(value)) {
-            throw new Error("invalid array value");
-        }
-        if (this.arrayLength !== -1 && value.length !== this.arrayLength) {
-            throw new Error("array is wrong length");
-        }
-        const childType = this.arrayChildren;
-        const result = value.slice();
-        result.forEach((value, index) => {
-            __classPrivateFieldGet(childType, _ParamType_instances, "m", _ParamType_walkAsync).call(childType, promises, value, process, (value) => {
-                result[index] = value;
-            });
-        });
-        setValue(result);
-        return;
-    }
-    if (this.isTuple()) {
-        const components = this.components;
-        // Convert the object into an array
-        let result;
-        if (Array.isArray(value)) {
-            result = value.slice();
-        }
-        else {
-            if (value == null || typeof (value) !== "object") {
-                throw new Error("invalid tuple value");
-            }
-            result = components.map((param) => {
-                if (!param.name) {
-                    throw new Error("cannot use object value with unnamed components");
-                }
-                if (!(param.name in value)) {
-                    throw new Error(`missing value for component ${param.name}`);
-                }
-                return value[param.name];
-            });
-        }
-        if (result.length !== this.components.length) {
-            throw new Error("array is wrong length");
-        }
-        result.forEach((value, index) => {
-            var _a;
-            __classPrivateFieldGet((_a = components[index]), _ParamType_instances, "m", _ParamType_walkAsync).call(_a, promises, value, process, (value) => {
-                result[index] = value;
-            });
-        });
-        setValue(result);
-        return;
-    }
-    const result = process(this.type, value);
-    if (result.then) {
-        promises.push((async function () { setValue(await result); })());
-    }
-    else {
-        setValue(result);
-    }
-};
 
 exports.ParamType = ParamType;

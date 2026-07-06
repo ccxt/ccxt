@@ -36,7 +36,7 @@ retrieves data on all markets for bitbank
 
 
 ```javascript
-bitbank.fetchMarkets ([params])
+bitbank.fetchMarkets (params?)
 ```
 
 
@@ -46,7 +46,7 @@ bitbank.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker  
 
@@ -57,7 +57,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitbank.fetchTicker (symbol[, params])
+bitbank.fetchTicker (symbol, params?)
 ```
 
 
@@ -67,7 +67,7 @@ bitbank.fetchTicker (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth  
 
@@ -79,7 +79,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitbank.fetchOrderBook (symbol[, limit, params])
+bitbank.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -89,7 +89,7 @@ bitbank.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#transactions  
 
@@ -102,7 +102,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitbank.fetchTrades (symbol[, since, limit, params])
+bitbank.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -112,7 +112,7 @@ bitbank.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info  
 
@@ -122,7 +122,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitbank.fetchTradingFees ([params])
+bitbank.fetchTradingFees (params?)
 ```
 
 
@@ -146,7 +146,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitbank.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitbank.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -156,7 +156,7 @@ bitbank.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets  
 
@@ -166,7 +166,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitbank.fetchBalance ([params])
+bitbank.fetchBalance (params?)
 ```
 
 
@@ -176,7 +176,7 @@ bitbank.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#create-new-order  
 
@@ -191,7 +191,7 @@ create a trade order
 
 
 ```javascript
-bitbank.createOrder (symbol, type, side, amount[, price, params])
+bitbank.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -201,7 +201,7 @@ bitbank.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#cancel-order  
 
@@ -213,7 +213,7 @@ cancels an open order
 
 
 ```javascript
-bitbank.cancelOrder (id, symbol[, params])
+bitbank.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -223,7 +223,7 @@ bitbank.cancelOrder (id, symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information  
 
@@ -235,7 +235,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitbank.fetchOrder (id, symbol[, params])
+bitbank.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -245,7 +245,7 @@ bitbank.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-orders  
 
@@ -258,7 +258,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitbank.fetchOpenOrders (symbol[, since, limit, params])
+bitbank.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -268,7 +268,7 @@ bitbank.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-trade-history  
 
@@ -281,7 +281,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitbank.fetchMyTrades (symbol[, since, limit, params])
+bitbank.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -291,7 +291,7 @@ bitbank.fetchMyTrades (symbol[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-accounts  
 
@@ -302,7 +302,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitbank.fetchDepositAddress (code[, params])
+bitbank.fetchDepositAddress (code, params?)
 ```
 
 
@@ -312,7 +312,7 @@ bitbank.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitbank</code>](#bitbank)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-request  
 
@@ -326,6 +326,6 @@ make a withdrawal
 
 
 ```javascript
-bitbank.withdraw (code, amount, address, tag[, params])
+bitbank.withdraw (code, amount, address, tag, params?)
 ```
 

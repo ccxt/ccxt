@@ -5,7 +5,7 @@ namespace examples;
 
 partial class Examples
 {
-// ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+// ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/README?id=proxy
     async public Task proxyUsage_proxyUrl()
     {
         var myEx = new ccxt.kucoin();

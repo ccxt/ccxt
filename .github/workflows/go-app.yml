@@ -20,19 +20,10 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - name: Setup Golang with cache
+        uses: magnetikonline/action-golang-cache@v5
         with:
-          go-version: "1.24.x"
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/go/pkg/mod       # module download cache
-            ~/.cache/go-build  # build cache
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          go-version: ~1.24
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
@@ -46,10 +37,8 @@ jobs:
         run: tsc --version
       - name: Install tsx
         run: npm install -g tsx
-      - name: export exchanges
-        run: npm run export-exchanges
-      - name: Generate implicit API
-        run: npm run emitAPI # if we emit go only, the implicit API will be problematic for new exchanges
+      - name: Pre Transpile GO
+        run: npm run pre-transpile-go
       - name: Transpile To Go
         if: env.important_modified == 'true'
         run: tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws
@@ -64,23 +53,27 @@ jobs:
           # cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
           # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
           # # echo "Cleaned files: $cleaned_rest_files"
-          # # tsx utils/granular-go-build.ts $cleaned_rest_files
+          # # tsx build/granular-go-build.ts $cleaned_rest_files
           # if [ -n "$cleaned_rest_files" ]; then
           #   echo "Cleaned files: $cleaned_rest_files"
-          #   tsx utils/granular-go-build.ts $cleaned_rest_files
+          #   tsx build/granular-go-build.ts $cleaned_rest_files
           # else
           #   echo "No rest files to process; skipping."
           # fi
           # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
           # if [ -n "$cleaned_ws_files" ]; then
           #   echo "Cleaned files: $cleaned_ws_files"
-          #   tsx utils/granular-go-build.ts $cleaned_ws_files
+          #   tsx build/granular-go-build.ts $cleaned_ws_files
           # else
           #   echo "No websocket files to process; skipping."
           # fi
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No files to process; skipping."
+            exit 0
+          fi
           echo "Files to process: ${files[*]}"
-          tsx utils/granular-go-build.ts "${files[@]}"
+          tsx build/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
@@ -151,6 +144,8 @@ jobs:
         run: |
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git checkout HEAD README.md wiki  # only JS does wiki pushback
+            git pull origin master
             rm -f ./go/tests/main
             rm -f ./go/v4/ccxt
             rm -f ./go/main

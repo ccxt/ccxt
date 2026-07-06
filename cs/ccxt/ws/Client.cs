@@ -15,7 +15,7 @@ public partial class Exchange
     {
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
-
+        
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
@@ -66,7 +66,7 @@ public partial class Exchange
             this.onError = onError;
             this.keepAlive = keepA;
             this.decompressBinary = decompressBinary;
-
+            this.webSocket.Options.KeepAliveInterval = TimeSpan.Zero; // Disable unsolicited PONG. https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets?#compression
             if (proxy != null)
             {
                 var webProxy = new WebProxy(proxy);
@@ -393,8 +393,10 @@ public partial class Exchange
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
 
+                        var msgBinary = buffer.Take(result.Count).ToArray();
+                        // Use memory.ToArray() to get the FULL message (all frames), not just the last chunk
+                        var msgBinaryMemory = memory.ToArray();
                         // Handle binary message
-                        // assume gunzip for now
 
                         if (this.verbose)
                         {
@@ -403,24 +405,53 @@ public partial class Exchange
 
                         if (!this.decompressBinary)
                         {
-                            var msgBinary = buffer.Take(result.Count).ToArray();
                             this.handleMessage(this, msgBinary);
                             continue;
                         }
 
-                        using (MemoryStream compressedStream = new MemoryStream(buffer, 0, result.Count))
-                        using (GZipStream decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-                        using (MemoryStream decompressedStream = new MemoryStream())
+                        if (this.LooksLikeRawDeflate(msgBinary))
                         {
-                            decompressionStream.CopyTo(decompressedStream);
-                            byte[] decompressedData = decompressedStream.ToArray();
-
-                            string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
-
+                            string decompressedString = System.Text.Encoding.UTF8.GetString(msgBinary);
                             if (this.verbose)
                             {
-                                Console.WriteLine($"On binary message decompressed {decompressedString}");
+                                Console.WriteLine($"On raw binary message decompressed {decompressedString}");
                             }
+                            this.TryHandleMessage(decompressedString);
+                            continue;
+
+                        }
+
+                        // detect zlib magic bytes: 0x78 0x01, 0x78 0x5E, 0x78 0x9C, 0x78 0xDA
+                        bool isZLib = msgBinaryMemory.Length > 2 && msgBinaryMemory[0] == 0x78 && (msgBinaryMemory[1] == 0x01 || msgBinaryMemory[1] == 0x5E || msgBinaryMemory[1] == 0x9C || msgBinaryMemory[1] == 0xDA);
+
+                        if (isZLib)
+                        {
+                            using (var compressedStream = new MemoryStream(msgBinaryMemory, 2, msgBinaryMemory.Length - 2))
+                            using (var decompressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
+                            using (var decompressedStream = new MemoryStream())
+                            {
+                                decompressionStream.CopyTo(decompressedStream);
+                                string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
+                                if (this.verbose)
+                                    Console.WriteLine($"On zlib binary message decompressed {decompressedString}");
+                                this.TryHandleMessage(decompressedString);
+                            }
+                            continue;
+                        }
+
+                        // assume GZip (magic bytes: 0x1F 0x8B)
+                        // use msgBinaryMemory (full reassembled message) not msgBinary (last chunk only)
+                        bool isGZip = msgBinaryMemory.Length > 1 && msgBinaryMemory[0] == 0x1F && msgBinaryMemory[1] == 0x8B;
+
+                        if (isGZip)
+                        using (var compressedStream = new MemoryStream(msgBinaryMemory))
+                        using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+                        using (var decompressedStream = new MemoryStream())
+                        {
+                            decompressionStream.CopyTo(decompressedStream);
+                            string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
+                            if (this.verbose)
+                                Console.WriteLine($"On gzip binary message decompressed {decompressedString}");
                             this.TryHandleMessage(decompressedString);
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
@@ -447,6 +478,15 @@ public partial class Exchange
                 this.isConnected = false;
                 this.onError(this, ex);
             }
+        }
+
+
+        private bool LooksLikeRawDeflate(ReadOnlySpan<byte> b)
+        {
+            if (b.Length < 1) return false;
+            byte first = b[0];
+            int btype = (first >> 1) & 0b11;
+            return btype == 0b01 || btype == 0b10;
         }
 
         public async Task Close()

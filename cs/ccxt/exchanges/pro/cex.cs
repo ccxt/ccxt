@@ -38,6 +38,9 @@ public partial class cex : ccxt.cex
             } },
             { "options", new Dictionary<string, object>() {
                 { "orderbook", new Dictionary<string, object>() {} },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "symbol", null },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {} },
@@ -46,8 +49,10 @@ public partial class cex : ccxt.cex
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return ((object)requestId).ToString();
     }
 
@@ -57,7 +62,7 @@ public partial class cex : ccxt.cex
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://cex.io/websocket-api#get-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -126,18 +131,26 @@ public partial class cex : ccxt.cex
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        object currentSymbol = this.safeString(getValue(this.options, "watchTrades"), "symbol");
+        if (isTrue(isTrue(!isEqual(currentSymbol, null)) && isTrue(!isEqual(currentSymbol, symbol))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
+        }
+        ((IDictionary<string,object>)getValue(this.options, "watchTrades"))["symbol"] = symbol;
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "trades";
         object subscriptionHash = add("old:", symbol);
-        ((IDictionary<string,object>)this.options)["currentWatchTradeSymbol"] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         var client = this.safeValue(this.clients, url);
         if (isTrue(!isEqual(client as WebSocketClient, null)))
         {
@@ -162,11 +175,6 @@ public partial class cex : ccxt.cex
         };
         object request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, subscriptionHash);
-        // assing symbol to the trades as message does not contain symbol information
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
-        {
-            ((IDictionary<string,object>)getValue(trades, i))["symbol"] = symbol;
-        }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
@@ -183,26 +191,7 @@ public partial class cex : ccxt.cex
         //         ]
         //     }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
-        object limit = this.safeInteger(this.options, "tradesLimit", 1000);
-        var stored = new ArrayCache(limit);
-        object symbol = this.safeString(this.options, "currentWatchTradeSymbol");
-        if (isTrue(isEqual(symbol, null)))
-        {
-            return;
-        }
-        object market = this.market(symbol);
-        object dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
-        {
-            object index = subtract(subtract(dataLength, 1), i);
-            object rawTrade = getValue(data, index);
-            object parsed = this.parseWsOldTrade(rawTrade, market);
-            callDynamically(stored, "append", new object[] {parsed});
-        }
-        object messageHash = "trades";
-        this.trades = ((object)stored); // trades don't have symbol
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.trades, messageHash});
+        this.handleTradesInner(client as WebSocketClient, message);
     }
 
     public virtual object parseWsOldTrade(object trade, object market = null)
@@ -210,6 +199,7 @@ public partial class cex : ccxt.cex
         //
         //  snapshot trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
+        //
         //  update trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
@@ -249,19 +239,31 @@ public partial class cex : ccxt.cex
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
-        object stored = ((object)this.trades); // to do fix this, this.trades is not meant to be used like this
+        this.handleTradesInner(client as WebSocketClient, message);
+    }
+
+    public virtual void handleTradesInner(WebSocketClient client, object message)
+    {
+        object data = this.safeList(message, "data", new List<object>() {});
+        object symbol = this.safeString(getValue(this.options, "watchTrades"), "symbol");
+        if (!isTrue((inOp(this.trades, symbol))))
+        {
+            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = new ArrayCache(limit);
+        }
+        object stored = getValue(this.trades, ((string)symbol));
+        object market = this.market(((string)symbol));
         object dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object index = subtract(subtract(dataLength, 1), i);
             object rawTrade = getValue(data, index);
-            object parsed = this.parseWsOldTrade(rawTrade);
+            object parsed = this.parseWsOldTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = "trades";
-        this.trades = stored;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.trades, messageHash});
+        ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, ((string)symbol)), messageHash});
     }
 
     /**
@@ -272,12 +274,15 @@ public partial class cex : ccxt.cex
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] public or private
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -309,12 +314,15 @@ public partial class cex : ccxt.cex
      * @description watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "tickers";
@@ -345,12 +353,15 @@ public partial class cex : ccxt.cex
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = this.requestId();
@@ -468,12 +479,15 @@ public partial class cex : ccxt.cex
      * @see https://docs.cex.io/#ws-api-get-balance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = this.requestId();
@@ -493,7 +507,7 @@ public partial class cex : ccxt.cex
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -502,7 +516,10 @@ public partial class cex : ccxt.cex
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate(parameters);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
@@ -533,7 +550,7 @@ public partial class cex : ccxt.cex
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -542,7 +559,10 @@ public partial class cex : ccxt.cex
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate(parameters);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
@@ -789,8 +809,8 @@ public partial class cex : ccxt.cex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object storedOrders = this.orders;
-        object ordersBySymbol = this.safeValue((storedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
-        object order = this.safeValue(ordersBySymbol, orderId);
+        object ordersBySymbol = this.safeValue((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+        object order = this.safeValue(ordersBySymbol, ((string)orderId));
         if (isTrue(isEqual(order, null)))
         {
             order = this.parseWsOrderUpdate(data, market);
@@ -963,7 +983,7 @@ public partial class cex : ccxt.cex
         //     {
         //         "e": "open-orders",
         //         "data": [{
-        //             "id": "59098421630",
+        //             "id": "59098421631",
         //             "time": "1664062285425",
         //             "type": "buy",
         //             "price": "18920",
@@ -1003,16 +1023,19 @@ public partial class cex : ccxt.cex
      * @method
      * @name cex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://cex.io/websocket-api#orderbook-subscribe
+     * @see https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -1126,7 +1149,7 @@ public partial class cex : ccxt.cex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, 0, 1);
+        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -1154,7 +1177,10 @@ public partial class cex : ccxt.cex
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("ohlcv:", symbol);
@@ -1292,12 +1318,15 @@ public partial class cex : ccxt.cex
      * @param {string} id the order id
      * @param {string} symbol not used by cex fetchOrder
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1327,7 +1356,7 @@ public partial class cex : ccxt.cex
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1336,7 +1365,10 @@ public partial class cex : ccxt.cex
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrdersWs requires a symbol.")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1374,7 +1406,10 @@ public partial class cex : ccxt.cex
         {
             throw new BadRequest ((string)add(this.id, " createOrderWs requires a price argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1419,7 +1454,10 @@ public partial class cex : ccxt.cex
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a price argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         object data = this.extend(new Dictionary<string, object>() {
@@ -1448,12 +1486,15 @@ public partial class cex : ccxt.cex
      * @param {string} id order id
      * @param {string} symbol not used by cex cancelOrder ()
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1482,7 +1523,7 @@ public partial class cex : ccxt.cex
      * @param {string[]} ids order ids
      * @param {string} symbol not used by cex cancelOrders()
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
@@ -1491,7 +1532,10 @@ public partial class cex : ccxt.cex
         {
             throw new BadRequest ((string)add(this.id, " cancelOrderWs does not allow filtering by symbol")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object messageHash = this.requestId();
         object data = this.extend(new Dictionary<string, object>() {
@@ -1566,7 +1610,7 @@ public partial class cex : ccxt.cex
         } catch(Exception error)
         {
             object messageHash = this.safeString(message, "oid");
-            var future = this.safeValue(getValue(client as WebSocketClient, "futures"), messageHash);
+            var future = this.safeValue(getValue(client as WebSocketClient, "futures"), ((string)messageHash));
             if (isTrue(!isEqual(future, null)))
             {
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1610,7 +1654,7 @@ public partial class cex : ccxt.cex
             { "mass-cancel-place-orders", this.resolveData },
             { "get-order", this.resolveData },
         };
-        object handler = this.safeValue(handlers, eventVar);
+        object handler = this.safeValue(handlers, ((string)eventVar));
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

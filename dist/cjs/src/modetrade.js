@@ -2,14 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var modetrade$1 = require('./abstract/modetrade.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -22,13 +22,12 @@ class modetrade extends modetrade$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
             'pro': true,
             'dex': true,
-            'hostname': 'trade.mode.network',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -128,7 +127,7 @@ class modetrade extends modetrade$1["default"] {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
+                'logo': 'https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -305,8 +304,8 @@ class modetrade extends modetrade$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -316,7 +315,7 @@ class modetrade extends modetrade$1["default"] {
                         },
                         'hedged': false,
                         'trailing': true,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
@@ -389,29 +388,29 @@ class modetrade extends modetrade$1["default"] {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': errors.ExchangeError,
-                    '-1001': errors.AuthenticationError,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.BadRequest,
-                    '-1005': errors.BadRequest,
-                    '-1006': errors.InvalidOrder,
-                    '-1007': errors.BadRequest,
-                    '-1008': errors.InvalidOrder,
-                    '-1009': errors.InsufficientFunds,
-                    '-1011': errors.NetworkError,
-                    '-1012': errors.BadRequest,
-                    '-1101': errors.InsufficientFunds,
-                    '-1102': errors.InvalidOrder,
-                    '-1103': errors.InvalidOrder,
-                    '-1104': errors.InvalidOrder,
-                    '-1105': errors.InvalidOrder,
-                    '-1201': errors.BadRequest,
-                    '-1202': errors.BadRequest,
-                    '29': errors.BadRequest,
-                    '9': errors.AuthenticationError,
-                    '3': errors.AuthenticationError,
-                    '2': errors.BadRequest,
+                    '-1000': errors.ExchangeError, // UNKNOWN The data does not exist
+                    '-1001': errors.AuthenticationError, // INVALID_SIGNATURE The api key or secret is in wrong format.
+                    '-1002': errors.AuthenticationError, // UNAUTHORIZED API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked.
+                    '-1003': errors.RateLimitExceeded, // TOO_MANY_REQUEST Rate limit exceed.
+                    '-1004': errors.BadRequest, // UNKNOWN_PARAM An unknown parameter was sent.
+                    '-1005': errors.BadRequest, // INVALID_PARAM Some parameters are in wrong format for api.
+                    '-1006': errors.InvalidOrder, // RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
+                    '-1007': errors.BadRequest, // DUPLICATE_REQUEST The data is already exists or your request is duplicated.
+                    '-1008': errors.InvalidOrder, // QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
+                    '-1009': errors.InsufficientFunds, // CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
+                    '-1011': errors.NetworkError, // RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
+                    '-1012': errors.BadRequest, // RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
+                    '-1101': errors.InsufficientFunds, // RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
+                    '-1102': errors.InvalidOrder, // MIN_NOTIONAL The order value (price * size) is too small.
+                    '-1103': errors.InvalidOrder, // PRICE_FILTER The order price is not following the tick size rule for the symbol.
+                    '-1104': errors.InvalidOrder, // SIZE_FILTER The order quantity is not following the step size rule for the symbol.
+                    '-1105': errors.InvalidOrder, // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
+                    '-1201': errors.BadRequest, // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
+                    '-1202': errors.BadRequest, // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
+                    '29': errors.BadRequest, // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9': errors.AuthenticationError, // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3': errors.AuthenticationError, // {"success":false,"code":3,"message":"Signature error"}
+                    '2': errors.BadRequest, // {"success":false,"code":2,"message":"Timestamp expired"}
                     '15': errors.BadRequest, // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 },
                 'broad': {},
@@ -429,7 +428,7 @@ class modetrade extends modetrade$1["default"] {
      * @description the latest known information on the availability of the exchange API
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const response = await this.v1PublicGetPublicSystemInfo(params);
@@ -512,7 +511,7 @@ class modetrade extends modetrade$1["default"] {
         //     "liquidation_tier": "1"
         //   }
         //
-        const marketId = this.safeString(market, 'symbol');
+        const marketId = this.safeString(market, 'symbol', '');
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
@@ -630,7 +629,6 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const result = {};
         const response = await this.v1PublicGetPublicToken(params);
         //
         // {
@@ -656,66 +654,65 @@ class modetrade extends modetrade$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const tokenRows = this.safeList(data, 'rows', []);
-        for (let i = 0; i < tokenRows.length; i++) {
-            const token = tokenRows[i];
-            const currencyId = this.safeString(token, 'token');
-            const networks = this.safeList(token, 'chain_details');
-            const code = this.safeCurrencyCode(currencyId);
-            let minPrecision = undefined;
-            const resultingNetworks = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                // TODO: transform chain id to human readable name
-                const networkId = this.safeString(network, 'chain_id');
-                const precision = this.parsePrecision(this.safeString(network, 'decimals'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise["default"].stringMin(precision, minPrecision);
-                }
-                resultingNetworks[networkId] = {
-                    'id': networkId,
-                    'network': networkId,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber(network, 'withdrawal_fee'),
-                    'precision': this.parseNumber(precision),
-                    'info': network,
-                };
+        return this.parseCurrencies(tokenRows);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'token');
+        const networks = this.safeList(rawCurrency, 'chain_details', []);
+        const code = this.safeCurrencyCode(currencyId);
+        let minPrecision = undefined;
+        const resultingNetworks = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            // TODO: transform chain id to human readable name
+            const networkId = this.safeString(network, 'chain_id', '');
+            const precision = this.parsePrecision(this.safeString(network, 'decimals'));
+            if (precision !== undefined) {
+                minPrecision = (minPrecision === undefined) ? precision : Precise["default"].stringMin(precision, minPrecision);
             }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'name': currencyId,
-                'code': code,
-                'precision': this.parseNumber(minPrecision),
-                'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
+            resultingNetworks[networkId] = {
+                'id': networkId,
+                'network': networkId,
                 'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(token, 'minimum_withdraw_amount'),
-                        'max': undefined,
-                    },
                 },
-                'info': token,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(network, 'withdrawal_fee'),
+                'precision': this.parseNumber(precision),
+                'info': network,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'name': currencyId,
+            'code': code,
+            'precision': this.parseNumber(minPrecision),
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'minimum_withdraw_amount'),
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
     parseTokenAndFeeTemp(item, feeTokenKey, feeAmountKey) {
         const feeCost = this.safeString(item, feeAmountKey);
@@ -768,7 +765,7 @@ class modetrade extends modetrade$1["default"] {
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
         const feeCost = this.safeString(fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((feeCost !== undefined) && (fee !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise["default"].stringMul(price, amount);
@@ -804,10 +801,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -848,16 +847,17 @@ class modetrade extends modetrade$1["default"] {
         //         }
         //
         const symbol = this.safeString(fundingRate, 'symbol');
-        market = this.market(symbol);
+        market = (symbol === undefined) ? market : this.market(symbol);
         const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
         const fundingTimeString = this.safeString(fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString(fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
+        const fundingSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': fundingSymbol,
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber('0'),
@@ -893,7 +893,7 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingInterval(symbol, params = {}) {
         return await this.fetchFundingRate(symbol, params);
@@ -905,10 +905,12 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -939,10 +941,12 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.v1PublicGetPublicFundingRates(params);
         //
@@ -973,14 +977,16 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1076,10 +1082,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -1136,10 +1144,12 @@ class modetrade extends modetrade$1["default"] {
      * @description fetch the trading fees for multiple markets
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientInfo(params);
         //
         // {
@@ -1172,16 +1182,19 @@ class modetrade extends modetrade$1["default"] {
         const maker = this.safeString(data, 'futures_maker_fee_rate');
         const taker = this.safeString(data, 'futures_taker_fee_rate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': this.parseNumber(Precise["default"].stringDiv(maker, '10000')),
-                'taker': this.parseNumber(Precise["default"].stringDiv(taker, '10000')),
-                'percentage': true,
-                'tierBased': true,
-            };
+        const symbols = this.symbols;
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                result[symbol] = {
+                    'info': response,
+                    'symbol': symbol,
+                    'maker': this.parseNumber(Precise["default"].stringDiv(maker, '10000')),
+                    'taker': this.parseNumber(Precise["default"].stringDiv(taker, '10000')),
+                    'percentage': true,
+                    'tierBased': true,
+                };
+            }
         }
         return result;
     }
@@ -1193,10 +1206,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1250,7 +1265,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1379,7 +1396,7 @@ class modetrade extends modetrade$1["default"] {
             'symbol': symbol,
             'type': this.parseOrderType(orderType),
             'timeInForce': this.parseTimeInForce(orderType),
-            'postOnly': undefined,
+            'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
@@ -1389,7 +1406,7 @@ class modetrade extends modetrade$1["default"] {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': remaining, // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1405,7 +1422,10 @@ class modetrade extends modetrade$1["default"] {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        if (timeInForce === undefined) {
+            return undefined;
+        }
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {
@@ -1420,6 +1440,9 @@ class modetrade extends modetrade$1["default"] {
                 'INCOMPLETE': 'open',
                 'COMPLETED': 'closed',
             };
+            if (status === undefined) {
+                return undefined;
+            }
             return this.safeString(statuses, status, status);
         }
         return status;
@@ -1430,6 +1453,9 @@ class modetrade extends modetrade$1["default"] {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
+        if (type === undefined) {
+            return undefined;
+        }
         return this.safeStringLower(types, type, type);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1449,6 +1475,9 @@ class modetrade extends modetrade$1["default"] {
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
@@ -1457,8 +1486,10 @@ class modetrade extends modetrade$1["default"] {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString(params, 'algoType');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1497,7 +1528,7 @@ class modetrade extends modetrade$1["default"] {
             request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
             request['algo_type'] = 'STOP';
         }
-        else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
+        else if (hasStopLoss || hasTakeProfit) {
             request['algo_type'] = 'TP_SL';
             const outterOrder = {
                 'symbol': market['id'],
@@ -1507,7 +1538,7 @@ class modetrade extends modetrade$1["default"] {
             };
             const childOrders = outterOrder['child_orders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
-            if (stopLoss !== undefined) {
+            if (hasStopLoss) {
                 const stopLossPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder = {
                     'side': closeSide,
@@ -1518,7 +1549,7 @@ class modetrade extends modetrade$1["default"] {
                 };
                 childOrders.push(stopLossOrder);
             }
-            if (takeProfit !== undefined) {
+            if (hasTakeProfit) {
                 const takeProfitPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder = {
                     'side': closeSide,
@@ -1554,10 +1585,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -1598,7 +1631,7 @@ class modetrade extends modetrade$1["default"] {
             // }
             //
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         data['timestamp'] = this.safeInteger(response, 'timestamp');
         const order = this.parseOrder(data, market);
         order['type'] = type;
@@ -1611,15 +1644,20 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            const type = this.safeString(rawOrder, 'type');
+            if (marketId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
+            }
+            const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -1641,7 +1679,7 @@ class modetrade extends modetrade$1["default"] {
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "rows": [{
         //                 "order_id": 13,
@@ -1675,10 +1713,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -1703,7 +1743,9 @@ class modetrade extends modetrade$1["default"] {
         }
         else {
             request['symbol'] = market['id'];
-            request['side'] = side.toUpperCase();
+            if (side !== undefined) {
+                request['side'] = side.toUpperCase();
+            }
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(params, 'timeInForce');
             const isMarket = orderType === 'MARKET';
@@ -1755,7 +1797,7 @@ class modetrade extends modetrade$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
@@ -1763,18 +1805,20 @@ class modetrade extends modetrade$1["default"] {
         if (!trigger && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1835,10 +1879,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
@@ -1873,10 +1919,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
@@ -1925,10 +1973,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2003,10 +2053,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @param {int} params.until timestamp in ms of the latest order to fetch
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger) ? 100 : 500;
@@ -2076,7 +2128,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data', response);
-        const orders = this.safeList(data, 'rows');
+        const orders = this.safeList(data, 'rows', []);
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -2094,10 +2146,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2116,10 +2170,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'COMPLETED' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2133,10 +2189,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2181,10 +2239,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
      * @param {int} params.until timestamp in ms of the latest trade to fetch
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2258,10 +2318,12 @@ class modetrade extends modetrade$1["default"] {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientHolding(params);
         //
         // {
@@ -2282,7 +2344,9 @@ class modetrade extends modetrade$1["default"] {
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2358,7 +2422,7 @@ class modetrade extends modetrade$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'BALANCE': 'transaction',
+            'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
         return this.safeString(types, type, type);
@@ -2372,7 +2436,7 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
@@ -2422,6 +2486,9 @@ class modetrade extends modetrade$1["default"] {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     /**
@@ -2433,7 +2500,7 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
@@ -2450,7 +2517,7 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
@@ -2467,13 +2534,13 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {};
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = this.safeList(currencyRows, 1, []);
         //
         //     {
         //         "rows":[],
@@ -2502,10 +2569,10 @@ class modetrade extends modetrade$1["default"] {
         return this.safeNumber(data, 'withdraw_nonce');
     }
     hashMessage(message) {
-        return '0x' + this.hash(message, sha3.keccak_256, 'hex');
+        return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
@@ -2524,10 +2591,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         if (code !== undefined) {
             code = code.toUpperCase();
@@ -2539,7 +2608,7 @@ class modetrade extends modetrade$1["default"] {
         const verifyingContractAddress = this.safeString(this.options, 'verifyingContractAddress');
         const chainId = this.safeString(params, 'chainId');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
-        const coinNetwork = this.safeDict(currencyNetworks, chainId, {});
+        const coinNetwork = (chainId === undefined) ? {} : this.safeDict(currencyNetworks, chainId, {});
         const coinNetworkId = this.safeNumber(coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() require chainId parameter');
@@ -2598,7 +2667,7 @@ class modetrade extends modetrade$1["default"] {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2611,10 +2680,12 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.v1PrivateGetClientInfo(params);
         //
@@ -2658,7 +2729,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const isMinLeverage = leverage < 1;
         const isMaxLeverage = leverage > 50;
         if (isMinLeverage || isMaxLeverage) {
@@ -2747,10 +2820,15 @@ class modetrade extends modetrade$1["default"] {
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchPosition() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2782,7 +2860,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parsePosition(data, market);
     }
     /**
@@ -2792,10 +2870,12 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetPositions(params);
         //
         // {
@@ -2846,8 +2926,7 @@ class modetrade extends modetrade$1["default"] {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][access]);
-        url += '/' + version + '/';
+        let url = this.urls['api'][access] + '/' + version + '/';
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         if (access === 'public') {
@@ -2909,7 +2988,7 @@ class modetrade extends modetrade$1["default"] {
                 const parts = secret.split('ed25519:');
                 secret = parts[1];
             }
-            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519.ed25519);
+            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
             headers['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

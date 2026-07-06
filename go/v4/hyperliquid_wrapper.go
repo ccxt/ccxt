@@ -6,7 +6,7 @@ type Hyperliquid struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewHyperliquid(userConfig map[string]interface{}) *Hyperliquid {
+func NewHyperliquid(userConfig map[string]any) *Hyperliquid {
 	p := NewHyperliquidCore()
 	p.Init(userConfig)
 	return &Hyperliquid{
@@ -28,13 +28,43 @@ func NewHyperliquidFromCore(core *HyperliquidCore) *Hyperliquid {
 
 /**
  * @method
+ * @name hyperliquid#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *Hyperliquid) FetchStatus(params ...any) (map[string]any, error) {
+	res := <-this.Core.FetchStatus(params...)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the exchange server
+ */
+func (this *Hyperliquid) FetchTime(params ...any) (int64, error) {
+	res := <-this.Core.FetchTime(params...)
+	if IsError(res) {
+		return -1, CreateReturnError(res)
+	}
+	return (res).(int64), nil
+}
+
+/**
+ * @method
  * @name hyperliquid#fetchCurrencies
  * @description fetches all available currencies on an exchange
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Hyperliquid) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Hyperliquid) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -51,8 +81,25 @@ func (this *Hyperliquid) FetchCurrencies(params ...interface{}) (Currencies, err
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hyperliquid) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Hyperliquid) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewMarketInterfaceArray(res), nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchHip3Markets
+ * @description retrieves data on all hip3 markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *Hyperliquid) FetchHip3Markets(params ...any) ([]MarketInterface, error) {
+	res := <-this.Core.FetchHip3Markets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -67,7 +114,7 @@ func (this *Hyperliquid) FetchMarkets(params ...interface{}) ([]MarketInterface,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hyperliquid) FetchSwapMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Hyperliquid) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -83,7 +130,7 @@ func (this *Hyperliquid) FetchSwapMarkets(params ...interface{}) ([]MarketInterf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hyperliquid) FetchSpotMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Hyperliquid) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -101,10 +148,12 @@ func (this *Hyperliquid) FetchSpotMarkets(params ...interface{}) ([]MarketInterf
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+ * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Hyperliquid) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Hyperliquid) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -120,7 +169,7 @@ func (this *Hyperliquid) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hyperliquid) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -130,12 +179,12 @@ func (this *Hyperliquid) FetchOrderBook(symbol string, options ...FetchOrderBook
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -155,7 +204,8 @@ func (this *Hyperliquid) FetchOrderBook(symbol string, options ...FetchOrderBook
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', by default fetches both
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -165,12 +215,12 @@ func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (Tickers, 
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -198,12 +248,12 @@ func (this *Hyperliquid) FetchFundingRates(options ...FetchFundingRatesOptions) 
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -235,22 +285,22 @@ func (this *Hyperliquid) FetchOHLCV(symbol string, options ...FetchOHLCVOptions)
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -275,7 +325,7 @@ func (this *Hyperliquid) FetchOHLCV(symbol string, options ...FetchOHLCVOptions)
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.user] wallet address that made trades
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -285,17 +335,17 @@ func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOption
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -325,7 +375,7 @@ func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOption
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -335,16 +385,50 @@ func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string,
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#createTwapOrder
+ * @description create a trade order that is executed as a TWAP order over a specified duration.
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {int} duration the duration of the TWAP order in milliseconds
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.randomize] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
+
+	opts := CreateTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateTwapOrder(symbol, side, amount, duration, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -358,7 +442,7 @@ func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string,
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -368,7 +452,7 @@ func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOr
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -391,7 +475,8 @@ func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOr
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -401,12 +486,12 @@ func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -429,7 +514,7 @@ func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (
  * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -439,12 +524,12 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptio
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -457,6 +542,42 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptio
 
 /**
  * @method
+ * @name hyperliquid#cancelTwapOrder
+ * @description cancels a running twap order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CancelTwapOrder(id string, options ...CancelTwapOrderOptions) (Order, error) {
+
+	opts := CancelTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CancelTwapOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+
+/**
+ * @method
  * @name hyperliquid#cancelOrdersForSymbols
  * @description cancel multiple orders for multiple symbols
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
@@ -465,7 +586,7 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 
@@ -475,7 +596,7 @@ func (this *Hyperliquid) CancelOrdersForSymbols(orders []CancellationRequest, op
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -496,7 +617,7 @@ func (this *Hyperliquid) CancelOrdersForSymbols(orders []CancellationRequest, op
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} the api result
  */
-func (this *Hyperliquid) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 
 	opts := CancelAllOrdersAfterOptionsStruct{}
 
@@ -504,15 +625,15 @@ func (this *Hyperliquid) CancelAllOrdersAfter(timeout int64, options ...CancelAl
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.CancelAllOrdersAfter(timeout, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -534,7 +655,7 @@ func (this *Hyperliquid) CancelAllOrdersAfter(timeout int64, options ...CancelAl
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -544,17 +665,17 @@ func (this *Hyperliquid) EditOrder(id string, symbol string, typeVar string, sid
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -572,7 +693,7 @@ func (this *Hyperliquid) EditOrder(id string, symbol string, typeVar string, sid
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 
@@ -582,7 +703,7 @@ func (this *Hyperliquid) EditOrders(orders []OrderRequest, options ...EditOrders
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -600,10 +721,10 @@ func (this *Hyperliquid) EditOrders(orders []OrderRequest, options ...EditOrders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Hyperliquid) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -613,22 +734,22 @@ func (this *Hyperliquid) FetchFundingRateHistory(options ...FetchFundingRateHist
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -651,7 +772,8 @@ func (this *Hyperliquid) FetchFundingRateHistory(options ...FetchFundingRateHist
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -661,22 +783,22 @@ func (this *Hyperliquid) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]O
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -696,7 +818,7 @@ func (this *Hyperliquid) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]O
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -706,22 +828,22 @@ func (this *Hyperliquid) FetchClosedOrders(options ...FetchClosedOrdersOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -741,7 +863,7 @@ func (this *Hyperliquid) FetchClosedOrders(options ...FetchClosedOrdersOptions) 
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -751,22 +873,22 @@ func (this *Hyperliquid) FetchCanceledOrders(options ...FetchCanceledOrdersOptio
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -786,7 +908,7 @@ func (this *Hyperliquid) FetchCanceledOrders(options ...FetchCanceledOrdersOptio
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
@@ -796,22 +918,22 @@ func (this *Hyperliquid) FetchCanceledAndClosedOrders(options ...FetchCanceledAn
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -832,7 +954,8 @@ func (this *Hyperliquid) FetchCanceledAndClosedOrders(options ...FetchCanceledAn
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -842,22 +965,22 @@ func (this *Hyperliquid) FetchOrders(options ...FetchOrdersOptions) ([]Order, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -879,7 +1002,7 @@ func (this *Hyperliquid) FetchOrders(options ...FetchOrdersOptions) ([]Order, er
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -889,12 +1012,12 @@ func (this *Hyperliquid) FetchOrder(id string, options ...FetchOrderOptions) (Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -917,7 +1040,7 @@ func (this *Hyperliquid) FetchOrder(id string, options ...FetchOrderOptions) (Or
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -927,22 +1050,22 @@ func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -961,7 +1084,7 @@ func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Hyperliquid) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -971,7 +1094,7 @@ func (this *Hyperliquid) FetchPosition(symbol string, options ...FetchPositionOp
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -991,7 +1114,8 @@ func (this *Hyperliquid) FetchPosition(symbol string, options ...FetchPositionOp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @param {string} [params.dex] perp dex name, eg: XYZ
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Hyperliquid) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1001,12 +1125,12 @@ func (this *Hyperliquid) FetchPositions(options ...FetchPositionsOptions) ([]Pos
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1029,7 +1153,7 @@ func (this *Hyperliquid) FetchPositions(options ...FetchPositionsOptions) ([]Pos
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} response from the exchange
  */
-func (this *Hyperliquid) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 
 	opts := SetMarginModeOptionsStruct{}
 
@@ -1037,20 +1161,20 @@ func (this *Hyperliquid) SetMarginMode(marginMode string, options ...SetMarginMo
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetMarginMode(marginMode, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1063,7 +1187,7 @@ func (this *Hyperliquid) SetMarginMode(marginMode string, options ...SetMarginMo
  * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
  * @returns {object} response from the exchange
  */
-func (this *Hyperliquid) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
 
 	opts := SetLeverageOptionsStruct{}
 
@@ -1071,20 +1195,20 @@ func (this *Hyperliquid) SetLeverage(leverage int64, options ...SetLeverageOptio
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetLeverage(leverage, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1098,7 +1222,7 @@ func (this *Hyperliquid) SetLeverage(leverage int64, options ...SetLeverageOptio
  * @param {string} toAccount account to transfer to *swap, spot or address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address for order
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Hyperliquid) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1108,7 +1232,7 @@ func (this *Hyperliquid) Transfer(code string, amount float64, fromAccount strin
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1131,7 +1255,7 @@ func (this *Hyperliquid) Transfer(code string, amount float64, fromAccount strin
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] vault address withdraw from
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hyperliquid) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1141,12 +1265,12 @@ func (this *Hyperliquid) Withdraw(code string, amount float64, address string, o
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1165,7 +1289,7 @@ func (this *Hyperliquid) Withdraw(code string, amount float64, address string, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Hyperliquid) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -1175,7 +1299,7 @@ func (this *Hyperliquid) FetchTradingFee(symbol string, options ...FetchTradingF
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1196,7 +1320,7 @@ func (this *Hyperliquid) FetchTradingFee(symbol string, options ...FetchTradingF
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Hyperliquid) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1206,22 +1330,22 @@ func (this *Hyperliquid) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEnt
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1243,7 +1367,7 @@ func (this *Hyperliquid) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEnt
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.vaultAddress] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hyperliquid) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -1253,22 +1377,22 @@ func (this *Hyperliquid) FetchDeposits(options ...FetchDepositsOptions) ([]Trans
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1290,7 +1414,7 @@ func (this *Hyperliquid) FetchDeposits(options ...FetchDepositsOptions) ([]Trans
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.vaultAddress] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hyperliquid) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1300,22 +1424,22 @@ func (this *Hyperliquid) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1332,7 +1456,7 @@ func (this *Hyperliquid) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([
  * @description Retrieves the open interest for a list of symbols
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Hyperliquid) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
 
@@ -1342,12 +1466,12 @@ func (this *Hyperliquid) FetchOpenInterests(options ...FetchOpenInterestsOptions
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1364,7 +1488,7 @@ func (this *Hyperliquid) FetchOpenInterests(options ...FetchOpenInterestsOptions
  * @description retrieves the open interest of a contract trading pair
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Hyperliquid) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -1374,7 +1498,7 @@ func (this *Hyperliquid) FetchOpenInterest(symbol string, options ...FetchOpenIn
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1394,7 +1518,7 @@ func (this *Hyperliquid) FetchOpenInterest(symbol string, options ...FetchOpenIn
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1404,22 +1528,22 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1429,14 +1553,38 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 	}
 	return NewFundingHistoryArray(res), nil
 }
+func (this *Hyperliquid) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]any, error) {
+
+	opts := CreateSubAccountOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateSubAccount(name, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
 
 // missing typed methods from base
 // nolint
-func (this *Hyperliquid) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Hyperliquid) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
+}
+func (this *Hyperliquid) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
 func (this *Hyperliquid) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
+}
+func (this *Hyperliquid) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Hyperliquid) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
@@ -1513,7 +1661,10 @@ func (this *Hyperliquid) EditLimitOrder(id string, symbol string, side string, a
 func (this *Hyperliquid) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
 }
-func (this *Hyperliquid) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Hyperliquid) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
+}
+func (this *Hyperliquid) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Hyperliquid) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1525,10 +1676,10 @@ func (this *Hyperliquid) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers
 func (this *Hyperliquid) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Hyperliquid) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
-func (this *Hyperliquid) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Hyperliquid) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Hyperliquid) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1543,7 +1694,7 @@ func (this *Hyperliquid) FetchConvertTradeHistory(options ...FetchConvertTradeHi
 func (this *Hyperliquid) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Hyperliquid) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Hyperliquid) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Hyperliquid) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -1558,13 +1709,13 @@ func (this *Hyperliquid) FetchDepositAddressesByNetwork(code string, options ...
 func (this *Hyperliquid) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Hyperliquid) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Hyperliquid) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Hyperliquid) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Hyperliquid) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Hyperliquid) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
@@ -1585,7 +1736,7 @@ func (this *Hyperliquid) FetchIndexOHLCV(symbol string, options ...FetchIndexOHL
 func (this *Hyperliquid) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Hyperliquid) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Hyperliquid) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Hyperliquid) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1645,6 +1796,9 @@ func (this *Hyperliquid) FetchOption(symbol string, options ...FetchOptionOption
 func (this *Hyperliquid) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
+func (this *Hyperliquid) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Hyperliquid) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -1654,13 +1808,13 @@ func (this *Hyperliquid) FetchOrderStatus(id string, options ...FetchOrderStatus
 func (this *Hyperliquid) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hyperliquid) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hyperliquid) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hyperliquid) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hyperliquid) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1675,25 +1829,19 @@ func (this *Hyperliquid) FetchPositionsRisk(options ...FetchPositionsRiskOptions
 func (this *Hyperliquid) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hyperliquid) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
 func (this *Hyperliquid) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTicker(symbol, options...)
 }
-func (this *Hyperliquid) FetchTime(params ...interface{}) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
-}
-func (this *Hyperliquid) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Hyperliquid) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Hyperliquid) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Hyperliquid) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Hyperliquid) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Hyperliquid) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1708,7 +1856,7 @@ func (this *Hyperliquid) FetchTransfers(options ...FetchTransfersOptions) ([]Tra
 func (this *Hyperliquid) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Hyperliquid) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Hyperliquid) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -1783,13 +1931,13 @@ func (this *Hyperliquid) CreateTriggerOrderWs(symbol string, typeVar string, sid
 func (this *Hyperliquid) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Hyperliquid) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Hyperliquid) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Hyperliquid) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hyperliquid) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hyperliquid) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1831,46 +1979,46 @@ func (this *Hyperliquid) FetchTickerWs(symbol string, options ...FetchTickerWsOp
 func (this *Hyperliquid) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Hyperliquid) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Hyperliquid) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hyperliquid) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Hyperliquid) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Hyperliquid) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Hyperliquid) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Hyperliquid) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Hyperliquid) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Hyperliquid) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Hyperliquid) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Hyperliquid) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Hyperliquid) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Hyperliquid) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Hyperliquid) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Hyperliquid) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Hyperliquid) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Hyperliquid) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Hyperliquid) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

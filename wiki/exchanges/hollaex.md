@@ -52,7 +52,7 @@ retrieves data on all markets for hollaex
 
 
 ```javascript
-hollaex.fetchMarkets ([params])
+hollaex.fetchMarkets (params?)
 ```
 
 
@@ -72,7 +72,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-hollaex.fetchCurrencies ([params])
+hollaex.fetchCurrencies (params?)
 ```
 
 
@@ -82,7 +82,7 @@ hollaex.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbol
+**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbol
 
 **See**: https://apidocs.hollaex.com/#orderbooks  
 
@@ -94,7 +94,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hollaex.fetchOrderBooks (symbols[, limit, params])
+hollaex.fetchOrderBooks (symbols, limit?, params?)
 ```
 
 
@@ -104,7 +104,7 @@ hollaex.fetchOrderBooks (symbols[, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.hollaex.com/#orderbook  
 
@@ -116,7 +116,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hollaex.fetchOrderBook (symbol[, limit, params])
+hollaex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -126,7 +126,7 @@ hollaex.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.hollaex.com/#ticker  
 
@@ -137,7 +137,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-hollaex.fetchTicker (symbol[, params])
+hollaex.fetchTicker (symbol, params?)
 ```
 
 
@@ -147,7 +147,7 @@ hollaex.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.hollaex.com/#tickers  
 
@@ -158,7 +158,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-hollaex.fetchTickers (symbols[, params])
+hollaex.fetchTickers (symbols, params?)
 ```
 
 
@@ -168,7 +168,7 @@ hollaex.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.hollaex.com/#trades  
 
@@ -181,7 +181,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-hollaex.fetchTrades (symbol[, since, limit, params])
+hollaex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -191,7 +191,7 @@ hollaex.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://apidocs.hollaex.com/#tiers  
 
@@ -201,7 +201,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-hollaex.fetchTradingFees ([params])
+hollaex.fetchTradingFees (params?)
 ```
 
 
@@ -226,7 +226,7 @@ hollaex has large gaps between candles, so it's recommended to specify since
 
 
 ```javascript
-hollaex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+hollaex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -236,7 +236,7 @@ hollaex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://apidocs.hollaex.com/#get-balance  
 
@@ -246,7 +246,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-hollaex.fetchBalance ([params])
+hollaex.fetchBalance (params?)
 ```
 
 
@@ -256,7 +256,7 @@ hollaex.fetchBalance ([params])
 fetch an open order by it's id
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#get-order  
 
@@ -268,7 +268,7 @@ fetch an open order by it's id
 
 
 ```javascript
-hollaex.fetchOpenOrder (id, symbol[, params])
+hollaex.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -278,7 +278,7 @@ hollaex.fetchOpenOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#get-all-orders  
 
@@ -291,7 +291,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-hollaex.fetchOpenOrders (symbol[, since, limit, params])
+hollaex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -301,7 +301,7 @@ hollaex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#get-all-orders  
 
@@ -314,7 +314,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-hollaex.fetchClosedOrders (symbol[, since, limit, params])
+hollaex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -324,7 +324,7 @@ hollaex.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#get-order  
 
@@ -336,7 +336,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-hollaex.fetchOrder (id, symbol[, params])
+hollaex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -346,7 +346,7 @@ hollaex.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#get-all-orders  
 
@@ -359,7 +359,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-hollaex.fetchOrders (symbol[, since, limit, params])
+hollaex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -369,7 +369,7 @@ hollaex.fetchOrders (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#create-order  
 
@@ -386,7 +386,7 @@ create a trade order
 
 
 ```javascript
-hollaex.createOrder (symbol, type, side, amount[, price, params])
+hollaex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -396,7 +396,7 @@ hollaex.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#cancel-order  
 
@@ -408,7 +408,7 @@ cancels an open order
 
 
 ```javascript
-hollaex.cancelOrder (id, symbol[, params])
+hollaex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -418,7 +418,7 @@ hollaex.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#cancel-all-orders  
 
@@ -429,7 +429,7 @@ cancel all open orders in a market
 
 
 ```javascript
-hollaex.cancelAllOrders (symbol[, params])
+hollaex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -439,7 +439,7 @@ hollaex.cancelAllOrders (symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://apidocs.hollaex.com/#get-trades  
 
@@ -452,7 +452,7 @@ fetch all trades made by the user
 
 
 ```javascript
-hollaex.fetchMyTrades (symbol[, since, limit, params])
+hollaex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -462,7 +462,7 @@ hollaex.fetchMyTrades (symbol[, since, limit, params])
 fetch deposit addresses for multiple currencies and chain types
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://apidocs.hollaex.com/#get-user  
 
@@ -473,7 +473,7 @@ fetch deposit addresses for multiple currencies and chain types
 
 
 ```javascript
-hollaex.fetchDepositAddresses (codes[, params])
+hollaex.fetchDepositAddresses (codes, params?)
 ```
 
 
@@ -483,7 +483,7 @@ hollaex.fetchDepositAddresses (codes[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://apidocs.hollaex.com/#get-deposits  
 
@@ -496,7 +496,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-hollaex.fetchDeposits (code[, since, limit, params])
+hollaex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -506,7 +506,7 @@ hollaex.fetchDeposits (code[, since, limit, params])
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://apidocs.hollaex.com/#get-withdrawals  
 
@@ -518,7 +518,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-hollaex.fetchWithdrawal (id, code[, params])
+hollaex.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -528,7 +528,7 @@ hollaex.fetchWithdrawal (id, code[, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://apidocs.hollaex.com/#get-withdrawals  
 
@@ -541,7 +541,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-hollaex.fetchWithdrawals (code[, since, limit, params])
+hollaex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -551,7 +551,7 @@ hollaex.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://apidocs.hollaex.com/#withdrawal  
 
@@ -565,7 +565,7 @@ make a withdrawal
 
 
 ```javascript
-hollaex.withdraw (code, amount, address, tag[, params])
+hollaex.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -575,7 +575,7 @@ hollaex.withdraw (code, amount, address, tag[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://apidocs.hollaex.com/#constants  
 
@@ -586,7 +586,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-hollaex.fetchDepositWithdrawFees (codes[, params])
+hollaex.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -596,7 +596,7 @@ hollaex.fetchDepositWithdrawFees (codes[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
@@ -608,7 +608,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hollaex.watchOrderBook (symbol[, limit, params])
+hollaex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -618,7 +618,7 @@ hollaex.watchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
@@ -631,7 +631,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-hollaex.watchTrades (symbol[, since, limit, params])
+hollaex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -641,7 +641,7 @@ hollaex.watchTrades (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
@@ -654,7 +654,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-hollaex.watchMyTrades (symbol[, since, limit, params])
+hollaex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -664,7 +664,7 @@ hollaex.watchMyTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
@@ -677,7 +677,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-hollaex.watchOrders (symbol[, since, limit, params])
+hollaex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -687,7 +687,7 @@ hollaex.watchOrders (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
@@ -697,6 +697,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-hollaex.watchBalance ([params])
+hollaex.watchBalance (params?)
 ```
 

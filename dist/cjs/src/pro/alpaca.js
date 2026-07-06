@@ -36,7 +36,7 @@ class alpaca extends alpaca$1["default"] {
                 'watchPosition': false,
                 'watchPositions': false,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
             },
             'urls': {
@@ -69,12 +69,14 @@ class alpaca extends alpaca$1["default"] {
      * @see https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#quotes
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
         const request = {
@@ -153,7 +155,9 @@ class alpaca extends alpaca$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const request = {
@@ -203,12 +207,14 @@ class alpaca extends alpaca$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
@@ -267,7 +273,7 @@ class alpaca extends alpaca$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'p', 's');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'p', 's');
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {
@@ -284,12 +290,14 @@ class alpaca extends alpaca$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
@@ -338,13 +346,15 @@ class alpaca extends alpaca$1["default"] {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);
         let messageHash = 'myTrades';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += ':' + symbol;
@@ -369,12 +379,14 @@ class alpaca extends alpaca$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market(symbol);

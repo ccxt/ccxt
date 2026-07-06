@@ -3,14 +3,15 @@ import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { InvalidNonce } from '../../../base/errors.js';
-import { Exchange } from '../../../../ccxt.js';
+import { Exchange, OrderBook } from '../../../../ccxt.js';
 
 async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchOrderBookForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
-        let response = undefined;
+    const returnedSymbols: string[] = [];
+    while (now < ends || returnedSymbols.length < symbols.length) {
+        let response: OrderBook | undefined = undefined;
         let success = true;
         try {
             response = await exchange.watchOrderBookForSymbols (symbols);
@@ -23,12 +24,16 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             // continue;
             success = false;
         }
-        if (success === true) {
+        if ((success === true) && (response !== undefined)) {
         // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an object. ' + exchange.json (response));
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an object. ' + exchange.json (response));
             now = exchange.milliseconds ();
             testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook (exchange, skippedProperties, method, response, undefined);
+            const symbol = response['symbol'];
+            if ((symbol !== undefined) && !exchange.inArray (symbol, returnedSymbols)) {
+                returnedSymbols.push (symbol);
+            }
         }
     }
     return true;

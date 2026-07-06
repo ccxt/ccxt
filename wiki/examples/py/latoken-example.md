@@ -1,8 +1,5 @@
-- [Latoken Example](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -114,5 +111,5 @@ if exchange.check_required_credentials(False):
 
     my_trades = exchange.fetch_my_trades (symbol)
     print(table([exchange.omit(x, ['info', 'timestamp']) for x in my_trades]))
- 
+
 ```

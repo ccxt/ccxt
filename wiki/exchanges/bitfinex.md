@@ -59,7 +59,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-platform-status  
 
@@ -69,7 +69,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-bitfinex.fetchStatus ([params])
+bitfinex.fetchStatus (params?)
 ```
 
 
@@ -89,7 +89,7 @@ retrieves data on all markets for bitfinex
 
 
 ```javascript
-bitfinex.fetchMarkets ([params])
+bitfinex.fetchMarkets (params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitfinex.fetchCurrencies ([params])
+bitfinex.fetchCurrencies (params?)
 ```
 
 
@@ -119,7 +119,7 @@ bitfinex.fetchCurrencies ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-wallets  
 
@@ -129,7 +129,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitfinex.fetchBalance ([params])
+bitfinex.fetchBalance (params?)
 ```
 
 
@@ -139,7 +139,7 @@ bitfinex.fetchBalance ([params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-transfer  
 
@@ -153,7 +153,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bitfinex.transfer (code, amount, fromAccount, toAccount[, params])
+bitfinex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -163,7 +163,7 @@ bitfinex.transfer (code, amount, fromAccount, toAccount[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-book  
 
@@ -175,7 +175,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitfinex.fetchOrderBook (symbol[, limit, params])
+bitfinex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -185,7 +185,7 @@ bitfinex.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-tickers  
 
@@ -196,7 +196,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitfinex.fetchTickers (symbols[, params])
+bitfinex.fetchTickers (symbols, params?)
 ```
 
 
@@ -206,7 +206,7 @@ bitfinex.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-ticker  
 
@@ -217,7 +217,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitfinex.fetchTicker (symbol[, params])
+bitfinex.fetchTicker (symbol, params?)
 ```
 
 
@@ -227,7 +227,7 @@ bitfinex.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-trades  
 
@@ -242,7 +242,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitfinex.fetchTrades (symbol[, since, limit, params])
+bitfinex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -268,7 +268,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitfinex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitfinex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -278,7 +278,7 @@ bitfinex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 create an order on the exchange
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-submit-order  
 
@@ -302,7 +302,7 @@ create an order on the exchange
 
 
 ```javascript
-bitfinex.createOrder (symbol, type, side, amount[, price, params])
+bitfinex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -312,7 +312,7 @@ bitfinex.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-order-multi  
 
@@ -323,7 +323,7 @@ create a list of trade orders
 
 
 ```javascript
-bitfinex.createOrders (orders[, params])
+bitfinex.createOrders (orders, params?)
 ```
 
 
@@ -333,7 +333,7 @@ bitfinex.createOrders (orders[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple  
 
@@ -344,7 +344,7 @@ cancel all open orders
 
 
 ```javascript
-bitfinex.cancelAllOrders (symbol[, params])
+bitfinex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -354,7 +354,7 @@ bitfinex.cancelAllOrders (symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-cancel-order  
 
@@ -366,7 +366,7 @@ cancels an open order
 
 
 ```javascript
-bitfinex.cancelOrder (id, symbol[, params])
+bitfinex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -376,7 +376,7 @@ bitfinex.cancelOrder (id, symbol[, params])
 cancel multiple orders at the same time
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple  
 
@@ -388,7 +388,7 @@ cancel multiple orders at the same time
 
 
 ```javascript
-bitfinex.cancelOrders (ids, symbol[, params])
+bitfinex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -398,7 +398,7 @@ bitfinex.cancelOrders (ids, symbol[, params])
 fetch an open order by it's id
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -414,7 +414,7 @@ fetch an open order by it's id
 
 
 ```javascript
-bitfinex.fetchOpenOrder (id, symbol[, params])
+bitfinex.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -424,7 +424,7 @@ bitfinex.fetchOpenOrder (id, symbol[, params])
 fetch an open order by it's id
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -440,7 +440,7 @@ fetch an open order by it's id
 
 
 ```javascript
-bitfinex.fetchClosedOrder (id, symbol[, params])
+bitfinex.fetchClosedOrder (id, symbol, params?)
 ```
 
 
@@ -450,7 +450,7 @@ bitfinex.fetchClosedOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -467,7 +467,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitfinex.fetchOpenOrders (symbol[, since, limit, params])
+bitfinex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -477,7 +477,7 @@ bitfinex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -496,7 +496,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitfinex.fetchClosedOrders (symbol[, since, limit, params])
+bitfinex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -506,7 +506,7 @@ bitfinex.fetchClosedOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-order-trades  
 
@@ -520,7 +520,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bitfinex.fetchOrderTrades (id, symbol[, since, limit, params])
+bitfinex.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -530,7 +530,7 @@ bitfinex.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -547,7 +547,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitfinex.fetchMyTrades (symbol[, since, limit, params])
+bitfinex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -557,7 +557,7 @@ bitfinex.fetchMyTrades (symbol[, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-deposit-address  
 
@@ -568,7 +568,7 @@ create a currency deposit address
 
 
 ```javascript
-bitfinex.createDepositAddress (code[, params])
+bitfinex.createDepositAddress (code, params?)
 ```
 
 
@@ -578,7 +578,7 @@ bitfinex.createDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-deposit-address  
 
@@ -589,7 +589,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitfinex.fetchDepositAddress (code[, params])
+bitfinex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -599,7 +599,7 @@ bitfinex.fetchDepositAddress (code[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-summary  
 
@@ -609,7 +609,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitfinex.fetchTradingFees ([params])
+bitfinex.fetchTradingFees (params?)
 ```
 
 
@@ -619,7 +619,7 @@ bitfinex.fetchTradingFees ([params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -636,7 +636,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-bitfinex.fetchDepositsWithdrawals ([code, since, limit, params])
+bitfinex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -646,7 +646,7 @@ bitfinex.fetchDepositsWithdrawals ([code, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-withdraw  
 
@@ -660,7 +660,7 @@ make a withdrawal
 
 
 ```javascript
-bitfinex.withdraw (code, amount, address, tag[, params])
+bitfinex.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -670,7 +670,7 @@ bitfinex.withdraw (code, amount, address, tag[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-positions  
 
@@ -681,7 +681,7 @@ fetch all open positions
 
 
 ```javascript
-bitfinex.fetchPositions (symbols[, params])
+bitfinex.fetchPositions (symbols, params?)
 ```
 
 
@@ -691,7 +691,7 @@ bitfinex.fetchPositions (symbols[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-ledgers  
 
@@ -706,7 +706,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitfinex.fetchLedger ([code, since, limit, params])
+bitfinex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -716,7 +716,7 @@ bitfinex.fetchLedger ([code, since, limit, params])
 fetch the current funding rate for multiple symbols
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-derivatives-status  
 
@@ -727,7 +727,7 @@ fetch the current funding rate for multiple symbols
 
 
 ```javascript
-bitfinex.fetchFundingRates (symbols[, params])
+bitfinex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -737,7 +737,7 @@ bitfinex.fetchFundingRates (symbols[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-derivatives-status-history  
 
@@ -752,7 +752,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bitfinex.fetchFundingRateHistory (symbol[, since, limit, params])
+bitfinex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -762,7 +762,7 @@ bitfinex.fetchFundingRateHistory (symbol[, since, limit, params])
 Retrieves the open interest for a list of symbols
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-derivatives-status  
 
@@ -773,7 +773,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-bitfinex.fetchOpenInterests ([symbols, params])
+bitfinex.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -783,7 +783,7 @@ bitfinex.fetchOpenInterests ([symbols, params])
 retrieves the open interest of a contract trading pair
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-derivatives-status  
 
@@ -794,7 +794,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-bitfinex.fetchOpenInterest (symbol[, params])
+bitfinex.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -804,7 +804,7 @@ bitfinex.fetchOpenInterest (symbol[, params])
 retrieves the open interest history of a currency
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: An array of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: An array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-derivatives-status-history  
 
@@ -820,7 +820,7 @@ retrieves the open interest history of a currency
 
 
 ```javascript
-bitfinex.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+bitfinex.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -830,7 +830,7 @@ bitfinex.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
 retrieves the public liquidations of a trading pair
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-public-liquidations  
 
@@ -845,7 +845,7 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-bitfinex.fetchLiquidations (symbol[, since, limit, params])
+bitfinex.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -867,7 +867,7 @@ either adds or reduces margin in a swap position in order to set the margin to a
 
 
 ```javascript
-bitfinex.setMargin (symbol, amount[, params])
+bitfinex.setMargin (symbol, amount, params?)
 ```
 
 
@@ -877,7 +877,7 @@ bitfinex.setMargin (symbol, amount[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -893,7 +893,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitfinex.fetchOrder (id[, symbol, params])
+bitfinex.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -903,7 +903,7 @@ bitfinex.fetchOrder (id[, symbol, params])
 edit a trade order
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitfinex.com/reference/rest-auth-update-order  
 
@@ -926,7 +926,7 @@ edit a trade order
 
 
 ```javascript
-bitfinex.editOrder (id, symbol, type, side, amount[, price, params])
+bitfinex.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -949,7 +949,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitfinex.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitfinex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -970,7 +970,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bitfinex.unWatchOHLCV (symbol, timeframe[, params])
+bitfinex.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -980,7 +980,7 @@ bitfinex.unWatchOHLCV (symbol, timeframe[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -992,7 +992,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitfinex.watchTrades (symbol[, since, limit, params])
+bitfinex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1002,7 +1002,7 @@ bitfinex.watchTrades (symbol[, since, limit, params])
 unWatches the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -1012,7 +1012,7 @@ unWatches the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitfinex.unWatchTrades (symbol[, params])
+bitfinex.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1022,7 +1022,7 @@ bitfinex.unWatchTrades (symbol[, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -1034,7 +1034,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitfinex.watchMyTrades (symbol[, since, limit, params])
+bitfinex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1044,7 +1044,7 @@ bitfinex.watchMyTrades (symbol[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -1054,7 +1054,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitfinex.watchTicker (symbol[, params])
+bitfinex.watchTicker (symbol, params?)
 ```
 
 
@@ -1064,7 +1064,7 @@ bitfinex.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -1074,7 +1074,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bitfinex.unWatchTicker (symbol[, params])
+bitfinex.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1084,7 +1084,7 @@ bitfinex.unWatchTicker (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -1095,7 +1095,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitfinex.watchOrderBook (symbol[, limit, params])
+bitfinex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1105,7 +1105,7 @@ bitfinex.watchOrderBook (symbol[, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -1115,7 +1115,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitfinex.watchBalance ([params])
+bitfinex.watchBalance (params?)
 ```
 
 
@@ -1125,7 +1125,7 @@ bitfinex.watchBalance ([params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1137,6 +1137,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitfinex.watchOrders (symbol[, since, limit, params])
+bitfinex.watchOrders (symbol, since?, limit?, params?)
 ```
 

@@ -20,7 +20,7 @@ class coincheck(Exchange, ImplicitAPI):
     def describe(self) -> Any:
         return self.deep_extend(super(coincheck, self).describe(), {
             'id': 'coincheck',
-            'name': 'coincheck',
+            'name': 'Coincheck',
             'countries': ['JP', 'ID'],
             'rateLimit': 1500,
             'has': {
@@ -94,6 +94,7 @@ class coincheck(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -126,6 +127,7 @@ class coincheck(Exchange, ImplicitAPI):
                 'public': {
                     'get': [
                         'exchange/orders/rate',
+                        'exchange_status',
                         'order_books',
                         'rate/{pair}',
                         'ticker',
@@ -139,7 +141,9 @@ class coincheck(Exchange, ImplicitAPI):
                         'accounts/leverage_balance',
                         'bank_accounts',
                         'deposit_money',
+                        'exchange/orders/{id}',
                         'exchange/orders/opens',
+                        'exchange/orders/cancel_status',
                         'exchange/orders/transactions',
                         'exchange/orders/transactions_pagination',
                         'exchange/leverage/positions',
@@ -265,7 +269,7 @@ class coincheck(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -279,6 +283,50 @@ class coincheck(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
+    def fetch_status(self, params={}) -> dict:
+        """
+        the latest known information on the availability of the exchange API
+
+        https://coincheck.com/documents/exchange/api#status-retrieval
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
+        """
+        response = self.publicGetExchangeStatus(params)
+        #
+        #     {
+        #         "exchange_status": [
+        #             {
+        #                 "pair": "btc_jpy",
+        #                 "status": "available",
+        #                 "timestamp": 1782787596,
+        #                 "availability": {
+        #                     "order": True,
+        #                     "market_order": True,
+        #                     "cancel": True
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        exchangeStatuses = self.safe_list(response, 'exchange_status', [])
+        status = 'ok'
+        updated = None
+        for i in range(0, len(exchangeStatuses)):
+            exchangeStatus = exchangeStatuses[i]
+            rawStatus = self.safe_string(exchangeStatus, 'status')
+            if updated is None:
+                updated = self.safe_timestamp(exchangeStatus, 'timestamp')
+            if rawStatus != 'available':
+                status = 'maintenance'
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -286,9 +334,10 @@ class coincheck(Exchange, ImplicitAPI):
         https://coincheck.com/documents/exchange/api#order-transactions-pagination
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountsBalance(params)
         return self.parse_balance(response)
 
@@ -302,9 +351,10 @@ class coincheck(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # Only BTC/JPY is meaningful
         market = None
         if symbol is not None:
@@ -374,11 +424,12 @@ class coincheck(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetOrderBooks(self.extend(request, params))
@@ -430,13 +481,14 @@ class coincheck(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if symbol != 'BTC/JPY':
             raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         ticker = self.publicGetTicker(self.extend(request, params))
@@ -541,11 +593,12 @@ class coincheck(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
@@ -584,11 +637,12 @@ class coincheck(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -614,9 +668,10 @@ class coincheck(Exchange, ImplicitAPI):
         https://coincheck.com/documents/exchange/api#account-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccounts(params)
         #
         #     {
@@ -638,9 +693,12 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_value(response, 'exchange_fees', {})
-        result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        result = {}
+        symbols = self.symbols
+        if symbols is None:
+            return result
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = self.safe_value(fees, market['id'], {})
             result[symbol] = {
@@ -665,11 +723,12 @@ class coincheck(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if type == 'market':
@@ -702,9 +761,9 @@ class coincheck(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by coincheck cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'id': id,
         }
         response = self.privateDeleteExchangeOrdersId(self.extend(request, params))
@@ -726,11 +785,12 @@ class coincheck(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -773,13 +833,14 @@ class coincheck(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetWithdraws(self.extend(request, params))
@@ -808,7 +869,7 @@ class coincheck(Exchange, ImplicitAPI):
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # withdrawals
             'pending': 'pending',
             'processing': 'pending',
@@ -888,7 +949,7 @@ class coincheck(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

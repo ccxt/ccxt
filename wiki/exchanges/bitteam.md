@@ -39,7 +39,7 @@ retrieves data on all markets for bitteam
 
 
 ```javascript
-bitteam.fetchMarkets ([params])
+bitteam.fetchMarkets (params?)
 ```
 
 
@@ -59,7 +59,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitteam.fetchCurrencies ([params])
+bitteam.fetchCurrencies (params?)
 ```
 
 
@@ -82,7 +82,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitteam.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitteam.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -104,7 +104,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitteam.fetchOrderBook (symbol[, limit, params])
+bitteam.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -128,7 +128,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitteam.fetchOrders (symbol[, since, limit, params])
+bitteam.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -150,7 +150,7 @@ fetches information on an order
 
 
 ```javascript
-bitteam.fetchOrder (id, symbol[, params])
+bitteam.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -173,7 +173,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitteam.fetchOpenOrders (symbol[, since, limit, params])
+bitteam.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -196,7 +196,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitteam.fetchClosedOrders (symbol[, since, limit, params])
+bitteam.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -219,7 +219,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bitteam.fetchCanceledOrders (symbol[, since, limit, params])
+bitteam.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -244,7 +244,7 @@ create a trade order
 
 
 ```javascript
-bitteam.createOrder (symbol, type, side, amount[, price, params])
+bitteam.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -266,7 +266,7 @@ cancels an open order
 
 
 ```javascript
-bitteam.cancelOrder (id, symbol[, params])
+bitteam.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -287,7 +287,7 @@ cancel open orders of market
 
 
 ```javascript
-bitteam.cancelAllOrders (symbol[, params])
+bitteam.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -308,7 +308,7 @@ fetches price tickers for multiple markets, statistical calculations with the in
 
 
 ```javascript
-bitteam.fetchTickers (symbols[, params])
+bitteam.fetchTickers (symbols, params?)
 ```
 
 
@@ -329,7 +329,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitteam.fetchTicker (symbol[, params])
+bitteam.fetchTicker (symbol, params?)
 ```
 
 
@@ -352,7 +352,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitteam.fetchTrades (symbol[, since, limit, params])
+bitteam.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -375,7 +375,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitteam.fetchMyTrades (symbol[, since, limit, params])
+bitteam.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -398,6 +398,6 @@ fetch history of deposits and withdrawals from external wallets and between Coin
 
 
 ```javascript
-bitteam.fetchDepositsWithdrawals ([code, since, limit, params])
+bitteam.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var deribit$1 = require('../deribit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -56,9 +56,9 @@ class deribit extends deribit$1["default"] {
                     },
                     // watchOrderBook replacement
                     'watchOrderBookForSymbols': {
-                        'interval': '100ms',
-                        'useDepthEndpoint': false,
-                        'depth': '20',
+                        'interval': '100ms', // 100ms, agg2, raw
+                        'useDepthEndpoint': false, // if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
+                        'depth': '20', // 1, 10, 20
                         'group': 'none', // none, 1, 2, 5, 10, 25, 100, 250
                     },
                 },
@@ -79,7 +79,7 @@ class deribit extends deribit$1["default"] {
      * @see https://docs.deribit.com/#user-portfolio-currency
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.authenticate(params);
@@ -164,15 +164,19 @@ class deribit extends deribit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
         params = this.omit(params, 'interval');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (interval === 'raw') {
             await this.authenticate();
         }
@@ -196,15 +200,19 @@ class deribit extends deribit$1["default"] {
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
         params = this.omit(params, 'interval');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (interval === 'raw') {
             await this.authenticate();
         }
@@ -276,10 +284,12 @@ class deribit extends deribit$1["default"] {
      * @description watches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const channels = [];
@@ -356,7 +366,7 @@ class deribit extends deribit$1["default"] {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchTrades';
@@ -371,7 +381,7 @@ class deribit extends deribit$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         let interval = undefined;
@@ -441,7 +451,7 @@ class deribit extends deribit$1["default"] {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticate(params);
@@ -523,7 +533,7 @@ class deribit extends deribit$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrderBook';
@@ -537,7 +547,7 @@ class deribit extends deribit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         let interval = undefined;
@@ -682,10 +692,12 @@ class deribit extends deribit$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate(params);
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
@@ -780,7 +792,9 @@ class deribit extends deribit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const ohlcvs = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
         return ohlcvs[symbol][timeframe];
@@ -874,7 +888,9 @@ class deribit extends deribit$1["default"] {
         ];
     }
     async watchMultipleWrapper(channelName, channelDescriptor, symbolsArray = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const rawSubscriptions = [];
         const messageHashes = [];
@@ -1041,7 +1057,8 @@ class deribit extends deribit$1["default"] {
         if (future === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
-            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256.sha256);
+            const lineBreak = "\n"; // eslint-disable-line quotes
+            const signature = this.hmac(this.encode(timeString + lineBreak + nonce + lineBreak), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,

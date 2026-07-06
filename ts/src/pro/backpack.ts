@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +61,9 @@ export default class backpack extends backpackRest {
     }
 
     async watchPublic (topics, messageHashes, params = {}, unwatch = false) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.urls['api']['ws']['public'];
         const method = unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
         const request: Dict = {
@@ -175,10 +177,12 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = 'ticker' + '.' + market['id'];
@@ -193,7 +197,7 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
         return await this.unWatchTickers ([ symbol ], params);
@@ -206,13 +210,15 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -230,13 +236,15 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -327,13 +335,15 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -350,13 +360,15 @@ export default class backpack extends backpackRest {
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -392,7 +404,7 @@ export default class backpack extends backpackRest {
         client.resolve (parsedBidAsk, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         //
         //     {
         //         A: '0.4087',
@@ -474,9 +486,11 @@ export default class backpack extends backpackRest {
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
-        await this.loadMarkets ();
-        const topics = [];
-        const messageHashes = [];
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
@@ -508,9 +522,11 @@ export default class backpack extends backpackRest {
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
-        await this.loadMarkets ();
-        const topics = [];
-        const messageHashes = [];
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
@@ -601,7 +617,7 @@ export default class backpack extends backpackRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
@@ -614,7 +630,7 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
         return await this.unWatchTradesForSymbols ([ symbol ], params);
@@ -629,17 +645,19 @@ export default class backpack extends backpackRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -652,7 +670,8 @@ export default class backpack extends backpackRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
     /**
@@ -662,17 +681,19 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
         }
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -717,7 +738,7 @@ export default class backpack extends backpackRest {
         client.resolve (cache, 'trades');
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         E: '1754601477746429',
@@ -737,12 +758,20 @@ export default class backpack extends backpackRest {
         const id = this.safeString (trade, 't');
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
-        const isMaker = this.safeBool (trade, 'm');
-        const side = isMaker ? 'sell' : 'buy';
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        const isBuyerMaker = this.safeBool (trade, 'm');
+        let side: Str = undefined;
+        let takerOrMaker: Str = undefined;
+        if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            if (isBuyerMaker) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
+        }
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'q');
-        let orderId = undefined;
+        let orderId: Str = undefined;
         if (side === 'buy') {
             orderId = this.safeString (trade, 'b');
         } else {
@@ -776,7 +805,7 @@ export default class backpack extends backpackRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -791,14 +820,16 @@ export default class backpack extends backpackRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('orderbook:' + symbol);
@@ -816,7 +847,7 @@ export default class backpack extends backpackRest {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
@@ -829,14 +860,16 @@ export default class backpack extends backpackRest {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
@@ -894,7 +927,7 @@ export default class backpack extends backpackRest {
     }
 
     handleDelta (orderbook, delta) {
-        const timestamp = this.parseToInt (this.safeInteger (delta, 'T') / 1000);
+        const timestamp = this.parseToInt (this.safeInteger (delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = this.safeInteger (delta, 'u');
@@ -908,7 +941,7 @@ export default class backpack extends backpackRest {
 
     handleBidAsks (bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
@@ -942,11 +975,13 @@ export default class backpack extends backpackRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -971,11 +1006,13 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1032,7 +1069,7 @@ export default class backpack extends backpackRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //     {
         //         E: '1754939110175879',
@@ -1075,7 +1112,7 @@ export default class backpack extends backpackRest {
         const amount = this.safeString (order, 'q');
         const cost = this.safeString (order, 'Z');
         const filled = this.safeString (order, 'l');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCurrency = this.safeString (order, 'N');
         if (feeCurrency !== undefined) {
             fee = {
@@ -1141,10 +1178,12 @@ export default class backpack extends backpackRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -1172,10 +1211,12 @@ export default class backpack extends backpackRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];

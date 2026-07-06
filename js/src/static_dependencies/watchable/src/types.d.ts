@@ -15,7 +15,7 @@ export interface ProxyPromise<T> extends Promise<T> {
     catch: <TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null | undefined) => SubscribedPromise<T | TResult>;
     finally: (onfinally?: (() => void) | null | undefined) => SubscribedPromise<T>;
 }
-export declare type PromiseExecutor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void;
+export type PromiseExecutor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void;
 /** A standard pattern for a resolvable, rejectable Promise, based
  * on the emerging ES2023 standard. Type ported from
  * https://github.com/microsoft/TypeScript/pull/56593 */
@@ -25,4 +25,4 @@ export interface PromiseWithResolvers<T> {
     reject: (reason?: any) => void;
 }
 /** Given an array, this is the union of its members' types. */
-export declare type MemberOf<Arr extends readonly unknown[]> = Arr[number];
+export type MemberOf<Arr extends readonly unknown[]> = Arr[number];

@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_margin_mode.php';
 function test_fetch_margin_mode($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchMarginMode';
-        $margin_mode = Async\await($exchange->fetch_margin_mode($symbol));
+        $margin_mode = \React\Async\await($exchange->fetch_margin_mode($symbol));
         test_margin_mode($exchange, $skipped_properties, $method, $margin_mode);
         return true;
     }) ();

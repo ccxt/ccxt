@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bithumb as Exchange;
 
 class bithumb extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bithumb',
@@ -262,14 +261,6 @@ class bithumb extends Exchange {
                             ),
                         ),
                     ),
-                    'USDT' => array(
-                        'limits' => array(
-                            'cost' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                    ),
                 ),
             ),
             'commonCurrencies' => array(
@@ -292,7 +283,7 @@ class bithumb extends Exchange {
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for bithumb
          *
@@ -309,7 +300,7 @@ class bithumb extends Exchange {
             $request = array(
                 'quoteId' => $quotes[$i],
             );
-            $promises[] = $this->publicGetTickerALLQuoteId ($this->extend($request, $params));
+            $promises[] = $this->publicGetTickerALLQuoteId($this->extend($request, $params));
             //
             //    {
             //        "status" => "0000",
@@ -351,7 +342,7 @@ class bithumb extends Exchange {
             $quote = $quotes[$i];
             $quoteId = $quote;
             $response = $results[$i];
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $extension = $this->safe_dict($quoteCurrencies, $quote, array());
             $currencyIds = is_array($data) ? array_keys($data) : array();
             for ($j = 0; $j < count($currencyIds); $j++) {
@@ -362,7 +353,7 @@ class bithumb extends Exchange {
                 $market = $data[$currencyId];
                 $base = $this->safe_currency_code($currencyId);
                 $active = true;
-                if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
+                if ((gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market)))) {
                     $numElements = count($market);
                     if ($numElements === 0) {
                         $active = false;
@@ -437,24 +428,26 @@ class bithumb extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'currency' => 'ALL',
         );
-        $response = $this->privatePostInfoBalance ($this->extend($request, $params));
+        $response = $this->privatePostInfoBalance($this->extend($request, $params));
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -463,9 +456,11 @@ class bithumb extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'baseId' => $market['baseId'],
@@ -474,7 +469,7 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 30, max 30
         }
-        $response = $this->publicGetOrderbookBaseIdQuoteId ($this->extend($request, $params));
+        $response = $this->publicGetOrderbookBaseIdQuoteId($this->extend($request, $params));
         //
         //     {
         //         "status":"0000",
@@ -549,7 +544,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -557,9 +552,11 @@ class bithumb extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $result = array();
         $quoteCurrencies = $this->safe_dict($this->options, 'quoteCurrencies', array());
         $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
@@ -568,7 +565,7 @@ class bithumb extends Exchange {
             $request = array(
                 'quoteId' => $quotes[$i],
             );
-            $promises[] = $this->publicGetTickerALLQuoteId ($this->extend($request, $params));
+            $promises[] = $this->publicGetTickerALLQuoteId($this->extend($request, $params));
         }
         $responses = $promises;
         for ($i = 0; $i < count($quotes); $i++) {
@@ -612,7 +609,7 @@ class bithumb extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -620,15 +617,17 @@ class bithumb extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
         );
-        $response = $this->publicGetTickerBaseIdQuoteId ($this->extend($request, $params));
+        $response = $this->publicGetTickerBaseIdQuoteId($this->extend($request, $params));
         //
         //     {
         //         "status":"0000",
@@ -673,7 +672,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -686,14 +685,16 @@ class bithumb extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $response = $this->publicGetCandlestickBaseIdQuoteIdInterval ($this->extend($request, $params));
+        $response = $this->publicGetCandlestickBaseIdQuoteIdInterval($this->extend($request, $params));
         //
         //     {
         //         "status" => "0000",
@@ -799,7 +800,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -809,9 +810,11 @@ class bithumb extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'baseId' => $market['baseId'],
@@ -820,7 +823,7 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 20, max 100
         }
-        $response = $this->publicGetTransactionHistoryBaseIdQuoteId ($this->extend($request, $params));
+        $response = $this->publicGetTransactionHistoryBaseIdQuoteId($this->extend($request, $params));
         //
         //     {
         //         "status":"0000",
@@ -839,7 +842,7 @@ class bithumb extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -853,9 +856,11 @@ class bithumb extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'order_currency' => $market['id'],
@@ -869,7 +874,7 @@ class bithumb extends Exchange {
         } else {
             $method = 'privatePostTradeMarket' . $this->capitalize($side);
         }
-        $response = $this->$method ($this->extend($request, $params));
+        $response = $this->$method($this->extend($request, $params));
         $id = $this->safe_string($response, 'order_id');
         if ($id === null) {
             throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
@@ -883,7 +888,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -892,12 +897,14 @@ class bithumb extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
@@ -905,7 +912,7 @@ class bithumb extends Exchange {
             'order_currency' => $market['base'],
             'payment_currency' => $market['quote'],
         );
-        $response = $this->privatePostInfoOrderDetail ($this->extend($request, $params));
+        $response = $this->privatePostInfoOrderDetail($this->extend($request, $params));
         //
         //     {
         //         "status" => "0000",
@@ -1044,7 +1051,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1054,12 +1061,14 @@ class bithumb extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 100;
@@ -1072,7 +1081,7 @@ class bithumb extends Exchange {
         if ($since !== null) {
             $request['after'] = $since;
         }
-        $response = $this->privatePostInfoOrders ($this->extend($request, $params));
+        $response = $this->privatePostInfoOrders($this->extend($request, $params));
         //
         //     {
         //         "status" => "0000",
@@ -1094,7 +1103,7 @@ class bithumb extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1103,7 +1112,7 @@ class bithumb extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1122,7 +1131,7 @@ class bithumb extends Exchange {
             'order_currency' => $market['base'],
             'payment_currency' => $market['quote'],
         );
-        $response = $this->privatePostTradeCancel ($this->extend($request, $params));
+        $response = $this->privatePostTradeCancel($this->extend($request, $params));
         //
         //    {
         //       'status' => 'string',
@@ -1133,14 +1142,14 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function cancel_unified_order(array $order, $params = array ()) {
+    public function cancel_unified_order(array $order, $params = array()) {
         $request = array(
             'side' => $order['side'],
         );
-        return $this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params));
+        return $this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1151,11 +1160,13 @@ class bithumb extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'units' => $amount,
@@ -1170,7 +1181,7 @@ class bithumb extends Exchange {
                 $request['destination'] = $tag;
             }
         }
-        $response = $this->privatePostTradeBtcWithdrawal ($this->extend($request, $params));
+        $response = $this->privatePostTradeBtcWithdrawal($this->extend($request, $params));
         //
         // array( "status" : "0000")
         //
@@ -1224,7 +1235,7 @@ class bithumb extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));

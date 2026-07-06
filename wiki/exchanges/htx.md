@@ -23,6 +23,7 @@
 * [fetchBalance](#fetchbalance)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
+* [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchOpenOrders](#fetchopenorders)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
@@ -39,6 +40,7 @@
 * [fetchWithdrawals](#fetchwithdrawals)
 * [withdraw](#withdraw)
 * [transfer](#transfer)
+* [fetchTransfers](#fetchtransfers)
 * [fetchIsolatedBorrowRates](#fetchisolatedborrowrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
@@ -60,8 +62,9 @@
 * [fetchSettlementHistory](#fetchsettlementhistory)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [fetchLiquidations](#fetchliquidations)
-* [closePositions](#closepositions)
+* [closePosition](#closeposition)
 * [setPositionMode](#setpositionmode)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTrades](#watchtrades)
@@ -81,7 +84,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**
 
@@ -98,7 +101,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-htx.fetchStatus ([params])
+htx.fetchStatus (params?)
 ```
 
 
@@ -122,7 +125,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-htx.fetchTime ([params])
+htx.fetchTime (params?)
 ```
 
 
@@ -132,7 +135,7 @@ htx.fetchTime ([params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user  
 
@@ -143,7 +146,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-htx.fetchTradingFee (symbol[, params])
+htx.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -169,7 +172,7 @@ retrieves data on all markets for huobi
 
 
 ```javascript
-htx.fetchMarkets ([params])
+htx.fetchMarkets (params?)
 ```
 
 
@@ -179,7 +182,7 @@ htx.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -196,7 +199,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-htx.fetchTicker (symbol[, params])
+htx.fetchTicker (symbol, params?)
 ```
 
 
@@ -206,7 +209,7 @@ htx.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -223,7 +226,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-htx.fetchTickers ([symbols, params])
+htx.fetchTickers (symbols?, params?)
 ```
 
 
@@ -249,7 +252,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-htx.fetchLastPrices ([symbols, params])
+htx.fetchLastPrices (symbols?, params?)
 ```
 
 
@@ -259,7 +262,7 @@ htx.fetchLastPrices ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -277,7 +280,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-htx.fetchOrderBook (symbol[, limit, params])
+htx.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -287,7 +290,7 @@ htx.fetchOrderBook (symbol[, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order  
 
@@ -301,7 +304,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-htx.fetchOrderTrades (id, symbol[, since, limit, params])
+htx.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -311,12 +314,11 @@ htx.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0
 - https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
 
 
@@ -327,11 +329,11 @@ fetch all trades made by the user
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-htx.fetchMyTrades (symbol[, since, limit, params])
+htx.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -341,7 +343,7 @@ htx.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -360,7 +362,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-htx.fetchTrades (symbol[, since, limit, params])
+htx.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -392,7 +394,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-htx.fetchOHLCV (symbol, timeframe[, since, limit, params])
+htx.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -402,7 +404,7 @@ htx.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user  
 
@@ -412,7 +414,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-htx.fetchAccounts ([params])
+htx.fetchAccounts (params?)
 ```
 
 
@@ -422,7 +424,7 @@ htx.fetchAccounts ([params])
 fetch all the accounts by a type and marginModeassociated with a profile
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user  
 
@@ -435,7 +437,7 @@ fetch all the accounts by a type and marginModeassociated with a profile
 
 
 ```javascript
-htx.fetchAccountIdByType (type[, marginMode, symbol, params])
+htx.fetchAccountIdByType (type, marginMode?, symbol?, params?)
 ```
 
 
@@ -455,7 +457,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-htx.fetchCurrencies ([params])
+htx.fetchCurrencies (params?)
 ```
 
 
@@ -465,27 +467,27 @@ htx.fetchCurrencies ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
 - https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-- https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
 - https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.unified | <code>bool</code> | No | provide this parameter if you have a recent account with unified cross+isolated margin account |
+| params.type | <code>string</code> | No | spot, margin, future or swap |
+| params.subType | <code>string</code> | No | linear or inverse |
+| params.multiAssetMode | <code>bool</code> | No | set to true if you are using multi-asset mode for USDT-margined contracts |
 
 
 ```javascript
-htx.fetchBalance ([params])
+htx.fetchBalance (params?)
 ```
 
 
@@ -495,14 +497,13 @@ htx.fetchBalance ([params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
 - https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83
 - https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
 
@@ -510,12 +511,17 @@ fetches information on an order made by the user
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>bool</code> | No | *linear only* set to true if you want to fetch a trigger order |
+| params.stopLossTakeProfit | <code>bool</code> | No | *linear only* set to true if you want to fetch a stop-loss take-profit order |
+| params.stopLoss | <code>bool</code> | No | *linear only* set to true if you want to fetch a stop-loss order |
+| params.takeProfit | <code>bool</code> | No | *linear only* set to true if you want to fetch a take-profit order |
+| params.trailing | <code>bool</code> | No | *linear only* set to true if you want to fetch a trailing order |
 
 
 ```javascript
-htx.fetchOrder (id, symbol[, params])
+htx.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -525,14 +531,14 @@ htx.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
 - https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
 
@@ -543,14 +549,49 @@ fetches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>bool</code> | No | *contract only* if the orders are trigger trigger orders or not |
-| params.stopLossTakeProfit | <code>bool</code> | No | *contract only* if the orders are stop-loss or take-profit orders |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.trailing | <code>boolean</code> | No | *contract only* set to true if you want to fetch trailing stop orders |
+| params.trigger | <code>bool</code> | No | *contract only* if the orders are trigger trigger orders or not |
+| params.trailing | <code>bool</code> | No | *contract only* set to true if you want to fetch trailing stop orders |
+| params.stopLossTakeProfit | <code>bool</code> | No | *contract only* if the orders are stop-loss and take-profit orders |
+| params.stopLoss | <code>bool</code> | No | *contract only* set to true if you want to fetch stop loss orders |
+| params.takeProfit | <code>bool</code> | No | *contract only* set to true if you want to fetch take profit orders |
 
 
 ```javascript
-htx.fetchOrders (symbol[, since, limit, params])
+htx.fetchOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchCanceledOrders" id="fetchcanceledorders"></a>
+
+### fetchCanceledOrders{docsify-ignore}
+fetches information on multiple canceled orders made by the user
+
+**Kind**: instance method of [<code>htx</code>](#htx)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+- https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+htx.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -560,14 +601,14 @@ htx.fetchOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
 - https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
 
@@ -583,7 +624,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-htx.fetchClosedOrders (symbol[, since, limit, params])
+htx.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -593,13 +634,13 @@ htx.fetchClosedOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736
 
 
 | Param | Type | Required | Description |
@@ -610,11 +651,13 @@ fetch all unfilled currently open orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | *contract only* if the orders are trigger trigger orders or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | *contract only* if the orders are stop-loss or take-profit orders |
-| params.trailing | <code>boolean</code> | No | *contract only* set to true if you want to fetch trailing stop orders |
+| params.stopLoss | <code>bool</code> | No | *linear swap contract only* if the orders are stop-loss orders |
+| params.takeProfit | <code>bool</code> | No | *linear swap contract only* if the orders are take-profit orders |
+| params.trailing | <code>bool</code> | No | *contract only* set to true if you want to fetch trailing stop orders |
 
 
 ```javascript
-htx.fetchOpenOrders (symbol[, since, limit, params])
+htx.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -624,7 +667,7 @@ htx.fetchOpenOrders (symbol[, since, limit, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003  
 
@@ -636,7 +679,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-htx.createMarketBuyOrderWithCost (symbol, cost[, params])
+htx.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -646,7 +689,7 @@ htx.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -662,7 +705,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-htx.createTrailingPercentOrder (symbol, type, side, amount[, price, trailingPercent, trailingTriggerPrice, params])
+htx.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent, trailingTriggerPrice, params?)
 ```
 
 
@@ -672,21 +715,19 @@ htx.createTrailingPercentOrder (symbol, type, side, amount[, price, trailingPerc
 create a trade order
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
-- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
-- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+- https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                       // spot, margin
+- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order            // coin-m swap
+- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order       // coin-m swap trigger
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7 // usdt-m swap cross and isolated
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9 // usdt-m swap cross and isolated trigger and trailing orders
 - https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
 - https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
-- https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
-- https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
+- https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                            // coin-m futures
+- https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                       // coin-m futures contract trigger
 
 
 | Param | Type | Required | Description |
@@ -710,10 +751,20 @@ create a trade order
 | params.trailingPercent | <code>float</code> | No | *contract only* the percent to trail away from the current market price |
 | params.trailingTriggerPrice | <code>float</code> | No | *contract only* the price to trigger a trailing order, default uses the price argument |
 | params.hedged | <code>bool</code> | No | *contract only* true for hedged mode, false for one way mode, default is false |
+| params.marginMode | <code>string</code> | No | linear swap supports 'cross' and 'isolated', 'cross' is the default |
+| params.position_side | <code>string</code> | No | linear swap supports 'long', 'short' and 'both', 'both' is the default |
+| params.takeProfit | <code>object</code> | No | *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered |
+| params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
+| params.takeProfit.price | <code>float</code> | No | take profit price for take profit orders |
+| params.takeProfit.type | <code>string</code> | No | market is the default, limit, optimal_5, optimal_10, optimal_20 |
+| params.stopLoss | <code>object</code> | No | *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered |
+| params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
+| params.stopLoss.price | <code>float</code> | No | stop loss price for stop loss orders |
+| params.stopLoss.type | <code>string</code> | No | market is the default, limit, optimal_5, optimal_10, optimal_20 |
 
 
 ```javascript
-htx.createOrder (symbol, type, side, amount[, price, params])
+htx.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -723,15 +774,14 @@ htx.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
 - https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1
 
 
 | Param | Type | Required | Description |
@@ -741,7 +791,7 @@ create a list of trade orders
 
 
 ```javascript
-htx.createOrders (orders[, params])
+htx.createOrders (orders, params?)
 ```
 
 
@@ -751,7 +801,12 @@ htx.createOrders (orders[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997
 
 
 | Param | Type | Required | Description |
@@ -759,13 +814,15 @@ cancels an open order
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | *contract only* if the order is a trigger trigger order or not |
-| params.stopLossTakeProfit | <code>boolean</code> | No | *contract only* if the order is a stop-loss or take-profit order |
-| params.trailing | <code>boolean</code> | No | *contract only* set to true if you want to cancel a trailing order |
+| params.trigger | <code>bool</code> | No | *contract only* if the order is a trigger trigger order or not |
+| params.stopLossTakeProfit | <code>bool</code> | No | *contract only* if the order is a stop-loss or take-profit order |
+| params.stopLoss | <code>bool</code> | No | *contract only* if the order is a stop-loss order |
+| params.takeProfit | <code>bool</code> | No | *contract only* if the order is a take-profit order |
+| params.trailing | <code>bool</code> | No | *contract only* set to true if you want to cancel a trailing order |
 
 
 ```javascript
-htx.cancelOrder (id, symbol[, params])
+htx.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -775,8 +832,9 @@ htx.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -788,7 +846,7 @@ cancel multiple orders
 
 
 ```javascript
-htx.cancelOrders (ids, symbol[, params])
+htx.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -798,8 +856,9 @@ htx.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -811,7 +870,7 @@ cancel all open orders
 
 
 ```javascript
-htx.cancelAllOrders (symbol[, params])
+htx.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -832,7 +891,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-htx.cancelAllOrdersAfter (timeout[, params])
+htx.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -842,7 +901,7 @@ htx.cancelAllOrdersAfter (timeout[, params])
 fetch a dictionary of addresses for a currency, indexed by network
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by the network
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 **See**: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003  
 
@@ -853,7 +912,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-htx.fetchDepositAddressesByNetwork (code[, params])
+htx.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -863,7 +922,7 @@ htx.fetchDepositAddressesByNetwork (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003  
 
@@ -874,7 +933,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-htx.fetchDepositAddress (code[, params])
+htx.fetchDepositAddress (code, params?)
 ```
 
 
@@ -884,7 +943,7 @@ htx.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003  
 
@@ -897,7 +956,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-htx.fetchDeposits (code[, since, limit, params])
+htx.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -907,7 +966,7 @@ htx.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits  
 
@@ -920,7 +979,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-htx.fetchWithdrawals (code[, since, limit, params])
+htx.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -930,7 +989,7 @@ htx.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003  
 
@@ -944,7 +1003,7 @@ make a withdrawal
 
 
 ```javascript
-htx.withdraw (code, amount, address, tag[, params])
+htx.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -954,7 +1013,7 @@ htx.withdraw (code, amount, address, tag[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -979,7 +1038,34 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-htx.transfer (code, amount, fromAccount, toAccount[, params])
+htx.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>htx</code>](#htx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.huobi.com/en-us/opend/newApiPages/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.status | <code>string</code> | No | transfer status: 'success', 'pending', 'failed' |
+| params.from | <code>int</code> | No | the starting ID for pagination |
+| params.direct | <code>string</code> | No | pagination direction: 'prev' or 'next', default 'next' |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
+
+
+```javascript
+htx.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 
@@ -989,7 +1075,7 @@ htx.transfer (code, amount, fromAccount, toAccount[, params])
 fetch the borrow interest rates of all currencies
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a list of [isolated borrow rate structures](https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure)
+**Returns**: <code>object</code> - a list of [isolated borrow rate structures](https://docs.ccxt.com/?id=isolated-borrow-rate-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated  
 
@@ -999,7 +1085,7 @@ fetch the borrow interest rates of all currencies
 
 
 ```javascript
-htx.fetchIsolatedBorrowRates ([params])
+htx.fetchIsolatedBorrowRates (params?)
 ```
 
 
@@ -1009,10 +1095,11 @@ htx.fetchIsolatedBorrowRates ([params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**
 
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941
 - https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
 
@@ -1020,14 +1107,14 @@ fetches historical funding rate prices
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
-| since | <code>int</code> | No | not used by huobi, but filtered internally by ccxt |
-| limit | <code>int</code> | No | not used by huobi, but filtered internally by ccxt |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding rate history for |
+| limit | <code>int</code> | No | the maximum number of structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-htx.fetchFundingRateHistory (symbol[, since, limit, params])
+htx.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1037,12 +1124,12 @@ htx.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf
 
 
 | Param | Type | Required | Description |
@@ -1052,7 +1139,7 @@ fetch the current funding rate
 
 
 ```javascript
-htx.fetchFundingRate (symbol[, params])
+htx.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1062,13 +1149,9 @@ htx.fetchFundingRate (symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
-**See**
-
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
-- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
-
+**See**: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1077,7 +1160,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-htx.fetchFundingRates (symbols[, params])
+htx.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1087,7 +1170,7 @@ htx.fetchFundingRates (symbols[, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**
 
@@ -1105,7 +1188,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-htx.fetchBorrowInterest (code, symbol[, since, limit, params])
+htx.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -1115,13 +1198,13 @@ htx.fetchBorrowInterest (code, symbol[, since, limit, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
-- https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
-- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+- https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
 
 
 | Param | Type | Required | Description |
@@ -1130,10 +1213,11 @@ fetch the history of funding payments paid and received on this account
 | since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
 | limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 
 
 ```javascript
-htx.fetchFundingHistory (symbol[, since, limit, params])
+htx.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1147,8 +1231,7 @@ set the level of leverage for a market
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
 - https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
 
@@ -1158,10 +1241,11 @@ set the level of leverage for a market
 | leverage | <code>float</code> | Yes | the rate of leverage |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.position_side | <code>string</code> | No | linear swap supports 'long', 'short' and 'both', 'both' is the default |
 
 
 ```javascript
-htx.setLeverage (leverage, symbol[, params])
+htx.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1171,12 +1255,11 @@ htx.setLeverage (leverage, symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
 - https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
 
@@ -1191,7 +1274,7 @@ fetch all open positions
 
 
 ```javascript
-htx.fetchPositions ([symbols, params])
+htx.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1201,12 +1284,11 @@ htx.fetchPositions ([symbols, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
 - https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
 
@@ -1218,7 +1300,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-htx.fetchPosition (symbol[, params])
+htx.fetchPosition (symbol, params?)
 ```
 
 
@@ -1228,7 +1310,7 @@ htx.fetchPosition (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history  
 
@@ -1243,7 +1325,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-htx.fetchLedger ([code, since, limit, params])
+htx.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1253,7 +1335,7 @@ htx.fetchLedger ([code, since, limit, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -1263,7 +1345,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-htx.fetchLeverageTiers (symbols[, params])
+htx.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -1273,7 +1355,7 @@ htx.fetchLeverageTiers (symbols[, params])
 Retrieves the open interest history of a currency
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an array of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
@@ -1294,7 +1376,7 @@ Retrieves the open interest history of a currency
 
 
 ```javascript
-htx.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+htx.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1304,13 +1386,12 @@ htx.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
 Retrieves the open interest for a list of symbols
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
 
 
 | Param | Type | Required | Description |
@@ -1320,7 +1401,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-htx.fetchOpenInterests ([symbols, params])
+htx.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -1330,13 +1411,13 @@ htx.fetchOpenInterests ([symbols, params])
 Retrieves the open interest of a currency
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2
 
 
 | Param | Type | Required | Description |
@@ -1346,7 +1427,7 @@ Retrieves the open interest of a currency
 
 
 ```javascript
-htx.fetchOpenInterest (symbol[, params])
+htx.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1356,7 +1437,7 @@ htx.fetchOpenInterest (symbol[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**
 
@@ -1373,7 +1454,7 @@ create a loan to borrow margin
 
 
 ```javascript
-htx.borrowIsolatedMargin (symbol, code, amount[, params])
+htx.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1383,7 +1464,7 @@ htx.borrowIsolatedMargin (symbol, code, amount[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**
 
@@ -1399,7 +1480,7 @@ create a loan to borrow margin
 
 
 ```javascript
-htx.borrowCrossMargin (code, amount[, params])
+htx.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -1409,7 +1490,7 @@ htx.borrowCrossMargin (code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated  
 
@@ -1422,7 +1503,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-htx.repayIsolatedMargin (symbol, code, amount[, params])
+htx.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1432,7 +1513,7 @@ htx.repayIsolatedMargin (symbol, code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated  
 
@@ -1444,7 +1525,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-htx.repayCrossMargin (code, amount[, params])
+htx.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -1454,13 +1535,13 @@ htx.repayCrossMargin (code, amount[, params])
 Fetches historical settlement records
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
 
 **See**
 
 - https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
 
 
 | Param | Type | Required | Description |
@@ -1475,7 +1556,7 @@ Fetches historical settlement records
 
 
 ```javascript
-htx.fetchSettlementHistory (symbol[, since, limit, params])
+htx.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1485,7 +1566,7 @@ htx.fetchSettlementHistory (symbol[, since, limit, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2  
 
@@ -1496,7 +1577,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-htx.fetchDepositWithdrawFees (codes[, params])
+htx.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1506,11 +1587,11 @@ htx.fetchDepositWithdrawFees (codes[, params])
 retrieves the public liquidations of a trading pair
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
 - https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
 
@@ -1522,26 +1603,25 @@ retrieves the public liquidations of a trading pair
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
 | params | <code>object</code> | No | exchange specific parameters for the huobi api endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
-| params.tradeType | <code>int</code> | No | default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders |
+| params.tradeType | <code>int</code> | No | *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders |
 
 
 ```javascript
-htx.fetchLiquidations (symbol[, since, limit, params])
+htx.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
-<a name="closePositions" id="closepositions"></a>
+<a name="closePosition" id="closeposition"></a>
 
-### closePositions{docsify-ignore}
-closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
+### closePosition{docsify-ignore}
+closes open positions for a contract market
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - [an order structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - [an order structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958953a715    // USDT-M
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
 - https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
 
@@ -1555,10 +1635,11 @@ closes open positions for a contract market, requires 'amount' in params, unlike
 | params.marginMode | <code>object</code> | No | 'cross' or 'isolated', required for linear markets EXCHANGE SPECIFIC PARAMETERS |
 | params.amount | <code>number</code> | No | order quantity |
 | params.order_price_type | <code>string</code> | No | 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning |
+| params.position_side | <code>string</code> | No | linear swap supports 'long', 'short' and 'both', 'both' is the default |
 
 
 ```javascript
-htx.closePositions (symbol, side[, params])
+htx.closePosition (symbol, side, params?)
 ```
 
 
@@ -1570,11 +1651,7 @@ set hedged to true or false
 **Kind**: instance method of [<code>htx</code>](#htx)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**
-
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
-
+**See**: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1585,7 +1662,33 @@ set hedged to true or false
 
 
 ```javascript
-htx.setPositionMode (hedged[, symbol, params])
+htx.setPositionMode (hedged, symbol?, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>htx</code>](#htx)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**
+
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
+- https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+htx.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -1595,7 +1698,7 @@ htx.setPositionMode (hedged[, symbol, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1610,7 +1713,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-htx.watchTicker (symbol[, params])
+htx.watchTicker (symbol, params?)
 ```
 
 
@@ -1620,7 +1723,7 @@ htx.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1635,7 +1738,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-htx.unWatchTicker (symbol[, params])
+htx.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1645,7 +1748,7 @@ htx.unWatchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1663,7 +1766,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-htx.watchTrades (symbol[, since, limit, params])
+htx.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1673,7 +1776,7 @@ htx.watchTrades (symbol[, since, limit, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1689,7 +1792,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-htx.unWatchTrades (symbol[, params])
+htx.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1718,7 +1821,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-htx.watchOHLCV (symbol, timeframe[, since, limit, params])
+htx.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1746,7 +1849,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-htx.unWatchOHLCV (symbol, timeframe[, params])
+htx.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1756,7 +1859,7 @@ htx.unWatchOHLCV (symbol, timeframe[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1773,7 +1876,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-htx.watchOrderBook (symbol[, limit, params])
+htx.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1783,7 +1886,7 @@ htx.watchOrderBook (symbol[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1800,7 +1903,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-htx.unWatchOrderBook (symbol[, params])
+htx.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1810,9 +1913,13 @@ htx.unWatchOrderBook (symbol[, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003  
+**See**
+
+- https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35275ff
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1823,7 +1930,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-htx.watchMyTrades (symbol[, since, limit, params])
+htx.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1833,9 +1940,13 @@ htx.watchMyTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003  
+**See**
+
+- https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a208afe7
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1846,7 +1957,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-htx.watchOrders (symbol[, since, limit, params])
+htx.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1860,22 +1971,21 @@ watch all open positions. Note: huobi has one channel for each marginMode and ty
 
 **See**
 
-- https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-- https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
 - https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
 - https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35d6034
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
-| since |  |  |
-| limit |  |  |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-htx.watchPositions (symbols, since, limit, params[])
+htx.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1885,14 +1995,13 @@ htx.watchPositions (symbols, since, limit, params[])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
 - https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
-- https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
-- https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
 - https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a6c94551
 
 
 | Param | Type | Required | Description |
@@ -1901,6 +2010,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-htx.watchBalance ([params])
+htx.watchBalance (params?)
 ```
 

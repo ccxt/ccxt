@@ -8,19 +8,19 @@
     "methods": {
         "withdraw": [
             {
-                "description": "withdraw USDT on ETH",
+                "description": "ethereum",
                 "method": "withdraw",
-                "url": "https://api.poloniex.com/wallets/withdraw",
+                "url": "https://api.poloniex.com/v2/wallets/withdraw",
                 "input": [
                     "USDT",
                     5,
-                    "0x2a1cd2a93eac9403203ab118a4e7d90916ae3356",
+                    "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
                     null,
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
-                "output": "{\"currency\":\"USDTETH\",\"amount\":\"5\",\"address\":\"0x2a1cd2a93eac9403203ab118a4e7d90916ae3356\"}"
+                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"0x883b79D31EA07AA200A4a83c50d444470A212eEE\",\"network\":\"ETH\"}"
             }
         ],
         "fetchDepositAddress": [
@@ -149,9 +149,9 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
-                "url": "https://api.poloniex.com/currencies?includeMultiChainCurrencies=true",
+                "url": "https://api.poloniex.com/v2/currencies",
                 "input": [],
                 "output": null
             }
@@ -547,6 +547,18 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "non ascii symbol test",
+                "disabledCS": true,
+                "disabledGO": true,
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/%E7%B4%A2%E6%8B%89%E6%8B%89_USDT/candles?interval=HOUR_1",
+                "input": [
+                    "索拉拉/USDT",
+                    "1h"
+                ],
+                "output": null
+            },
             {
                 "description": "linear",
                 "method": "fetchOHLCV",

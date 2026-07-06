@@ -58,14 +58,25 @@
 * [watchBalance](#watchbalance)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
+* [unWatchTicker](#unwatchticker)
+* [unWatchTickers](#unwatchtickers)
 * [watchBidsAsks](#watchbidsasks)
 * [watchOrders](#watchorders)
+* [unWatchOrders](#unwatchorders)
 * [watchPositions](#watchpositions)
+* [unWatchPositions](#unwatchpositions)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
+* [watchFundingRate](#watchfundingrate)
+* [watchFundingRates](#watchfundingrates)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -83,7 +94,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bitmart.fetchTime ([params])
+bitmart.fetchTime (params?)
 ```
 
 
@@ -93,7 +104,7 @@ bitmart.fetchTime ([params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-system-service-status  
 
@@ -103,7 +114,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-bitmart.fetchStatus ([params])
+bitmart.fetchStatus (params?)
 ```
 
 
@@ -127,7 +138,7 @@ retrieves data on all markets for bitmart
 
 
 ```javascript
-bitmart.fetchMarkets ([params])
+bitmart.fetchMarkets (params?)
 ```
 
 
@@ -147,7 +158,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitmart.fetchCurrencies ([params])
+bitmart.fetchCurrencies (params?)
 ```
 
 
@@ -159,7 +170,7 @@ bitmart.fetchCurrencies ([params])
 please use fetchDepositWithdrawFee instead
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -170,7 +181,7 @@ please use fetchDepositWithdrawFee instead
 
 
 ```javascript
-bitmart.fetchTransactionFee (code[, params])
+bitmart.fetchTransactionFee (code, params?)
 ```
 
 
@@ -180,7 +191,7 @@ bitmart.fetchTransactionFee (code[, params])
 fetch the fee for deposits and withdrawals
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#withdraw-quota-keyed  
 
@@ -192,7 +203,7 @@ fetch the fee for deposits and withdrawals
 
 
 ```javascript
-bitmart.fetchDepositWithdrawFee (code[, params])
+bitmart.fetchDepositWithdrawFee (code, params?)
 ```
 
 
@@ -202,7 +213,7 @@ bitmart.fetchDepositWithdrawFee (code[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -217,7 +228,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmart.fetchTicker (symbol[, params])
+bitmart.fetchTicker (symbol, params?)
 ```
 
 
@@ -227,7 +238,7 @@ bitmart.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -242,7 +253,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitmart.fetchTickers (symbols[, params])
+bitmart.fetchTickers (symbols, params?)
 ```
 
 
@@ -252,7 +263,7 @@ bitmart.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -268,7 +279,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmart.fetchOrderBook (symbol[, limit, params])
+bitmart.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -278,7 +289,7 @@ bitmart.fetchOrderBook (symbol[, limit, params])
 get a list of the most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3  
 
@@ -291,7 +302,7 @@ get a list of the most recent trades for a particular symbol
 
 
 ```javascript
-bitmart.fetchTrades (symbol[, since, limit, params])
+bitmart.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -321,7 +332,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmart.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitmart.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -331,7 +342,7 @@ bitmart.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -351,7 +362,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitmart.fetchMyTrades (symbol[, since, limit, params])
+bitmart.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -361,7 +372,7 @@ bitmart.fetchMyTrades (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed  
 
@@ -376,7 +387,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bitmart.fetchOrderTrades (id, symbol[, since, limit, params])
+bitmart.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -386,7 +397,7 @@ bitmart.fetchOrderTrades (id, symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -402,7 +413,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitmart.fetchBalance ([params])
+bitmart.fetchBalance (params?)
 ```
 
 
@@ -412,7 +423,7 @@ bitmart.fetchBalance ([params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed  
 
@@ -423,7 +434,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bitmart.fetchTradingFee (symbol[, params])
+bitmart.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -433,7 +444,7 @@ bitmart.fetchTradingFee (symbol[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed  
 
@@ -445,7 +456,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bitmart.createMarketBuyOrderWithCost (symbol, cost[, params])
+bitmart.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -455,7 +466,7 @@ bitmart.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -465,6 +476,7 @@ create a trade order
 - https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+- https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -493,7 +505,7 @@ create a trade order
 
 
 ```javascript
-bitmart.createOrder (symbol, type, side, amount[, price, params])
+bitmart.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -503,7 +515,7 @@ bitmart.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed  
 
@@ -515,7 +527,7 @@ create a list of trade orders
 
 
 ```javascript
-bitmart.createOrders (orders[, params])
+bitmart.createOrders (orders, params?)
 ```
 
 
@@ -525,7 +537,7 @@ bitmart.createOrders (orders[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -534,6 +546,7 @@ cancels an open order
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+- https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -542,12 +555,13 @@ cancels an open order
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | *spot only* the client order id of the order to cancel |
-| params.trigger | <code>boolean</code> | No | *swap only* whether the order is a trigger order |
 | params.trailing | <code>boolean</code> | No | *swap only* whether the order is a stop order |
+| params.trigger | <code>boolean</code> | No | whether the order is a trigger order |
+| params.stopLossTakeProfit | <code>boolean</code> | No | whether the order is a stopLossPrice or takeProfitPrice order |
 
 
 ```javascript
-bitmart.cancelOrder (id, symbol[, params])
+bitmart.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -557,7 +571,7 @@ bitmart.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed  
 
@@ -570,7 +584,7 @@ cancel multiple orders
 
 
 ```javascript
-bitmart.cancelOrders (ids, symbol[, params])
+bitmart.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -580,12 +594,13 @@ bitmart.cancelOrders (ids, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+- https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -593,10 +608,12 @@ cancel all open orders in a market
 | symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.side | <code>string</code> | No | *spot only* 'buy' or 'sell' |
+| params.trigger | <code>boolean</code> | No | whether the orders are trigger orders |
+| params.stopLossTakeProfit | <code>boolean</code> | No | whether the orders are stopLossPrice or takeProfitPrice orders |
 
 
 ```javascript
-bitmart.cancelAllOrders (symbol[, params])
+bitmart.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -606,13 +623,14 @@ bitmart.cancelAllOrders (symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
+- https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -627,12 +645,13 @@ fetch all unfilled currently open orders
 | params.order_state | <code>string</code> | No | *swap* the order state, 'all' or 'partially_filled', default is 'all' |
 | params.orderType | <code>string</code> | No | *swap only* 'limit', 'market', or 'trailing' |
 | params.trailing | <code>boolean</code> | No | *swap only* set to true if you want to fetch trailing orders |
-| params.trigger | <code>boolean</code> | No | *swap only* set to true if you want to fetch trigger orders |
+| params.trigger | <code>boolean</code> | No | set to true if you want to fetch trigger orders |
+| params.stopLossTakeProfit | <code>boolean</code> | No | set to true if you want to fetch stopLossPrice or takeProfitPrice orders |
 | params.stpMode | <code>string</code> | No | self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both'] |
 
 
 ```javascript
-bitmart.fetchOpenOrders (symbol[, since, limit, params])
+bitmart.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -642,12 +661,13 @@ bitmart.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+- https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -659,10 +679,12 @@ fetches information on multiple closed orders made by the user
 | params.until | <code>int</code> | No | timestamp in ms of the latest entry |
 | params.marginMode | <code>string</code> | No | *spot only* 'cross' or 'isolated', for margin trading |
 | params.stpMode | <code>string</code> | No | self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both'] |
+| params.trigger | <code>boolean</code> | No | set to true if you want to fetch trigger orders |
+| params.stopLossTakeProfit | <code>boolean</code> | No | set to true if you want to fetch stopLossPrice or takeProfitPrice orders |
 
 
 ```javascript
-bitmart.fetchClosedOrders (symbol[, since, limit, params])
+bitmart.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -672,7 +694,7 @@ bitmart.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -684,7 +706,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bitmart.fetchCanceledOrders (symbol[, since, limit, params])
+bitmart.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -694,13 +716,15 @@ bitmart.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
 - https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+- https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+- https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -712,10 +736,11 @@ fetches information on an order made by the user
 | params.orderType | <code>string</code> | No | *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing' |
 | params.trailing | <code>boolean</code> | No | *swap only* set to true if you want to fetch a trailing order |
 | params.stpMode | <code>string</code> | No | self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both'] |
+| params.trigger | <code>boolean</code> | No | whether the orders is a trigger, stopLossPrice or takeProfitPrice order |
 
 
 ```javascript
-bitmart.fetchOrder (id, symbol[, params])
+bitmart.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -725,7 +750,7 @@ bitmart.fetchOrder (id, symbol[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed  
 
@@ -736,7 +761,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitmart.fetchDepositAddress (code[, params])
+bitmart.fetchDepositAddress (code, params?)
 ```
 
 
@@ -746,7 +771,7 @@ bitmart.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#withdraw-signed  
 
@@ -761,7 +786,7 @@ make a withdrawal
 
 
 ```javascript
-bitmart.withdraw (code, amount, address, tag[, params])
+bitmart.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -771,7 +796,7 @@ bitmart.withdraw (code, amount, address, tag[, params])
 fetch information on a deposit
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed  
 
@@ -783,7 +808,7 @@ fetch information on a deposit
 
 
 ```javascript
-bitmart.fetchDeposit (id, code[, params])
+bitmart.fetchDeposit (id, code, params?)
 ```
 
 
@@ -793,7 +818,7 @@ bitmart.fetchDeposit (id, code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed  
 
@@ -806,7 +831,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitmart.fetchDeposits (code[, since, limit, params])
+bitmart.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -816,7 +841,7 @@ bitmart.fetchDeposits (code[, since, limit, params])
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed  
 
@@ -828,7 +853,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-bitmart.fetchWithdrawal (id, code[, params])
+bitmart.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -838,7 +863,7 @@ bitmart.fetchWithdrawal (id, code[, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed  
 
@@ -851,7 +876,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitmart.fetchWithdrawals (code[, since, limit, params])
+bitmart.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -861,7 +886,7 @@ bitmart.fetchWithdrawals (code[, since, limit, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated-signed  
 
@@ -874,7 +899,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-bitmart.repayIsolatedMargin (symbol, code, amount[, params])
+bitmart.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -884,7 +909,7 @@ bitmart.repayIsolatedMargin (symbol, code, amount[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated-signed  
 
@@ -897,7 +922,7 @@ create a loan to borrow margin
 
 
 ```javascript
-bitmart.borrowIsolatedMargin (symbol, code, amount[, params])
+bitmart.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -918,7 +943,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-bitmart.fetchIsolatedBorrowRate (symbol[, params])
+bitmart.fetchIsolatedBorrowRate (symbol, params?)
 ```
 
 
@@ -928,7 +953,7 @@ bitmart.fetchIsolatedBorrowRate (symbol[, params])
 fetch the borrow interest rates of all currencies, currently only works for isolated margin
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a list of [isolated borrow rate structures](https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure)
+**Returns**: <code>object</code> - a list of [isolated borrow rate structures](https://docs.ccxt.com/?id=isolated-borrow-rate-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed  
 
@@ -938,7 +963,7 @@ fetch the borrow interest rates of all currencies, currently only works for isol
 
 
 ```javascript
-bitmart.fetchIsolatedBorrowRates ([params])
+bitmart.fetchIsolatedBorrowRates (params?)
 ```
 
 
@@ -948,7 +973,7 @@ bitmart.fetchIsolatedBorrowRates ([params])
 transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -966,7 +991,7 @@ transfer currency internally between wallets on the same account, currently only
 
 
 ```javascript
-bitmart.transfer (code, amount, fromAccount, toAccount[, params])
+bitmart.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -976,7 +1001,7 @@ bitmart.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-transfer-list-signed  
 
@@ -991,7 +1016,7 @@ fetch a history of internal transfers made on an account, only transfers between
 
 
 ```javascript
-bitmart.fetchTransfers (code[, since, limit, params])
+bitmart.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1001,7 +1026,7 @@ bitmart.fetchTransfers (code[, since, limit, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated-keyed  
 
@@ -1015,7 +1040,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-bitmart.fetchBorrowInterest (code, symbol[, since, limit, params])
+bitmart.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -1025,7 +1050,7 @@ bitmart.fetchBorrowInterest (code, symbol[, since, limit, params])
 Retrieves the open interest of a currency
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest  
 
@@ -1036,7 +1061,7 @@ Retrieves the open interest of a currency
 
 
 ```javascript
-bitmart.fetchOpenInterest (symbol[, params])
+bitmart.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1059,7 +1084,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bitmart.setLeverage (leverage, symbol[, params])
+bitmart.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1069,7 +1094,7 @@ bitmart.setLeverage (leverage, symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate  
 
@@ -1080,7 +1105,7 @@ fetch the current funding rate
 
 
 ```javascript
-bitmart.fetchFundingRate (symbol[, params])
+bitmart.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1090,7 +1115,7 @@ bitmart.fetchFundingRate (symbol[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history  
 
@@ -1103,7 +1128,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bitmart.fetchFundingRateHistory (symbol[, since, limit, params])
+bitmart.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1113,7 +1138,7 @@ bitmart.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed  
 
@@ -1124,7 +1149,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-bitmart.fetchPosition (symbol[, params])
+bitmart.fetchPosition (symbol, params?)
 ```
 
 
@@ -1134,7 +1159,7 @@ bitmart.fetchPosition (symbol[, params])
 fetch all open contract positions
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1149,7 +1174,7 @@ fetch all open contract positions
 
 
 ```javascript
-bitmart.fetchPositions (symbols[, params])
+bitmart.fetchPositions (symbols, params?)
 ```
 
 
@@ -1159,7 +1184,7 @@ bitmart.fetchPositions (symbols[, params])
 retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed  
 
@@ -1173,7 +1198,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-bitmart.fetchMyLiquidations (symbol[, since, limit, params])
+bitmart.fetchMyLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -1183,7 +1208,7 @@ bitmart.fetchMyLiquidations (symbol[, since, limit, params])
 edits an open order
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1213,7 +1238,7 @@ edits an open order
 
 
 ```javascript
-bitmart.editOrder (id, symbol, type, side[, amount, price, params])
+bitmart.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -1223,7 +1248,7 @@ bitmart.editOrder (id, symbol, type, side[, amount, price, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed  
 
@@ -1237,7 +1262,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitmart.fetchLedger ([code, since, limit, params])
+bitmart.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1247,7 +1272,7 @@ bitmart.fetchLedger ([code, since, limit, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed  
 
@@ -1261,7 +1286,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-bitmart.fetchFundingHistory ([symbol, since, limit, params])
+bitmart.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1283,7 +1308,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-bitmart.setPositionMode (hedged, symbol[, params])
+bitmart.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1304,7 +1329,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 
 ```javascript
-bitmart.fetchPositionMode (symbol[, params])
+bitmart.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -1314,7 +1339,7 @@ bitmart.fetchPositionMode (symbol[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -1328,7 +1353,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitmart.watchBalance ([params])
+bitmart.watchBalance (params?)
 ```
 
 
@@ -1338,7 +1363,7 @@ bitmart.watchBalance ([params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1355,7 +1380,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitmart.watchTrades (symbol[, since, limit, params])
+bitmart.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1365,9 +1390,13 @@ bitmart.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://developer-pro.bitmart.com/en/spot/#public-trade-channel  
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1378,7 +1407,57 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-bitmart.watchTradesForSymbols (symbols[, since, limit, params])
+bitmart.watchTradesForSymbols (symbols, since?, limit?, params?)
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches from the stream channel
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTrades (symbol, params?)
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unsubscribes from the trades channel
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -1388,7 +1467,7 @@ bitmart.watchTradesForSymbols (symbols[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1403,7 +1482,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmart.watchTicker (symbol[, params])
+bitmart.watchTicker (symbol, params?)
 ```
 
 
@@ -1413,7 +1492,7 @@ bitmart.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1428,7 +1507,57 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmart.watchTickers (symbols[, params])
+bitmart.watchTickers (symbols, params?)
+```
+
+
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTicker (symbol, params?)
+```
+
+
+<a name="unWatchTickers" id="unwatchtickers"></a>
+
+### unWatchTickers{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1438,7 +1567,7 @@ bitmart.watchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1453,7 +1582,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-bitmart.watchBidsAsks (symbols[, params])
+bitmart.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1463,7 +1592,7 @@ bitmart.watchBidsAsks (symbols[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1480,7 +1609,32 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitmart.watchOrders (symbol[, since, limit, params])
+bitmart.watchOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="unWatchOrders" id="unwatchorders"></a>
+
+### unWatchOrders{docsify-ignore}
+unWatches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#private-order-progress
+- https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchOrders (symbol, params?)
 ```
 
 
@@ -1503,7 +1657,28 @@ watch all open positions
 
 
 ```javascript
-bitmart.watchPositions (symbols[, since, limit, params])
+bitmart.watchPositions (symbols, since?, limit?, params)
+```
+
+
+<a name="unWatchPositions" id="unwatchpositions"></a>
+
+### unWatchPositions{docsify-ignore}
+unWatches all open positions
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - status of the unwatch request
+
+**See**: https://developer-pro.bitmart.com/en/futures/#private-position-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchPositions (symbols?, params?)
 ```
 
 
@@ -1531,7 +1706,33 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmart.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitmart.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-kline-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1541,7 +1742,7 @@ bitmart.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1559,7 +1760,33 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmart.watchOrderBook (symbol[, limit, params])
+bitmart.watchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+- https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1569,7 +1796,7 @@ bitmart.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel  
 
@@ -1582,6 +1809,70 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmart.watchOrderBookForSymbols (symbols[, limit, params])
+bitmart.watchOrderBookForSymbols (symbols, limit?, params?)
+```
+
+
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.depth | <code>string</code> | No | the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50 |
+
+
+```javascript
+bitmart.unWatchOrderBookForSymbols (symbols, params?)
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.watchFundingRate (symbol, params?)
+```
+
+
+<a name="watchFundingRates" id="watchfundingrates"></a>
+
+### watchFundingRates{docsify-ignore}
+watch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbols
+
+**See**: https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.watchFundingRates (symbols, params?)
 ```
 

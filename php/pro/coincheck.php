@@ -6,11 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class coincheck extends \ccxt\async\coincheck {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -47,7 +46,7 @@ class coincheck extends \ccxt\async\coincheck {
         ));
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -57,9 +56,11 @@ class coincheck extends \ccxt\async\coincheck {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
             $url = $this->urls['api']['ws'];
@@ -69,8 +70,8 @@ class coincheck extends \ccxt\async\coincheck {
             );
             $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book($client, $message) {
@@ -104,13 +105,13 @@ class coincheck extends \ccxt\async\coincheck {
             $this->orderbooks[$symbol] = $orderbook;
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $orderbook->reset ($snapshot);
+            $orderbook->reset($snapshot);
         }
         $messageHash = 'orderbook:' . $symbol;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
@@ -121,9 +122,11 @@ class coincheck extends \ccxt\async\coincheck {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trade:' . $market['symbol'];
@@ -135,10 +138,10 @@ class coincheck extends \ccxt\async\coincheck {
             $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -161,16 +164,16 @@ class coincheck extends \ccxt\async\coincheck {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         for ($i = 0; $i < count($message); $i++) {
             $data = $this->safe_value($message, $i);
             $trade = $this->parse_ws_trade($data);
-            $stored->append ($trade);
+            $stored->append($trade);
         }
         $messageHash = 'trade:' . $symbol;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
@@ -210,7 +213,7 @@ class coincheck extends \ccxt\async\coincheck {
 
     public function handle_message(Client $client, $message) {
         $data = $this->safe_value($message, 0);
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $this->handle_order_book($client, $message);
         } else {
             $this->handle_trades($client, $message);

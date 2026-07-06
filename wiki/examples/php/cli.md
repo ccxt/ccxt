@@ -1,8 +1,5 @@
-- [Cli](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
@@ -135,7 +132,7 @@ $main = function() use ($argv) {
                 $markets = json_decode(file_get_contents($markets_path), true);
                 $exchange->markets = $markets;
             } else {
-                // yield $exchange->load_markets();
+                yield $exchange->load_markets();
             }
 
             $exchange->verbose = $verbose;
@@ -206,5 +203,5 @@ $promise = Async\coroutine($main);
 Async\await($promise);
 
 ?>
- 
+
 ```

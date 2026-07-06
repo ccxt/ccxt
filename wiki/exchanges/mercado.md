@@ -34,7 +34,7 @@ retrieves data on all markets for mercado
 
 
 ```javascript
-mercado.fetchMarkets ([params])
+mercado.fetchMarkets (params?)
 ```
 
 
@@ -44,7 +44,7 @@ mercado.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -55,7 +55,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-mercado.fetchOrderBook (symbol[, limit, params])
+mercado.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -65,7 +65,7 @@ mercado.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -75,7 +75,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-mercado.fetchTicker (symbol[, params])
+mercado.fetchTicker (symbol, params?)
 ```
 
 
@@ -85,7 +85,7 @@ mercado.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -97,7 +97,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-mercado.fetchTrades (symbol[, since, limit, params])
+mercado.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -107,7 +107,7 @@ mercado.fetchTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -116,7 +116,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-mercado.fetchBalance ([params])
+mercado.fetchBalance (params?)
 ```
 
 
@@ -126,7 +126,7 @@ mercado.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -140,7 +140,7 @@ create a trade order
 
 
 ```javascript
-mercado.createOrder (symbol, type, side, amount[, price, params])
+mercado.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -150,7 +150,7 @@ mercado.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -161,7 +161,7 @@ cancels an open order
 
 
 ```javascript
-mercado.cancelOrder (id, symbol[, params])
+mercado.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -171,7 +171,7 @@ mercado.cancelOrder (id, symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -182,7 +182,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-mercado.fetchOrder (id, symbol[, params])
+mercado.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -192,7 +192,7 @@ mercado.fetchOrder (id, symbol[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -205,7 +205,7 @@ make a withdrawal
 
 
 ```javascript
-mercado.withdraw (code, amount, address, tag[, params])
+mercado.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -228,7 +228,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-mercado.fetchOHLCV (symbol, timeframe[, since, limit, params])
+mercado.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -238,7 +238,7 @@ mercado.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -250,7 +250,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-mercado.fetchOrders (symbol[, since, limit, params])
+mercado.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -260,7 +260,7 @@ mercado.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -272,7 +272,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-mercado.fetchOpenOrders (symbol[, since, limit, params])
+mercado.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -282,7 +282,7 @@ mercado.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>mercado</code>](#mercado)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -294,6 +294,6 @@ fetch all trades made by the user
 
 
 ```javascript
-mercado.fetchMyTrades (symbol[, since, limit, params])
+mercado.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 

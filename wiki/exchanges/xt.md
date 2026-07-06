@@ -62,7 +62,7 @@ fetches the current integer timestamp in milliseconds from the xt server
 
 
 ```javascript
-xt.fetchTime (params, [undefined])
+xt.fetchTime (params)
 ```
 
 
@@ -82,7 +82,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-xt.fetchCurrencies (params, [undefined])
+xt.fetchCurrencies (params)
 ```
 
 
@@ -106,7 +106,7 @@ retrieves data on all markets for xt
 
 
 ```javascript
-xt.fetchMarkets (params, [undefined])
+xt.fetchMarkets (params)
 ```
 
 
@@ -136,7 +136,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-xt.fetchOHLCV (symbol, timeframe[, since, limit, params])
+xt.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 ```
 
 
@@ -162,7 +162,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-xt.fetchOrderBook (symbol[, limit, params])
+xt.fetchOrderBook (symbol, limit?, params)
 ```
 
 
@@ -187,7 +187,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-xt.fetchTicker (symbol, params[])
+xt.fetchTicker (symbol, params)
 ```
 
 
@@ -212,7 +212,7 @@ fetches price tickers for multiple markets, statistical calculations with the in
 
 
 ```javascript
-xt.fetchTickers ([symbols, params])
+xt.fetchTickers (symbols?, params)
 ```
 
 
@@ -233,7 +233,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-xt.fetchBidsAsks ([symbols, params])
+xt.fetchBidsAsks (symbols?, params)
 ```
 
 
@@ -260,7 +260,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-xt.fetchTrades (symbol[, since, limit, params])
+xt.fetchTrades (symbol, since?, limit?, params)
 ```
 
 
@@ -287,7 +287,7 @@ fetch all trades made by the user
 
 
 ```javascript
-xt.fetchMyTrades ([symbol, since, limit, params])
+xt.fetchMyTrades (symbol?, since?, limit?, params)
 ```
 
 
@@ -311,7 +311,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-xt.fetchBalance (params, [undefined])
+xt.fetchBalance (params)
 ```
 
 
@@ -321,7 +321,7 @@ xt.fetchBalance (params, [undefined])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.xt.com/#orderorderPost  
 
@@ -333,7 +333,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-xt.createMarketBuyOrderWithCost (symbol, cost[, params])
+xt.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -371,7 +371,7 @@ create a trade order
 
 
 ```javascript
-xt.createOrder (symbol, type, side, amount[, price, params])
+xt.createOrder (symbol, type, side, amount, price?, params)
 ```
 
 
@@ -401,7 +401,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-xt.fetchOrder (id[, symbol, params])
+xt.fetchOrder (id, symbol?, params)
 ```
 
 
@@ -430,7 +430,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-xt.fetchOrders ([symbol, since, limit, params])
+xt.fetchOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -461,7 +461,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-xt.fetchOpenOrders ([symbol, since, limit, params])
+xt.fetchOpenOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -492,7 +492,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-xt.fetchClosedOrders ([symbol, since, limit, params])
+xt.fetchClosedOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -523,7 +523,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-xt.fetchCanceledOrders ([symbol, since, limit, params])
+xt.fetchCanceledOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -553,7 +553,7 @@ cancels an open order
 
 
 ```javascript
-xt.cancelOrder (id[, symbol, params])
+xt.cancelOrder (id, symbol?, params)
 ```
 
 
@@ -582,7 +582,7 @@ cancel all open orders in a market
 
 
 ```javascript
-xt.cancelAllOrders ([symbol, params])
+xt.cancelAllOrders (symbol?, params)
 ```
 
 
@@ -604,7 +604,7 @@ cancel multiple orders
 
 
 ```javascript
-xt.cancelOrders (ids[, symbol, params])
+xt.cancelOrders (ids, symbol?, params)
 ```
 
 
@@ -627,7 +627,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-xt.fetchLedger ([code, since, limit, params])
+xt.fetchLedger (code?, since?, limit?, params)
 ```
 
 
@@ -649,7 +649,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-xt.fetchDepositAddress (code, params[])
+xt.fetchDepositAddress (code, params)
 ```
 
 
@@ -672,7 +672,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-xt.fetchDeposits ([code, since, limit, params])
+xt.fetchDeposits (code?, since?, limit?, params)
 ```
 
 
@@ -695,7 +695,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-xt.fetchWithdrawals ([code, since, limit, params])
+xt.fetchWithdrawals (code?, since?, limit?, params)
 ```
 
 
@@ -719,7 +719,7 @@ make a withdrawal
 
 
 ```javascript
-xt.withdraw (code, amount, address[, tag, params])
+xt.withdraw (code, amount, address, tag?, params)
 ```
 
 
@@ -742,7 +742,7 @@ set the level of leverage for a market
 
 
 ```javascript
-xt.setLeverage (leverage, symbol, params[])
+xt.setLeverage (leverage, symbol, params)
 ```
 
 
@@ -752,7 +752,7 @@ xt.setLeverage (leverage, symbol, params[])
 add margin to a position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://doc.xt.com/#futures_useradjustMargin  
 
@@ -765,7 +765,7 @@ add margin to a position
 
 
 ```javascript
-xt.addMargin (symbol, amount, params[])
+xt.addMargin (symbol, amount, params)
 ```
 
 
@@ -775,7 +775,7 @@ xt.addMargin (symbol, amount, params[])
 remove margin from a position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://doc.xt.com/#futures_useradjustMargin  
 
@@ -788,7 +788,7 @@ remove margin from a position
 
 
 ```javascript
-xt.reduceMargin (symbol, amount, params[])
+xt.reduceMargin (symbol, amount, params)
 ```
 
 
@@ -798,7 +798,7 @@ xt.reduceMargin (symbol, amount, params[])
 retrieve information on the maximum leverage for different trade sizes
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetLeverageBrackets  
 
@@ -809,7 +809,7 @@ retrieve information on the maximum leverage for different trade sizes
 
 
 ```javascript
-xt.fetchLeverageTiers ([symbols, params])
+xt.fetchLeverageTiers (symbols?, params)
 ```
 
 
@@ -819,7 +819,7 @@ xt.fetchLeverageTiers ([symbols, params])
 retrieve information on the maximum leverage for different trade sizes of a single market
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetLeverageBracket  
 
@@ -830,7 +830,7 @@ retrieve information on the maximum leverage for different trade sizes of a sing
 
 
 ```javascript
-xt.fetchMarketLeverageTiers (symbol, params[])
+xt.fetchMarketLeverageTiers (symbol, params)
 ```
 
 
@@ -854,7 +854,7 @@ fetches historical funding rates
 
 
 ```javascript
-xt.fetchFundingRateHistory ([symbol, since, limit, params])
+xt.fetchFundingRateHistory (symbol?, since?, limit?, params)
 ```
 
 
@@ -864,7 +864,7 @@ xt.fetchFundingRateHistory ([symbol, since, limit, params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetFundingRate  
 
@@ -875,7 +875,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-xt.fetchFundingInterval (symbol[, params])
+xt.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -885,7 +885,7 @@ xt.fetchFundingInterval (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetFundingRate  
 
@@ -896,7 +896,7 @@ fetch the current funding rate
 
 
 ```javascript
-xt.fetchFundingRate (symbol, params[])
+xt.fetchFundingRate (symbol, params)
 ```
 
 
@@ -906,7 +906,7 @@ xt.fetchFundingRate (symbol, params[])
 fetch the funding history
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://doc.xt.com/#futures_usergetFunding  
 
@@ -919,7 +919,7 @@ fetch the funding history
 
 
 ```javascript
-xt.fetchFundingHistory (symbol[, since, limit, params])
+xt.fetchFundingHistory (symbol, since?, limit?, params)
 ```
 
 
@@ -929,7 +929,7 @@ xt.fetchFundingHistory (symbol[, since, limit, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://doc.xt.com/#futures_usergetPosition  
 
@@ -940,7 +940,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-xt.fetchPosition (symbol, params[])
+xt.fetchPosition (symbol, params)
 ```
 
 
@@ -950,7 +950,7 @@ xt.fetchPosition (symbol, params[])
 fetch all open positions
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://doc.xt.com/#futures_usergetPosition  
 
@@ -961,7 +961,7 @@ fetch all open positions
 
 
 ```javascript
-xt.fetchPositions ([symbols, params])
+xt.fetchPositions (symbols?, params)
 ```
 
 
@@ -971,7 +971,7 @@ xt.fetchPositions ([symbols, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://doc.xt.com/#transfersubTransferPost  
 
@@ -985,7 +985,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-xt.transfer (code, amount, fromAccount, toAccount, params[])
+xt.transfer (code, amount, fromAccount, toAccount, params)
 ```
 
 
@@ -1008,7 +1008,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-xt.setMarginMode (marginMode[, symbol, params])
+xt.setMarginMode (marginMode, symbol?, params?)
 ```
 
 
@@ -1018,7 +1018,7 @@ xt.setMarginMode (marginMode[, symbol, params])
 cancels an order and places a new order
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1041,6 +1041,6 @@ cancels an order and places a new order
 
 
 ```javascript
-xt.editOrder (id, symbol, type, side, amount[, price, params])
+xt.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 

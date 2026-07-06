@@ -51,14 +51,14 @@ class toobit extends toobit$1["default"] {
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchOrderBook': {
+                    'watchOrderBookForSymbols': {
                         'channel': 'depth', // depth, diffDepth
                     },
                     'listenKeyRefreshRate': 1200000, // 20 mins
                 },
             },
             'streaming': {
-                'keepAlive': (60 - 1) * 5 * 1000,
+                'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
                 'ping': this.ping,
             },
             'exceptions': {
@@ -137,7 +137,7 @@ class toobit extends toobit$1["default"] {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = this.safeValue(methods, topic);
+        const method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);
         }
@@ -146,7 +146,7 @@ class toobit extends toobit$1["default"] {
             for (let i = 0; i < message.length; i++) {
                 const item = message[i];
                 const event = this.safeString(item, 'e');
-                const method2 = this.safeValue(methods, event);
+                const method2 = (event === undefined) ? undefined : this.safeValue(methods, event);
                 if (method2 !== undefined) {
                     method2.call(this, client, item);
                 }
@@ -165,7 +165,7 @@ class toobit extends toobit$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
@@ -180,10 +180,12 @@ class toobit extends toobit$1["default"] {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -281,7 +283,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const messageHashes = [];
         const timeframes = this.safeDict(this.options['ws'], 'timeframes', {});
@@ -388,10 +392,12 @@ class toobit extends toobit$1["default"] {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
@@ -403,10 +409,12 @@ class toobit extends toobit$1["default"] {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -490,7 +498,7 @@ class toobit extends toobit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -503,13 +511,15 @@ class toobit extends toobit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'channel', 'depth');
+        [channel, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'channel', 'depth');
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -577,7 +587,7 @@ class toobit extends toobit$1["default"] {
         }
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta);
+        const bidAsk = this.parseOrderBookBidAsk(delta);
         bookside.storeArray(bidAsk);
     }
     handleOrderBookPartialSnapshot(client, message) {
@@ -633,10 +643,12 @@ class toobit extends toobit$1["default"] {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -727,10 +739,12 @@ class toobit extends toobit$1["default"] {
         const type = (marketType === 'spot') ? 'spot' : 'contract';
         this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve();
-        client.resolve(this.balance[type], type + ':fetchBalanceSnapshot');
-        client.resolve(this.balance[type], type + ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance[type], type + ':fetchBalanceSnapshot');
+            client.resolve(this.balance[type], type + ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        }
     }
     /**
      * @method
@@ -741,10 +755,12 @@ class toobit extends toobit$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.marketOrNull(symbol);
         symbol = this.safeString(market, 'symbol', symbol);
@@ -859,10 +875,12 @@ class toobit extends toobit$1["default"] {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.marketOrNull(symbol);
         symbol = this.safeString(market, 'symbol', symbol);
@@ -937,7 +955,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let messageHash = '';
         if (!this.isEmpty(symbols)) {
@@ -990,9 +1010,11 @@ class toobit extends toobit$1["default"] {
             cache.append(position);
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, type + ':positions');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, type + ':positions');
+        }
     }
     handlePositions(client, message) {
         //
@@ -1101,7 +1123,7 @@ class toobit extends toobit$1["default"] {
                     this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
                 }
                 catch (e) {
-                    const err = new errors.AuthenticationError(this.id + ' ' + this.json(e));
+                    const err = new errors.AuthenticationError(this.id + ' ' + this.exceptionMessage(e));
                     client.reject(err, messageHash);
                     if (messageHash in client.subscriptions) {
                         delete client.subscriptions[messageHash];
@@ -1136,7 +1158,7 @@ class toobit extends toobit$1["default"] {
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
+        const listenKeyRefreshRate = this.safeInteger(this.options['ws'], 'listenKeyRefreshRate', 1200000);
         this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
     getUserStreamUrl() {

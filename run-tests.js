@@ -30,6 +30,7 @@ const langKeys = {
     '--csharp': false,  // run C# tests only
     '--php-async': false,    // run php async tests only,
     '--go': false,      // run GO tests only
+    '--java': false,    // run Java tests only
 }
 
 const debugKeys = {
@@ -51,7 +52,12 @@ const exchangeSpecificFlags = {
 let exchanges = []
 let symbol = 'all'
 let method = undefined
-let maxConcurrency = 5 // Number.MAX_VALUE // no limit
+// Java JVMs are ~700 MB each at peak; 5 concurrent × 2 simul streams (REST + WS)
+// = 10 JVMs OOMs CI's 7 GB / 4-core runner before tests complete (the runner
+// receives a shutdown signal at ~7 min with 6+ orphan java procs). Lower the
+// Java cap so peak memory stays in budget; ~110/80 exchanges still finish in
+// ~30 min wall-clock locally with cap=3.
+let maxConcurrency = process.argv.includes('--java') ? 3 : 5
 
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
@@ -74,7 +80,10 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
 // for REST exchange test, we might need to wait for 200+ seconds for some exchanges
 // for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
-const timeoutSeconds = wsFlag ? 120 : 250;
+// Java needs extra headroom for gradle daemon dispatch + JVM start + loadMarkets
+// (binance-class exchanges have 4000+ markets); without it, ~22 WS exchanges
+// hit the per-test timeout despite passing on their own.
+const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
 
 //  --------------------------------------------------------------------------- //
@@ -188,11 +197,29 @@ const exec = (bin, ...args) => {
             return resolver (result) ;
         })
 
+        if (debugKeys['--info']) {
+            psSpawn.on ('error', (err) => {
+                console.log ('RUNTESTS err event:', err);
+            });
+            psSpawn.on ('message', (code, sendHandle) => {
+                console.log ('RUNTESTS message event:', code, sendHandle);
+            });
+            psSpawn.on ('close', (code, signal) => {
+                console.log ('RUNTESTS close event:', code, signal);
+            });
+        }
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
+            // Tag the output so the FAIL path picks it up (generateResultFromOutput
+            // looks for [TEST_FAILURE] / AssertionError / [...Error] patterns).
+            // Without this tag the harness was bucketing timeouts into WARN, which
+            // silently hid 12 hung WS exchanges across every language lane on every
+            // CI run (e.g. bybit which times out in all 6 langs). A killed-after-180s
+            // process is a real failure, not a transient warning — should be visible.
+            output += '\n[TEST_FAILURE] RUNTEST_TIMED_OUT';
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
-            const result = generateResultFromOutput (output, stderr, 0);
+            const result = generateResultFromOutput (output, stderr, 1);
             return result;
         }
         return {
@@ -226,6 +253,19 @@ const sequentialMap = async (input, fn) => {
     for (const item of input) { result.push (await fn (item)) }
     return result
 }
+
+// const getJavaArgs = (args) => {
+//     let res = "--args=\"";
+//     for (const arg of args) {
+//         res += `${arg.trim()} `;
+//     }
+//     res += `"`;
+//     return [res];
+// }
+
+const getJavaArgs = (args) => {
+    return `--args=${args.map(a => a.trim()).join(' ')}`;
+};
 
 //  ------------------------------------------------------------------------ //
 
@@ -278,6 +318,7 @@ const testExchange = async (exchange) => {
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
         { key: '--go',           language: 'GO',           exec: [ 'go', 'run', '-C', 'go', './tests/main.go',          ...args] },
+        { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
     ];
 
     // select tests based on cli arguments
@@ -294,6 +335,7 @@ const testExchange = async (exchange) => {
         if (skipSettings[exchange].skipCSharp)   selectedTests = selectedTests.filter (t => t.key !== '--csharp'); 
         if (skipSettings[exchange].skipPhpAsync) selectedTests = selectedTests.filter (t => t.key !== '--php-async');
         if (skipSettings[exchange].skipPythonAsync) selectedTests = selectedTests.filter (t => t.key !== '--python-async');
+        if (skipSettings[exchange].skipJava) selectedTests = selectedTests.filter (t => t.key !== '--java');
     }
     // if it's WS tests, then remove sync versions (php & python) from queue
     if (wsFlag) {

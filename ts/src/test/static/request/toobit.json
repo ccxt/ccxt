@@ -2,6 +2,24 @@
     "exchange": "toobit",
     "skipKeys": [],
     "methods": {
+        "withdraw": [
+            {
+                "disabled":true,
+                "description": "withdraw USDT on SOL (disabled bcz of dynamic timestamp in request)",
+                "method": "withdraw",
+                "url": "https://api.toobit.com/api/v1/account/withdraw",
+                "input": [
+                    "USDT",
+                    10.1,
+                    "8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc",
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": "coin=USDT&address=8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc&quantity=10.1&chainType=SOL&clientOrderId=1766511589&recvWindow=5000&timestamp=1766511589371123&signature=55c38a209d641464634455ea8e84caa227a29cf7b1a126adfd4a15e07e85f607"
+            }
+        ],
         "cancelOrders": [
             {
                 "disabled": true,

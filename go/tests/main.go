@@ -16,7 +16,8 @@ func main() {
 			cache.TestWsOrderBook()
 			fmt.Println("Base WS tests passed!")
 		} else {
-			base.BaseTestsInit()
+			res := <-base.BaseTestsInit()
+			base.PanicOnError(res)
 			fmt.Println("Base REST tests passed!")
 		}
 

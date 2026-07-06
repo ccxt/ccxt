@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitrue$1 = require('./abstract/bitrue.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bitrue extends bitrue$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitrue',
             'name': 'Bitrue',
-            'countries': ['SG'],
+            'countries': ['SG'], // Singapore, Malta
             'rateLimit': 10,
             'certified': false,
             'version': 'v1',
@@ -380,15 +380,15 @@ class bitrue extends bitrue$1["default"] {
                     'types': ['spot', 'linear', 'inverse'],
                 },
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
-                'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'currencyToPrecisionRoundingMode': number.TRUNCATE,
-                'recvWindow': 5 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
-                'parseOrderToPrecision': false,
+                'recvWindow': 5 * 1000, // 5 sec, binance default
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
-                    'market': 'FULL',
+                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
                 'networks': {
@@ -447,7 +447,6 @@ class bitrue extends bitrue$1["default"] {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -502,8 +501,8 @@ class bitrue extends bitrue$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -514,7 +513,7 @@ class bitrue extends bitrue$1["default"] {
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyRequiresPrice': true,
+                        'marketBuyRequiresPrice': true, // todo revise
                         'marketBuyByCost': true,
                         'selfTradePrevention': false,
                         'iceberg': true, // todo implement
@@ -586,76 +585,77 @@ class bitrue extends bitrue$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    'System is under maintenance.': errors.OnMaintenance,
-                    'System abnormality': errors.ExchangeError,
-                    'You are not authorized to execute this request.': errors.PermissionDenied,
+                    'System is under maintenance.': errors.OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
+                    'System abnormality': errors.ExchangeError, // {"code":-1000,"msg":"System abnormality"}
+                    'You are not authorized to execute this request.': errors.PermissionDenied, // {"msg":"You are not authorized to execute this request."}
                     'API key does not exist': errors.AuthenticationError,
                     'Order would trigger immediately.': errors.OrderImmediatelyFillable,
-                    'Stop price would trigger immediately.': errors.OrderImmediatelyFillable,
-                    'Order would immediately match and take.': errors.OrderImmediatelyFillable,
+                    'Stop price would trigger immediately.': errors.OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
+                    'Order would immediately match and take.': errors.OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
                     'Account has insufficient balance for requested action.': errors.InsufficientFunds,
                     'Rest API trading is not enabled.': errors.ExchangeNotAvailable,
-                    "You don't have permission.": errors.PermissionDenied,
-                    'Market is closed.': errors.ExchangeNotAvailable,
-                    'Too many requests. Please try again later.': errors.DDoSProtection,
-                    '-1000': errors.ExchangeNotAvailable,
-                    '-1001': errors.ExchangeNotAvailable,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1013': errors.InvalidOrder,
-                    '-1015': errors.RateLimitExceeded,
-                    '-1016': errors.ExchangeNotAvailable,
-                    '-1020': errors.BadRequest,
-                    '-1021': errors.InvalidNonce,
-                    '-1022': errors.AuthenticationError,
-                    '-1100': errors.BadRequest,
-                    '-1101': errors.BadRequest,
-                    '-1102': errors.BadRequest,
-                    '-1103': errors.BadRequest,
-                    '-1104': errors.BadRequest,
-                    '-1105': errors.BadRequest,
-                    '-1106': errors.BadRequest,
-                    '-1111': errors.BadRequest,
-                    '-1112': errors.InvalidOrder,
-                    '-1114': errors.BadRequest,
-                    '-1115': errors.BadRequest,
-                    '-1116': errors.BadRequest,
-                    '-1117': errors.BadRequest,
-                    '-1166': errors.InvalidOrder,
-                    '-1118': errors.BadRequest,
-                    '-1119': errors.BadRequest,
-                    '-1120': errors.BadRequest,
-                    '-1121': errors.BadSymbol,
-                    '-1125': errors.AuthenticationError,
-                    '-1127': errors.BadRequest,
-                    '-1128': errors.BadRequest,
-                    '-1130': errors.BadRequest,
-                    '-1131': errors.BadRequest,
-                    '-1160': errors.InvalidOrder,
-                    '-1156': errors.InvalidOrder,
-                    '-2008': errors.AuthenticationError,
-                    '-2010': errors.ExchangeError,
-                    '-2011': errors.OrderNotFound,
-                    '-2013': errors.OrderNotFound,
-                    '-2014': errors.AuthenticationError,
-                    '-2015': errors.AuthenticationError,
-                    '-2017': errors.InsufficientFunds,
-                    '-2019': errors.InsufficientFunds,
-                    '-3005': errors.InsufficientFunds,
-                    '-3006': errors.InsufficientFunds,
-                    '-3008': errors.InsufficientFunds,
-                    '-3010': errors.ExchangeError,
-                    '-3015': errors.ExchangeError,
-                    '-3022': errors.AccountSuspended,
-                    '-4028': errors.BadRequest,
-                    '-3020': errors.InsufficientFunds,
-                    '-3041': errors.InsufficientFunds,
-                    '-5013': errors.InsufficientFunds,
-                    '-11008': errors.InsufficientFunds,
+                    "You don't have permission.": errors.PermissionDenied, // {"msg":"You don't have permission.","success":false}
+                    'Market is closed.': errors.ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
+                    'Too many requests. Please try again later.': errors.DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'quantity less then minQty': errors.InvalidOrder, // {"code":-1111,"msg":"quantity less then minQty.","data":null}
+                    '-1000': errors.ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1001': errors.ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
+                    '-1002': errors.AuthenticationError, // 'You are not authorized to execute this request.'
+                    '-1003': errors.RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
+                    '-1013': errors.InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                    '-1015': errors.RateLimitExceeded, // 'Too many new orders; current limit is %s orders per %s.'
+                    '-1016': errors.ExchangeNotAvailable, // 'This service is no longer available.',
+                    '-1020': errors.BadRequest, // 'This operation is not supported.'
+                    '-1021': errors.InvalidNonce, // 'your time is ahead of server'
+                    '-1022': errors.AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1100': errors.BadRequest, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                    '-1101': errors.BadRequest, // Too many parameters; expected %s and received %s.
+                    '-1102': errors.BadRequest, // Param %s or %s must be sent, but both were empty // {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
+                    '-1103': errors.BadRequest, // An unknown parameter was sent.
+                    '-1104': errors.BadRequest, // Not all sent parameters were read, read 8 parameters but was sent 9
+                    '-1105': errors.BadRequest, // Parameter %s was empty.
+                    '-1106': errors.BadRequest, // Parameter %s sent when not required.
+                    '-1111': errors.BadRequest, // Precision is over the maximum defined for this asset.
+                    '-1112': errors.InvalidOrder, // No orders on book for symbol.
+                    '-1114': errors.BadRequest, // TimeInForce parameter sent when not required.
+                    '-1115': errors.BadRequest, // Invalid timeInForce.
+                    '-1116': errors.BadRequest, // Invalid orderType.
+                    '-1117': errors.BadRequest, // Invalid side.
+                    '-1166': errors.InvalidOrder, // {"code":"-1166","msg":"The leverage value of the order is inconsistent with the user contract configuration 5","data":null}
+                    '-1118': errors.BadRequest, // New client order ID was empty.
+                    '-1119': errors.BadRequest, // Original client order ID was empty.
+                    '-1120': errors.BadRequest, // Invalid interval.
+                    '-1121': errors.BadSymbol, // Invalid symbol.
+                    '-1125': errors.AuthenticationError, // This listenKey does not exist.
+                    '-1127': errors.BadRequest, // More than %s hours between startTime and endTime.
+                    '-1128': errors.BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                    '-1130': errors.BadRequest, // Data sent for paramter %s is not valid.
+                    '-1131': errors.BadRequest, // recvWindow must be less than 60000
+                    '-1160': errors.InvalidOrder, // {"code":"-1160","msg":"Minimum order amount 10","data":null}
+                    '-1156': errors.InvalidOrder, // {"code":"-1156","msg":"The number of closed positions exceeds the total number of positions","data":null}
+                    '-2008': errors.AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
+                    '-2010': errors.ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
+                    '-2011': errors.OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                    '-2013': errors.OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014': errors.AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
+                    '-2015': errors.AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                    '-2017': errors.InsufficientFunds, // {code":"-2017","msg":"Insufficient balance","data":null}
+                    '-2019': errors.InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                    '-3005': errors.InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006': errors.InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                    '-3008': errors.InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                    '-3010': errors.ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3015': errors.ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3022': errors.AccountSuspended, // You account's trading is banned.
+                    '-4028': errors.BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
+                    '-3020': errors.InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                    '-3041': errors.InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
+                    '-5013': errors.InsufficientFunds, // Asset transfer failed: insufficient balance"
+                    '-11008': errors.InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
                     '-4051': errors.InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
-                    'Insufficient account balance': errors.InsufficientFunds,
+                    'Insufficient account balance': errors.InsufficientFunds, // {"code":-2010,"msg":"Insufficient account balance.","data":null}
                     'has no operation privilege': errors.PermissionDenied,
                     'MAX_POSITION': errors.InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -671,7 +671,7 @@ class bitrue extends bitrue$1["default"] {
      * @description the latest known information on the availability of the exchange API
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const response = await this.spotV1PublicGetPing(params);
@@ -753,7 +753,7 @@ class bitrue extends bitrue$1["default"] {
         //                 {
         //                     "chain": "BEP20",
         //                     "enableWithdraw": true,
-        //                     "enableDeposit": true,
+        //                     "enableDeposit": false,
         //                     "withdrawFee": "0.2000",
         //                     "minWithdraw": "5.0000",
         //                     "maxWithdraw": "1000000000000000.0000",
@@ -763,58 +763,56 @@ class bitrue extends bitrue$1["default"] {
         //         ],
         //     }
         //
-        const result = {};
         const coins = this.safeList(response, 'coins', []);
-        for (let i = 0; i < coins.length; i++) {
-            const currency = coins[i];
-            const id = this.safeString(currency, 'coin');
-            const name = this.safeString(currency, 'coinFulName');
-            const code = this.safeCurrencyCode(id);
-            const networkDetails = this.safeList(currency, 'chainDetail', []);
-            const networks = {};
-            for (let j = 0; j < networkDetails.length; j++) {
-                const entry = networkDetails[j];
-                const networkId = this.safeString(entry, 'chain');
-                const network = this.networkIdToCode(networkId, code);
-                networks[network] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': network,
-                    'deposit': this.safeBool(entry, 'enableDeposit'),
-                    'withdraw': this.safeBool(entry, 'enableWithdraw'),
-                    'active': undefined,
-                    'fee': this.safeNumber(entry, 'withdrawFee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(entry, 'minWithdraw'),
-                            'max': this.safeNumber(entry, 'maxWithdraw'),
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': undefined,
-                'info': currency,
+        return this.parseCurrencies(coins);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'coin');
+        const name = this.safeString(rawCurrency, 'coinFulName');
+        const code = this.safeCurrencyCode(id);
+        const networkDetails = this.safeList(rawCurrency, 'chainDetail', []);
+        const networks = {};
+        for (let j = 0; j < networkDetails.length; j++) {
+            const entry = networkDetails[j];
+            const networkId = this.safeString(entry, 'chain');
+            const network = this.networkIdToCode(networkId, code);
+            networks[network] = {
+                'info': entry,
+                'id': networkId,
+                'network': network,
+                'deposit': this.safeBool(entry, 'enableDeposit'),
+                'withdraw': this.safeBool(entry, 'enableWithdraw'),
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'type': 'crypto',
+                'fee': this.safeNumber(entry, 'withdrawFee'),
+                'precision': undefined,
                 'limits': {
                     'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber(entry, 'minWithdraw'),
+                        'max': this.safeNumber(entry, 'maxWithdraw'),
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': undefined,
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'type': 'crypto',
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
     }
     /**
      * @method
@@ -930,10 +928,10 @@ class bitrue extends bitrue$1["default"] {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
-        const id = this.safeString(market, 'symbol');
+        const id = this.safeString(market, 'symbol', '');
         const lowercaseId = this.safeStringLower(market, 'symbol');
         const side = this.safeInteger(market, 'side'); // 1 linear, 0 inverse, undefined spot
-        let type = undefined;
+        let type = 'spot';
         let isLinear = undefined;
         let isInverse = undefined;
         if (side === undefined) {
@@ -985,6 +983,7 @@ class bitrue extends bitrue$1["default"] {
         if (minCost === undefined) {
             minCost = this.safeNumber(market, 'minOrderMoney');
         }
+        const isSpot = (type === 'spot');
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -996,7 +995,7 @@ class bitrue extends bitrue$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type === 'spot'),
+            'spot': isSpot,
             'margin': false,
             'swap': isContract,
             'future': false,
@@ -1111,10 +1110,12 @@ class bitrue extends bitrue$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let subType = undefined;
@@ -1224,12 +1225,14 @@ class bitrue extends bitrue$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let response = undefined;
+        let response = {};
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -1332,7 +1335,7 @@ class bitrue extends bitrue$1["default"] {
         const last = this.safeString2(ticker, 'lastPrice', 'last');
         const timestamp = this.safeInteger(ticker, 'time');
         let percentage = undefined;
-        if (market['swap']) {
+        if (this.safeBool(market, 'swap')) {
             percentage = Precise["default"].stringMul(this.safeString(ticker, 'rose'), '100');
         }
         else {
@@ -1370,13 +1373,15 @@ class bitrue extends bitrue$1["default"] {
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -1454,11 +1459,13 @@ class bitrue extends bitrue$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (market['swap']) {
             const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
@@ -1579,10 +1586,12 @@ class bitrue extends bitrue$1["default"] {
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const first = this.safeString(symbols, 0);
         const market = this.market(first);
@@ -1644,13 +1653,15 @@ class bitrue extends bitrue$1["default"] {
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         let type = undefined;
         if (symbols !== undefined) {
@@ -1826,12 +1837,14 @@ class bitrue extends bitrue$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let response = undefined;
+        let response = [];
         if (market['spot']) {
             const request = {
                 'symbol': market['id'],
@@ -1869,7 +1882,7 @@ class bitrue extends bitrue$1["default"] {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
-            'PENDING_CANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
@@ -2003,10 +2016,12 @@ class bitrue extends bitrue$1["default"] {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports swap orders only');
@@ -2036,13 +2051,15 @@ class bitrue extends bitrue$1["default"] {
      * @param {decimal} [params.icebergQty]
      * @param {long} [params.recvWindow]
      * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const uppercaseType = type.toUpperCase();
         const request = {
             'side': side.toUpperCase(),
@@ -2163,18 +2180,20 @@ class bitrue extends bitrue$1["default"] {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2260,13 +2279,15 @@ class bitrue extends bitrue$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' fetchClosedOrders only support spot markets');
@@ -2319,16 +2340,18 @@ class bitrue extends bitrue$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
@@ -2406,18 +2429,20 @@ class bitrue extends bitrue$1["default"] {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2464,7 +2489,7 @@ class bitrue extends bitrue$1["default"] {
         //         "code": "0",
         //         "msg": "Success",
         //         "data": {
-        //             "orderId": 1690615847831143159
+        //             "orderId": 1690615847831143154
         //         }
         //     }
         //
@@ -2482,10 +2507,12 @@ class bitrue extends bitrue$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -2522,16 +2549,18 @@ class bitrue extends bitrue$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2616,13 +2645,15 @@ class bitrue extends bitrue$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2688,13 +2719,15 @@ class bitrue extends bitrue$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2745,8 +2778,8 @@ class bitrue extends bitrue$1["default"] {
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending',
-                '5': 'ok',
+                '0': 'pending', // Email Sent
+                '5': 'ok', // Failure
                 '6': 'canceled',
             },
         };
@@ -2889,12 +2922,14 @@ class bitrue extends bitrue$1["default"] {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2908,7 +2943,7 @@ class bitrue extends bitrue$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId(networkCode);
+            request['chainName'] = this.networkCodeToId(networkCode, currency['code']);
         }
         if (tag !== undefined) {
             request['tag'] = tag;
@@ -2980,10 +3015,12 @@ class bitrue extends bitrue$1["default"] {
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.spotV1PublicGetExchangeInfo(params);
         const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
@@ -3040,7 +3077,9 @@ class bitrue extends bitrue$1["default"] {
      * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const type = this.safeString2(params, 'type', 'transferType');
         const request = {
             'transferType': type,
@@ -3095,7 +3134,9 @@ class bitrue extends bitrue$1["default"] {
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountTypes = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountTypes, fromAccount, fromAccount);
@@ -3134,9 +3175,11 @@ class bitrue extends bitrue$1["default"] {
         if ((leverage < 1) || (leverage > 125)) {
             throw new errors.BadRequest(this.id + ' leverage should be between 1 and 125');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let response = undefined;
+        let response = {};
         const request = {
             'contractName': market['id'],
             'leverage': leverage,
@@ -3164,7 +3207,7 @@ class bitrue extends bitrue$1["default"] {
         //
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
@@ -3187,7 +3230,9 @@ class bitrue extends bitrue$1["default"] {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     async setMargin(symbol, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.NotSupported(this.id + ' setMargin only support swap markets');
@@ -3233,7 +3278,7 @@ class bitrue extends bitrue$1["default"] {
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,
                 }, params));
-                const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+                const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
                 query += '&' + 'signature=' + signature;
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -3263,7 +3308,7 @@ class bitrue extends bitrue$1["default"] {
                     if (keysLength > 0) {
                         signMessage += '?' + this.urlencode(params);
                     }
-                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
+                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha2_js.sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
                         'X-CH-SIGN': signature,
@@ -3277,7 +3322,7 @@ class bitrue extends bitrue$1["default"] {
                     }, params);
                     body = this.json(query);
                     signMessage += body;
-                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
+                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha2_js.sha256);
                     headers = {
                         'Content-Type': 'application/json',
                         'X-CH-APIKEY': this.apiKey,

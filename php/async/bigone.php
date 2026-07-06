@@ -12,12 +12,11 @@ use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class bigone extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
@@ -32,6 +31,9 @@ class bigone extends Exchange {
                 'swap' => true,
                 'future' => null, // has but unimplemented
                 'option' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
@@ -42,8 +44,17 @@ class bigone extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -53,10 +64,18 @@ class bigone extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -67,7 +86,10 @@ class bigone extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransactionFees' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -444,7 +466,7 @@ class bigone extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -501,89 +523,88 @@ class bigone extends Exchange {
             // }
             //
             $currenciesData = $this->safe_list($data, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($currenciesData); $i++) {
-                $currency = $currenciesData[$i];
-                $id = $this->safe_string($currency, 'symbol');
-                $code = $this->safe_currency_code($id);
-                $name = $this->safe_string($currency, 'name');
-                $networks = array();
-                $chains = $this->safe_list($currency, 'binding_gateways', array());
-                $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($currency, 'withdrawal_scale', 'scale'));
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'gateway_name');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
-                    $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
-                    $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
-                    $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
-                    $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
-                    $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'margin' => null,
-                        'deposit' => $deposit,
-                        'withdraw' => $withdraw,
-                        'active' => null,
-                        'fee' => $this->parse_number($withdrawalFee),
-                        'precision' => $this->parse_number($precision),
-                        'limits' => array(
-                            'deposit' => array(
-                                'min' => $minDepositAmount,
-                                'max' => null,
-                            ),
-                            'withdraw' => array(
-                                'min' => $minWithdrawalAmount,
-                                'max' => null,
-                            ),
-                        ),
-                        'info' => $chain,
-                    );
-                }
-                $chainLength = count($chains);
-                $type = null;
-                if ($this->safe_bool($currency, 'is_fiat')) {
-                    $type = 'fiat';
-                } elseif ($chainLength === 0) {
-                    if ($this->is_leveraged_currency($id)) {
-                        $type = 'leveraged';
-                    } else {
-                        $type = 'other';
-                    }
-                } else {
-                    $type = 'crypto';
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'name' => $name,
-                    'type' => $type,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => $this->parse_number($currencyMaxPrecision),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
-        }) ();
+            return $this->parse_currencies($currenciesData);
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networks = array();
+        $chains = $this->safe_list($rawCurrency, 'binding_gateways', array());
+        $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($rawCurrency, 'withdrawal_scale', 'scale'));
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'gateway_name');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
+            $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
+            $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
+            $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
+            $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
+            $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'margin' => null,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
+                'active' => null,
+                'fee' => $this->parse_number($withdrawalFee),
+                'precision' => $this->parse_number($precision),
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $minDepositAmount,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $minWithdrawalAmount,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $chain,
+            );
+        }
+        $chainLength = count($chains);
+        $type = null;
+        if ($this->safe_bool($rawCurrency, 'is_fiat')) {
+            $type = 'fiat';
+        } elseif ($chainLength === 0) {
+            if ($this->is_leveraged_currency($id)) {
+                $type = 'leveraged';
+            } else {
+                $type = 'other';
+            }
+        } else {
+            $type = 'crypto';
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $name,
+            'type' => $type,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($currencyMaxPrecision),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
+    }
+
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bigone
@@ -593,7 +614,7 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $promises = array( $this->publicGetAssetPairs ($params), $this->contractPublicGetSymbols ($params) );
+            $promises = array( $this->publicGetAssetPairs($params), $this->contractPublicGetSymbols($params) );
             $promisesResult = Async\await(Promise\all($promises));
             $response = $promisesResult[0];
             $contractResponse = $promisesResult[1];
@@ -770,7 +791,7 @@ class bigone extends Exchange {
                 ));
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -837,11 +858,11 @@ class bigone extends Exchange {
             'ask' => $this->safe_string($ask, 'price'),
             'askVolume' => $this->safe_string($ask, 'quantity'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'), // openValue is a broken number, we don't use it
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $this->safe_string_2($ticker, 'daily_change', 'last24hPriceChange'),
+            'change' => $this->safe_string($ticker, 'daily_change'), // last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'volume', 'volume24h'),
@@ -852,7 +873,7 @@ class bigone extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -861,9 +882,11 @@ class bigone extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
@@ -871,7 +894,7 @@ class bigone extends Exchange {
                 $request = array(
                     'asset_pair_name' => $market['id'],
                 );
-                $response = Async\await($this->publicGetAssetPairsAssetPairNameTicker ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetAssetPairsAssetPairNameTicker($this->extend($request, $params)));
                 //
                 //     {
                 //         "code":0,
@@ -894,10 +917,10 @@ class bigone extends Exchange {
                 $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
                 return $this->safe_value($tickers, $symbol);
             }
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -906,9 +929,11 @@ class bigone extends Exchange {
              *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $symbol = $this->safe_string($symbols, 0);
             if ($symbol !== null) {
@@ -925,7 +950,7 @@ class bigone extends Exchange {
                     $ids = $this->market_ids($symbols);
                     $request['pair_names'] = implode(',', $ids);
                 }
-                $response = Async\await($this->publicGetAssetPairsTickers ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetAssetPairsTickers($this->extend($request, $params)));
                 //
                 //    {
                 //        "code" => 0,
@@ -955,7 +980,7 @@ class bigone extends Exchange {
                 //
                 $data = $this->safe_list($response, 'data', array());
             } else {
-                $data = Async\await($this->contractPublicGetInstruments ($params));
+                $data = Async\await($this->contractPublicGetInstruments($params));
                 //
                 //    array(
                 //        {
@@ -984,10 +1009,10 @@ class bigone extends Exchange {
             }
             $tickers = $this->parse_tickers($data, $symbols);
             return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
@@ -997,7 +1022,7 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetPing ($params));
+            $response = Async\await($this->publicGetPing($params));
             //
             //     {
             //         "data" => {
@@ -1008,10 +1033,10 @@ class bigone extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'Timestamp');
             return $this->parse_to_int($timestamp / 1000000);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1021,16 +1046,17 @@ class bigone extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
-            $response = null;
             if ($market['contract']) {
                 $request = array(
                     'symbol' => $market['id'],
                 );
-                $response = Async\await($this->contractPublicGetDepthSymbolSnapshot ($this->extend($request, $params)));
+                $response = Async\await($this->contractPublicGetDepthSymbolSnapshot($this->extend($request, $params)));
                 //
                 //    {
                 //        bids => array(
@@ -1066,7 +1092,7 @@ class bigone extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 50, max 200
                 }
-                $response = Async\await($this->publicGetAssetPairsAssetPairNameDepth ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetAssetPairsAssetPairNameDepth($this->extend($request, $params)));
                 //
                 //     {
                 //         "code":0,
@@ -1084,7 +1110,7 @@ class bigone extends Exchange {
                 $orderbook = $this->safe_dict($response, 'data', array());
                 return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
             }
-        }) ();
+        })();
     }
 
     public function parse_contract_bids_asks($bidsAsks) {
@@ -1200,6 +1226,8 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
+        $makerCurrencyCode = null;
+        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
@@ -1230,23 +1258,26 @@ class bigone extends Exchange {
         $makerFeeCost = $this->safe_string($trade, 'maker_fee');
         $takerFeeCost = $this->safe_string($trade, 'taker_fee');
         if ($makerFeeCost !== null) {
+            $makerCode = $makerCurrencyCode;
             if ($takerFeeCost !== null) {
+                $takerCode = $takerCurrencyCode;
                 $result['fees'] = array(
-                    array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode ),
-                    array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode ),
+                    array( 'cost' => $makerFeeCost, 'currency' => $makerCode ),
+                    array( 'cost' => $takerFeeCost, 'currency' => $takerCode ),
                 );
             } else {
-                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode );
+                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCode );
             }
         } elseif ($takerFeeCost !== null) {
-            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
+            $takerCode2 = $takerCurrencyCode;
+            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCode2 );
         } else {
             $result['fee'] = null;
         }
         return $this->safe_trade($result, $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -1257,9 +1288,11 @@ class bigone extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['contract']) {
                 throw new NotSupported($this->id . ' fetchTrades () can only fetch $trades for spot markets');
@@ -1267,7 +1300,7 @@ class bigone extends Exchange {
             $request = array(
                 'asset_pair_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetAssetPairsAssetPairNameTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameTrades($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1291,7 +1324,7 @@ class bigone extends Exchange {
             //
             $trades = $this->safe_list($response, 'data', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1315,7 +1348,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1330,7 +1363,9 @@ class bigone extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['contract']) {
                 throw new NotSupported($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
@@ -1351,7 +1386,7 @@ class bigone extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $endByLimit = $this->sum($since, $limit * $duration * 1000);
                 if ($untilIsDefined) {
-                    $request['time'] = $this->iso8601(min ($endByLimit, $until + 1));
+                    $request['time'] = $this->iso8601(min($endByLimit, $until + 1));
                 } else {
                     $request['time'] = $this->iso8601($endByLimit);
                 }
@@ -1359,7 +1394,7 @@ class bigone extends Exchange {
                 $request['time'] = $this->iso8601($until + 1);
             }
             $params = $this->omit($params, 'until');
-            $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1385,7 +1420,7 @@ class bigone extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1407,7 +1442,7 @@ class bigone extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1416,16 +1451,17 @@ class bigone extends Exchange {
              * @see https://open.big.one/docs/spot_accounts.html
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = $this->safe_string($params, 'type', '');
             $params = $this->omit($params, 'type');
-            $response = null;
             if ($type === 'funding' || $type === 'fund') {
-                $response = Async\await($this->privateGetFundAccounts ($params));
+                $response = Async\await($this->privateGetFundAccounts($params));
             } else {
-                $response = Async\await($this->privateGetAccounts ($params));
+                $response = Async\await($this->privateGetAccounts($params));
             }
             //
             //     {
@@ -1438,7 +1474,7 @@ class bigone extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_type(string $type) {
@@ -1454,7 +1490,7 @@ class bigone extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
-        //        "id" => "42154072251",
+        //        "id" => "42154072252",
         //        "asset_pair_name" => "SOL-USDT",
         //        "price" => "20",
         //        "amount" => "0.5",
@@ -1526,7 +1562,7 @@ class bigone extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -1536,19 +1572,21 @@ class bigone extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
             $params['createMarketBuyOrderRequiresPrice'] = false;
             return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1569,9 +1607,11 @@ class bigone extends Exchange {
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->operator] *stop $order only* GTE or LTE (default)
              * @param {string} [$params->client_order_id] must match ^[a-zA-Z0-9-_]array(1,36)$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the $order closed, it will be released and can be reused
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $isBuy = ($side === 'buy');
             $requestSide = $isBuy ? 'BID' : 'ASK';
@@ -1640,7 +1680,7 @@ class bigone extends Exchange {
                 $request['client_order_id'] = $clientOrderId;
             }
             $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ));
-            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
             //
             //    {
             //        "id" => 10,
@@ -1657,10 +1697,10 @@ class bigone extends Exchange {
             //
             $order = $this->safe_dict($response, 'data');
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -1670,11 +1710,13 @@ class bigone extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol Not used by bigone cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array( 'id' => $id );
-            $response = Async\await($this->privatePostOrdersIdCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersIdCancel($this->extend($request, $params)));
             //    {
             //        "id" => 10,
             //        "asset_pair_name" => "EOS-BTC",
@@ -1689,10 +1731,10 @@ class bigone extends Exchange {
             //    }
             $order = $this->safe_dict($response, 'data');
             return $this->parse_order($order);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -1701,14 +1743,16 @@ class bigone extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are $cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_pair_name' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrdersCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersCancel($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -1742,10 +1786,10 @@ class bigone extends Exchange {
                 ));
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -1755,17 +1799,19 @@ class bigone extends Exchange {
              * @param {string} $id the $order $id
              * @param {string} $symbol not used by bigone fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array( 'id' => $id );
-            $response = Async\await($this->privateGetOrdersId ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersId($this->extend($request, $params)));
             $order = $this->safe_dict($response, 'data', array());
             return $this->parse_order($order);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -1776,12 +1822,14 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_pair_name' => $market['id'],
@@ -1793,7 +1841,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 20, max 200
             }
-            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
             //
             //    {
             //        "code":0,
@@ -1816,10 +1864,10 @@ class bigone extends Exchange {
             //
             $orders = $this->safe_list($response, 'data', array());
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1830,12 +1878,14 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_pair_name' => $market['id'],
@@ -1844,7 +1894,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 20, max 200
             }
-            $response = Async\await($this->privateGetTrades ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTrades($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1881,7 +1931,7 @@ class bigone extends Exchange {
             //
             $trades = $this->safe_list($response, 'data', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -1893,7 +1943,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1904,16 +1954,16 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'state' => 'PENDING',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1924,13 +1974,13 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'state' => 'FILLED',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
     public function nonce() {
@@ -1938,7 +1988,7 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -1971,7 +2021,7 @@ class bigone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1980,15 +2030,17 @@ class bigone extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset_symbol' => $currency['id'],
             );
             list($networkCode, $paramsOmitted) = $this->handle_network_code_and_params($params);
-            $response = Async\await($this->privateGetAssetsAssetSymbolAddress ($this->extend($request, $paramsOmitted)));
+            $response = Async\await($this->privateGetAssetsAssetSymbolAddress($this->extend($request, $paramsOmitted)));
             //
             // the actual $response format is not the same documented one
             // the $data key contains an array in the actual $response
@@ -2020,11 +2072,11 @@ class bigone extends Exchange {
             return array(
                 'info' => $response,
                 'currency' => $code,
-                'network' => $this->network_id_to_code($selectedNetworkId),
+                'network' => $this->network_id_to_code($selectedNetworkId, $code),
                 'address' => $address,
                 'tag' => $tag,
             );
-        }) ();
+        })();
     }
 
     public function parse_transaction_status(?string $status) {
@@ -2127,7 +2179,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $deposits made to an account
@@ -2138,9 +2190,11 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'page_token' => 'dxzef', // $request page after this page token
                 // 'limit' => 50, // optional, default 50
@@ -2155,7 +2209,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 50
             }
-            $response = Async\await($this->privateGetDeposits ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeposits($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2179,10 +2233,10 @@ class bigone extends Exchange {
             //
             $deposits = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($deposits, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $withdrawals made from an account
@@ -2193,9 +2247,11 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
              * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'page_token' => 'dxzef', // $request page after this page token
                 // 'limit' => 50, // optional, default 50
@@ -2210,7 +2266,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 50
             }
-            $response = Async\await($this->privateGetWithdrawals ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWithdrawals($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2234,10 +2290,10 @@ class bigone extends Exchange {
             //
             $withdrawals = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($withdrawals, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -2249,9 +2305,11 @@ class bigone extends Exchange {
              * @param {string} $fromAccount 'SPOT', 'FUND', or 'CONTRACT'
              * @param {string} $toAccount 'SPOT', 'FUND', or 'CONTRACT'
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -2266,7 +2324,7 @@ class bigone extends Exchange {
                 // 'type' => type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
                 // 'sub_acccunt' => '', // when type is NORMAL, it should be empty, and when type is others it is required
             );
-            $response = Async\await($this->privatePostTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTransfer($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2283,7 +2341,7 @@ class bigone extends Exchange {
                 $transfer['id'] = $guid;
             }
             return $transfer;
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2314,7 +2372,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2326,10 +2384,12 @@ class bigone extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'symbol' => $currency['id'],
@@ -2342,10 +2402,10 @@ class bigone extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
-                $request['gateway_name'] = $this->network_code_to_id($networkCode);
+                $request['gateway_name'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
             // requires write permission on the wallet
-            $response = Async\await($this->privatePostWithdrawals ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostWithdrawals($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2369,7 +2429,7 @@ class bigone extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
-        }) ();
+        })();
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

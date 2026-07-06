@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -225,7 +225,6 @@ export default class indodax extends Exchange {
                     // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
                     // 'OEP4': 'oep4',
                     // 'OP': 'op',
-                    // 'SPL': 'spl',
                     // 'TRC10': 'trc10',
                     // 'ZRC2': 'zrc2'
                     // 'ETH': 'eth'
@@ -366,7 +365,7 @@ export default class indodax extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -459,10 +458,12 @@ export default class indodax extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostGetInfo (params);
         //
         //     {
@@ -505,10 +506,12 @@ export default class indodax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -532,8 +535,8 @@ export default class indodax extends Exchange {
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
+        const baseVolume = 'vol_' + this.safeStringLower (market, 'baseId');
+        const quoteVolume = 'vol_' + this.safeStringLower (market, 'quoteId');
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
@@ -566,10 +569,12 @@ export default class indodax extends Exchange {
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -600,10 +605,12 @@ export default class indodax extends Exchange {
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         //
         // {
         //     "tickers": {
@@ -623,7 +630,7 @@ export default class indodax extends Exchange {
         const response = await this.publicGetApiTickerAll (params);
         const tickers = this.safeDict (response, 'tickers', {});
         const keys = Object.keys (tickers);
-        const parsedTickers = {};
+        const parsedTickers: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const rawTicker = tickers[key];
@@ -663,10 +670,12 @@ export default class indodax extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -709,7 +718,9 @@ export default class indodax extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const selectedTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const now = this.seconds ();
@@ -751,7 +762,7 @@ export default class indodax extends Exchange {
             'filled': 'closed',
             'cancelled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -796,16 +807,16 @@ export default class indodax extends Exchange {
         //        }
         //    }
         //
-        let side = undefined;
+        let side: Str = undefined;
         if ('type' in order) {
             side = order['type'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
-        let symbol = undefined;
-        let cost = undefined;
+        let symbol: Str = undefined;
+        let cost: Str = undefined;
         const price = this.safeString (order, 'price');
-        let amount = undefined;
-        let remaining = undefined;
+        let amount: Str = undefined;
+        let remaining: Str = undefined;
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
         if (market !== undefined) {
@@ -860,13 +871,15 @@ export default class indodax extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -888,11 +901,13 @@ export default class indodax extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -910,7 +925,7 @@ export default class indodax extends Exchange {
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         const marketIds = Object.keys (rawOrders);
-        let exchangeOrders = [];
+        let exchangeOrders: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketOrders = rawOrders[marketId];
@@ -930,13 +945,15 @@ export default class indodax extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -958,10 +975,12 @@ export default class indodax extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -972,7 +991,7 @@ export default class indodax extends Exchange {
         let quantityIsRequired = false;
         if (type === 'market') {
             if (side === 'buy') {
-                let quoteAmount = undefined;
+                let quoteAmount: Str = undefined;
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (cost !== undefined) {
@@ -986,7 +1005,7 @@ export default class indodax extends Exchange {
                     const costRequest = Precise.stringMul (amountString, priceString);
                     quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
-                request[market['quoteId']] = quoteAmount;
+                request[market['quoteId'] as string] = quoteAmount;
             } else {
                 quantityIsRequired = true;
             }
@@ -994,7 +1013,7 @@ export default class indodax extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId']] = this.parseToNumeric (Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
+                request[market['quoteId'] as string] = this.parseToNumeric (Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
             }
         }
         if (priceIsRequired) {
@@ -1004,7 +1023,7 @@ export default class indodax extends Exchange {
             request['price'] = price;
         }
         if (quantityIsRequired) {
-            request[market['baseId']] = this.amountToPrecision (symbol, amount);
+            request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
@@ -1023,7 +1042,7 @@ export default class indodax extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1033,7 +1052,9 @@ export default class indodax extends Exchange {
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an extra "side" param');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
@@ -1061,7 +1082,7 @@ export default class indodax extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'return');
-        return this.parseOrder (data);
+        return this.parseOrder (data as Dict);
     }
 
     /**
@@ -1071,10 +1092,12 @@ export default class indodax extends Exchange {
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFee (code: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -1108,15 +1131,17 @@ export default class indodax extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (since !== undefined) {
-            const startTime = this.iso8601 (since).slice (0, 10);
+            const startTime = this.yyyymmdd (since);
             request['start'] = startTime;
-            request['end'] = this.iso8601 (this.milliseconds ()).slice (0, 10);
+            request['end'] = this.yyyymmdd (this.milliseconds ());
         }
         const response = await this.privatePostTransHistory (this.extend (request, params));
         //
@@ -1179,8 +1204,8 @@ export default class indodax extends Exchange {
         const data = this.safeValue (response, 'return', {});
         const withdraw = this.safeValue (data, 'withdraw', {});
         const deposit = this.safeValue (data, 'deposit', {});
-        let transactions = [];
-        let currency = undefined;
+        let transactions: List = [];
+        let currency: Currency = undefined;
         if (code === undefined) {
             let keys = Object.keys (withdraw);
             for (let i = 0; i < keys.length; i++) {
@@ -1211,12 +1236,14 @@ export default class indodax extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
@@ -1299,7 +1326,7 @@ export default class indodax extends Exchange {
         const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
         const depositId = this.safeString (transaction, 'deposit_id');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),
@@ -1335,7 +1362,7 @@ export default class indodax extends Exchange {
         const statuses: Dict = {
             'success': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     /**
@@ -1345,10 +1372,12 @@ export default class indodax extends Exchange {
      * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
      * @param {string[]} [codes] list of unified currency codes, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostGetInfo (params);
         //
         //    {
@@ -1405,16 +1434,17 @@ export default class indodax extends Exchange {
                         network = [];
                         const networkIds = networkId.split (',');
                         for (let j = 0; j < networkIds.length; j++) {
-                            network.push (this.networkIdToCode (networkIds[j]).toUpperCase ());
+                            network.push (this.networkIdToCode (networkIds[j], code).toUpperCase ());
                         }
                     } else {
-                        network = this.networkIdToCode (networkId).toUpperCase ();
+                        network = this.networkIdToCode (networkId, code).toUpperCase ();
                     }
                 }
+                const finalNetwork = network; // java req
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'network': network,
+                    'network': finalNetwork,
                     'address': address,
                     'tag': undefined,
                 } as DepositAddress;
@@ -1423,7 +1453,7 @@ export default class indodax extends Exchange {
         return result as DepositAddress[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));

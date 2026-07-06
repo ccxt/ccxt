@@ -50,7 +50,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitopro.fetchCurrencies ([params])
+bitopro.fetchCurrencies (params?)
 ```
 
 
@@ -70,7 +70,7 @@ retrieves data on all markets for bitopro
 
 
 ```javascript
-bitopro.fetchMarkets ([params])
+bitopro.fetchMarkets (params?)
 ```
 
 
@@ -80,7 +80,7 @@ bitopro.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md  
 
@@ -91,7 +91,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitopro.fetchTicker (symbol[, params])
+bitopro.fetchTicker (symbol, params?)
 ```
 
 
@@ -101,7 +101,7 @@ bitopro.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md  
 
@@ -112,7 +112,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitopro.fetchTickers (symbols[, params])
+bitopro.fetchTickers (symbols, params?)
 ```
 
 
@@ -122,7 +122,7 @@ bitopro.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_orderbook_data.md  
 
@@ -134,7 +134,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitopro.fetchOrderBook (symbol[, limit, params])
+bitopro.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -144,7 +144,7 @@ bitopro.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trades_data.md  
 
@@ -157,7 +157,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitopro.fetchTrades (symbol[, since, limit, params])
+bitopro.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -167,7 +167,7 @@ bitopro.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md  
 
@@ -177,7 +177,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitopro.fetchTradingFees ([params])
+bitopro.fetchTradingFees (params?)
 ```
 
 
@@ -201,7 +201,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitopro.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitopro.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -211,7 +211,7 @@ bitopro.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_account_balance.md  
 
@@ -221,7 +221,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitopro.fetchBalance ([params])
+bitopro.fetchBalance (params?)
 ```
 
 
@@ -231,7 +231,7 @@ bitopro.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_order.md  
 
@@ -247,7 +247,7 @@ create a trade order
 
 
 ```javascript
-bitopro.createOrder (symbol, type, side, amount[, price, params])
+bitopro.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -257,7 +257,7 @@ bitopro.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_an_order.md  
 
@@ -269,7 +269,7 @@ cancels an open order
 
 
 ```javascript
-bitopro.cancelOrder (id, symbol[, params])
+bitopro.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -279,7 +279,7 @@ bitopro.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_batch_orders.md  
 
@@ -291,7 +291,7 @@ cancel multiple orders
 
 
 ```javascript
-bitopro.cancelOrders (ids, symbol[, params])
+bitopro.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -301,7 +301,7 @@ bitopro.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md  
 
@@ -312,7 +312,7 @@ cancel all open orders
 
 
 ```javascript
-bitopro.cancelAllOrders (symbol[, params])
+bitopro.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -322,7 +322,7 @@ bitopro.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md  
 
@@ -334,7 +334,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitopro.fetchOrder (id, symbol[, params])
+bitopro.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -344,7 +344,7 @@ bitopro.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md  
 
@@ -357,7 +357,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitopro.fetchOrders (symbol[, since, limit, params])
+bitopro.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -367,7 +367,7 @@ bitopro.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md  
 
@@ -380,7 +380,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitopro.fetchOpenOrders (symbol[, since, limit, params])
+bitopro.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -390,7 +390,7 @@ bitopro.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md  
 
@@ -403,7 +403,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitopro.fetchClosedOrders (symbol[, since, limit, params])
+bitopro.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -413,7 +413,7 @@ bitopro.fetchClosedOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_trades_data.md  
 
@@ -426,7 +426,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitopro.fetchMyTrades (symbol[, since, limit, params])
+bitopro.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -436,7 +436,7 @@ bitopro.fetchMyTrades (symbol[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_deposit_invoices_data.md  
 
@@ -449,7 +449,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitopro.fetchDeposits (code[, since, limit, params])
+bitopro.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -459,7 +459,7 @@ bitopro.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_withdraw_invoices_data.md  
 
@@ -472,7 +472,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitopro.fetchWithdrawals (code[, since, limit, params])
+bitopro.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -482,7 +482,7 @@ bitopro.fetchWithdrawals (code[, since, limit, params])
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_withdraw_invoice_data.md  
 
@@ -494,7 +494,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-bitopro.fetchWithdrawal (id, code[, params])
+bitopro.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -504,7 +504,7 @@ bitopro.fetchWithdrawal (id, code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_withdraw_invoice.md  
 
@@ -518,7 +518,7 @@ make a withdrawal
 
 
 ```javascript
-bitopro.withdraw (code, amount, address, tag[, params])
+bitopro.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -528,7 +528,7 @@ bitopro.withdraw (code, amount, address, tag[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md  
 
@@ -539,7 +539,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitopro.fetchDepositWithdrawFees (codes[, params])
+bitopro.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -549,7 +549,7 @@ bitopro.fetchDepositWithdrawFees (codes[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md  
 
@@ -561,7 +561,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitopro.watchOrderBook (symbol[, limit, params])
+bitopro.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -571,7 +571,7 @@ bitopro.watchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md  
 
@@ -584,7 +584,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitopro.watchTrades (symbol[, since, limit, params])
+bitopro.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -594,7 +594,7 @@ bitopro.watchTrades (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/matches_stream.md  
 
@@ -607,7 +607,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitopro.watchMyTrades (symbol[, since, limit, params])
+bitopro.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -617,7 +617,7 @@ bitopro.watchMyTrades (symbol[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md  
 
@@ -628,7 +628,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitopro.watchTicker (symbol[, params])
+bitopro.watchTicker (symbol, params?)
 ```
 
 
@@ -638,7 +638,7 @@ bitopro.watchTicker (symbol[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitopro</code>](#bitopro)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md  
 
@@ -648,6 +648,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitopro.watchBalance ([params])
+bitopro.watchBalance (params?)
 ```
 

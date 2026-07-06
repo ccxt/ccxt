@@ -37,7 +37,7 @@ retrieves data on all markets for independentreserve
 
 
 ```javascript
-independentreserve.fetchMarkets ([params])
+independentreserve.fetchMarkets (params?)
 ```
 
 
@@ -47,7 +47,7 @@ independentreserve.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -56,7 +56,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-independentreserve.fetchBalance ([params])
+independentreserve.fetchBalance (params?)
 ```
 
 
@@ -66,7 +66,7 @@ independentreserve.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -77,7 +77,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-independentreserve.fetchOrderBook (symbol[, limit, params])
+independentreserve.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -87,7 +87,7 @@ independentreserve.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -97,7 +97,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-independentreserve.fetchTicker (symbol[, params])
+independentreserve.fetchTicker (symbol, params?)
 ```
 
 
@@ -107,7 +107,7 @@ independentreserve.fetchTicker (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -118,7 +118,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-independentreserve.fetchOrder (id, symbol[, params])
+independentreserve.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -128,7 +128,7 @@ independentreserve.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -140,7 +140,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-independentreserve.fetchOpenOrders (symbol[, since, limit, params])
+independentreserve.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -150,7 +150,7 @@ independentreserve.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -162,7 +162,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-independentreserve.fetchClosedOrders (symbol[, since, limit, params])
+independentreserve.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -172,7 +172,7 @@ independentreserve.fetchClosedOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -184,7 +184,7 @@ fetch all trades made by the user
 
 
 ```javascript
-independentreserve.fetchMyTrades (symbol[, since, limit, params])
+independentreserve.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -194,7 +194,7 @@ independentreserve.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -206,7 +206,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-independentreserve.fetchTrades (symbol[, since, limit, params])
+independentreserve.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -216,7 +216,7 @@ independentreserve.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -225,7 +225,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-independentreserve.fetchTradingFees ([params])
+independentreserve.fetchTradingFees (params?)
 ```
 
 
@@ -235,7 +235,7 @@ independentreserve.fetchTradingFees ([params])
 create a trade order
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -249,7 +249,7 @@ create a trade order
 
 
 ```javascript
-independentreserve.createOrder (symbol, type, side, amount[, price, params])
+independentreserve.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -259,7 +259,7 @@ independentreserve.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.independentreserve.com/features/api#CancelOrder  
 
@@ -271,7 +271,7 @@ cancels an open order
 
 
 ```javascript
-independentreserve.cancelOrder (id, symbol[, params])
+independentreserve.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -281,7 +281,7 @@ independentreserve.cancelOrder (id, symbol[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress  
 
@@ -292,7 +292,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-independentreserve.fetchDepositAddress (code[, params])
+independentreserve.fetchDepositAddress (code, params?)
 ```
 
 
@@ -302,7 +302,7 @@ independentreserve.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.independentreserve.com/features/api#WithdrawDigitalCurrency  
 
@@ -317,7 +317,7 @@ make a withdrawal
 
 
 ```javascript
-independentreserve.withdraw (code, amount, address, tag[, params])
+independentreserve.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -327,7 +327,7 @@ independentreserve.withdraw (code, amount, address, tag[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -339,7 +339,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-independentreserve.watchTrades (symbol[, since, limit, params])
+independentreserve.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -349,7 +349,7 @@ independentreserve.watchTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -360,6 +360,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-independentreserve.watchOrderBook (symbol[, limit, params])
+independentreserve.watchOrderBook (symbol, limit?, params?)
 ```
 

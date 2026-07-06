@@ -6,7 +6,7 @@ type Hashkey struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewHashkey(userConfig map[string]interface{}) *Hashkey {
+func NewHashkey(userConfig map[string]any) *Hashkey {
 	p := NewHashkeyCore()
 	p.Init(userConfig)
 	return &Hashkey{
@@ -34,7 +34,7 @@ func NewHashkeyFromCore(core *HashkeyCore) *Hashkey {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Hashkey) FetchTime(params ...interface{}) (int64, error) {
+func (this *Hashkey) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -48,14 +48,14 @@ func (this *Hashkey) FetchTime(params ...interface{}) (int64, error) {
  * @description the latest known information on the availability of the exchange API
  * @see https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Hashkey) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Hashkey) FetchStatus(params ...any) (map[string]any, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -67,7 +67,7 @@ func (this *Hashkey) FetchStatus(params ...interface{}) (map[string]interface{},
  * @param {string} [params.symbol] the id of the market to fetch
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hashkey) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Hashkey) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -83,7 +83,7 @@ func (this *Hashkey) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Hashkey) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Hashkey) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -99,7 +99,7 @@ func (this *Hashkey) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hashkey) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -109,12 +109,12 @@ func (this *Hashkey) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -134,7 +134,7 @@ func (this *Hashkey) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Hashkey) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -144,17 +144,17 @@ func (this *Hashkey) FetchTrades(symbol string, options ...FetchTradesOptions) (
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -192,22 +192,22 @@ func (this *Hashkey) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -240,22 +240,22 @@ func (this *Hashkey) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -273,7 +273,7 @@ func (this *Hashkey) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hashkey) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -283,7 +283,7 @@ func (this *Hashkey) FetchTicker(symbol string, options ...FetchTickerOptions) (
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -301,7 +301,7 @@ func (this *Hashkey) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hashkey) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -311,12 +311,12 @@ func (this *Hashkey) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -345,12 +345,12 @@ func (this *Hashkey) FetchLastPrices(options ...FetchLastPricesOptions) (LastPri
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -369,9 +369,9 @@ func (this *Hashkey) FetchLastPrices(options ...FetchLastPricesOptions) (LastPri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountId] account ID, for Master Key only
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Hashkey) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Hashkey) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -387,7 +387,7 @@ func (this *Hashkey) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hashkey) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -397,7 +397,7 @@ func (this *Hashkey) FetchDepositAddress(code string, options ...FetchDepositAdd
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -419,7 +419,7 @@ func (this *Hashkey) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
  * @param {int} [params.fromId] starting ID (To be released)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Hashkey) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -429,22 +429,22 @@ func (this *Hashkey) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -465,7 +465,7 @@ func (this *Hashkey) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hashkey) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -475,22 +475,22 @@ func (this *Hashkey) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -514,7 +514,7 @@ func (this *Hashkey) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @param {string} [params.network] network for withdraw
  * @param {string} [params.clientOrderId] client order id
  * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hashkey) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -524,12 +524,12 @@ func (this *Hashkey) Withdraw(code string, amount float64, address string, optio
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -552,7 +552,7 @@ func (this *Hashkey) Withdraw(code string, amount float64, address string, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the transfer
  * @param {string} [params.remark] a note for the transfer
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Hashkey) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -562,7 +562,7 @@ func (this *Hashkey) Transfer(code string, amount float64, fromAccount string, t
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -579,9 +579,9 @@ func (this *Hashkey) Transfer(code string, amount float64, fromAccount string, t
  * @description fetch all the accounts associated with a profile
  * @see https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *Hashkey) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Hashkey) FetchAccounts(params ...any) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -601,7 +601,7 @@ func (this *Hashkey) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
  * @param {int} [params.accountType] spot, swap, custody
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Hashkey) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -611,22 +611,22 @@ func (this *Hashkey) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -656,7 +656,7 @@ func (this *Hashkey) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
  * @param {string} [params.timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
  * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
  * @param {float} [params.triggerPrice] *swap markets only* The price at which a trigger order is triggered at
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -666,12 +666,12 @@ func (this *Hashkey) CreateOrder(symbol string, typeVar string, side string, amo
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -689,7 +689,7 @@ func (this *Hashkey) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -699,7 +699,7 @@ func (this *Hashkey) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -718,7 +718,7 @@ func (this *Hashkey) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
  * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the api endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -728,7 +728,7 @@ func (this *Hashkey) CreateOrders(orders []OrderRequest, options ...CreateOrders
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -752,7 +752,7 @@ func (this *Hashkey) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
  * @param {bool} [params.trigger] *swap markets only* true for canceling a trigger order (default false)
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -762,12 +762,12 @@ func (this *Hashkey) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -797,12 +797,12 @@ func (this *Hashkey) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -823,7 +823,7 @@ func (this *Hashkey) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {string} [symbol] unified market symbol (not used by hashkey)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -833,12 +833,12 @@ func (this *Hashkey) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -863,7 +863,7 @@ func (this *Hashkey) CancelOrders(ids []string, options ...CancelOrdersOptions) 
  * @param {string} [params.accountId] *spot markets only* account id to fetch the order from
  * @param {bool} [params.trigger] *swap markets only* true for fetching a trigger order (default false)
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -873,12 +873,12 @@ func (this *Hashkey) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -908,7 +908,7 @@ func (this *Hashkey) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {bool} [params.trigger] *swap markets only* true for fetching trigger orders (default false)
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
  * @param {string} [params.accountId] account id to fetch the orders from
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -918,22 +918,22 @@ func (this *Hashkey) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -958,7 +958,7 @@ func (this *Hashkey) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {string} [params.orderId] the id of the order to fetch
  * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
  * @param {string} [params.accountId] account id to fetch the orders from
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) FetchOpenSpotOrders(options ...FetchOpenSpotOrdersOptions) ([]Order, error) {
 
@@ -968,22 +968,22 @@ func (this *Hashkey) FetchOpenSpotOrders(options ...FetchOpenSpotOrdersOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1009,7 +1009,7 @@ func (this *Hashkey) FetchOpenSpotOrders(options ...FetchOpenSpotOrdersOptions) 
  * @param {bool} [params.trigger] true for fetching trigger orders (default false)
  * @param {bool} [params.stop] an alternative for trigger param
  * @param {string} [params.accountId] account id to fetch the orders from
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) FetchOpenSwapOrders(options ...FetchOpenSwapOrdersOptions) ([]Order, error) {
 
@@ -1019,22 +1019,22 @@ func (this *Hashkey) FetchOpenSwapOrders(options ...FetchOpenSwapOrdersOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1064,7 +1064,7 @@ func (this *Hashkey) FetchOpenSwapOrders(options ...FetchOpenSwapOrdersOptions) 
  * @param {bool} [params.trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
  * @param {bool} [params.stop] *swap markets only* the id of the order to start from an alternative for trigger param
  * @param {string} [params.accountId] account id to fetch the orders from
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hashkey) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
@@ -1074,22 +1074,22 @@ func (this *Hashkey) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClo
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1107,7 +1107,7 @@ func (this *Hashkey) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClo
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Hashkey) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1117,7 +1117,7 @@ func (this *Hashkey) FetchFundingRate(symbol string, options ...FetchFundingRate
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1135,7 +1135,7 @@ func (this *Hashkey) FetchFundingRate(symbol string, options ...FetchFundingRate
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Hashkey) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -1145,12 +1145,12 @@ func (this *Hashkey) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1168,11 +1168,11 @@ func (this *Hashkey) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.fromId] the id of the entry to start from
  * @param {int} [params.endId] the id of the entry to end with
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Hashkey) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1182,22 +1182,22 @@ func (this *Hashkey) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1217,7 +1217,7 @@ func (this *Hashkey) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Hashkey) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1227,12 +1227,12 @@ func (this *Hashkey) FetchPositions(options ...FetchPositionsOptions) ([]Positio
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1252,7 +1252,7 @@ func (this *Hashkey) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Hashkey) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
 
@@ -1262,7 +1262,7 @@ func (this *Hashkey) FetchPositionsForSymbol(symbol string, options ...FetchPosi
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1280,7 +1280,7 @@ func (this *Hashkey) FetchPositionsForSymbol(symbol string, options ...FetchPosi
  * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Hashkey) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -1290,7 +1290,7 @@ func (this *Hashkey) FetchLeverage(symbol string, options ...FetchLeverageOption
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1319,12 +1319,12 @@ func (this *Hashkey) SetLeverage(leverage int64, options ...SetLeverageOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1337,12 +1337,46 @@ func (this *Hashkey) SetLeverage(leverage int64, options ...SetLeverageOptions) 
 
 /**
  * @method
+ * @name hashkey#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated'
+ * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+func (this *Hashkey) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
+
+	opts := SetMarginModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.SetMarginMode(marginMode, symbol, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+
+/**
+ * @method
  * @name hashkey#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
  * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Hashkey) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 
@@ -1352,12 +1386,12 @@ func (this *Hashkey) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (L
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1372,11 +1406,11 @@ func (this *Hashkey) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (L
  * @method
  * @name hashkey#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+ * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Hashkey) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -1386,7 +1420,7 @@ func (this *Hashkey) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1401,11 +1435,11 @@ func (this *Hashkey) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @method
  * @name hashkey#fetchTradingFees
  * @description *for spot markets only* fetch the trading fees for multiple markets
- * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+ * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Hashkey) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Hashkey) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -1415,11 +1449,17 @@ func (this *Hashkey) FetchTradingFees(params ...interface{}) (TradingFees, error
 
 // missing typed methods from base
 // nolint
-func (this *Hashkey) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Hashkey) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
-func (this *Hashkey) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Hashkey) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
+func (this *Hashkey) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Hashkey) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Hashkey) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1499,6 +1539,9 @@ func (this *Hashkey) EditLimitSellOrder(id string, symbol string, amount float64
 func (this *Hashkey) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
 }
+func (this *Hashkey) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
+}
 func (this *Hashkey) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
@@ -1511,13 +1554,13 @@ func (this *Hashkey) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, er
 func (this *Hashkey) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Hashkey) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Hashkey) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Hashkey) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Hashkey) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Hashkey) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1532,7 +1575,7 @@ func (this *Hashkey) FetchConvertTradeHistory(options ...FetchConvertTradeHistor
 func (this *Hashkey) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Hashkey) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Hashkey) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Hashkey) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -1544,13 +1587,13 @@ func (this *Hashkey) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Hashkey) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Hashkey) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Hashkey) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Hashkey) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Hashkey) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Hashkey) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -1571,7 +1614,7 @@ func (this *Hashkey) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOp
 func (this *Hashkey) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Hashkey) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Hashkey) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Hashkey) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
@@ -1628,6 +1671,9 @@ func (this *Hashkey) FetchOption(symbol string, options ...FetchOptionOptions) (
 func (this *Hashkey) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
+func (this *Hashkey) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Hashkey) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -1640,7 +1686,7 @@ func (this *Hashkey) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Hashkey) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Hashkey) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Hashkey) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Hashkey) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1649,7 +1695,7 @@ func (this *Hashkey) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Hashkey) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hashkey) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hashkey) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
@@ -1661,13 +1707,13 @@ func (this *Hashkey) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Hashkey) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hashkey) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Hashkey) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Hashkey) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Hashkey) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1682,10 +1728,7 @@ func (this *Hashkey) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 func (this *Hashkey) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Hashkey) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Hashkey) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Hashkey) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Hashkey) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -1760,13 +1803,13 @@ func (this *Hashkey) CreateTriggerOrderWs(symbol string, typeVar string, side st
 func (this *Hashkey) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Hashkey) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Hashkey) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Hashkey) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hashkey) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hashkey) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1808,46 +1851,46 @@ func (this *Hashkey) FetchTickerWs(symbol string, options ...FetchTickerWsOption
 func (this *Hashkey) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Hashkey) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Hashkey) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hashkey) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Hashkey) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Hashkey) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Hashkey) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Hashkey) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Hashkey) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Hashkey) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Hashkey) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Hashkey) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Hashkey) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Hashkey) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Hashkey) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Hashkey) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Hashkey) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Hashkey) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Hashkey) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Hashkey) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

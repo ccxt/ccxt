@@ -21,6 +21,7 @@
 * [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
+* [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchMyTrades](#fetchmytrades)
@@ -37,7 +38,9 @@
 * [fetchGreeks](#fetchgreeks)
 * [closeAllPositions](#closeallpositions)
 * [fetchMarginMode](#fetchmarginmode)
+* [setMarginMode](#setmarginmode)
 * [fetchOption](#fetchoption)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -54,7 +57,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-delta.fetchTime ([params])
+delta.fetchTime (params?)
 ```
 
 
@@ -64,7 +67,7 @@ delta.fetchTime ([params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 
 | Param | Type | Required | Description |
@@ -73,7 +76,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-delta.fetchStatus ([params])
+delta.fetchStatus (params?)
 ```
 
 
@@ -93,7 +96,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-delta.fetchCurrencies ([params])
+delta.fetchCurrencies (params?)
 ```
 
 
@@ -113,7 +116,7 @@ retrieves data on all markets for delta
 
 
 ```javascript
-delta.fetchMarkets ([params])
+delta.fetchMarkets (params?)
 ```
 
 
@@ -123,7 +126,7 @@ delta.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
 
@@ -134,7 +137,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-delta.fetchTicker (symbol[, params])
+delta.fetchTicker (symbol, params?)
 ```
 
 
@@ -144,7 +147,7 @@ delta.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.delta.exchange/#get-tickers-for-products  
 
@@ -155,7 +158,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-delta.fetchTickers (symbols[, params])
+delta.fetchTickers (symbols, params?)
 ```
 
 
@@ -165,7 +168,7 @@ delta.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.delta.exchange/#get-l2-orderbook  
 
@@ -177,7 +180,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-delta.fetchOrderBook (symbol[, limit, params])
+delta.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -187,7 +190,7 @@ delta.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.delta.exchange/#get-public-trades  
 
@@ -200,7 +203,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-delta.fetchTrades (symbol[, since, limit, params])
+delta.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -225,7 +228,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-delta.fetchOHLCV (symbol, timeframe[, since, limit, params])
+delta.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -235,7 +238,7 @@ delta.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.delta.exchange/#get-wallet-balances  
 
@@ -245,7 +248,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-delta.fetchBalance ([params])
+delta.fetchBalance (params?)
 ```
 
 
@@ -255,7 +258,7 @@ delta.fetchBalance ([params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.delta.exchange/#get-position  
 
@@ -266,7 +269,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-delta.fetchPosition (symbol[, params])
+delta.fetchPosition (symbol, params?)
 ```
 
 
@@ -276,7 +279,7 @@ delta.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.delta.exchange/#get-margined-positions  
 
@@ -287,7 +290,7 @@ fetch all open positions
 
 
 ```javascript
-delta.fetchPositions (symbols[, params])
+delta.fetchPositions (symbols, params?)
 ```
 
 
@@ -297,7 +300,7 @@ delta.fetchPositions (symbols[, params])
 create a trade order
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.delta.exchange/#place-order  
 
@@ -313,7 +316,7 @@ create a trade order
 
 
 ```javascript
-delta.createOrder (symbol, type, side, amount[, price, params])
+delta.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -323,7 +326,7 @@ delta.createOrder (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.delta.exchange/#edit-order  
 
@@ -339,7 +342,7 @@ edit a trade order
 
 
 ```javascript
-delta.editOrder (id, symbol, type, side, amount[, price, params])
+delta.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -349,7 +352,7 @@ delta.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.delta.exchange/#cancel-order  
 
@@ -361,7 +364,7 @@ cancels an open order
 
 
 ```javascript
-delta.cancelOrder (id, symbol[, params])
+delta.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -371,7 +374,7 @@ delta.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.delta.exchange/#cancel-all-open-orders  
 
@@ -382,7 +385,34 @@ cancel all open orders in a market
 
 
 ```javascript
-delta.cancelAllOrders (symbol[, params])
+delta.cancelAllOrders (symbol, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.delta.exchange/#get-order-by-id
+- https://docs.delta.exchange/#get-order-by-client-oid
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id of the order |
+
+
+```javascript
+delta.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -392,7 +422,7 @@ delta.cancelAllOrders (symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.delta.exchange/#get-active-orders  
 
@@ -405,7 +435,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-delta.fetchOpenOrders (symbol[, since, limit, params])
+delta.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -415,7 +445,7 @@ delta.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.delta.exchange/#get-order-history-cancelled-and-closed  
 
@@ -428,7 +458,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-delta.fetchClosedOrders (symbol[, since, limit, params])
+delta.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -438,7 +468,7 @@ delta.fetchClosedOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.delta.exchange/#get-user-fills-by-filters  
 
@@ -451,7 +481,7 @@ fetch all trades made by the user
 
 
 ```javascript
-delta.fetchMyTrades (symbol[, since, limit, params])
+delta.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -461,7 +491,7 @@ delta.fetchMyTrades (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.delta.exchange/#get-wallet-transactions  
 
@@ -474,7 +504,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-delta.fetchLedger ([code, since, limit, params])
+delta.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -484,7 +514,7 @@ delta.fetchLedger ([code, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -495,7 +525,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-delta.fetchDepositAddress (code[, params])
+delta.fetchDepositAddress (code, params?)
 ```
 
 
@@ -505,7 +535,7 @@ delta.fetchDepositAddress (code[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
 
@@ -516,7 +546,7 @@ fetch the current funding rate
 
 
 ```javascript
-delta.fetchFundingRate (symbol[, params])
+delta.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -526,7 +556,7 @@ delta.fetchFundingRate (symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://docs.delta.exchange/#get-tickers-for-products  
 
@@ -537,7 +567,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-delta.fetchFundingRates (symbols[, params])
+delta.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -547,7 +577,7 @@ delta.fetchFundingRates (symbols[, params])
 add margin
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.delta.exchange/#add-remove-position-margin  
 
@@ -559,7 +589,7 @@ add margin
 
 
 ```javascript
-delta.addMargin (symbol, amount[, params])
+delta.addMargin (symbol, amount, params?)
 ```
 
 
@@ -569,7 +599,7 @@ delta.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.delta.exchange/#add-remove-position-margin  
 
@@ -581,7 +611,7 @@ remove margin from a position
 
 
 ```javascript
-delta.reduceMargin (symbol, amount[, params])
+delta.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -591,7 +621,7 @@ delta.reduceMargin (symbol, amount[, params])
 retrieves the open interest of a derivative market
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
 
@@ -602,7 +632,7 @@ retrieves the open interest of a derivative market
 
 
 ```javascript
-delta.fetchOpenInterest (symbol[, params])
+delta.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -612,7 +642,7 @@ delta.fetchOpenInterest (symbol[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://docs.delta.exchange/#get-order-leverage  
 
@@ -623,7 +653,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-delta.fetchLeverage (symbol[, params])
+delta.fetchLeverage (symbol, params?)
 ```
 
 
@@ -645,7 +675,7 @@ set the level of leverage for a market
 
 
 ```javascript
-delta.setLeverage (leverage, symbol[, params])
+delta.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -655,7 +685,7 @@ delta.setLeverage (leverage, symbol[, params])
 fetches historical settlement records
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
 
 **See**: https://docs.delta.exchange/#get-product-settlement-prices  
 
@@ -668,7 +698,7 @@ fetches historical settlement records
 
 
 ```javascript
-delta.fetchSettlementHistory (symbol[, since, limit, params])
+delta.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -678,7 +708,7 @@ delta.fetchSettlementHistory (symbol[, since, limit, params])
 fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
 
@@ -689,7 +719,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-delta.fetchGreeks (symbol[, params])
+delta.fetchGreeks (symbol, params?)
 ```
 
 
@@ -699,7 +729,7 @@ delta.fetchGreeks (symbol[, params])
 closes all open positions for a market type
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.delta.exchange/#close-all-positions  
 
@@ -710,7 +740,7 @@ closes all open positions for a market type
 
 
 ```javascript
-delta.closeAllPositions ([params])
+delta.closeAllPositions (params?)
 ```
 
 
@@ -720,7 +750,7 @@ delta.closeAllPositions ([params])
 fetches the margin mode of a trading pair
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**: https://docs.delta.exchange/#get-user  
 
@@ -731,7 +761,30 @@ fetches the margin mode of a trading pair
 
 
 ```javascript
-delta.fetchMarginMode (symbol[, params])
+delta.fetchMarginMode (symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'isolated' or 'portfolio'
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://docs.delta.exchange/#change-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'isolated' or 'portfolio' |
+| symbol | <code>string</code> | No | not used by delta.setMarginMode |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subaccount_user_id | <code>string</code> | Yes | the user id of the subaccount |
+
+
+```javascript
+delta.setMarginMode (marginMode, symbol?, params?)
 ```
 
 
@@ -741,7 +794,7 @@ delta.fetchMarginMode (symbol[, params])
 fetches option data that is commonly found in an option chain
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
 
@@ -752,6 +805,27 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-delta.fetchOption (symbol[, params])
+delta.fetchOption (symbol, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.delta.exchange/#get-margined-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchPositionsADLRank (symbols?, params?)
 ```
 

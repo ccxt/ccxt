@@ -49,7 +49,7 @@ public partial class toobit : ccxt.toobit
                         { "1w", "1w" },
                         { "1M", "1M" },
                     } },
-                    { "watchOrderBook", new Dictionary<string, object>() {
+                    { "watchOrderBookForSymbols", new Dictionary<string, object>() {
                         { "channel", "depth" },
                     } },
                     { "listenKeyRefreshRate", 1200000 },
@@ -141,7 +141,7 @@ public partial class toobit : ccxt.toobit
             { "ticketInfo", this.handleMyTrade },
             { "outboundContractPositionInfo", this.handlePositions },
         };
-        object method = this.safeValue(methods, topic);
+        object method = ((bool) isTrue((isEqual(topic, null)))) ? null : this.safeValue(methods, topic);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -152,7 +152,7 @@ public partial class toobit : ccxt.toobit
             {
                 object item = getValue(message, i);
                 object eventVar = this.safeString(item, "e");
-                object method2 = this.safeValue(methods, eventVar);
+                object method2 = ((bool) isTrue((isEqual(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
                 if (isTrue(!isEqual(method2, null)))
                 {
                     DynamicInvoker.InvokeMethod(method2, new object[] { client, item});
@@ -175,7 +175,7 @@ public partial class toobit : ccxt.toobit
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -193,12 +193,15 @@ public partial class toobit : ccxt.toobit
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object subParams = new List<object>() {};
@@ -253,7 +256,8 @@ public partial class toobit : ccxt.toobit
         //     }
         //
         object marketId = this.safeString(message, "symbol");
-        object symbol = this.safeSymbol(marketId);
+        object market = this.safeMarket(marketId);
+        object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.trades, symbol))))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -261,7 +265,7 @@ public partial class toobit : ccxt.toobit
         }
         object stored = getValue(this.trades, symbol);
         object data = this.safeList(message, "data", new List<object>() {});
-        object parsed = this.parseWsTrades(data);
+        object parsed = this.parseWsTrades(data, market);
         for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             object trade = getValue(parsed, i);
@@ -312,7 +316,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
         object messageHashes = new List<object>() {};
         object timeframes = this.safeDict(getValue(this.options, "ws"), "timeframes", new Dictionary<string, object>() {});
@@ -433,12 +440,15 @@ public partial class toobit : ccxt.toobit
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -451,12 +461,15 @@ public partial class toobit : ccxt.toobit
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object subParams = new List<object>() {};
@@ -550,7 +563,7 @@ public partial class toobit : ccxt.toobit
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -566,15 +579,18 @@ public partial class toobit : ccxt.toobit
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object channel = null;
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "depth");
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object messageHashes = new List<object>() {};
@@ -654,7 +670,7 @@ public partial class toobit : ccxt.toobit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta);
+        object bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -718,12 +734,15 @@ public partial class toobit : ccxt.toobit
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -829,10 +848,13 @@ public partial class toobit : ccxt.toobit
         object type = ((bool) isTrue((isEqual(marketType, "spot")))) ? "spot" : "contract";
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve();
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":fetchBalanceSnapshot")});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")}); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve();
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":fetchBalanceSnapshot")});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")}); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        }
     }
 
     /**
@@ -844,12 +866,15 @@ public partial class toobit : ccxt.toobit
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.marketOrNull(symbol);
         symbol = this.safeString(market, "symbol", symbol);
@@ -974,12 +999,15 @@ public partial class toobit : ccxt.toobit
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.marketOrNull(symbol);
         symbol = this.safeString(market, "symbol", symbol);
@@ -1064,7 +1092,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object messageHash = "";
         if (!isTrue(this.isEmpty(symbols)))
@@ -1130,9 +1161,12 @@ public partial class toobit : ccxt.toobit
             callDynamically(cache, "append", new object[] {position});
         }
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":positions")});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":positions")});
+        }
     }
 
     public virtual void handlePositions(WebSocketClient client, object message)
@@ -1256,7 +1290,7 @@ public partial class toobit : ccxt.toobit
                     this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
                 } catch(Exception e)
                 {
-                    var err = new AuthenticationError(add(add(this.id, " "), this.json(e)));
+                    var err = new AuthenticationError(add(add(this.id, " "), this.exceptionMessage(e)));
                     ((WebSocketClient)client).reject(err, messageHash);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                     {
@@ -1298,7 +1332,7 @@ public partial class toobit : ccxt.toobit
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+        object listenKeyRefreshRate = this.safeInteger(getValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
     }
 

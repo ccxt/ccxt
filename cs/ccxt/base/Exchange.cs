@@ -1,4 +1,5 @@
 using Google.Protobuf;
+using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
@@ -15,6 +16,8 @@ using dict = Dictionary<string, object>;
 
 public partial class Exchange
 {
+
+    protected readonly object idLock = new object();
 
     public Exchange(object userConfig2 = null)
     {
@@ -235,17 +238,27 @@ public partial class Exchange
             {
                 contentType = contentType == "" ? "application/json" : contentType;
 #if NET7_0_OR_GREATER
-            var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
+                var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
 #else
                 var contentTypeHeader = contentType;
 #endif
 
-                var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-                if (stringContent != null)
-                {
-                    stringContent.Headers.ContentType.CharSet = "";
+                if (contentType == "multipart/form-data") {
+                    var formdata = new MultipartFormDataContent();
+                    var body3 = body2 as dict;
+                    var bodyList = body3.Keys;
+                    foreach (string key in bodyList) {
+                        formdata.Add(new StringContent(getValue(body3, key).ToString(), Encoding.UTF8), key);
+                    }
+                    request.Content = formdata;
+                } else {
+                    var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                    if (stringContent != null)
+                    {
+                        stringContent.Headers.ContentType.CharSet = "";
+                    }
+                    request.Content = stringContent;
                 }
-                request.Content = stringContent;
 
                 if (method == "POST")
                 {
@@ -410,6 +423,7 @@ public partial class Exchange
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     }
 
+    // it's 32 bits
     public int randNumber(int size)
     {
         Random random = new Random();
@@ -540,9 +554,22 @@ public partial class Exchange
         return "";
     }
 
+    public string uuid5(object namesp, object name)
+    {
+        return "";
+    }
+
     public List<string> unique(object obj)
     {
-        return (obj as List<string>).ToList();
+        if (obj is List<string> stringList)
+        {
+            return stringList.Distinct().ToList();
+        }
+        if (obj is List<object> objectList)
+        {
+             return objectList.Select(x => x.ToString()).Distinct().ToList();
+        }
+        return new List<string>();
     }
 
     public int parseTimeframe(object timeframe2)
@@ -593,6 +620,21 @@ public partial class Exchange
 
     public object clone(object o)
     {
+        if (o is dict srcDict)
+        {
+            var result = new dict(srcDict.Count);
+            foreach (var kvp in srcDict)
+                result[kvp.Key] = clone(kvp.Value);
+            return result;
+        }
+        if (o is List<object> srcList)
+        {
+            var result = new List<object>(srcList.Count);
+            foreach (var item in srcList)
+                result.Add(clone(item));
+            return result;
+        }
+        // scalars (string, number, bool, null) are immutable – return as-is
         return o;
     }
 
@@ -653,8 +695,10 @@ public partial class Exchange
         this.clients.TryRemove(key, out _);
     }
 
-    public async Task Close()
+    public async Task Close(bool cleanInstanceCache = false)
     {
+        // ##### language-specific cleanup of WS & REST resources #####
+        // [WS]
         var tasks = new List<Task>();
         if (this.clients.Keys.Count > 0)
         {
@@ -666,6 +710,13 @@ public partial class Exchange
 
             }
             await Task.WhenAll(tasks);
+        }
+        if (cleanInstanceCache) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData();
         }
     }
 
@@ -801,12 +852,22 @@ public partial class Exchange
     {
         if (a == null)
             return true;
-        if (a.GetType() == typeof(string))
-            return a.ToString().Length == 0;
+        if (a is String)
+            return false; // disregard strings
         if (a is IList<object>)
             return ((IList<object>)a).Count == 0;
         if (a is IDictionary<string, object>)
             return ((IDictionary<string, object>)a).Count == 0;
+        // This catches List<T>, Dictionary<K,V>, Arrays, etc. without needing to know the specific T, K, or V.
+        if (a is ICollection collection)
+            return collection.Count == 0;
+
+        // This catches specialized collections that only implement IEnumerable 
+        if (a is IEnumerable enumerable) {
+            var enumerator = enumerable.GetEnumerator();
+            return !enumerator.MoveNext(); 
+        }
+
         return false;
     }
 
@@ -845,6 +906,43 @@ public partial class Exchange
         var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public object extendedStarknetSign(object msgHash, object privateKey)
+    {
+        var privateKeyString = privateKey.ToString();
+        var msgHashStr = msgHash.ToString();
+        var bigIntHash = extendedParseStarknetBigInteger(msgHashStr);
+        var bigIntKey = extendedParseStarknetBigInteger(privateKeyString);
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public BigInteger extendedParseStarknetBigInteger(string value)
+    {
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            return BigInteger.Parse("00" + value[2..], System.Globalization.NumberStyles.AllowHexSpecifier);
+        }
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+            if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+            {
+                return BigInteger.Parse("00" + value, System.Globalization.NumberStyles.AllowHexSpecifier);
+            }
+        }
+        return BigInteger.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public object extendedStarknetGetSelectorFromName(object name)
+    {
+        return StarknetOps.CalculateFunctionSelector(name.ToString());
+    }
+
+    public object extendedStarknetComputePoseidonHashOnElements(object data)
+    {
+        return StarknetPoseidon.HashMany(data).ToString();
     }
 
     public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
@@ -1016,11 +1114,42 @@ public partial class Exchange
             prop.SetValue(obj, defaultValue);
         }
     }
+
+    public string exceptionMessage(object exc, bool includeStack = true)
+    {
+        var e = exc as Exception;
+        if (e != null && e is System.AggregateException)
+        {
+            //     foreach (var innerExc in e.InnerExceptions) {
+            //         message += innerExc.Message + '\n';
+            var inner = e.InnerException;
+            if (inner != null)
+            {
+                e = inner;
+            }
+        }
+        var message = e != null ? (includeStack ? e.ToString() : e.Message) : "Exception occurred, but no message available.";
+        return message.Substring(0, Math.Min(100000, message.Length));
+    }
+
     public object getProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
-        var prop = type.GetProperty(property.ToString());
-        return (prop != null) ? prop.GetValue(obj) : defaultValue;
+        var name = property.ToString();
+
+        var prop = type.GetProperty(name);
+        if (prop != null) 
+        {
+            return prop.GetValue(obj);
+        }
+
+        var field = type.GetField(name);
+        if (field != null) 
+        {
+            return field.GetValue(obj);
+        }
+
+        return defaultValue;
     }
 
     public object fixStringifiedJsonMembers(object content2)
@@ -1113,9 +1242,9 @@ public partial class Exchange
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
-    public IDictionary<string, object> createSafeDictionary()
+    public IDictionary<string, object> createSafeDictionary(bool isWs = false)
     {
-        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+        return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;
     }
 
     public IDictionary<string, object> mapToSafeMap(object obj)
@@ -1172,6 +1301,46 @@ public partial class Exchange
         throw new Exception("Apex currently does not support create order in C# language");
     }
 
+    public async Task<object> loadDydxProtos()
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public Int64 toDydxLong(object numStr)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object retrieveDydxCredentials(object entropy)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxForSimulation(
+        object message,
+        object memo,
+        object sequence,
+        object publicKey)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxForSigning(
+        object message,
+        object memo,
+        object chainId,
+        object account,
+        object authenticators,
+        object fee)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxRaw(object signDoc, object signature)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
     public bool isBinaryMessage(object msg)
     {
         if (msg is byte[] bytes)
@@ -1202,6 +1371,16 @@ public partial class Exchange
             }
         }
         throw new Exception("Data is not a valid byte array for protobuf decoding.");
+    }
+
+    public void lockId()
+    {
+        Monitor.Enter(this.idLock);
+    }
+
+    public void unlockId()
+    {
+        Monitor.Exit(this.idLock);
     }
 
 

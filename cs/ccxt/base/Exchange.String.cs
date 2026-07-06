@@ -37,6 +37,10 @@ public partial class Exchange
     public string capitalize(object str2)
     {
         var str = (string)str2;
+        if (str.Length == 0)
+        {
+            return str;
+        }
         return char.ToUpper(str[0]) + str.Substring(1);
     }
 

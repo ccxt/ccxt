@@ -9,13 +9,12 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
 
 function test_fetch_trades($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchTrades';
-        $trades = Async\await($exchange->fetch_trades($symbol));
+        $trades = \React\Async\await($exchange->fetch_trades($symbol));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $trades);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($trades); $i++) {

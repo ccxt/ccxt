@@ -9,6 +9,7 @@ require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
 var misc = require('../functions/misc.js');
+require('../functions/io.js');
 var Future = require('./Future.js');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -29,11 +30,31 @@ class WsClient extends Client["default"] {
         }
         this.connectionStarted = time.milliseconds();
         this.setConnectionTimeout();
+        const connectionHeaders = {};
+        if (this.cookies !== undefined) {
+            let cookieStr = '';
+            const cookiesKeys = Object.keys(this.cookies);
+            for (let i = 0; i < cookiesKeys.length; i++) {
+                const key = cookiesKeys[i];
+                const value = this.cookies[key];
+                cookieStr += key + '=' + value;
+                if (i < cookiesKeys.length - 1) {
+                    cookieStr += '; ';
+                }
+            }
+            connectionHeaders['Cookie'] = cookieStr;
+            this.options['headers'] = Object.assign(this.options['headers'] || {}, connectionHeaders);
+        }
         if (platform.isNode) {
+            // this patch yields the event loop between messages
+            // which prevents starving futures with multiple synchronous message events
+            this.options = this.options || {};
+            this.options['allowSynchronousEvents'] = false;
             this.connection = new WebSocketPlatform(this.url, this.protocols, this.options);
         }
         else {
             this.connection = new WebSocketPlatform(this.url, this.protocols);
+            this.connection.binaryType = "arraybuffer"; // for browsers not to use blob by default
         }
         this.connection.onopen = this.onOpen.bind(this);
         this.connection.onmessage = this.onMessage.bind(this);

@@ -6,7 +6,10 @@ using Newtonsoft.Json;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+
 namespace Tests;
+
 using dict = Dictionary<string, object>;
 
 public partial class testMainClass : BaseTest
@@ -342,6 +345,21 @@ public partial class testMainClass : BaseTest
     public string getRootDir()
     {
         return ROOT_DIR;
+    }
+
+    public bool isWindows()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    }
+
+    public bool isLinux()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+    }
+
+    public bool isAmd64()
+    {
+        return RuntimeInformation.ProcessArchitecture == Architecture.X64;
     }
 
     public object convertAscii(object input)

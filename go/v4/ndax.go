@@ -13,14 +13,14 @@ func NewNdaxCore() *NdaxCore {
 	return p
 }
 
-func (this *NdaxCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *NdaxCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "ndax",
 		"name":      "NDAX",
-		"countries": []interface{}{"CA"},
+		"countries": []any{"CA"},
 		"rateLimit": 1000,
 		"pro":       true,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                           nil,
 			"spot":                           true,
 			"margin":                         false,
@@ -128,7 +128,7 @@ func (this *NdaxCore) Describe() interface{} {
 			"transfer":                       false,
 			"withdraw":                       true,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "60",
 			"5m":  "300",
 			"15m": "900",
@@ -143,24 +143,24 @@ func (this *NdaxCore) Describe() interface{} {
 			"1M":  "2419200",
 			"4M":  "9676800",
 		},
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg",
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"public":  "https://ndaxmarginstaging.cdnhop.net:8443/AP",
 				"private": "https://ndaxmarginstaging.cdnhop.net:8443/AP",
 			},
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"public":  "https://api.ndax.io:8443/AP",
 				"private": "https://api.ndax.io:8443/AP",
 			},
 			"www":      "https://ndax.io",
-			"doc":      []interface{}{"https://apidoc.ndax.io/"},
+			"doc":      []any{"https://apidoc.ndax.io/"},
 			"fees":     "https://ndax.io/fees",
 			"referral": "https://one.ndax.io/bfQiSL",
 		},
-		"api": map[string]interface{}{
-			"public": map[string]interface{}{
-				"get": map[string]interface{}{
+		"api": map[string]any{
+			"public": map[string]any{
+				"get": map[string]any{
 					"Activate2FA":                     1,
 					"Authenticate2FA":                 1,
 					"AuthenticateUser":                1,
@@ -189,8 +189,8 @@ func (this *NdaxCore) Describe() interface{} {
 					"Authenticate":                    1,
 				},
 			},
-			"private": map[string]interface{}{
-				"get": map[string]interface{}{
+			"private": map[string]any{
+				"get": map[string]any{
 					"GetUserAccountInfos":                1,
 					"GetUserAccounts":                    1,
 					"GetUserAffiliateCount":              1,
@@ -233,7 +233,7 @@ func (this *NdaxCore) Describe() interface{} {
 					"GetWithdrawTicket":                  1,
 					"GetWithdrawTickets":                 1,
 				},
-				"post": map[string]interface{}{
+				"post": map[string]any{
 					"AddUserAffiliateTag":               1,
 					"CancelUserReport":                  1,
 					"RegisterNewDevice":                 1,
@@ -263,14 +263,14 @@ func (this *NdaxCore) Describe() interface{} {
 				},
 			},
 		},
-		"features": map[string]interface{}{
-			"spot": map[string]interface{}{
+		"features": map[string]any{
+			"spot": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":       false,
 					"triggerPrice":     true,
 					"triggerDirection": false,
-					"triggerPriceType": map[string]interface{}{
+					"triggerPriceType": map[string]any{
 						"last":  true,
 						"mark":  false,
 						"index": false,
@@ -278,7 +278,7 @@ func (this *NdaxCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -293,27 +293,27 @@ func (this *NdaxCore) Describe() interface{} {
 					"iceberg":                true,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       100000,
 					"untilDays":      100000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
 					"daysBack":       nil,
@@ -323,28 +323,28 @@ func (this *NdaxCore) Describe() interface{} {
 					"symbolRequired": false,
 				},
 				"fetchClosedOrders": nil,
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": nil,
 				},
 			},
-			"swap": map[string]interface{}{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"tierBased":  false,
 				"percentage": true,
 				"maker":      this.ParseNumber("0.002"),
 				"taker":      this.ParseNumber("0.0025"),
 			},
 		},
-		"requiredCredentials": map[string]interface{}{
+		"requiredCredentials": map[string]any{
 			"apiKey":   true,
 			"secret":   true,
 			"uid":      true,
@@ -352,20 +352,20 @@ func (this *NdaxCore) Describe() interface{} {
 			"password": true,
 		},
 		"precisionMode": TICK_SIZE,
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"Not_Enough_Funds":   InsufficientFunds,
 				"Server Error":       ExchangeError,
 				"Resource Not Found": OrderNotFound,
 			},
-			"broad": map[string]interface{}{
+			"broad": map[string]any{
 				"Invalid InstrumentId":                                  BadSymbol,
 				"This endpoint requires 2FACode along with the payload": AuthenticationError,
 			},
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"omsId": 1,
-			"orderTypes": map[string]interface{}{
+			"orderTypes": map[string]any{
 				"Market":             1,
 				"Limit":              2,
 				"StopMarket":         3,
@@ -393,18 +393,18 @@ func (this *NdaxCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns response from exchange
  */
-func (this *NdaxCore) SignIn(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) SignIn(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		this.CheckRequiredCredentials()
 		if IsTrue(IsTrue(IsEqual(this.Login, nil)) || IsTrue(IsEqual(this.Password, nil))) {
 			panic(AuthenticationError(Add(this.Id, " signIn() requires exchange.login, exchange.password")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"grant_type": "client_credentials",
 		}
 
@@ -419,20 +419,20 @@ func (this *NdaxCore) SignIn(optionalArgs ...interface{}) <-chan interface{} {
 		//         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
 		//     }
 		//
-		var sessionToken interface{} = this.SafeString(response, "SessionToken")
+		var sessionToken any = this.SafeString(response, "SessionToken")
 		if IsTrue(!IsEqual(sessionToken, nil)) {
 			AddElementToObject(this.Options, "sessionToken", sessionToken)
 
 			ch <- response
 			return nil
 		}
-		var pending2faToken interface{} = this.SafeString(response, "Pending2FaToken")
+		var pending2faToken any = this.SafeString(response, "Pending2FaToken")
 		if IsTrue(!IsEqual(pending2faToken, nil)) {
 			if IsTrue(IsEqual(this.Twofa, nil)) {
 				panic(AuthenticationError(Add(this.Id, " signIn() requires exchange.twofa credentials")))
 			}
 			AddElementToObject(this.Options, "pending2faToken", pending2faToken)
-			request = map[string]interface{}{
+			request = map[string]any{
 				"Code": Totp(this.Twofa),
 			}
 
@@ -467,20 +467,21 @@ func (this *NdaxCore) SignIn(optionalArgs ...interface{}) <-chan interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *NdaxCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
-		var request interface{} = map[string]interface{}{
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		var request any = map[string]any{
 			"omsId": omsId,
 		}
 
 		response := (<-this.PublicGetGetProducts(this.Extend(request, params)))
 		PanicOnError(response)
+
 		//
 		//    [
 		//        {
@@ -500,48 +501,45 @@ func (this *NdaxCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interf
 		//        },
 		//        ...
 		//
-		var result interface{} = map[string]interface{}{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var currency interface{} = GetValue(response, i)
-			var id interface{} = this.SafeString(currency, "ProductId")
-			var code interface{} = this.SafeCurrencyCode(this.SafeString(currency, "Product"))
-			var ProductType interface{} = this.SafeString(currency, "ProductType")
-			var typeVar interface{} = Ternary(IsTrue((IsEqual(ProductType, "NationalCurrency"))), "fiat", "crypto")
-			if IsTrue(IsEqual(ProductType, "Unknown")) {
-				// such currency is just a blanket entry
-				typeVar = "other"
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
-				"id":        id,
-				"name":      this.SafeString(currency, "ProductFullName"),
-				"code":      code,
-				"type":      typeVar,
-				"precision": this.SafeNumber(currency, "TickSize"),
-				"info":      currency,
-				"active":    !IsTrue(this.SafeBool(currency, "IsDisabled")),
-				"deposit":   this.SafeBool(currency, "DepositEnabled"),
-				"withdraw":  this.SafeBool(currency, "WithdrawEnabled"),
-				"fee":       nil,
-				"limits": map[string]interface{}{
-					"amount": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": map[string]interface{}{},
-				"margin":   this.SafeBool(currency, "MarginEnabled"),
-			}))
-		}
-
-		ch <- result
+		ch <- this.ParseCurrencies(response)
 		return nil
 
 	}()
 	return ch
+}
+func (this *NdaxCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "ProductId")
+	var code any = this.SafeCurrencyCode(this.SafeString(rawCurrency, "Product"))
+	var ProductType any = this.SafeString(rawCurrency, "ProductType")
+	var typeVar any = Ternary(IsTrue((IsEqual(ProductType, "NationalCurrency"))), "fiat", "crypto")
+	if IsTrue(IsEqual(ProductType, "Unknown")) {
+		// such currency is just a blanket entry
+		typeVar = "other"
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"name":      this.SafeString(rawCurrency, "ProductFullName"),
+		"code":      code,
+		"type":      typeVar,
+		"precision": this.SafeNumber(rawCurrency, "TickSize"),
+		"info":      rawCurrency,
+		"active":    !IsTrue(this.SafeBool(rawCurrency, "IsDisabled")),
+		"deposit":   this.SafeBool(rawCurrency, "DepositEnabled"),
+		"withdraw":  this.SafeBool(rawCurrency, "WithdrawEnabled"),
+		"fee":       nil,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": map[string]any{},
+		"margin":   this.SafeBool(rawCurrency, "MarginEnabled"),
+	})
 }
 
 /**
@@ -552,15 +550,15 @@ func (this *NdaxCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *NdaxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
-		var request interface{} = map[string]interface{}{
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		var request any = map[string]any{
 			"omsId": omsId,
 		}
 
@@ -619,17 +617,17 @@ func (this *NdaxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseMarket(market interface{}) interface{} {
-	var id interface{} = this.SafeString(market, "InstrumentId")
+func (this *NdaxCore) ParseMarket(market any) any {
+	var id any = this.SafeString(market, "InstrumentId")
 	// const lowercaseId = this.safeStringLower (market, 'symbol');
-	var baseId interface{} = this.SafeString(market, "Product1")
-	var quoteId interface{} = this.SafeString(market, "Product2")
-	var base interface{} = this.SafeCurrencyCode(this.SafeString(market, "Product1Symbol"))
-	var quote interface{} = this.SafeCurrencyCode(this.SafeString(market, "Product2Symbol"))
-	var sessionStatus interface{} = this.SafeString(market, "SessionStatus")
-	var isDisable interface{} = this.SafeValue(market, "IsDisable")
-	var sessionRunning interface{} = (IsEqual(sessionStatus, "Running"))
-	return map[string]interface{}{
+	var baseId any = this.SafeString(market, "Product1")
+	var quoteId any = this.SafeString(market, "Product2")
+	var base any = this.SafeCurrencyCode(this.SafeString(market, "Product1Symbol"))
+	var quote any = this.SafeCurrencyCode(this.SafeString(market, "Product2Symbol"))
+	var sessionStatus any = this.SafeString(market, "SessionStatus")
+	var isDisable any = this.SafeValue(market, "IsDisable")
+	var sessionRunning any = (IsEqual(sessionStatus, "Running"))
+	return map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -653,24 +651,24 @@ func (this *NdaxCore) ParseMarket(market interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "QuantityIncrement"),
 			"price":  this.SafeNumber(market, "PriceIncrement"),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": this.SafeNumber(market, "MinimumQuantity"),
 				"max": nil,
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": this.SafeNumber(market, "MinimumPrice"),
 				"max": nil,
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
@@ -679,7 +677,7 @@ func (this *NdaxCore) ParseMarket(market interface{}) interface{} {
 		"info":    market,
 	}
 }
-func (this *NdaxCore) ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	timestamp := GetArg(optionalArgs, 0, nil)
 	_ = timestamp
 	bidsKey := GetArg(optionalArgs, 1, "bids")
@@ -692,33 +690,37 @@ func (this *NdaxCore) ParseOrderBook(orderbook interface{}, symbol interface{}, 
 	_ = amountKey
 	countOrIdKey := GetArg(optionalArgs, 5, 2)
 	_ = countOrIdKey
-	var nonce interface{} = nil
-	var result interface{} = map[string]interface{}{
+	var nonce any = nil
+	var result any = map[string]any{
 		"symbol":    symbol,
-		"bids":      []interface{}{},
-		"asks":      []interface{}{},
+		"bids":      []any{},
+		"asks":      []any{},
 		"timestamp": nil,
 		"datetime":  nil,
 		"nonce":     nil,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(orderbook)); i++ {
-		var level interface{} = GetValue(orderbook, i)
+		var level any = GetValue(orderbook, i)
 		if IsTrue(IsEqual(timestamp, nil)) {
 			timestamp = this.SafeInteger(level, 2)
 		} else {
-			var newTimestamp interface{} = this.SafeInteger(level, 2)
-			timestamp = mathMax(timestamp, newTimestamp)
+			var newTimestamp any = this.SafeInteger(level, 2)
+			if IsTrue(!IsEqual(newTimestamp, nil)) {
+				timestamp = mathMax(timestamp, newTimestamp)
+			}
 		}
 		if IsTrue(IsEqual(nonce, nil)) {
 			nonce = this.SafeInteger(level, 0)
 		} else {
-			var newNonce interface{} = this.SafeInteger(level, 0)
-			nonce = mathMax(nonce, newNonce)
+			var newNonce any = this.SafeInteger(level, 0)
+			if IsTrue(!IsEqual(newNonce, nil)) {
+				nonce = mathMax(nonce, newNonce)
+			}
 		}
-		var bidask interface{} = this.ParseBidAsk(level, priceKey, amountKey)
-		var levelSide interface{} = this.SafeInteger(level, 9)
-		var side interface{} = Ternary(IsTrue(levelSide), asksKey, bidsKey)
-		var resultSide interface{} = GetValue(result, side)
+		var bidask any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
+		var levelSide any = this.SafeInteger(level, 9)
+		var side any = Ternary(IsTrue(levelSide), asksKey, bidsKey)
+		var resultSide any = GetValue(result, side)
 		AppendToArray(&resultSide, bidask)
 	}
 	AddElementToObject(result, "bids", this.SortBy(GetValue(result, "bids"), 0, true))
@@ -737,24 +739,26 @@ func (this *NdaxCore) ParseOrderBook(orderbook interface{}, symbol interface{}, 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *NdaxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6968 := (<-this.LoadMarkets())
-		PanicOnError(retRes6968)
-		var market interface{} = this.Market(symbol)
+			retRes70012 := (<-this.LoadMarkets())
+			PanicOnError(retRes70012)
+		}
+		var market any = this.Market(symbol)
 		limit = Ternary(IsTrue((IsEqual(limit, nil))), 100, limit) // default 100
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"omsId":        omsId,
 			"InstrumentId": GetValue(market, "id"),
 			"Depth":        limit,
@@ -791,7 +795,7 @@ func (this *NdaxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	// fetchTicker
 	//
@@ -826,17 +830,17 @@ func (this *NdaxCore) ParseTicker(ticker interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(ticker, "TimeStamp")
-	var marketId interface{} = this.SafeString(ticker, "InstrumentId")
+	var timestamp any = this.SafeInteger(ticker, "TimeStamp")
+	var marketId any = this.SafeString(ticker, "InstrumentId")
 	market = this.SafeMarket(marketId, market)
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	var last interface{} = this.SafeString(ticker, "LastTradedPx")
-	var percentage interface{} = this.SafeString(ticker, "Rolling24HrPxChangePercent")
-	var change interface{} = this.SafeString(ticker, "Rolling24HrPxChange")
-	var open interface{} = this.SafeString(ticker, "SessionOpen")
-	var baseVolume interface{} = this.SafeString(ticker, "Rolling24HrVolume")
-	var quoteVolume interface{} = this.SafeString(ticker, "Rolling24HrNotional")
-	return this.SafeTicker(map[string]interface{}{
+	var symbol any = this.SafeSymbol(marketId, market)
+	var last any = this.SafeString(ticker, "LastTradedPx")
+	var percentage any = this.SafeString(ticker, "Rolling24HrPxChangePercent")
+	var change any = this.SafeString(ticker, "Rolling24HrPxChange")
+	var open any = this.SafeString(ticker, "SessionOpen")
+	var baseVolume any = this.SafeString(ticker, "Rolling24HrVolume")
+	var quoteVolume any = this.SafeString(ticker, "Rolling24HrNotional")
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -867,21 +871,23 @@ func (this *NdaxCore) ParseTicker(ticker interface{}, optionalArgs ...interface{
  * @see https://apidoc.ndax.io/#getlevel1
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *NdaxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8088 := (<-this.LoadMarkets())
-		PanicOnError(retRes8088)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes81412 := (<-this.LoadMarkets())
+			PanicOnError(retRes81412)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"omsId":        omsId,
 			"InstrumentId": GetValue(market, "id"),
 		}
@@ -925,7 +931,7 @@ func (this *NdaxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//     [
 	//         1501603632000, // 0 DateTime
@@ -941,7 +947,7 @@ func (this *NdaxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []interface{}{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
+	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 }
 
 /**
@@ -956,9 +962,9 @@ func (this *NdaxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *NdaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -967,20 +973,22 @@ func (this *NdaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8868 := (<-this.LoadMarkets())
-		PanicOnError(retRes8868)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes89412 := (<-this.LoadMarkets())
+			PanicOnError(retRes89412)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"omsId":        omsId,
 			"InstrumentId": GetValue(market, "id"),
 			"Interval":     this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var duration interface{} = this.ParseTimeframe(timeframe)
-		var now interface{} = this.Milliseconds()
+		var duration any = this.ParseTimeframe(timeframe)
+		var now any = this.Milliseconds()
 		if IsTrue(IsEqual(since, nil)) {
 			if IsTrue(!IsEqual(limit, nil)) {
 				AddElementToObject(request, "FromDate", this.Ymdhms(Subtract(now, Multiply(Multiply(duration, limit), 1000))))
@@ -1011,7 +1019,7 @@ func (this *NdaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// fetchTrades (public)
 	//
@@ -1122,24 +1130,24 @@ func (this *NdaxCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var priceString interface{} = nil
-	var amountString interface{} = nil
-	var costString interface{} = nil
-	var timestamp interface{} = nil
-	var id interface{} = nil
-	var marketId interface{} = nil
-	var side interface{} = nil
-	var orderId interface{} = nil
-	var takerOrMaker interface{} = nil
-	var fee interface{} = nil
-	var typeVar interface{} = nil
+	var priceString any = nil
+	var amountString any = nil
+	var costString any = nil
+	var timestamp any = nil
+	var id any = nil
+	var marketId any = nil
+	var side any = nil
+	var orderId any = nil
+	var takerOrMaker any = nil
+	var fee any = map[string]any{}
+	var typeVar any = nil
 	if IsTrue(IsArray(trade)) {
 		priceString = this.SafeString(trade, 3)
 		amountString = this.SafeString(trade, 2)
 		timestamp = this.SafeInteger(trade, 6)
 		id = this.SafeString(trade, 0)
 		marketId = this.SafeString(trade, 1)
-		var takerSide interface{} = this.SafeValue(trade, 8)
+		var takerSide any = this.SafeValue(trade, 8)
 		side = Ternary(IsTrue(takerSide), "sell", "buy")
 		orderId = this.SafeString(trade, 4)
 	} else {
@@ -1153,18 +1161,18 @@ func (this *NdaxCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 		takerOrMaker = this.SafeStringLower(trade, "MakerTaker")
 		side = this.SafeStringLower(trade, "Side")
 		typeVar = this.SafeStringLower(trade, "OrderType")
-		var feeCostString interface{} = this.SafeString(trade, "Fee")
+		var feeCostString any = this.SafeString(trade, "Fee")
 		if IsTrue(!IsEqual(feeCostString, nil)) {
-			var feeCurrencyId interface{} = this.SafeString(trade, "FeeProductId")
-			var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)
-			fee = map[string]interface{}{
+			var feeCurrencyId any = this.SafeString(trade, "FeeProductId")
+			var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+			fee = map[string]any{
 				"cost":     feeCostString,
 				"currency": feeCurrencyCode,
 			}
 		}
 	}
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	return this.SafeTrade(map[string]interface{}{
+	var symbol any = this.SafeSymbol(marketId, market)
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
 		"symbol":       symbol,
@@ -1189,25 +1197,27 @@ func (this *NdaxCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *NdaxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10998 := (<-this.LoadMarkets())
-		PanicOnError(retRes10998)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes110912 := (<-this.LoadMarkets())
+			PanicOnError(retRes110912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"omsId":        omsId,
 			"InstrumentId": GetValue(market, "id"),
 		}
@@ -1238,21 +1248,21 @@ func (this *NdaxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
  * @description fetch all the accounts associated with a profile
  * @see https://apidoc.ndax.io/#getuseraccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *NdaxCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchAccounts(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		if !IsTrue(this.Login) {
 			panic(AuthenticationError(Add(this.Id, " fetchAccounts() requires exchange.login email credential")))
 		}
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
 		this.CheckRequiredCredentials()
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"omsId":    omsId,
 			"UserId":   this.Uid,
 			"UserName": this.Login,
@@ -1263,10 +1273,10 @@ func (this *NdaxCore) FetchAccounts(optionalArgs ...interface{}) <-chan interfac
 		//
 		//     [ 449 ] // comma-separated list of account ids
 		//
-		var result interface{} = []interface{}{}
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var accountId interface{} = this.SafeString(response, i)
-			AppendToArray(&result, map[string]interface{}{
+			var accountId any = this.SafeString(response, i)
+			AppendToArray(&result, map[string]any{
 				"id":       accountId,
 				"type":     nil,
 				"currency": nil,
@@ -1280,18 +1290,18 @@ func (this *NdaxCore) FetchAccounts(optionalArgs ...interface{}) <-chan interfac
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *NdaxCore) ParseBalance(response any) any {
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-		var balance interface{} = GetValue(response, i)
-		var currencyId interface{} = this.SafeString(balance, "ProductId")
-		if IsTrue(InOp(this.Currencies_by_id, currencyId)) {
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var account interface{} = this.Account()
+		var balance any = GetValue(response, i)
+		var currencyId any = this.SafeString(balance, "ProductId")
+		if IsTrue(IsTrue((!IsEqual(currencyId, nil))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) {
+			var code any = this.SafeCurrencyCode(currencyId)
+			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balance, "Amount"))
 			AddElementToObject(account, "used", this.SafeString(balance, "Hold"))
 			AddElementToObject(result, code, account)
@@ -1306,29 +1316,31 @@ func (this *NdaxCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://apidoc.ndax.io/#getaccountpositions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *NdaxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11858 := (<-this.LoadMarkets())
-		PanicOnError(retRes11858)
-
-		retRes11868 := (<-this.LoadAccounts())
-		PanicOnError(retRes11868)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId")
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		if IsTrue(IsEqual(accountId, nil)) {
-			accountId = ParseInt(GetValue(GetValue(this.Accounts, 0), "id"))
+			retRes119712 := (<-this.LoadMarkets())
+			PanicOnError(retRes119712)
 		}
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var request interface{} = map[string]interface{}{
+
+		retRes11998 := (<-this.LoadAccounts())
+		PanicOnError(retRes11998)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId")
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		if IsTrue(IsEqual(accountId, nil)) {
+			accountId = this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id"))
+		}
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
@@ -1373,8 +1385,8 @@ func (this *NdaxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *NdaxCore) ParseLedgerEntryType(typeVar any) any {
+	var types any = map[string]any{
 		"Trade":             "trade",
 		"Deposit":           "transaction",
 		"Withdraw":          "transaction",
@@ -1391,7 +1403,7 @@ func (this *NdaxCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *NdaxCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "TransactionId": 2663709493,
@@ -1410,12 +1422,12 @@ func (this *NdaxCore) ParseLedgerEntry(item interface{}, optionalArgs ...interfa
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId interface{} = this.SafeString(item, "ProductId")
+	var currencyId any = this.SafeString(item, "ProductId")
 	currency = this.SafeCurrency(currencyId, currency)
-	var credit interface{} = this.SafeString(item, "CR")
-	var debit interface{} = this.SafeString(item, "DR")
-	var amount interface{} = nil
-	var direction interface{} = nil
+	var credit any = this.SafeString(item, "CR")
+	var debit any = this.SafeString(item, "DR")
+	var amount any = nil
+	var direction any = nil
 	if IsTrue(Precise.StringLt(credit, "0")) {
 		amount = credit
 		direction = "in"
@@ -1423,15 +1435,15 @@ func (this *NdaxCore) ParseLedgerEntry(item interface{}, optionalArgs ...interfa
 		amount = debit
 		direction = "out"
 	}
-	var before interface{} = nil
-	var after interface{} = this.SafeString(item, "Balance")
+	var before any = nil
+	var after any = this.SafeString(item, "Balance")
 	if IsTrue(IsEqual(direction, "out")) {
 		before = Precise.StringAdd(after, amount)
 	} else if IsTrue(IsEqual(direction, "in")) {
 		before = Precise.StringMax("0", Precise.StringSub(after, amount))
 	}
-	var timestamp interface{} = this.SafeInteger(item, "TimeStamp")
-	return this.SafeLedgerEntry(map[string]interface{}{
+	var timestamp any = this.SafeInteger(item, "TimeStamp")
+	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "TransactionId"),
 		"direction":        direction,
@@ -1459,11 +1471,11 @@ func (this *NdaxCore) ParseLedgerEntry(item interface{}, optionalArgs ...interfa
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *NdaxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1472,19 +1484,21 @@ func (this *NdaxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13218 := (<-this.LoadMarkets())
-		PanicOnError(retRes13218)
+			retRes133512 := (<-this.LoadMarkets())
+			PanicOnError(retRes133512)
+		}
 
-		retRes13228 := (<-this.LoadAccounts())
-		PanicOnError(retRes13228)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var request interface{} = map[string]interface{}{
+		retRes13378 := (<-this.LoadAccounts())
+		PanicOnError(retRes13378)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
@@ -1512,7 +1526,7 @@ func (this *NdaxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{
 		//         },
 		//     ]
 		//
-		var currency interface{} = nil
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
@@ -1523,8 +1537,8 @@ func (this *NdaxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *NdaxCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"Accepted":      "open",
 		"Rejected":      "rejected",
 		"Working":       "open",
@@ -1532,9 +1546,12 @@ func (this *NdaxCore) ParseOrderStatus(status interface{}) interface{} {
 		"Expired":       "expired",
 		"FullyExecuted": "closed",
 	}
+	if IsTrue(IsEqual(status, nil)) {
+		return nil
+	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *NdaxCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// createOrder
 	//
@@ -1604,9 +1621,9 @@ func (this *NdaxCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(order, "ReceiveTime")
-	var marketId interface{} = this.SafeString(order, "Instrument")
-	return this.SafeOrder(map[string]interface{}{
+	var timestamp any = this.SafeInteger(order, "ReceiveTime")
+	var marketId any = this.SafeString(order, "Instrument")
+	return this.SafeOrder(map[string]any{
 		"id":                 this.SafeString2(order, "ReplacementOrderId", "OrderId"),
 		"clientOrderId":      this.SafeString2(order, "ReplacementClOrdId", "ClientOrderId"),
 		"info":               order,
@@ -1644,29 +1661,31 @@ func (this *NdaxCore) ParseOrder(order interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NdaxCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14838 := (<-this.LoadMarkets())
-		PanicOnError(retRes14838)
+			retRes150212 := (<-this.LoadMarkets())
+			PanicOnError(retRes150212)
+		}
 
-		retRes14848 := (<-this.LoadAccounts())
-		PanicOnError(retRes14848)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		var clientOrderId interface{} = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
-		var orderType interface{} = this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar))
-		var triggerPrice interface{} = this.SafeString(params, "triggerPrice")
+		retRes15048 := (<-this.LoadAccounts())
+		PanicOnError(retRes15048)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
+		var orderType any = this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar))
+		var triggerPrice any = this.SafeString(params, "triggerPrice")
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 			if IsTrue(IsEqual(typeVar, "market")) {
 				orderType = 3
@@ -1674,16 +1693,17 @@ func (this *NdaxCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 				orderType = 4
 			}
 		}
-		params = this.Omit(params, []interface{}{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
-		var market interface{} = this.Market(symbol)
-		var orderSide interface{} = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
-		var request interface{} = map[string]interface{}{
-			"InstrumentId": ParseInt(GetValue(market, "id")),
+		params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
+		var market any = this.Market(symbol)
+		var orderSide any = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
+		var amountString any = this.AmountToPrecision(symbol, amount)
+		var request any = map[string]any{
+			"InstrumentId": this.ParseToInt(GetValue(market, "id")),
 			"omsId":        omsId,
 			"AccountId":    accountId,
 			"TimeInForce":  1,
 			"Side":         orderSide,
-			"Quantity":     ParseFloat(this.AmountToPrecision(symbol, amount)),
+			"Quantity":     Ternary(IsTrue((IsEqual(amountString, nil))), nil, ParseFloat(amountString)),
 			"OrderType":    orderType,
 		}
 		// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
@@ -1713,38 +1733,41 @@ func (this *NdaxCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 	}()
 	return ch
 }
-func (this *NdaxCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := GetArg(optionalArgs, 1, nil)
 		_ = price
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15418 := (<-this.LoadMarkets())
-		PanicOnError(retRes15418)
+			retRes156312 := (<-this.LoadMarkets())
+			PanicOnError(retRes156312)
+		}
 
-		retRes15428 := (<-this.LoadAccounts())
-		PanicOnError(retRes15428)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		var clientOrderId interface{} = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
-		params = this.Omit(params, []interface{}{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
-		var market interface{} = this.Market(symbol)
-		var orderSide interface{} = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
-		var request interface{} = map[string]interface{}{
+		retRes15658 := (<-this.LoadAccounts())
+		PanicOnError(retRes15658)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		var clientOrderId any = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
+		params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
+		var market any = this.Market(symbol)
+		var orderSide any = Ternary(IsTrue((IsEqual(side, "buy"))), 0, 1)
+		var amountString any = this.AmountToPrecision(symbol, amount)
+		var request any = map[string]any{
 			"OrderIdToReplace": ParseInt(id),
-			"InstrumentId":     ParseInt(GetValue(market, "id")),
+			"InstrumentId":     this.ParseToInt(GetValue(market, "id")),
 			"omsId":            omsId,
 			"AccountId":        accountId,
 			"TimeInForce":      1,
 			"Side":             orderSide,
-			"Quantity":         ParseFloat(this.AmountToPrecision(symbol, amount)),
+			"Quantity":         Ternary(IsTrue((IsEqual(amountString, nil))), nil, ParseFloat(amountString)),
 			"OrderType":        this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)),
 		}
 		// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
@@ -1782,11 +1805,11 @@ func (this *NdaxCore) EditOrder(id interface{}, symbol interface{}, typeVar inte
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *NdaxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1795,23 +1818,25 @@ func (this *NdaxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16008 := (<-this.LoadMarkets())
-		PanicOnError(retRes16008)
+			retRes162512 := (<-this.LoadMarkets())
+			PanicOnError(retRes162512)
+		}
 
-		retRes16018 := (<-this.LoadAccounts())
-		PanicOnError(retRes16018)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var request interface{} = map[string]interface{}{
+		retRes16278 := (<-this.LoadAccounts())
+		PanicOnError(retRes16278)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "InstrumentId", GetValue(market, "id"))
@@ -1883,33 +1908,35 @@ func (this *NdaxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
  * @see https://apidoc.ndax.io/#cancelallorders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NdaxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16878 := (<-this.LoadMarkets())
-		PanicOnError(retRes16878)
+			retRes171412 := (<-this.LoadMarkets())
+			PanicOnError(retRes171412)
+		}
 
-		retRes16888 := (<-this.LoadAccounts())
-		PanicOnError(retRes16888)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var request interface{} = map[string]interface{}{
+		retRes17168 := (<-this.LoadAccounts())
+		PanicOnError(retRes17168)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			var market interface{} = this.Market(symbol)
+			var market any = this.Market(symbol)
 			AddElementToObject(request, "IntrumentId", GetValue(market, "id"))
 		}
 
@@ -1924,7 +1951,7 @@ func (this *NdaxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 		//         "detail":null
 		//     }
 		//
-		ch <- []interface{}{this.SafeOrder(map[string]interface{}{
+		ch <- []any{this.SafeOrder(map[string]any{
 			"info": response,
 		})}
 		return nil
@@ -1942,47 +1969,49 @@ func (this *NdaxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NdaxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17298 := (<-this.LoadMarkets())
-		PanicOnError(retRes17298)
+			retRes175812 := (<-this.LoadMarkets())
+			PanicOnError(retRes175812)
+		}
 
-		retRes17308 := (<-this.LoadAccounts())
-		PanicOnError(retRes17308)
-		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+		retRes17608 := (<-this.LoadAccounts())
+		PanicOnError(retRes17608)
+		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"omsId": omsId,
 		}
-		var clientOrderId interface{} = this.SafeInteger2(params, "clientOrderId", "ClOrderId")
+		var clientOrderId any = this.SafeInteger2(params, "clientOrderId", "ClOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "ClOrderId", clientOrderId)
 		} else {
 			AddElementToObject(request, "OrderId", ParseInt(id))
 		}
-		params = this.Omit(params, []interface{}{"clientOrderId", "ClOrderId"})
+		params = this.Omit(params, []any{"clientOrderId", "ClOrderId"})
 
 		response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
 		PanicOnError(response)
-		var order interface{} = this.ParseOrder(response, market)
+		var order any = this.ParseOrder(response, market)
 
-		ch <- this.Extend(order, map[string]interface{}{
+		ch <- this.Extend(order, map[string]any{
 			"id":            id,
 			"clientOrderId": clientOrderId,
 		})
@@ -2001,11 +2030,11 @@ func (this *NdaxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NdaxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2014,23 +2043,25 @@ func (this *NdaxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17708 := (<-this.LoadMarkets())
-		PanicOnError(retRes17708)
+			retRes180112 := (<-this.LoadMarkets())
+			PanicOnError(retRes180112)
+		}
 
-		retRes17718 := (<-this.LoadAccounts())
-		PanicOnError(retRes17718)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var market interface{} = nil
+		retRes18038 := (<-this.LoadAccounts())
+		PanicOnError(retRes18038)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
@@ -2104,11 +2135,11 @@ func (this *NdaxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NdaxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2117,23 +2148,25 @@ func (this *NdaxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18508 := (<-this.LoadMarkets())
-		PanicOnError(retRes18508)
+			retRes188312 := (<-this.LoadMarkets())
+			PanicOnError(retRes188312)
+		}
 
-		retRes18518 := (<-this.LoadAccounts())
-		PanicOnError(retRes18518)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var request interface{} = map[string]interface{}{
+		retRes18858 := (<-this.LoadAccounts())
+		PanicOnError(retRes18858)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "InstrumentId", GetValue(market, "id"))
@@ -2213,32 +2246,34 @@ func (this *NdaxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NdaxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19458 := (<-this.LoadMarkets())
-		PanicOnError(retRes19458)
+			retRes198012 := (<-this.LoadMarkets())
+			PanicOnError(retRes198012)
+		}
 
-		retRes19468 := (<-this.LoadAccounts())
-		PanicOnError(retRes19468)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var market interface{} = nil
+		retRes19828 := (<-this.LoadAccounts())
+		PanicOnError(retRes19828)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 			"OrderId":   ParseInt(id),
@@ -2312,11 +2347,11 @@ func (this *NdaxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *NdaxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2325,23 +2360,25 @@ func (this *NdaxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20258 := (<-this.LoadMarkets())
-		PanicOnError(retRes20258)
+			retRes206212 := (<-this.LoadMarkets())
+			PanicOnError(retRes206212)
+		}
 
-		retRes20268 := (<-this.LoadAccounts())
-		PanicOnError(retRes20268)
-		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+		retRes20648 := (<-this.LoadAccounts())
+		PanicOnError(retRes20648)
+		// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 		// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 		// params = this.omit (params, [ 'accountId', 'AccountId' ]);
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"OMSId":   this.ParseToInt(omsId),
 			"OrderId": ParseInt(id),
 		}
@@ -2398,8 +2435,8 @@ func (this *NdaxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
 		//         },
 		//     ]
 		//
-		var grouped interface{} = this.GroupBy(response, "ChangeReason")
-		var trades interface{} = this.SafeList(grouped, "Trade", []interface{}{})
+		var grouped any = this.GroupBy(response, "ChangeReason")
+		var trades any = this.SafeList(grouped, "Trade", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit)
 		return nil
@@ -2414,27 +2451,29 @@ func (this *NdaxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *NdaxCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21058 := (<-this.LoadMarkets())
-		PanicOnError(retRes21058)
+			retRes214412 := (<-this.LoadMarkets())
+			PanicOnError(retRes214412)
+		}
 
-		retRes21068 := (<-this.LoadAccounts())
-		PanicOnError(retRes21068)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		retRes21468 := (<-this.LoadAccounts())
+		PanicOnError(retRes21468)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"omsId":          omsId,
 			"AccountId":      accountId,
 			"ProductId":      GetValue(currency, "id"),
@@ -2462,7 +2501,7 @@ func (this *NdaxCore) FetchDepositAddress(code interface{}, optionalArgs ...inte
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
 	// fetchDepositAddress, createDepositAddress
 	//
@@ -2479,19 +2518,19 @@ func (this *NdaxCore) ParseDepositAddress(depositAddress interface{}, optionalAr
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var depositInfoString interface{} = this.SafeString(depositAddress, "DepositInfo")
-	var depositInfo interface{} = JsonParse(depositInfoString)
-	var depositInfoLength interface{} = GetArrayLength(depositInfo)
-	var lastString interface{} = this.SafeString(depositInfo, Subtract(depositInfoLength, 1))
-	var parts interface{} = Split(lastString, "?memo=")
-	var address interface{} = this.SafeString(parts, 0)
-	var tag interface{} = this.SafeString(parts, 1)
-	var code interface{} = nil
+	var depositInfoString any = this.SafeString(depositAddress, "DepositInfo", "[]")
+	var depositInfo any = JsonParse(depositInfoString)
+	var depositInfoLength any = GetArrayLength(depositInfo)
+	var lastString any = this.SafeString(depositInfo, Subtract(depositInfoLength, 1), "")
+	var parts any = Split(lastString, "?memo=")
+	var address any = this.SafeString(parts, 0)
+	var tag any = this.SafeString(parts, 1)
+	var code any = nil
 	if IsTrue(!IsEqual(currency, nil)) {
 		code = GetValue(currency, "code")
 	}
 	this.CheckAddress(address)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":     depositAddress,
 		"currency": code,
 		"network":  nil,
@@ -2506,22 +2545,22 @@ func (this *NdaxCore) ParseDepositAddress(depositAddress interface{}, optionalAr
  * @description create a currency deposit address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *NdaxCore) CreateDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"GenerateNewKey": true,
 		}
 
-		retRes218115 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-		PanicOnError(retRes218115)
-		ch <- retRes218115
+		retRes222115 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+		PanicOnError(retRes222115)
+		ch <- retRes222115
 		return nil
 
 	}()
@@ -2537,11 +2576,11 @@ func (this *NdaxCore) CreateDepositAddress(code interface{}, optionalArgs ...int
  * @param {int} [since] not used by ndax fetchDeposits
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *NdaxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2550,23 +2589,25 @@ func (this *NdaxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21978 := (<-this.LoadMarkets())
-		PanicOnError(retRes21978)
+			retRes223812 := (<-this.LoadMarkets())
+			PanicOnError(retRes223812)
+		}
 
-		retRes21988 := (<-this.LoadAccounts())
-		PanicOnError(retRes21988)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var currency interface{} = nil
+		retRes22408 := (<-this.LoadAccounts())
+		PanicOnError(retRes22408)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
@@ -2623,11 +2664,11 @@ func (this *NdaxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *NdaxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2636,23 +2677,25 @@ func (this *NdaxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22588 := (<-this.LoadMarkets())
-		PanicOnError(retRes22588)
+			retRes230112 := (<-this.LoadMarkets())
+			PanicOnError(retRes230112)
+		}
 
-		retRes22598 := (<-this.LoadAccounts())
-		PanicOnError(retRes22598)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var currency interface{} = nil
+		retRes23038 := (<-this.LoadAccounts())
+		PanicOnError(retRes23038)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 		}
@@ -2690,11 +2733,13 @@ func (this *NdaxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *NdaxCore) ParseTransactionStatusByType(status interface{}, optionalArgs ...interface{}) interface{} {
-	typeVar := GetArg(optionalArgs, 0, nil)
+func (this *NdaxCore) ParseTransactionStatusByType(optionalArgs ...any) any {
+	status := GetArg(optionalArgs, 0, nil)
+	_ = status
+	typeVar := GetArg(optionalArgs, 1, nil)
 	_ = typeVar
-	var statusesByType interface{} = map[string]interface{}{
-		"deposit": map[string]interface{}{
+	var statusesByType any = map[string]any{
+		"deposit": map[string]any{
 			"New":              "pending",
 			"AdminProcessing":  "pending",
 			"Accepted":         "pending",
@@ -2711,7 +2756,7 @@ func (this *NdaxCore) ParseTransactionStatusByType(status interface{}, optionalA
 			"LimitsAccepted":   "pending",
 			"LimitsRejected":   "rejected",
 		},
-		"withdrawal": map[string]interface{}{
+		"withdrawal": map[string]any{
 			"New":               "pending",
 			"AdminProcessing":   "pending",
 			"Accepted":          "pending",
@@ -2737,10 +2782,13 @@ func (this *NdaxCore) ParseTransactionStatusByType(status interface{}, optionalA
 			"Confirmed2Fa":      "pending",
 		},
 	}
-	var statuses interface{} = this.SafeValue(statusesByType, typeVar, map[string]interface{}{})
+	var statuses any = Ternary(IsTrue((IsEqual(typeVar, nil))), map[string]any{}, this.SafeValue(statusesByType, typeVar, map[string]any{}))
+	if IsTrue(IsEqual(status, nil)) {
+		return nil
+	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *NdaxCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// fetchDeposits
 	//
@@ -2793,10 +2841,10 @@ func (this *NdaxCore) ParseTransaction(transaction interface{}, optionalArgs ...
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id interface{} = nil
-	var currencyId interface{} = this.SafeString(transaction, "ProductId")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	var typeVar interface{} = nil
+	var id any = nil
+	var currencyId any = this.SafeString(transaction, "ProductId")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var typeVar any = nil
 	if IsTrue(InOp(transaction, "DepositId")) {
 		id = this.SafeString(transaction, "DepositId")
 		typeVar = "deposit"
@@ -2804,23 +2852,23 @@ func (this *NdaxCore) ParseTransaction(transaction interface{}, optionalArgs ...
 		id = this.SafeString(transaction, "WithdrawId")
 		typeVar = "withdrawal"
 	}
-	var templateForm interface{} = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
-	var updated interface{} = this.SafeInteger(transaction, "LastUpdateTimeStamp")
+	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
+	var updated any = this.SafeInteger(transaction, "LastUpdateTimeStamp")
 	if IsTrue(!IsEqual(templateForm, nil)) {
 		updated = this.SafeInteger(templateForm, "LastUpdated", updated)
 	}
-	var address interface{} = this.SafeString2(templateForm, "ExternalAddress", "ToAddress")
-	var timestamp interface{} = this.SafeInteger(templateForm, "TimeSubmitted")
-	var feeCost interface{} = this.SafeNumber(transaction, "FeeAmount")
-	var transactionStatus interface{} = this.SafeString(transaction, "TicketStatus")
-	var fee interface{} = nil
+	var address any = this.SafeString2(templateForm, "ExternalAddress", "ToAddress")
+	var timestamp any = this.SafeInteger(templateForm, "TimeSubmitted")
+	var feeCost any = this.SafeNumber(transaction, "FeeAmount")
+	var transactionStatus any = this.SafeString(transaction, "TicketStatus")
+	var fee any = map[string]any{}
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        this.SafeString2(templateForm, "TxId", "TXId"),
@@ -2853,22 +2901,22 @@ func (this *NdaxCore) ParseTransaction(transaction interface{}, optionalArgs ...
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *NdaxCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NdaxCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		// this method required login, password and twofa key
-		var sessionToken interface{} = this.SafeString(this.Options, "sessionToken")
+		var sessionToken any = this.SafeString(this.Options, "sessionToken")
 		if IsTrue(IsEqual(sessionToken, nil)) {
 			panic(AuthenticationError(Add(this.Id, " call signIn() method to obtain a session token")))
 		}
@@ -2876,18 +2924,20 @@ func (this *NdaxCore) Withdraw(code interface{}, amount interface{}, address int
 			panic(AuthenticationError(Add(this.Id, " withdraw() requires exchange.twofa credentials")))
 		}
 		this.CheckAddress(address)
-		var omsId interface{} = this.SafeInteger(this.Options, "omsId", 1)
+		var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24708 := (<-this.LoadMarkets())
-		PanicOnError(retRes24708)
+			retRes251812 := (<-this.LoadMarkets())
+			PanicOnError(retRes251812)
+		}
 
-		retRes24718 := (<-this.LoadAccounts())
-		PanicOnError(retRes24718)
-		var defaultAccountId interface{} = this.SafeInteger2(this.Options, "accountId", "AccountId", ParseInt(GetValue(GetValue(this.Accounts, 0), "id")))
-		var accountId interface{} = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
-		params = this.Omit(params, []interface{}{"accountId", "AccountId"})
-		var currency interface{} = this.Currency(code)
-		var withdrawTemplateTypesRequest interface{} = map[string]interface{}{
+		retRes25208 := (<-this.LoadAccounts())
+		PanicOnError(retRes25208)
+		var defaultAccountId any = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
+		var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+		params = this.Omit(params, []any{"accountId", "AccountId"})
+		var currency any = this.Currency(code)
+		var withdrawTemplateTypesRequest any = map[string]any{
 			"omsId":     omsId,
 			"AccountId": accountId,
 			"ProductId": GetValue(currency, "id"),
@@ -2907,13 +2957,13 @@ func (this *NdaxCore) Withdraw(code interface{}, amount interface{}, address int
 		//         ]
 		//     }
 		//
-		var templateTypes interface{} = this.SafeValue(withdrawTemplateTypesResponse, "TemplateTypes", []interface{}{})
-		var firstTemplateType interface{} = this.SafeValue(templateTypes, 0)
+		var templateTypes any = this.SafeValue(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
+		var firstTemplateType any = this.SafeValue(templateTypes, 0)
 		if IsTrue(IsEqual(firstTemplateType, nil)) {
 			panic(ExchangeError(Add(Add(this.Id, " withdraw() could not find a withdraw template type for "), GetValue(currency, "code"))))
 		}
-		var templateName interface{} = this.SafeString(firstTemplateType, "TemplateName")
-		var withdrawTemplateRequest interface{} = map[string]interface{}{
+		var templateName any = this.SafeString(firstTemplateType, "TemplateName")
+		var withdrawTemplateRequest any = map[string]any{
 			"omsId":             omsId,
 			"AccountId":         accountId,
 			"ProductId":         GetValue(currency, "id"),
@@ -2931,25 +2981,25 @@ func (this *NdaxCore) Withdraw(code interface{}, amount interface{}, address int
 		//         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
 		//     }
 		//
-		var template interface{} = this.SafeString(withdrawTemplateResponse, "Template")
+		var template any = this.SafeString(withdrawTemplateResponse, "Template")
 		if IsTrue(IsEqual(template, nil)) {
 			panic(ExchangeError(Add(Add(this.Id, " withdraw() could not find a withdraw template for "), GetValue(currency, "code"))))
 		}
-		var withdrawTemplate interface{} = JsonParse(template)
+		var withdrawTemplate any = JsonParse(template)
 		AddElementToObject(withdrawTemplate, "ExternalAddress", address)
 		if IsTrue(!IsEqual(tag, nil)) {
 			if IsTrue(InOp(withdrawTemplate, "Memo")) {
 				AddElementToObject(withdrawTemplate, "Memo", tag)
 			}
 		}
-		var withdrawPayload interface{} = map[string]interface{}{
+		var withdrawPayload any = map[string]any{
 			"omsId":        omsId,
 			"AccountId":    accountId,
 			"ProductId":    GetValue(currency, "id"),
 			"TemplateForm": this.Json(withdrawTemplate),
 			"TemplateType": templateName,
 		}
-		var withdrawRequest interface{} = map[string]interface{}{
+		var withdrawRequest any = map[string]any{
 			"TfaType": "Google",
 			"TFaCode": Totp(this.Twofa),
 			"Payload": this.Json(withdrawPayload),
@@ -2964,33 +3014,33 @@ func (this *NdaxCore) Withdraw(code interface{}, amount interface{}, address int
 	}()
 	return ch
 }
-func (this *NdaxCore) Nonce() interface{} {
+func (this *NdaxCore) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *NdaxCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url interface{} = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
+	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
+	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
 		if IsTrue(IsEqual(path, "Authenticate")) {
-			var auth interface{} = Add(Add(this.Login, ":"), this.Password)
-			var auth64 interface{} = this.StringToBase64(auth)
-			headers = map[string]interface{}{
+			var auth any = Add(Add(this.Login, ":"), this.Password)
+			var auth64 any = this.StringToBase64(auth)
+			headers = map[string]any{
 				"Authorization": Add("Basic ", auth64),
 			}
 		} else if IsTrue(IsEqual(path, "Authenticate2FA")) {
-			var pending2faToken interface{} = this.SafeString(this.Options, "pending2faToken")
+			var pending2faToken any = this.SafeString(this.Options, "pending2faToken")
 			if IsTrue(!IsEqual(pending2faToken, nil)) {
-				headers = map[string]interface{}{
+				headers = map[string]any{
 					"Pending2FaToken": pending2faToken,
 				}
 				query = this.Omit(query, "pending2faToken")
@@ -3001,19 +3051,19 @@ func (this *NdaxCore) Sign(path interface{}, optionalArgs ...interface{}) interf
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var sessionToken interface{} = this.SafeString(this.Options, "sessionToken")
+		var sessionToken any = this.SafeString(this.Options, "sessionToken")
 		if IsTrue(IsEqual(sessionToken, nil)) {
-			var nonce interface{} = ToString(this.Nonce())
-			var auth interface{} = Add(Add(nonce, this.Uid), this.ApiKey)
-			var signature interface{} = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-			headers = map[string]interface{}{
+			var nonce any = ToString(this.Nonce())
+			var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
+			var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+			headers = map[string]any{
 				"Nonce":     nonce,
 				"APIKey":    this.ApiKey,
 				"Signature": signature,
 				"UserId":    this.Uid,
 			}
 		} else {
-			headers = map[string]interface{}{
+			headers = map[string]any{
 				"APToken": sessionToken,
 			}
 		}
@@ -3026,14 +3076,14 @@ func (this *NdaxCore) Sign(path interface{}, optionalArgs ...interface{}) interf
 			}
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *NdaxCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *NdaxCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(code, 404)) {
 		panic(AuthenticationError(Add(Add(this.Id, " "), body)))
 	}
@@ -3044,9 +3094,9 @@ func (this *NdaxCore) HandleErrors(code interface{}, reason interface{}, url int
 	//     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
 	//     {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
 	//
-	var message interface{} = this.SafeString(response, "errormsg")
+	var message any = this.SafeString(response, "errormsg")
 	if IsTrue(IsTrue((!IsEqual(message, nil))) && IsTrue((!IsEqual(message, "")))) {
-		var feedback interface{} = Add(Add(this.Id, " "), body)
+		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		panic(ExchangeError(feedback))
@@ -3054,8 +3104,8 @@ func (this *NdaxCore) HandleErrors(code interface{}, reason interface{}, url int
 	return nil
 }
 
-func (this *NdaxCore) Init(userConfig map[string]interface{}) {
+func (this *NdaxCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

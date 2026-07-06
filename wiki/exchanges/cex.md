@@ -60,7 +60,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-cex.fetchCurrencies ([params])
+cex.fetchCurrencies (params?)
 ```
 
 
@@ -80,7 +80,7 @@ retrieves data on all markets for ace
 
 
 ```javascript
-cex.fetchMarkets ([params])
+cex.fetchMarkets (params?)
 ```
 
 
@@ -92,6 +92,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>cex</code>](#cex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
+**See**: https://trade.cex.io/docs/#rest-public-api-calls-server-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -99,7 +100,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-cex.fetchTime ([params])
+cex.fetchTime (params?)
 ```
 
 
@@ -109,7 +110,7 @@ cex.fetchTime ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-ticker  
 
@@ -120,7 +121,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cex.fetchTicker (symbol[, params])
+cex.fetchTicker (symbol, params?)
 ```
 
 
@@ -130,7 +131,7 @@ cex.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-ticker  
 
@@ -141,7 +142,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cex.fetchTickers (symbols[, params])
+cex.fetchTickers (symbols, params?)
 ```
 
 
@@ -151,7 +152,7 @@ cex.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-trade-history  
 
@@ -165,7 +166,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-cex.fetchTrades (symbol[, since, limit, params])
+cex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -175,7 +176,7 @@ cex.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-order-book  
 
@@ -187,7 +188,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cex.fetchOrderBook (symbol[, limit, params])
+cex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -212,7 +213,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-cex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+cex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -222,7 +223,7 @@ cex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-candles  
 
@@ -232,7 +233,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-cex.fetchTradingFees ([params])
+cex.fetchTradingFees (params?)
 ```
 
 
@@ -242,7 +243,7 @@ cex.fetchTradingFees ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3  
 
@@ -254,7 +255,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-cex.fetchBalance ([params])
+cex.fetchBalance (params?)
 ```
 
 
@@ -264,7 +265,7 @@ cex.fetchBalance ([params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-orders  
 
@@ -279,7 +280,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-cex.fetchOrders (status, symbol[, since, limit, params])
+cex.fetchOrders (status, symbol, since?, limit?, params?)
 ```
 
 
@@ -289,7 +290,7 @@ cex.fetchOrders (status, symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-orders  
 
@@ -302,7 +303,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-cex.fetchClosedOrders (symbol[, since, limit, params])
+cex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -312,7 +313,7 @@ cex.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-orders  
 
@@ -325,7 +326,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-cex.fetchOpenOrders (symbol[, since, limit, params])
+cex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -335,7 +336,7 @@ cex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on an open order made by the user
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-orders  
 
@@ -347,7 +348,7 @@ fetches information on an open order made by the user
 
 
 ```javascript
-cex.fetchOpenOrder (id[, symbol, params])
+cex.fetchOpenOrder (id, symbol?, params?)
 ```
 
 
@@ -357,7 +358,7 @@ cex.fetchOpenOrder (id[, symbol, params])
 fetches information on an closed order made by the user
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-orders  
 
@@ -369,7 +370,7 @@ fetches information on an closed order made by the user
 
 
 ```javascript
-cex.fetchClosedOrder (id[, symbol, params])
+cex.fetchClosedOrder (id, symbol?, params?)
 ```
 
 
@@ -379,7 +380,7 @@ cex.fetchClosedOrder (id[, symbol, params])
 create a trade order
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-new-order  
 
@@ -396,7 +397,7 @@ create a trade order
 
 
 ```javascript
-cex.createOrder (symbol, type, side, amount[, price, params])
+cex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -406,7 +407,7 @@ cex.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-cancel-order  
 
@@ -418,7 +419,7 @@ cancels an open order
 
 
 ```javascript
-cex.cancelOrder (id, symbol[, params])
+cex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -428,7 +429,7 @@ cex.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders  
 
@@ -439,7 +440,7 @@ cancel all open orders in a market
 
 
 ```javascript
-cex.cancelAllOrders (symbol[, params])
+cex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -449,7 +450,7 @@ cex.cancelAllOrders (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-transaction-history  
 
@@ -463,7 +464,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-cex.fetchLedger ([code, since, limit, params])
+cex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -473,7 +474,7 @@ cex.fetchLedger ([code, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-funding-history  
 
@@ -486,7 +487,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-cex.fetchDepositsWithdrawals ([code, since, limit, params])
+cex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -496,7 +497,7 @@ cex.fetchDepositsWithdrawals ([code, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer  
 
@@ -510,7 +511,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-cex.transfer (code, amount, fromAccount, toAccount[, params])
+cex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -520,7 +521,7 @@ cex.transfer (code, amount, fromAccount, toAccount[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://trade.cex.io/docs/#rest-private-api-calls-deposit-address  
 
@@ -532,7 +533,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-cex.fetchDepositAddress (code[, params])
+cex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -542,7 +543,7 @@ cex.fetchDepositAddress (code[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://cex.io/websocket-api#get-balance  
 
@@ -552,7 +553,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-cex.watchBalance ([params])
+cex.watchBalance (params?)
 ```
 
 
@@ -562,7 +563,7 @@ cex.watchBalance ([params])
 get the list of most recent trades for a particular symbol. Note: can only watch one symbol at a time.
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://cex.io/websocket-api#old-pair-room  
 
@@ -575,7 +576,7 @@ get the list of most recent trades for a particular symbol. Note: can only watch
 
 
 ```javascript
-cex.watchTrades (symbol[, since, limit, params])
+cex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -585,7 +586,7 @@ cex.watchTrades (symbol[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://cex.io/websocket-api#ticker-subscription  
 
@@ -597,7 +598,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-cex.watchTicker (symbol[, params])
+cex.watchTicker (symbol, params?)
 ```
 
 
@@ -607,7 +608,7 @@ cex.watchTicker (symbol[, params])
 watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://cex.io/websocket-api#ticker-subscription  
 
@@ -618,7 +619,7 @@ watches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cex.watchTickers (symbols[, params])
+cex.watchTickers (symbols, params?)
 ```
 
 
@@ -628,7 +629,7 @@ cex.watchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.cex.io/#ws-api-ticker-deprecated  
 
@@ -639,7 +640,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-cex.fetchTickerWs (symbol[, params])
+cex.fetchTickerWs (symbol, params?)
 ```
 
 
@@ -649,7 +650,7 @@ cex.fetchTickerWs (symbol[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.cex.io/#ws-api-get-balance  
 
@@ -659,7 +660,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-cex.fetchBalanceWs ([params])
+cex.fetchBalanceWs (params?)
 ```
 
 
@@ -669,7 +670,7 @@ cex.fetchBalanceWs ([params])
 get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.cex.io/#ws-api-open-orders  
 
@@ -682,7 +683,7 @@ get the list of orders associated with the user. Note: In CEX.IO system, orders 
 
 
 ```javascript
-cex.watchOrders (symbol[, since, limit, params])
+cex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -692,7 +693,7 @@ cex.watchOrders (symbol[, since, limit, params])
 get the list of trades associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.cex.io/#ws-api-open-orders  
 
@@ -705,7 +706,7 @@ get the list of trades associated with the user. Note: In CEX.IO system, orders 
 
 
 ```javascript
-cex.watchMyTrades (symbol[, since, limit, params])
+cex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -715,9 +716,9 @@ cex.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://cex.io/websocket-api#orderbook-subscribe  
+**See**: https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -727,7 +728,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cex.watchOrderBook (symbol[, limit, params])
+cex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -751,7 +752,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-cex.watchOHLCV (symbol, timeframe[, since, limit, params])
+cex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -761,7 +762,7 @@ cex.watchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cex.io/#ws-api-get-order  
 
@@ -773,7 +774,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-cex.fetchOrderWs (id, symbol[, params])
+cex.fetchOrderWs (id, symbol, params?)
 ```
 
 
@@ -783,7 +784,7 @@ cex.fetchOrderWs (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cex.io/#ws-api-open-orders  
 
@@ -796,7 +797,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-cex.fetchOpenOrdersWs (symbol[, since, limit, params])
+cex.fetchOpenOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -822,7 +823,7 @@ create a trade order
 
 
 ```javascript
-cex.createOrderWs (symbol, type, side, amount, price[, params])
+cex.createOrderWs (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -848,7 +849,7 @@ edit a trade order
 
 
 ```javascript
-cex.editOrderWs (id, symbol, type, side, amount[, price, params])
+cex.editOrderWs (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -858,7 +859,7 @@ cex.editOrderWs (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cex.io/#ws-api-order-cancel  
 
@@ -870,7 +871,7 @@ cancels an open order
 
 
 ```javascript
-cex.cancelOrderWs (id, symbol[, params])
+cex.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -880,7 +881,7 @@ cex.cancelOrderWs (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cex.io/#ws-api-mass-cancel-place  
 
@@ -892,6 +893,6 @@ cancel multiple orders
 
 
 ```javascript
-cex.cancelOrdersWs (ids, symbol[, params])
+cex.cancelOrdersWs (ids, symbol, params?)
 ```
 

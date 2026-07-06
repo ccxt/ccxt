@@ -34,7 +34,7 @@
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 
 | Param | Type | Required | Description |
@@ -46,7 +46,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitso.fetchLedger ([code, since, limit, params])
+bitso.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -66,7 +66,7 @@ retrieves data on all markets for bitso
 
 
 ```javascript
-bitso.fetchMarkets ([params])
+bitso.fetchMarkets (params?)
 ```
 
 
@@ -76,7 +76,7 @@ bitso.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/get-account-balance  
 
@@ -86,7 +86,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitso.fetchBalance ([params])
+bitso.fetchBalance (params?)
 ```
 
 
@@ -96,7 +96,7 @@ bitso.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-order-book  
 
@@ -108,7 +108,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitso.fetchOrderBook (symbol[, limit, params])
+bitso.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -118,7 +118,7 @@ bitso.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/ticker  
 
@@ -129,7 +129,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitso.fetchTicker (symbol[, params])
+bitso.fetchTicker (symbol, params?)
 ```
 
 
@@ -152,7 +152,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitso.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitso.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -162,7 +162,7 @@ bitso.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-trades  
 
@@ -175,7 +175,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitso.fetchTrades (symbol[, since, limit, params])
+bitso.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -185,7 +185,7 @@ bitso.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-fees  
 
@@ -195,7 +195,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitso.fetchTradingFees ([params])
+bitso.fetchTradingFees (params?)
 ```
 
 
@@ -205,7 +205,7 @@ bitso.fetchTradingFees ([params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/user-trades  
 
@@ -218,7 +218,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitso.fetchMyTrades (symbol[, since, limit, params])
+bitso.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -228,7 +228,7 @@ bitso.fetchMyTrades (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/place-an-order  
 
@@ -243,7 +243,7 @@ create a trade order
 
 
 ```javascript
-bitso.createOrder (symbol, type, side, amount[, price, params])
+bitso.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -253,7 +253,7 @@ bitso.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/cancel-an-order  
 
@@ -265,7 +265,7 @@ cancels an open order
 
 
 ```javascript
-bitso.cancelOrder (id, symbol[, params])
+bitso.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -275,7 +275,7 @@ bitso.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/cancel-an-order  
 
@@ -287,7 +287,7 @@ cancel multiple orders
 
 
 ```javascript
-bitso.cancelOrders (ids, symbol[, params])
+bitso.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -297,7 +297,7 @@ bitso.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/cancel-an-order  
 
@@ -308,7 +308,7 @@ cancel all open orders
 
 
 ```javascript
-bitso.cancelAllOrders (symbol[, params])
+bitso.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -318,7 +318,7 @@ bitso.cancelAllOrders (symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-open-orders  
 
@@ -331,7 +331,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitso.fetchOpenOrders (symbol[, since, limit, params])
+bitso.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -341,7 +341,7 @@ bitso.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/look-up-orders  
 
@@ -353,7 +353,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitso.fetchOrder (id, symbol[, params])
+bitso.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -363,7 +363,7 @@ bitso.fetchOrder (id, symbol[, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-user-trades  
 
@@ -377,7 +377,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bitso.fetchOrderTrades (id, symbol[, since, limit, params])
+bitso.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -387,7 +387,7 @@ bitso.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch information on a deposit
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.bitso.com/bitso-payouts-funding/docs/fundings  
 
@@ -399,7 +399,7 @@ fetch information on a deposit
 
 
 ```javascript
-bitso.fetchDeposit (id, code[, params])
+bitso.fetchDeposit (id, code, params?)
 ```
 
 
@@ -409,7 +409,7 @@ bitso.fetchDeposit (id, code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.bitso.com/bitso-payouts-funding/docs/fundings  
 
@@ -422,7 +422,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitso.fetchDeposits (code[, since, limit, params])
+bitso.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -432,7 +432,7 @@ bitso.fetchDeposits (code[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -442,7 +442,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitso.fetchDepositAddress (code[, params])
+bitso.fetchDepositAddress (code, params?)
 ```
 
 
@@ -454,7 +454,7 @@ bitso.fetchDepositAddress (code[, params])
 please use fetchDepositWithdrawFees instead
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-fees  
 
@@ -465,7 +465,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-bitso.fetchTransactionFees (codes[, params])
+bitso.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -475,7 +475,7 @@ bitso.fetchTransactionFees (codes[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-fees  
 
@@ -486,7 +486,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitso.fetchDepositWithdrawFees (codes[, params])
+bitso.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -496,7 +496,7 @@ bitso.fetchDepositWithdrawFees (codes[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -509,6 +509,6 @@ make a withdrawal
 
 
 ```javascript
-bitso.withdraw (code, amount, address, tag[, params])
+bitso.withdraw (code, amount, address, tag, params?)
 ```
 

@@ -4,11 +4,11 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class coinsph
  * @augments Exchange
@@ -18,9 +18,9 @@ export default class coinsph extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
-            'countries': ['PH'],
+            'countries': ['PH'], // Philippines
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 per minute
             'certified': false,
             'pro': false,
             'has': {
@@ -183,12 +183,17 @@ export default class coinsph extends Exchange {
                     'https://coins-docs.github.io/rest-api',
                 ],
                 'fees': 'https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees',
+                'referral': {
+                    'url': 'https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001',
+                    'discount': 0.2,
+                },
             },
             'api': {
                 'public': {
                     'get': {
                         'openapi/v1/ping': 1,
                         'openapi/v1/time': 1,
+                        'openapi/v1/user/ip': 1,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
@@ -202,19 +207,22 @@ export default class coinsph extends Exchange {
                         'openapi/v1/exchangeInfo': 10,
                         // cost 1 if limit <= 100; 5 if limit > 100.
                         'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [[101, 5], [0, 1]] },
-                        'openapi/quote/v1/klines': 1,
-                        'openapi/quote/v1/trades': 1,
+                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
                         'openapi/v1/pairs': 1,
                         'openapi/quote/v1/avgPrice': 1,
                     },
                 },
                 'private': {
                     'get': {
+                        'openapi/v1/check-sys-status': 1,
                         'openapi/wallet/v1/config/getall': 10,
                         'openapi/wallet/v1/deposit/address': 10,
                         'openapi/wallet/v1/deposit/history': 1,
                         'openapi/wallet/v1/withdraw/history': 1,
+                        'openapi/wallet/v1/withdraw/address-whitelist': 1,
                         'openapi/v1/account': 10,
+                        'openapi/v1/api-keys': 1,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
                         'openapi/v1/asset/tradeFee': 1,
@@ -228,11 +236,21 @@ export default class coinsph extends Exchange {
                         'merchant-api/v1/get-invoices': 1,
                         'openapi/account/v3/crypto-accounts': 1,
                         'openapi/transfer/v3/transfers/{id}': 1,
+                        'openapi/v1/sub-account/list': 10,
+                        'openapi/v1/sub-account/asset': 10,
+                        'openapi/v1/sub-account/transfer/universal-transfer-history': 10,
+                        'openapi/v1/sub-account/transfer/sub-history': 10,
+                        'openapi/v1/sub-account/apikey/ip-restriction': 10,
+                        'openapi/v1/sub-account/wallet/deposit/address': 1,
+                        'openapi/v1/sub-account/wallet/deposit/history': 1,
+                        'openapi/v1/fund-collect/get-fund-record': 1,
+                        'openapi/v1/asset/transaction/history': 20,
                     },
                     'post': {
                         'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
+                        'openapi/v1/order/cancelReplace': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
                         'openapi/v3/payment-request/payment-requests': 1,
@@ -243,13 +261,29 @@ export default class coinsph extends Exchange {
                         'merchant-api/v1/invoices-cancel': 1,
                         'openapi/convert/v1/get-supported-trading-pairs': 1,
                         'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/convert/v1/accept-quote': 1,
+                        'openapi/convert/v1/query-order-history': 1,
+                        'openapi/otc-trade/v1/get-supported-trading-pairs': 1,
+                        'openapi/otc-trade/v1/create-rfq': 1,
+                        'openapi/otc-trade/v1/accept-rfq': 1,
+                        'openapi/otc-trade/v1/manual-settle': 1,
+                        'openapi/otc-trade/v1/query-order-history': 1,
                         'openapi/fiat/v1/support-channel': 1,
                         'openapi/fiat/v1/cash-out': 1,
                         'openapi/fiat/v1/history': 1,
                         'openapi/migration/v4/sellorder': 1,
                         'openapi/migration/v4/validate-field': 1,
                         'openapi/transfer/v3/transfers': 1,
+                        'openapi/transfer/v4/transfers': 1,
+                        'openapi/v1/sub-account/create': 30,
+                        'openapi/v1/sub-account/transfer/universal-transfer': 100,
+                        'openapi/v1/sub-account/transfer/sub-to-master': 100,
+                        'openapi/v1/sub-account/apikey/add-ip-restriction': 30,
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction': 30,
+                        'openapi/v1/fund-collect/collect-from-sub-account': 1,
+                    },
+                    'put': {
+                        'openapi/v1/userDataStream': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1,
@@ -297,7 +331,7 @@ export default class coinsph extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': true, // true or false
                 'withdraw': {
                     'warning': false,
                 },
@@ -305,9 +339,9 @@ export default class coinsph extends Exchange {
                     'warning': false,
                 },
                 'createOrder': {
-                    'timeInForce': 'GTC',
+                    'timeInForce': 'GTC', // FOK, IOC
                     'newOrderRespType': {
-                        'market': 'FULL',
+                        'market': 'FULL', // FULL, RESULT. ACK
                         'limit': 'FULL', // we change it from 'ACK' by default to 'FULL'
                     },
                 },
@@ -337,8 +371,8 @@ export default class coinsph extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -351,7 +385,7 @@ export default class coinsph extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -359,7 +393,7 @@ export default class coinsph extends Exchange {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -402,116 +436,116 @@ export default class coinsph extends Exchange {
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
-                    '-1000': BadRequest,
-                    '-1001': BadRequest,
-                    '-1002': AuthenticationError,
-                    '-1003': RateLimitExceeded,
-                    '-1004': InvalidOrder,
-                    '-1006': BadResponse,
-                    '-1007': BadResponse,
-                    '-1014': InvalidOrder,
-                    '-1015': RateLimitExceeded,
-                    '-1016': NotSupported,
-                    '-1020': NotSupported,
-                    '-1021': BadRequest,
-                    '-1022': BadRequest,
-                    '-1023': AuthenticationError,
-                    '-1024': BadRequest,
-                    '-1025': BadRequest,
-                    '-1030': ExchangeError,
-                    '-1100': BadRequest,
-                    '-1101': BadRequest,
-                    '-1102': BadRequest,
-                    '-1103': BadRequest,
-                    '-1104': BadRequest,
-                    '-1105': BadRequest,
-                    '-1106': BadRequest,
-                    '-1111': BadRequest,
-                    '-1112': BadResponse,
-                    '-1114': BadRequest,
-                    '-1115': InvalidOrder,
-                    '-1116': InvalidOrder,
-                    '-1117': InvalidOrder,
-                    '-1118': InvalidOrder,
-                    '-1119': InvalidOrder,
-                    '-1120': BadRequest,
-                    '-1121': BadSymbol,
-                    '-1122': InvalidOrder,
-                    '-1125': BadRequest,
-                    '-1127': BadRequest,
-                    '-1128': BadRequest,
-                    '-1130': BadRequest,
-                    '-1131': InsufficientFunds,
-                    '-1132': InvalidOrder,
-                    '-1133': InvalidOrder,
-                    '-1134': InvalidOrder,
-                    '-1135': InvalidOrder,
-                    '-1136': InvalidOrder,
-                    '-1137': InvalidOrder,
-                    '-1138': InvalidOrder,
-                    '-1139': InvalidOrder,
-                    '-1140': InvalidOrder,
-                    '-1141': DuplicateOrderId,
-                    '-1142': InvalidOrder,
-                    '-1143': OrderNotFound,
-                    '-1144': InvalidOrder,
-                    '-1145': InvalidOrder,
-                    '-1146': InvalidOrder,
-                    '-1147': InvalidOrder,
-                    '-1148': InvalidOrder,
-                    '-1149': InvalidOrder,
-                    '-1150': InvalidOrder,
-                    '-1151': BadSymbol,
-                    '-1152': NotSupported,
-                    '-1153': AuthenticationError,
-                    '-1154': BadRequest,
-                    '-1155': BadRequest,
-                    '-1156': InvalidOrder,
-                    '-1157': BadSymbol,
-                    '-1158': InvalidOrder,
-                    '-1159': InvalidOrder,
-                    '-1160': BadRequest,
-                    '-1161': BadRequest,
-                    '-2010': InvalidOrder,
-                    '-2013': OrderNotFound,
-                    '-2011': BadRequest,
-                    '-2014': BadRequest,
-                    '-2015': AuthenticationError,
-                    '-2016': BadResponse,
-                    '-3126': InvalidOrder,
-                    '-3127': InvalidOrder,
-                    '-4001': BadRequest,
-                    '-100011': BadSymbol,
-                    '-100012': BadSymbol,
-                    '-30008': InsufficientFunds,
-                    '-30036': InsufficientFunds,
+                    '-1000': BadRequest, // An unknown error occured while processing the request.
+                    '-1001': BadRequest, // {"code":-1001,"msg":"Internal error."}
+                    '-1002': AuthenticationError, // You are not authorized to execute this request. Request need API Key included in . We suggest that API Key be included in any request.
+                    '-1003': RateLimitExceeded, // Too many requests; please use the websocket for live updates. Too many requests; current limit is %s requests per minute. Please use the websocket for live updates to avoid polling the API. Way too many requests; IP banned until %s. Please use the websocket for live updates to avoid bans.
+                    '-1004': InvalidOrder, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    '-1006': BadResponse, // An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request .Please report to Customer service.
+                    '-1007': BadResponse, // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    '-1014': InvalidOrder, // Unsupported order combination.
+                    '-1015': RateLimitExceeded, // Reach the rate limit .Please slow down your request speed. Too many new orders. Too many new orders; current limit is %s orders per %s.
+                    '-1016': NotSupported, // This service is no longer available.
+                    '-1020': NotSupported, // This operation is not supported.
+                    '-1021': BadRequest, // {"code":-1021,"msg":"Timestamp for this request is outside of the recvWindow."}
+                    '-1022': BadRequest, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1023': AuthenticationError, // Please set IP whitelist before using API.
+                    '-1024': BadRequest, // {"code":-1024,"msg":"recvWindow is not valid."}
+                    '-1025': BadRequest, // {"code":-1025,"msg":"recvWindow cannot be greater than 60000"}
+                    '-1030': ExchangeError, // Business error.
+                    '-1100': BadRequest, // Illegal characters found in a parameter. Illegal characters found in parameter ‘%s’; legal range is ‘%s’.
+                    '-1101': BadRequest, // Too many parameters sent for this endpoint. Too many parameters; expected ‘%s’ and received ‘%s’. Duplicate values for a parameter detected.
+                    '-1102': BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed. Mandatory parameter ‘%s’ was not sent, was empty/null, or malformed. Param ‘%s’ or ‘%s’ must be sent, but both were empty/null!
+                    '-1103': BadRequest, // An unknown parameter was sent. In BHEx Open Api , each request requires at least one parameter. {Timestamp}.
+                    '-1104': BadRequest, // Not all sent parameters were read. Not all sent parameters were read; read ‘%s’ parameter(s) but was sent ‘%s’.
+                    '-1105': BadRequest, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
+                    '-1106': BadRequest, // A parameter was sent when not required. Parameter ‘%s’ sent when not required.
+                    '-1111': BadRequest, // Precision is over the maximum defined for this asset.
+                    '-1112': BadResponse, // No orders on book for symbol.
+                    '-1114': BadRequest, // TimeInForce parameter sent when not required.
+                    '-1115': InvalidOrder, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116': InvalidOrder, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': InvalidOrder, // {"code":-1117,"msg":"Invalid side."}
+                    '-1118': InvalidOrder, // New client order ID was empty.
+                    '-1119': InvalidOrder, // Original client order ID was empty.
+                    '-1120': BadRequest, // Invalid interval.
+                    '-1121': BadSymbol, // Invalid symbol.
+                    '-1122': InvalidOrder, // Invalid newOrderRespType.
+                    '-1125': BadRequest, // This listenKey does not exist.
+                    '-1127': BadRequest, // Lookup interval is too big. More than %s hours between startTime and endTime.
+                    '-1128': BadRequest, // Combination of optional parameters invalid.
+                    '-1130': BadRequest, // Invalid data sent for a parameter. Data sent for paramter ‘%s’ is not valid.
+                    '-1131': InsufficientFunds, // {"code":-1131,"msg":"Balance insufficient "}
+                    '-1132': InvalidOrder, // Order price too high.
+                    '-1133': InvalidOrder, // Order price lower than the minimum,please check general broker info.
+                    '-1134': InvalidOrder, // Order price decimal too long,please check general broker info.
+                    '-1135': InvalidOrder, // Order quantity too large.
+                    '-1136': InvalidOrder, // Order quantity lower than the minimum.
+                    '-1137': InvalidOrder, // Order quantity decimal too long.
+                    '-1138': InvalidOrder, // Order price exceeds permissible range.
+                    '-1139': InvalidOrder, // Order has been filled.
+                    '-1140': InvalidOrder, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    '-1141': DuplicateOrderId, // {"code":-1141,"msg":"Duplicate clientOrderId"}
+                    '-1142': InvalidOrder, // {"code":-1142,"msg":"Order has been canceled"}
+                    '-1143': OrderNotFound, // Cannot be found on order book
+                    '-1144': InvalidOrder, // Order has been locked
+                    '-1145': InvalidOrder, // This order type does not support cancellation
+                    '-1146': InvalidOrder, // Order creation timeout
+                    '-1147': InvalidOrder, // Order cancellation timeout
+                    '-1148': InvalidOrder, // Market order amount decimal too long
+                    '-1149': InvalidOrder, // Create order failed
+                    '-1150': InvalidOrder, // Cancel order failed
+                    '-1151': BadSymbol, // The trading pair is not open yet
+                    '-1152': NotSupported, // Coming soon
+                    '-1153': AuthenticationError, // User not exist
+                    '-1154': BadRequest, // Invalid price type
+                    '-1155': BadRequest, // Invalid position side
+                    '-1156': InvalidOrder, // Order quantity invalid
+                    '-1157': BadSymbol, // The trading pair is not available for api trading
+                    '-1158': InvalidOrder, // create limit maker order failed
+                    '-1159': InvalidOrder, // {"code":-1159,"msg":"STOP_LOSS/TAKE_PROFIT order is not allowed to trade immediately"}
+                    '-1160': BadRequest, // Modify futures margin error
+                    '-1161': BadRequest, // Reduce margin forbidden
+                    '-2010': InvalidOrder, // {"code":-2010,"msg":"New order rejected."}
+                    '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
+                    '-2011': BadRequest, // CANCEL_REJECTED
+                    '-2014': BadRequest, // API-key format invalid.
+                    '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    '-2016': BadResponse, // No trading window could be found for the symbol. Try ticker/24hrs instead
+                    '-3126': InvalidOrder, // {"code":-3126,"msg":"Order price lower than 72005.93415"}
+                    '-3127': InvalidOrder, // {"code":-3127,"msg":"Order price higher than 1523.192"}
+                    '-4001': BadRequest, // {"code":-4001,"msg":"start time must less than end time"}
+                    '-100011': BadSymbol, // {"code":-100011,"msg":"Not supported symbols"}
+                    '-100012': BadSymbol, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    '-30008': InsufficientFunds, // {"code":-30008,"msg":"withdraw balance insufficient"}
+                    '-30036': InsufficientFunds, // {"code":-30036,"msg":"Available balance not enough!"}
                     '403': ExchangeNotAvailable,
                 },
                 'broad': {
-                    'Unknown order sent': OrderNotFound,
-                    'Duplicate order sent': DuplicateOrderId,
-                    'Market is closed': BadSymbol,
-                    'Account has insufficient balance for requested action': InsufficientFunds,
-                    'Market orders are not supported for this symbol': BadSymbol,
-                    'Iceberg orders are not supported for this symbol': BadSymbol,
-                    'Stop loss orders are not supported for this symbol': BadSymbol,
-                    'Stop loss limit orders are not supported for this symbol': BadSymbol,
-                    'Take profit orders are not supported for this symbol': BadSymbol,
-                    'Take profit limit orders are not supported for this symbol': BadSymbol,
-                    'Price* QTY is zero or less': BadRequest,
-                    'IcebergQty exceeds QTY': BadRequest,
-                    'This action disabled is on this account': PermissionDenied,
-                    'Unsupported order combination': InvalidOrder,
-                    'Order would trigger immediately': InvalidOrder,
-                    'Cancel order is invalid. Check origClOrdId and orderId': InvalidOrder,
-                    'Order would immediately match and take': OrderImmediatelyFillable,
-                    'PRICE_FILTER': InvalidOrder,
-                    'LOT_SIZE': InvalidOrder,
-                    'MIN_NOTIONAL': InvalidOrder,
-                    'MAX_NUM_ORDERS': InvalidOrder,
-                    'MAX_ALGO_ORDERS': InvalidOrder,
-                    'BROKER_MAX_NUM_ORDERS': InvalidOrder,
-                    'BROKER_MAX_ALGO_ORDERS': InvalidOrder,
+                    'Unknown order sent': OrderNotFound, // The order (by either orderId, clOrdId, origClOrdId) could not be found
+                    'Duplicate order sent': DuplicateOrderId, // The clOrdId is already in use
+                    'Market is closed': BadSymbol, // The symbol is not trading
+                    'Account has insufficient balance for requested action': InsufficientFunds, // Not enough funds to complete the action
+                    'Market orders are not supported for this symbol': BadSymbol, // MARKET is not enabled on the symbol
+                    'Iceberg orders are not supported for this symbol': BadSymbol, // icebergQty is not enabled on the symbol
+                    'Stop loss orders are not supported for this symbol': BadSymbol, // STOP_LOSS is not enabled on the symbol
+                    'Stop loss limit orders are not supported for this symbol': BadSymbol, // STOP_LOSS_LIMIT is not enabled on the symbol
+                    'Take profit orders are not supported for this symbol': BadSymbol, // TAKE_PROFIT is not enabled on the symbol
+                    'Take profit limit orders are not supported for this symbol': BadSymbol, // TAKE_PROFIT_LIMIT is not enabled on the symbol
+                    'Price* QTY is zero or less': BadRequest, // price* quantity is too low
+                    'IcebergQty exceeds QTY': BadRequest, // icebergQty must be less than the order quantity
+                    'This action disabled is on this account': PermissionDenied, // Contact customer support; some actions have been disabled on the account.
+                    'Unsupported order combination': InvalidOrder, // The orderType, timeInForce, stopPrice, and or icebergQty combination isn’t allowed.
+                    'Order would trigger immediately': InvalidOrder, // The order’s stop price is not valid when compared to the last traded price.
+                    'Cancel order is invalid. Check origClOrdId and orderId': InvalidOrder, // No origClOrdId or orderId was sent in.
+                    'Order would immediately match and take': OrderImmediatelyFillable, // LIMIT_MAKER order type would immediately match and trade, and not be a pure maker order.
+                    'PRICE_FILTER': InvalidOrder, // price is too high, too low, and or not following the tick size rule for the symbol.
+                    'LOT_SIZE': InvalidOrder, // quantity is too high, too low, and or not following the step size rule for the symbol.
+                    'MIN_NOTIONAL': InvalidOrder, // price* quantity is too low to be a valid order for the symbol.
+                    'MAX_NUM_ORDERS': InvalidOrder, // Account has too many open orders on the symbol.
+                    'MAX_ALGO_ORDERS': InvalidOrder, // Account has too many open stop loss and or take profit orders on the symbol.
+                    'BROKER_MAX_NUM_ORDERS': InvalidOrder, // Account has too many open orders on the broker.
+                    'BROKER_MAX_ALGO_ORDERS': InvalidOrder, // Account has too many open stop loss and or take profit orders on the broker.
                     'ICEBERG_PARTS': BadRequest, // Iceberg order would break into too many parts; icebergQty is too small.
                 },
             },
@@ -591,56 +625,54 @@ export default class coinsph extends Exchange {
         //        }
         //    ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const id = this.safeString(entry, 'coin');
-            const code = this.safeCurrencyCode(id);
-            const isFiat = this.safeBool(entry, 'isLegalMoney');
-            const networkList = this.safeList(entry, 'networkList', []);
-            const networks = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const networkItem = networkList[j];
-                const network = this.safeString(networkItem, 'network');
-                const networkCode = this.networkIdToCode(network);
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool(networkItem, 'depositEnable'),
-                    'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
-                    'fee': this.safeNumber(networkItem, 'withdrawFee'),
-                    'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkItem, 'withdrawMin'),
-                            'max': this.safeNumber(networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': this.safeString(entry, 'name'),
-                'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'transferPrecision'))),
-                'info': entry,
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(id);
+        const isFiat = this.safeBool(rawCurrency, 'isLegalMoney');
+        const networkList = this.safeList(rawCurrency, 'networkList', []);
+        const networks = {};
+        for (let j = 0; j < networkList.length; j++) {
+            const networkItem = networkList[j];
+            const network = this.safeString(networkItem, 'network');
+            const networkCode = this.networkIdToCode(network, code);
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool(entry, 'depositAllEnable'),
-                'withdraw': this.safeBool(entry, 'withdrawAllEnable'),
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'limits': {},
-            });
+                'deposit': this.safeBool(networkItem, 'depositEnable'),
+                'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
+                'fee': this.safeNumber(networkItem, 'withdrawFee'),
+                'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkItem, 'withdrawMin'),
+                        'max': this.safeNumber(networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': this.safeString(rawCurrency, 'name'),
+            'code': code,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'transferPrecision'))),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': this.safeBool(rawCurrency, 'depositAllEnable'),
+            'withdraw': this.safeBool(rawCurrency, 'withdrawAllEnable'),
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'limits': {},
+        });
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
@@ -676,14 +708,14 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://coins-docs.github.io/rest-api/#test-connectivity
+     * @see https://docs.coins.ph/rest-api/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const response = await this.publicGetOpenapiV1Ping(params);
         return {
-            'status': 'ok',
+            'status': 'ok', // if there's no Errors, status = 'ok'
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -694,7 +726,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://coins-docs.github.io/rest-api/#check-server-time
+     * @see https://docs.coins.ph/rest-api/#check-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -709,7 +741,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchMarkets
      * @description retrieves data on all markets for coinsph
-     * @see https://coins-docs.github.io/rest-api/#exchange-information
+     * @see https://docs.coins.ph/rest-api/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -846,15 +878,17 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
-     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+     * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (symbols !== undefined) {
             const ids = [];
@@ -868,7 +902,7 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeDict(this.options, 'fetchTickers', {});
         const method = this.safeString(options, 'method', defaultMethod);
-        let tickers = undefined;
+        let tickers = [];
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
             tickers = await this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, params));
         }
@@ -884,15 +918,17 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
-     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+     * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -900,7 +936,7 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeDict(this.options, 'fetchTicker', {});
         const method = this.safeString(options, 'method', defaultMethod);
-        let ticker = undefined;
+        let ticker = {};
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
             ticker = await this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, params));
         }
@@ -994,14 +1030,16 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://coins-docs.github.io/rest-api/#order-book
+     * @see https://docs.coins.ph/rest-api/#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1031,7 +1069,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
+     * @see https://docs.coins.ph/rest-api/#klinecandlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1041,7 +1079,9 @@ export default class coinsph extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe);
         const until = this.safeInteger(params, 'until');
@@ -1107,15 +1147,17 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://coins-docs.github.io/rest-api/#recent-trades-list
+     * @see https://docs.coins.ph/rest-api/#recent-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1149,18 +1191,20 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1180,13 +1224,13 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1244,7 +1288,7 @@ export default class coinsph extends Exchange {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');
         const type = undefined;
-        let fee = undefined;
+        let fee = {};
         const feeCost = this.safeString(trade, 'commission');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString(trade, 'commissionAsset');
@@ -1253,12 +1297,12 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker');
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
         }
-        const isMaker = this.safeString2(trade, 'isMaker', undefined);
+        const isMaker = this.safeString(trade, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = (isMaker === 'true') ? 'maker' : 'taker';
@@ -1287,12 +1331,14 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://coins-docs.github.io/rest-api/#accept-the-quote
+     * @see https://docs.coins.ph/rest-api/#accept-the-quote
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetOpenapiV1Account(params);
         //
         //     {
@@ -1339,7 +1385,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#createOrder
      * @description create a trade order
-     * @see https://coins-docs.github.io/rest-api/#new-order--trade
+     * @see https://docs.coins.ph/rest-api/#new-order--trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
      * @param {string} side 'buy' or 'sell'
@@ -1348,11 +1394,13 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         // todo: add test order low priority
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
@@ -1420,7 +1468,7 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response = undefined;
+        let response = {};
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, params));
         }
@@ -1460,14 +1508,16 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://docs.coins.ph/rest-api/#query-order-user_data
      * @param {int|string} id order id
      * @param {string} symbol not used by coinsph fetchOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1484,15 +1534,17 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+     * @see https://docs.coins.ph/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1506,18 +1558,20 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
+     * @see https://docs.coins.ph/rest-api/#history-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1537,14 +1591,16 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#cancelOrder
      * @description cancels an open order
-     * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
+     * @see https://docs.coins.ph/rest-api/#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol not used by coinsph cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1561,16 +1617,18 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#cancelAllOrders
      * @description cancel open orders of market
-     * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+     * @see https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1653,7 +1711,7 @@ export default class coinsph extends Exchange {
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'time', 'transactTime');
-        const trades = this.safeValue(order, 'fills', undefined);
+        const trades = this.safeValue(order, 'fills');
         let triggerPrice = this.safeString(order, 'stopPrice');
         if (Precise.stringEq(triggerPrice, '0')) {
             triggerPrice = undefined;
@@ -1687,6 +1745,9 @@ export default class coinsph extends Exchange {
             'BUY': 'buy',
             'SELL': 'sell',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     encodeOrderSide(status) {
@@ -1694,6 +1755,9 @@ export default class coinsph extends Exchange {
             'buy': 'BUY',
             'sell': 'SELL',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrderType(status) {
@@ -1706,6 +1770,9 @@ export default class coinsph extends Exchange {
             'TAKE_PROFIT': 'market',
             'TAKE_PROFIT_LIMIT': 'limit',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     encodeOrderType(status) {
@@ -1718,6 +1785,9 @@ export default class coinsph extends Exchange {
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrderStatus(status) {
@@ -1729,6 +1799,9 @@ export default class coinsph extends Exchange {
             'PARTIALLY_CANCELED': 'canceled',
             'REJECTED': 'rejected',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrderTimeInForce(status) {
@@ -1737,19 +1810,24 @@ export default class coinsph extends Exchange {
             'FOK': 'FOK',
             'IOC': 'IOC',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     /**
      * @method
      * @name coinsph#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1771,12 +1849,14 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetOpenapiV1AssetTradeFee(params);
         //
         //     [
@@ -1796,7 +1876,9 @@ export default class coinsph extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee(response[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -1824,13 +1906,13 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#withdraw
      * @description make a withdrawal to coins_ph account
-     * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
+     * @see https://docs.coins.ph/rest-api/#withdrawuser_data
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by coinsph withdraw ()
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         const options = this.safeValue(this.options, 'withdraw');
@@ -1839,11 +1921,13 @@ export default class coinsph extends Exchange {
             throw new InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString(params, 'network');
-        const networkId = this.networkCodeToId(networkCode, code);
+        const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() require network parameter');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -1862,16 +1946,18 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+     * @see https://docs.coins.ph/rest-api/#deposit-history-user_data
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         // todo: returns an empty array - find out why
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -1919,16 +2005,18 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+     * @see https://docs.coins.ph/rest-api/#withdraw-history-user_data
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         // todo: returns an empty array - find out why
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2077,25 +2165,30 @@ export default class coinsph extends Exchange {
             '2': 'failed',
             '3': 'pending',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     /**
      * @method
      * @name coinsph#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+     * @see https://docs.coins.ph/rest-api/#deposit-address-user_data
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] network for fetch deposit address
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         const networkCode = this.safeString(params, 'network');
-        const networkId = this.networkCodeToId(networkCode, code);
+        const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' fetchDepositAddress() require network parameter');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2125,7 +2218,7 @@ export default class coinsph extends Exchange {
         return {
             'info': depositAddress,
             'currency': parsedCurrency,
-            'network': null,
+            'network': undefined,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'addressTag'),
         };
@@ -2194,7 +2287,7 @@ export default class coinsph extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const responseCode = this.safeString(response, 'code', undefined);
+        const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

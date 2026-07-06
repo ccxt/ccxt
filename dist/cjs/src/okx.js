@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var okx$1 = require('./abstract/okx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ class okx extends okx$1["default"] {
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.10,
+            'rateLimit': 100 * 1.10, // 10% tolerance because of #26973
             'pro': true,
             'certified': true,
             'has': {
@@ -172,7 +172,7 @@ class okx extends okx$1["default"] {
                 '1M': '1M',
                 '3M': '3M',
             },
-            'hostname': 'www.okx.com',
+            'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg',
                 'api': {
@@ -194,92 +194,116 @@ class okx extends okx$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'market/books-full': 2,
+                        // market
                         'market/tickers': 1,
                         'market/ticker': 1,
-                        'market/index-tickers': 1,
                         'market/books': 1 / 2,
-                        'market/books-lite': 5 / 3,
+                        'market/books-full': 2,
                         'market/candles': 1 / 2,
                         'market/history-candles': 1,
-                        'market/index-candles': 1,
-                        'market/history-index-candles': 2,
-                        'market/mark-price-candles': 1,
-                        'market/history-mark-price-candles': 2,
                         'market/trades': 1 / 5,
                         'market/history-trades': 2,
                         'market/option/instrument-family-trades': 1,
                         'market/platform-24-volume': 10,
-                        'market/open-oracle': 50,
-                        'market/exchange-rate': 20,
-                        'market/index-components': 1,
-                        'public/market-data-history': 4,
-                        'public/economic-calendar': 50,
+                        'market/call-auction-detail': 1, // deprecated, use call-auction-details
+                        'market/call-auction-details': 1,
+                        'market/books-sbe': 10,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
+                        'market/sprd-ticker': 1,
+                        'market/sprd-candles': 1 / 2,
+                        'market/sprd-history-candles': 1,
+                        'market/index-tickers': 1,
+                        'market/index-candles': 1,
+                        'market/history-index-candles': 2,
+                        'market/mark-price-candles': 1,
+                        'market/history-mark-price-candles': 1,
+                        'market/exchange-rate': 20,
+                        'market/index-components': 1,
+                        'market/open-oracle': 50, // not documented
+                        'market/books-lite': 5 / 3, // deprecated
+                        // public
+                        'public/option-trades': 1,
                         'public/block-trades': 1,
                         'public/instruments': 1,
+                        'public/estimated-price': 2,
                         'public/delivery-exercise-history': 1 / 2,
+                        'public/estimated-settlement-info': 2,
+                        'public/settlement-history': 1 / 2,
+                        'public/funding-rate': 2,
+                        'public/funding-rate-history': 2,
                         'public/open-interest': 1,
-                        'public/funding-rate': 1,
-                        'public/funding-rate-history': 1,
                         'public/price-limit': 1,
                         'public/opt-summary': 1,
-                        'public/estimated-price': 2,
                         'public/discount-rate-interest-free-quota': 10,
                         'public/time': 2,
                         'public/mark-price': 2,
                         'public/position-tiers': 2,
                         'public/interest-rate-loan-quota': 10,
-                        'public/vip-interest-rate-loan-quota': 10,
                         'public/underlying': 1,
                         'public/insurance-fund': 2,
                         'public/convert-contract-coin': 2,
-                        'public/option-trades': 1,
                         'public/instrument-tick-bands': 4,
+                        'public/premium-history': 1,
+                        'public/economic-calendar': 50,
+                        'public/market-data-history': 4,
+                        'public/event-contract/events': 1,
+                        'public/event-contract/markets': 1,
+                        'public/event-contract/series': 1,
+                        'public/vip-interest-rate-loan-quota': 10, // not documented
+                        // rubik
                         'rubik/stat/trading-data/support-coin': 4,
+                        'rubik/stat/contracts/open-interest-history': 2,
                         'rubik/stat/taker-volume': 4,
+                        'rubik/stat/taker-volume-contract': 4,
                         'rubik/stat/margin/loan-ratio': 4,
-                        // long/short
-                        'rubik/stat/contracts/long-short-account-ratio': 4,
+                        'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': 4,
+                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': 4,
                         'rubik/stat/contracts/long-short-account-ratio-contract': 4,
+                        'rubik/stat/contracts/long-short-account-ratio': 4,
                         'rubik/stat/contracts/open-interest-volume': 4,
                         'rubik/stat/option/open-interest-volume': 4,
-                        // put/call
                         'rubik/stat/option/open-interest-volume-ratio': 4,
                         'rubik/stat/option/open-interest-volume-expiry': 4,
                         'rubik/stat/option/open-interest-volume-strike': 4,
                         'rubik/stat/option/taker-block-volume': 4,
+                        // system
                         'system/status': 50,
-                        // public api
+                        // sprd
                         'sprd/spreads': 1,
-                        'sprd/books': 1 / 2,
-                        'sprd/ticker': 1,
-                        'sprd/public-trades': 1 / 5,
-                        'market/sprd-ticker': 2,
-                        'market/sprd-candles': 2,
-                        'market/sprd-history-candles': 2,
+                        'sprd/books': 1,
+                        'sprd/public-trades': 1,
+                        'sprd/ticker': 1, // not documented
                         'tradingBot/grid/ai-param': 1,
                         'tradingBot/grid/min-investment': 1,
                         'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/grid/grid-quantity': 4,
                         'asset/exchange-list': 5 / 3,
                         'finance/staking-defi/eth/apy-history': 5 / 3,
                         'finance/staking-defi/sol/apy-history': 5 / 3,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
-                        'finance/fixed-loan/lending-offers': 10 / 3,
-                        'finance/fixed-loan/lending-apy-history': 10 / 3,
-                        'finance/fixed-loan/pending-lending-volume': 10 / 3,
+                        'finance/fixed-loan/lending-offers': 10 / 3, // not documented
+                        'finance/fixed-loan/lending-apy-history': 10 / 3, // not documented
+                        'finance/fixed-loan/pending-lending-volume': 10 / 3, // not documented
                         // public broker
-                        'finance/sfp/dcd/products': 2 / 3,
+                        'finance/sfp/dcd/products': 2 / 3, // not documented
                         // copytrading
+                        'copytrading/public-config': 4,
                         'copytrading/public-lead-traders': 4,
                         'copytrading/public-weekly-pnl': 4,
+                        'copytrading/public-pnl': 4,
                         'copytrading/public-stats': 4,
                         'copytrading/public-preference-currency': 4,
                         'copytrading/public-current-subpositions': 4,
                         'copytrading/public-subpositions-history': 4,
-                        'support/announcements-types': 20,
+                        'copytrading/public-copy-traders': 4,
+                        'support/announcements': 4,
+                        'support/announcements-types': 20, // typo, use announcement-types
+                        'support/announcement-types': 20,
+                    },
+                    'post': {
+                        'tradingBot/grid/min-investment': 1, // public
                     },
                 },
                 'private': {
@@ -293,19 +317,19 @@ class okx extends okx$1["default"] {
                         'rfq/trades': 4,
                         'rfq/public-trades': 4,
                         // sprd
-                        'sprd/order': 1 / 3,
-                        'sprd/orders-pending': 1 / 3,
-                        'sprd/orders-history': 1 / 2,
-                        'sprd/orders-history-archive': 1 / 2,
-                        'sprd/trades': 1 / 3,
+                        'sprd/order': 1,
+                        'sprd/orders-pending': 2,
+                        'sprd/orders-history': 1,
+                        'sprd/orders-history-archive': 1,
+                        'sprd/trades': 1,
                         // trade
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1 / 3,
                         'trade/orders-history': 1 / 2,
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
-                        'trade/fills-history': 2.2,
-                        'trade/fills-archive': 2,
+                        'trade/fills-history': 2,
+                        'trade/fills-archive': 2, // not documented
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -321,27 +345,29 @@ class okx extends okx$1["default"] {
                         'asset/balances': 5 / 3,
                         'asset/non-tradable-assets': 5 / 3,
                         'asset/asset-valuation': 10,
-                        'asset/transfer-state': 10,
+                        'asset/transfer-state': 1,
                         'asset/bills': 5 / 3,
-                        'asset/deposit-lightning': 5,
+                        'asset/bills-history': 10,
+                        'asset/deposit-lightning': 5, // not documented
                         'asset/deposit-address': 5 / 3,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/deposit-withdraw-status': 20,
+                        'asset/monthly-statement': 2,
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
                         'asset/convert/history': 5 / 3,
-                        'asset/monthly-statement': 2,
                         // account
                         'account/instruments': 1,
                         'account/balance': 2,
                         'account/positions': 2,
-                        'account/positions-history': 100,
+                        'account/positions-history': 2,
                         'account/account-position-risk': 2,
-                        'account/bills': 5 / 3,
-                        'account/bills-archive': 5 / 3,
+                        'account/bills': 2,
+                        'account/bills-archive': 4,
                         'account/bills-history-archive': 2,
                         'account/config': 4,
+                        'account/subtypes': 4,
                         'account/max-size': 1,
                         'account/max-avail-size': 1,
                         'account/leverage-info': 1,
@@ -352,23 +378,26 @@ class okx extends okx$1["default"] {
                         'account/interest-rate': 4,
                         'account/max-withdrawal': 1,
                         'account/risk-state': 2,
-                        'account/quick-margin-borrow-repay-history': 4,
-                        'account/borrow-repay-history': 4,
-                        'account/vip-interest-accrued': 4,
-                        'account/vip-interest-deducted': 4,
-                        'account/vip-loan-order-list': 4,
-                        'account/vip-loan-order-detail': 4,
                         'account/interest-limits': 4,
+                        'account/spot-borrow-repay-history': 4,
                         'account/greeks': 2,
                         'account/position-tiers': 2,
+                        'account/set-account-switch-precheck': 4,
+                        'account/collateral-assets': 4,
                         'account/mmp-config': 4,
-                        'account/fixed-loan/borrowing-limit': 4,
-                        'account/fixed-loan/borrowing-quote': 5,
-                        'account/fixed-loan/borrowing-orders-list': 5,
-                        'account/spot-manual-borrow-repay': 30,
-                        'account/set-auto-repay': 4,
-                        'account/spot-borrow-repay-history': 4,
                         'account/move-positions-history': 10,
+                        'account/precheck-set-delta-neutral': 20,
+                        'account/quick-margin-borrow-repay-history': 4,
+                        'account/borrow-repay-history': 4,
+                        'account/vip-interest-accrued': 4, // not documented
+                        'account/vip-interest-deducted': 4, // not documented
+                        'account/vip-loan-order-list': 4, // not documented
+                        'account/vip-loan-order-detail': 4, // not documented
+                        'account/fixed-loan/borrowing-limit': 4, // not documented
+                        'account/fixed-loan/borrowing-quote': 5, // not documented
+                        'account/fixed-loan/borrowing-orders-list': 5, // not documented
+                        'account/spot-manual-borrow-repay': 30, // not documented
+                        'account/set-auto-repay': 4, // not documented
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -388,15 +417,21 @@ class okx extends okx$1["default"] {
                         'tradingBot/grid/ai-param': 1,
                         'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-pending': 1,
                         'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
-                        'tradingBot/signal/positions-history': 1,
+                        'tradingBot/signal/positions-history': 2,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
                         'tradingBot/recurring/sub-orders': 1,
+                        'tradingBot/dca/ongoing-list': 1,
+                        'tradingBot/dca/history-list': 1,
+                        'tradingBot/dca/orders': 1,
+                        'tradingBot/dca/position-details': 1,
+                        'tradingBot/dca/cycle-list': 1,
                         // earn
                         'finance/savings/balance': 5 / 3,
                         'finance/savings/lending-history': 5 / 3,
@@ -404,11 +439,18 @@ class okx extends okx$1["default"] {
                         'finance/staking-defi/orders-active': 10 / 3,
                         'finance/staking-defi/orders-history': 10 / 3,
                         // eth staking
+                        'finance/staking-defi/eth/product-info': 10 / 3,
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
-                        'finance/staking-defi/eth/product-info': 3,
+                        'finance/staking-defi/sol/product-info': 10 / 3,
                         'finance/staking-defi/sol/balance': 5 / 3,
                         'finance/staking-defi/sol/purchase-redeem-history': 5 / 3,
+                        'finance/flexible-loan/borrow-currencies': 4,
+                        'finance/flexible-loan/collateral-assets': 4,
+                        'finance/flexible-loan/max-collateral-redeem-amount': 4,
+                        'finance/flexible-loan/loan-info': 4,
+                        'finance/flexible-loan/loan-history': 4,
+                        'finance/flexible-loan/interest-accrued': 4,
                         // copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -416,26 +458,35 @@ class okx extends okx$1["default"] {
                         'copytrading/profit-sharing-details': 4,
                         'copytrading/total-profit-sharing': 4,
                         'copytrading/unrealized-profit-sharing-details': 4,
+                        'copytrading/total-unrealized-profit-sharing': 4,
+                        'copytrading/config': 4,
                         'copytrading/copy-settings': 4,
-                        'copytrading/batch-leverage-info': 4,
                         'copytrading/current-lead-traders': 4,
-                        'copytrading/lead-traders-history': 4,
+                        'copytrading/batch-leverage-info': 4, // not documented
+                        'copytrading/lead-traders-history': 4, // not documented
                         // broker
-                        'broker/nd/info': 10,
-                        'broker/nd/subaccount-info': 10,
-                        'broker/nd/subaccount/apikey': 10,
-                        'asset/broker/nd/subaccount-deposit-address': 5 / 3,
-                        'asset/broker/nd/subaccount-deposit-history': 4,
-                        'asset/broker/nd/subaccount-withdrawal-history': 4,
-                        'broker/nd/rebate-daily': 100,
-                        'broker/nd/rebate-per-orders': 300,
-                        'finance/sfp/dcd/order': 2,
-                        'finance/sfp/dcd/orders': 2,
+                        'broker/dma/subaccount-info': 2,
+                        'broker/dma/subaccount-trade-fee': 10,
+                        'broker/dma/subaccount/apikey': 10,
+                        'broker/dma/rebate-per-orders': 300,
                         'broker/fd/rebate-per-orders': 300,
                         'broker/fd/if-rebate': 5,
+                        'broker/nd/info': 10, // not documented
+                        'broker/nd/subaccount-info': 10, // not documented
+                        'broker/nd/subaccount/apikey': 10, // not documented
+                        'asset/broker/nd/subaccount-deposit-address': 5 / 3, // not documented
+                        'asset/broker/nd/subaccount-deposit-history': 4, // not documented
+                        'asset/broker/nd/subaccount-withdrawal-history': 4, // not documented
+                        'broker/nd/rebate-daily': 100, // not documented
+                        'broker/nd/rebate-per-orders': 300, // not documented
+                        'finance/sfp/dcd/order': 2, // not documented
+                        'finance/sfp/dcd/orders': 2, // not documented
+                        'finance/sfp/dcd/currency-pair': 2,
+                        'finance/sfp/dcd/order-status': 2,
+                        'finance/sfp/dcd/order-history': 2,
                         // affiliate
                         'affiliate/invitee/detail': 1,
-                        'users/partner/if-rebate': 1,
+                        'users/partner/if-rebate': 1, // not documented
                         'support/announcements': 4,
                     },
                     'post': {
@@ -452,6 +503,7 @@ class okx extends okx$1["default"] {
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
                         'rfq/cancel-all-quotes': 10,
+                        'rfq/cancel-all-after': 10,
                         // sprd
                         'sprd/order': 1,
                         'sprd/cancel-order': 1,
@@ -466,58 +518,72 @@ class okx extends okx$1["default"] {
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 150,
                         'trade/close-position': 1,
-                        'trade/fills-archive': 172800,
-                        'trade/order-algo': 1,
-                        'trade/cancel-algos': 1,
-                        'trade/amend-algos': 1,
-                        'trade/cancel-advance-algos': 1,
+                        'trade/fills-archive': 172800, // not documented
+                        'trade/cancel-advance-algos': 1, // not documented
                         'trade/easy-convert': 20,
                         'trade/one-click-repay': 20,
                         'trade/one-click-repay-v2': 20,
                         'trade/mass-cancel': 4,
                         'trade/cancel-all-after': 10,
+                        'trade/order-precheck': 4,
+                        'trade/order-algo': 1,
+                        'trade/cancel-algos': 1,
+                        'trade/amend-algos': 1,
                         // asset
-                        'asset/transfer': 10,
+                        'asset/transfer': 5,
                         'asset/withdrawal': 5 / 3,
-                        'asset/withdrawal-lightning': 5,
+                        'asset/withdrawal-lightning': 5, // not documented
                         'asset/cancel-withdrawal': 5 / 3,
                         'asset/convert-dust-assets': 10,
-                        'asset/convert/estimate-quote': 1,
+                        'asset/monthly-statement': 1296000, // 20 req/month, 10/20*30*24*60*60 = 1296000
+                        'asset/convert/estimate-quote': 50,
                         'asset/convert/trade': 1,
-                        'asset/monthly-statement': 1,
                         // account
+                        'account/bills-history-archive': 72000, // 12 req/day
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
                         'account/position/margin-balance': 1,
+                        'account/set-fee-type': 4,
                         'account/set-greeks': 4,
                         'account/set-isolated-mode': 4,
-                        'account/quick-margin-borrow-repay': 4,
-                        'account/borrow-repay': 5 / 3,
-                        'account/simulated_margin': 10,
+                        'account/spot-manual-borrow-repay': 30,
+                        'account/set-auto-repay': 4,
+                        'account/quick-margin-borrow-repay': 4, // not documented
+                        'account/borrow-repay': 5 / 3, // not documented
+                        'account/simulated_margin': 10, // not documented
                         'account/position-builder': 10,
+                        'account/position-builder-graph': 50,
                         'account/set-riskOffset-type': 2,
+                        'account/set-riskOffset-amt': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/account-level-switch-preset': 4,
                         'account/set-account-level': 4,
+                        'account/set-collateral-assets': 4,
                         'account/mmp-reset': 4,
-                        'account/mmp-config': 100,
-                        'account/fixed-loan/borrowing-order': 5,
-                        'account/fixed-loan/amend-borrowing-order': 5,
-                        'account/fixed-loan/manual-reborrow': 5,
-                        'account/fixed-loan/repay-borrowing-order': 5,
-                        'account/bills-history-archive': 72000,
+                        'account/mmp-config': 50,
+                        'account/fixed-loan/borrowing-order': 5, // not documented
+                        'account/fixed-loan/amend-borrowing-order': 5, // not documented
+                        'account/fixed-loan/manual-reborrow': 5, // not documented
+                        'account/fixed-loan/repay-borrowing-order': 5, // not documented
                         'account/move-positions': 10,
+                        'account/set-auto-earn': 10,
                         'account/set-settle-currency': 1,
+                        'account/set-trading-config': 20,
+                        'account/demo-adjust-balance': 20, // 3 requests per day but we don't use that weight for now, set to 20 to be safe
                         // subaccount
-                        'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
-                        'users/subaccount/set-transfer-out': 10,
-                        'account/subaccount/set-loan-allocation': 4,
+                        'account/subaccount/set-loan-allocation': 4, // not documented
                         'users/subaccount/create-subaccount': 10,
-                        'users/subaccount/subaccount-apikey': 10,
+                        'users/subaccount/apikey': 10,
+                        'users/subaccount/modify-apikey': 10,
+                        'users/subaccount/subaccount-apikey': 10, // not documented
                         'users/subaccount/delete-apikey': 10,
+                        'users/subaccount/set-transfer-out': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/copy-order-algo': 1,
+                        'tradingBot/grid/amend-algo-basic-param': 1,
                         'tradingBot/grid/amend-order-algo': 1,
                         'tradingBot/grid/stop-order-algo': 1,
                         'tradingBot/grid/close-position': 1,
@@ -526,7 +592,7 @@ class okx extends okx$1["default"] {
                         'tradingBot/grid/withdraw-income': 1,
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
-                        'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/min-investment': 1, // public
                         'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
@@ -540,40 +606,64 @@ class okx extends okx$1["default"] {
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
+                        'tradingBot/dca/create': 1,
+                        'tradingBot/dca/amend-order-algo': 1,
+                        'tradingBot/dca/stop': 1,
+                        'tradingBot/dca/orders/manual-buy': 1,
+                        'tradingBot/dca/settings/reinvestment': 1,
+                        'tradingBot/dca/settings/take-profit': 1,
+                        'tradingBot/dca/margin/add': 1,
+                        'tradingBot/dca/margin/reduce': 1,
+                        'tradingBot/recurring/add-investment': 1,
+                        'tradingBot/recurring/amend-price-range': 1,
+                        'tradingBot/recurring/amend-recurring-amount': 1,
+                        'tradingBot/recurring/amend-recurring-time': 1,
+                        'tradingBot/recurring/pause': 1,
+                        'tradingBot/recurring/restart': 1,
                         // earn
                         'finance/savings/purchase-redempt': 5 / 3,
                         'finance/savings/set-lending-rate': 5 / 3,
-                        'finance/staking-defi/purchase': 3,
-                        'finance/staking-defi/redeem': 3,
-                        'finance/staking-defi/cancel': 3,
+                        'finance/staking-defi/purchase': 5,
+                        'finance/staking-defi/redeem': 5,
+                        'finance/staking-defi/cancel': 5,
                         // eth staking
                         'finance/staking-defi/eth/purchase': 5,
                         'finance/staking-defi/eth/redeem': 5,
+                        'finance/staking-defi/eth/cancel-redeem': 5,
                         'finance/staking-defi/sol/purchase': 5,
                         'finance/staking-defi/sol/redeem': 5,
+                        'finance/staking-defi/sol/cancel-redeem': 5,
+                        'finance/flexible-loan/max-loan': 4,
+                        'finance/flexible-loan/adjust-collateral': 4,
                         // copytrading
                         'copytrading/algo-order': 1,
                         'copytrading/close-subposition': 1,
                         'copytrading/set-instruments': 4,
+                        'copytrading/amend-profit-sharing-ratio': 4,
                         'copytrading/first-copy-settings': 4,
                         'copytrading/amend-copy-settings': 4,
                         'copytrading/stop-copy-trading': 4,
-                        'copytrading/batch-set-leverage': 4,
+                        'copytrading/batch-set-leverage': 4, // not documented
                         // broker
-                        'broker/nd/create-subaccount': 0.25,
-                        'broker/nd/delete-subaccount': 1,
-                        'broker/nd/subaccount/apikey': 0.25,
-                        'broker/nd/subaccount/modify-apikey': 1,
-                        'broker/nd/subaccount/delete-apikey': 1,
-                        'broker/nd/set-subaccount-level': 4,
-                        'broker/nd/set-subaccount-fee-rate': 4,
-                        'broker/nd/set-subaccount-assets': 0.25,
-                        'asset/broker/nd/subaccount-deposit-address': 1,
-                        'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3,
-                        'broker/nd/rebate-per-orders': 36000,
-                        'finance/sfp/dcd/quote': 10,
-                        'finance/sfp/dcd/order': 10,
-                        'broker/nd/report-subaccount-ip': 0.25,
+                        'broker/nd/create-subaccount': 0.25, // not documented
+                        'broker/nd/delete-subaccount': 1, // not documented
+                        'broker/nd/subaccount/apikey': 0.25, // not documented
+                        'broker/nd/subaccount/modify-apikey': 1, // not documented
+                        'broker/nd/subaccount/delete-apikey': 1, // not documented
+                        'broker/nd/set-subaccount-level': 4, // not documented
+                        'broker/nd/set-subaccount-fee-rate': 4, // not documented
+                        'broker/nd/set-subaccount-assets': 0.25, // not documented
+                        'asset/broker/nd/subaccount-deposit-address': 1, // not documented
+                        'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3, // not documented
+                        'broker/nd/rebate-per-orders': 36000, // not documented
+                        'finance/sfp/dcd/quote': 10, // not documented
+                        'finance/sfp/dcd/order': 10, // not documented
+                        'finance/sfp/dcd/trade': 10,
+                        'finance/sfp/dcd/redeem-quote': 10,
+                        'finance/sfp/dcd/redeem': 10,
+                        'broker/nd/report-subaccount-ip': 0.25, // not documented
+                        'broker/dma/subaccount/apikey': 1 / 4,
+                        'broker/dma/trades': 36000,
                         'broker/fd/rebate-per-orders': 36000,
                     },
                 },
@@ -605,402 +695,402 @@ class okx extends okx$1["default"] {
                 'exact': {
                     // Public error codes from 50000-53999
                     // General Class
-                    '1': errors.ExchangeError,
-                    '2': errors.ExchangeError,
-                    '4088': errors.ManualInteractionNeeded,
-                    '50000': errors.BadRequest,
-                    '50001': errors.OnMaintenance,
-                    '50002': errors.BadRequest,
-                    '50004': errors.RequestTimeout,
-                    '50005': errors.ExchangeNotAvailable,
-                    '50006': errors.BadRequest,
-                    '50007': errors.AccountSuspended,
-                    '50008': errors.AuthenticationError,
-                    '50009': errors.AccountSuspended,
-                    '50010': errors.ExchangeError,
-                    '50011': errors.RateLimitExceeded,
-                    '50012': errors.ExchangeError,
-                    '50013': errors.ExchangeNotAvailable,
-                    '50014': errors.BadRequest,
-                    '50015': errors.ExchangeError,
-                    '50016': errors.ExchangeError,
-                    '50017': errors.ExchangeError,
-                    '50018': errors.ExchangeError,
-                    '50019': errors.ExchangeError,
-                    '50020': errors.ExchangeError,
-                    '50021': errors.ExchangeError,
-                    '50022': errors.ExchangeError,
-                    '50023': errors.ExchangeError,
-                    '50024': errors.BadRequest,
-                    '50025': errors.ExchangeError,
-                    '50026': errors.ExchangeNotAvailable,
-                    '50027': errors.PermissionDenied,
-                    '50028': errors.ExchangeError,
-                    '50044': errors.BadRequest,
-                    '50061': errors.ExchangeError,
-                    '50062': errors.ExchangeError,
+                    '1': errors.ExchangeError, // Operation failed
+                    '2': errors.ExchangeError, // Bulk operation partially succeeded
+                    '4088': errors.ManualInteractionNeeded, // {"code":"4088","data":[],"msg":"You can’t trade or deposit until you’ve verified your identity again. Head to Identity Verification to complete it."}
+                    '50000': errors.BadRequest, // Body can not be empty
+                    '50001': errors.OnMaintenance, // Matching engine upgrading. Please try again later
+                    '50002': errors.BadRequest, // Json data format error
+                    '50004': errors.RequestTimeout, // Endpoint request timeout (does not indicate success or failure of order, please check order status)
+                    '50005': errors.ExchangeNotAvailable, // API is offline or unavailable
+                    '50006': errors.BadRequest, // Invalid Content_Type, please use "application/json" format
+                    '50007': errors.AccountSuspended, // Account blocked
+                    '50008': errors.AuthenticationError, // User does not exist
+                    '50009': errors.AccountSuspended, // Account is suspended due to ongoing liquidation
+                    '50010': errors.ExchangeError, // User ID can not be empty
+                    '50011': errors.RateLimitExceeded, // Request too frequent
+                    '50012': errors.ExchangeError, // Account status invalid
+                    '50013': errors.ExchangeNotAvailable, // System is busy, please try again later
+                    '50014': errors.BadRequest, // Parameter {0} can not be empty
+                    '50015': errors.ExchangeError, // Either parameter {0} or {1} is required
+                    '50016': errors.ExchangeError, // Parameter {0} does not match parameter {1}
+                    '50017': errors.ExchangeError, // The position is frozen due to ADL. Operation restricted
+                    '50018': errors.ExchangeError, // Currency {0} is frozen due to ADL. Operation restricted
+                    '50019': errors.ExchangeError, // The account is frozen due to ADL. Operation restricted
+                    '50020': errors.ExchangeError, // The position is frozen due to liquidation. Operation restricted
+                    '50021': errors.ExchangeError, // Currency {0} is frozen due to liquidation. Operation restricted
+                    '50022': errors.ExchangeError, // The account is frozen due to liquidation. Operation restricted
+                    '50023': errors.ExchangeError, // Funding fee frozen. Operation restricted
+                    '50024': errors.BadRequest, // Parameter {0} and {1} can not exist at the same time
+                    '50025': errors.ExchangeError, // Parameter {0} count exceeds the limit {1}
+                    '50026': errors.ExchangeNotAvailable, // System error, please try again later.
+                    '50027': errors.PermissionDenied, // The account is restricted from trading
+                    '50028': errors.ExchangeError, // Unable to take the order, please reach out to support center for details
+                    '50044': errors.BadRequest, // Must select one broker type
+                    '50061': errors.ExchangeError, // You've reached the maximum order rate limit for this account.
+                    '50062': errors.ExchangeError, // This feature is currently unavailable.
                     // API Class
-                    '50100': errors.ExchangeError,
-                    '50101': errors.AuthenticationError,
-                    '50102': errors.InvalidNonce,
-                    '50103': errors.AuthenticationError,
-                    '50104': errors.AuthenticationError,
-                    '50105': errors.AuthenticationError,
-                    '50106': errors.AuthenticationError,
-                    '50107': errors.AuthenticationError,
-                    '50108': errors.ExchangeError,
-                    '50109': errors.ExchangeError,
-                    '50110': errors.PermissionDenied,
-                    '50111': errors.AuthenticationError,
-                    '50112': errors.AuthenticationError,
-                    '50113': errors.AuthenticationError,
-                    '50114': errors.AuthenticationError,
-                    '50115': errors.BadRequest,
+                    '50100': errors.ExchangeError, // API frozen, please contact customer service
+                    '50101': errors.AuthenticationError, // Broker id of APIKey does not match current environment
+                    '50102': errors.InvalidNonce, // Timestamp request expired
+                    '50103': errors.AuthenticationError, // Request header "OK_ACCESS_KEY" can not be empty
+                    '50104': errors.AuthenticationError, // Request header "OK_ACCESS_PASSPHRASE" can not be empty
+                    '50105': errors.AuthenticationError, // Request header "OK_ACCESS_PASSPHRASE" incorrect
+                    '50106': errors.AuthenticationError, // Request header "OK_ACCESS_SIGN" can not be empty
+                    '50107': errors.AuthenticationError, // Request header "OK_ACCESS_TIMESTAMP" can not be empty
+                    '50108': errors.ExchangeError, // Exchange ID does not exist
+                    '50109': errors.ExchangeError, // Exchange domain does not exist
+                    '50110': errors.PermissionDenied, // Invalid IP
+                    '50111': errors.AuthenticationError, // Invalid OK_ACCESS_KEY
+                    '50112': errors.AuthenticationError, // Invalid OK_ACCESS_TIMESTAMP
+                    '50113': errors.AuthenticationError, // Invalid signature
+                    '50114': errors.AuthenticationError, // Invalid authorization
+                    '50115': errors.BadRequest, // Invalid request method
                     // Trade Class
-                    '51000': errors.BadRequest,
-                    '51001': errors.BadSymbol,
-                    '51002': errors.BadSymbol,
-                    '51003': errors.BadRequest,
-                    '51004': errors.InvalidOrder,
-                    '51005': errors.InvalidOrder,
-                    '51006': errors.InvalidOrder,
-                    '51007': errors.InvalidOrder,
-                    '51008': errors.InsufficientFunds,
-                    '51009': errors.AccountSuspended,
-                    '51010': errors.AccountNotEnabled,
-                    '51011': errors.InvalidOrder,
-                    '51012': errors.BadSymbol,
-                    '51014': errors.BadSymbol,
-                    '51015': errors.BadSymbol,
-                    '51016': errors.InvalidOrder,
-                    '51017': errors.ExchangeError,
-                    '51018': errors.ExchangeError,
-                    '51019': errors.ExchangeError,
-                    '51020': errors.InvalidOrder,
-                    '51021': errors.ContractUnavailable,
-                    '51022': errors.ContractUnavailable,
-                    '51023': errors.ExchangeError,
-                    '51024': errors.AccountSuspended,
-                    '51025': errors.ExchangeError,
-                    '51026': errors.BadSymbol,
-                    '51027': errors.ContractUnavailable,
-                    '51028': errors.ContractUnavailable,
-                    '51029': errors.ContractUnavailable,
-                    '51030': errors.ContractUnavailable,
-                    '51031': errors.InvalidOrder,
-                    '51046': errors.InvalidOrder,
-                    '51047': errors.InvalidOrder,
-                    '51051': errors.InvalidOrder,
-                    '51072': errors.InvalidOrder,
-                    '51073': errors.InvalidOrder,
-                    '51074': errors.InvalidOrder,
-                    '51090': errors.InvalidOrder,
-                    '51091': errors.InvalidOrder,
-                    '51092': errors.InvalidOrder,
-                    '51093': errors.InvalidOrder,
-                    '51094': errors.InvalidOrder,
-                    '51095': errors.InvalidOrder,
-                    '51096': errors.InvalidOrder,
-                    '51098': errors.InvalidOrder,
-                    '51099': errors.InvalidOrder,
-                    '51100': errors.InvalidOrder,
-                    '51101': errors.InvalidOrder,
-                    '51102': errors.InvalidOrder,
-                    '51103': errors.InvalidOrder,
-                    '51104': errors.InvalidOrder,
-                    '51105': errors.InvalidOrder,
-                    '51106': errors.InvalidOrder,
-                    '51107': errors.InvalidOrder,
-                    '51108': errors.InvalidOrder,
-                    '51109': errors.InvalidOrder,
-                    '51110': errors.InvalidOrder,
-                    '51111': errors.BadRequest,
-                    '51112': errors.InvalidOrder,
-                    '51113': errors.RateLimitExceeded,
-                    '51115': errors.InvalidOrder,
-                    '51116': errors.InvalidOrder,
-                    '51117': errors.InvalidOrder,
-                    '51118': errors.InvalidOrder,
-                    '51119': errors.InsufficientFunds,
-                    '51120': errors.InvalidOrder,
-                    '51121': errors.InvalidOrder,
-                    '51122': errors.InvalidOrder,
-                    '51124': errors.InvalidOrder,
-                    '51125': errors.InvalidOrder,
-                    '51126': errors.InvalidOrder,
-                    '51127': errors.InsufficientFunds,
-                    '51128': errors.InvalidOrder,
-                    '51129': errors.InvalidOrder,
-                    '51130': errors.BadSymbol,
-                    '51131': errors.InsufficientFunds,
-                    '51132': errors.InvalidOrder,
-                    '51133': errors.InvalidOrder,
-                    '51134': errors.InvalidOrder,
-                    '51135': errors.InvalidOrder,
-                    '51136': errors.InvalidOrder,
-                    '51137': errors.InvalidOrder,
-                    '51138': errors.InvalidOrder,
-                    '51139': errors.InvalidOrder,
-                    '51155': errors.RestrictedLocation,
-                    '51156': errors.BadRequest,
-                    '51159': errors.BadRequest,
-                    '51162': errors.InvalidOrder,
-                    '51163': errors.InvalidOrder,
-                    '51166': errors.InvalidOrder,
-                    '51174': errors.InvalidOrder,
-                    '51185': errors.InvalidOrder,
-                    '51201': errors.InvalidOrder,
-                    '51202': errors.InvalidOrder,
-                    '51203': errors.InvalidOrder,
-                    '51204': errors.InvalidOrder,
-                    '51205': errors.InvalidOrder,
-                    '51250': errors.InvalidOrder,
-                    '51251': errors.InvalidOrder,
-                    '51252': errors.InvalidOrder,
-                    '51253': errors.InvalidOrder,
-                    '51254': errors.InvalidOrder,
-                    '51255': errors.InvalidOrder,
-                    '51256': errors.InvalidOrder,
-                    '51257': errors.InvalidOrder,
-                    '51258': errors.InvalidOrder,
-                    '51259': errors.InvalidOrder,
-                    '51260': errors.InvalidOrder,
-                    '51261': errors.InvalidOrder,
-                    '51262': errors.InvalidOrder,
-                    '51263': errors.InvalidOrder,
-                    '51264': errors.InvalidOrder,
-                    '51265': errors.InvalidOrder,
-                    '51267': errors.InvalidOrder,
-                    '51268': errors.InvalidOrder,
-                    '51269': errors.InvalidOrder,
-                    '51270': errors.InvalidOrder,
-                    '51271': errors.InvalidOrder,
-                    '51272': errors.InvalidOrder,
-                    '51273': errors.InvalidOrder,
-                    '51274': errors.InvalidOrder,
-                    '51275': errors.InvalidOrder,
-                    '51276': errors.InvalidOrder,
-                    '51277': errors.InvalidOrder,
-                    '51278': errors.InvalidOrder,
-                    '51279': errors.InvalidOrder,
-                    '51280': errors.InvalidOrder,
-                    '51321': errors.InvalidOrder,
-                    '51322': errors.InvalidOrder,
-                    '51323': errors.BadRequest,
-                    '51324': errors.BadRequest,
-                    '51325': errors.InvalidOrder,
-                    '51327': errors.InvalidOrder,
-                    '51328': errors.InvalidOrder,
-                    '51329': errors.InvalidOrder,
-                    '51330': errors.InvalidOrder,
-                    '51400': errors.OrderNotFound,
-                    '51401': errors.OrderNotFound,
-                    '51402': errors.OrderNotFound,
-                    '51403': errors.InvalidOrder,
-                    '51404': errors.InvalidOrder,
-                    '51405': errors.ExchangeError,
-                    '51406': errors.ExchangeError,
-                    '51407': errors.BadRequest,
-                    '51408': errors.ExchangeError,
-                    '51409': errors.ExchangeError,
-                    '51410': errors.CancelPending,
-                    '51500': errors.ExchangeError,
-                    '51501': errors.ExchangeError,
-                    '51502': errors.InsufficientFunds,
-                    '51503': errors.ExchangeError,
-                    '51506': errors.ExchangeError,
-                    '51508': errors.ExchangeError,
-                    '51509': errors.ExchangeError,
-                    '51510': errors.ExchangeError,
-                    '51511': errors.ExchangeError,
-                    '51600': errors.ExchangeError,
-                    '51601': errors.ExchangeError,
-                    '51602': errors.ExchangeError,
-                    '51603': errors.OrderNotFound,
-                    '51732': errors.AuthenticationError,
-                    '51733': errors.AuthenticationError,
-                    '51734': errors.AuthenticationError,
-                    '51735': errors.ExchangeError,
-                    '51736': errors.InsufficientFunds,
+                    '51000': errors.BadRequest, // Parameter {0} error
+                    '51001': errors.BadSymbol, // Instrument ID does not exist
+                    '51002': errors.BadSymbol, // Instrument ID does not match underlying index
+                    '51003': errors.BadRequest, // Either client order ID or order ID is required
+                    '51004': errors.InvalidOrder, // Order amount exceeds current tier limit
+                    '51005': errors.InvalidOrder, // Order amount exceeds the limit
+                    '51006': errors.InvalidOrder, // Order price out of the limit
+                    '51007': errors.InvalidOrder, // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
+                    '51008': errors.InsufficientFunds, // Order placement failed due to insufficient balance or margin
+                    '51009': errors.AccountSuspended, // Order placement function is blocked by the platform
+                    '51010': errors.AccountNotEnabled, // Account level too low {"code":"1","data":[{"clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":""}],"msg":"Operation failed."}
+                    '51011': errors.InvalidOrder, // Duplicated order ID
+                    '51012': errors.BadSymbol, // Token does not exist
+                    '51014': errors.BadSymbol, // Index does not exist
+                    '51015': errors.BadSymbol, // Instrument ID does not match instrument type
+                    '51016': errors.InvalidOrder, // Duplicated client order ID
+                    '51017': errors.ExchangeError, // Borrow amount exceeds the limit
+                    '51018': errors.ExchangeError, // User with option account can not hold net short positions
+                    '51019': errors.ExchangeError, // No net long positions can be held under isolated margin mode in options
+                    '51020': errors.InvalidOrder, // Order amount should be greater than the min available amount
+                    '51021': errors.ContractUnavailable, // Contract to be listed
+                    '51022': errors.ContractUnavailable, // Contract suspended
+                    '51023': errors.ExchangeError, // Position does not exist
+                    '51024': errors.AccountSuspended, // Unified accountblocked
+                    '51025': errors.ExchangeError, // Order count exceeds the limit
+                    '51026': errors.BadSymbol, // Instrument type does not match underlying index
+                    '51027': errors.ContractUnavailable, // Contract expired
+                    '51028': errors.ContractUnavailable, // Contract under delivery
+                    '51029': errors.ContractUnavailable, // Contract is being settled
+                    '51030': errors.ContractUnavailable, // Funding fee is being settled
+                    '51031': errors.InvalidOrder, // This order price is not within the closing price range
+                    '51046': errors.InvalidOrder, // The take profit trigger price must be higher than the order price
+                    '51047': errors.InvalidOrder, // The stop loss trigger price must be lower than the order price
+                    '51051': errors.InvalidOrder, // Your SL price should be lower than the primary order price
+                    '51072': errors.InvalidOrder, // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
+                    '51073': errors.InvalidOrder, // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
+                    '51074': errors.InvalidOrder, // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
+                    '51090': errors.InvalidOrder, // You can't modify the amount of an SL order placed with a TP limit order.
+                    '51091': errors.InvalidOrder, // All TP orders in one order must be of the same type.
+                    '51092': errors.InvalidOrder, // TP order prices (tpOrdPx) in one order must be different.
+                    '51093': errors.InvalidOrder, // TP limit order prices (tpOrdPx) in one order can't be –1 (market price).
+                    '51094': errors.InvalidOrder, // You can't place TP limit orders in spot, margin, or options trading.
+                    '51095': errors.InvalidOrder, // To place TP limit orders at this endpoint, you must place an SL order at the same time.
+                    '51096': errors.InvalidOrder, // cxlOnClosePos needs to be true to place a TP limit order
+                    '51098': errors.InvalidOrder, // You can't add a new TP order to an SL order placed with a TP limit order.
+                    '51099': errors.InvalidOrder, // You can't place TP limit orders as a lead trader.
+                    '51100': errors.InvalidOrder, // Trading amount does not meet the min tradable amount
+                    '51101': errors.InvalidOrder, // Entered amount exceeds the max pending order amount (Cont) per transaction
+                    '51102': errors.InvalidOrder, // Entered amount exceeds the max pending count
+                    '51103': errors.InvalidOrder, // Entered amount exceeds the max pending order count of the underlying asset
+                    '51104': errors.InvalidOrder, // Entered amount exceeds the max pending order amount (Cont) of the underlying asset
+                    '51105': errors.InvalidOrder, // Entered amount exceeds the max order amount (Cont) of the contract
+                    '51106': errors.InvalidOrder, // Entered amount exceeds the max order amount (Cont) of the underlying asset
+                    '51107': errors.InvalidOrder, // Entered amount exceeds the max holding amount (Cont)
+                    '51108': errors.InvalidOrder, // Positions exceed the limit for closing out with the market price
+                    '51109': errors.InvalidOrder, // No available offer
+                    '51110': errors.InvalidOrder, // You can only place a limit order after Call Auction has started
+                    '51111': errors.BadRequest, // Maximum {0} orders can be placed in bulk
+                    '51112': errors.InvalidOrder, // Close order size exceeds your available size
+                    '51113': errors.RateLimitExceeded, // Market-price liquidation requests too frequent
+                    '51115': errors.InvalidOrder, // Cancel all pending close-orders before liquidation
+                    '51116': errors.InvalidOrder, // Order price or trigger price exceeds {0}
+                    '51117': errors.InvalidOrder, // Pending close-orders count exceeds limit
+                    '51118': errors.InvalidOrder, // Total amount should exceed the min amount per order
+                    '51119': errors.InsufficientFunds, // Order placement failed due to insufficient balance
+                    '51120': errors.InvalidOrder, // Order quantity is less than {0}, please try again
+                    '51121': errors.InvalidOrder, // Order count should be the integer multiples of the lot size
+                    '51122': errors.InvalidOrder, // Order price should be higher than the min price {0}
+                    '51124': errors.InvalidOrder, // You can only place limit orders during call auction
+                    '51125': errors.InvalidOrder, // Currently there are reduce + reverse position pending orders in margin trading. Please cancel all reduce + reverse position pending orders and continue
+                    '51126': errors.InvalidOrder, // Currently there are reduce only pending orders in margin trading.Please cancel all reduce only pending orders and continue
+                    '51127': errors.InsufficientFunds, // Available balance is 0
+                    '51128': errors.InvalidOrder, // Multi-currency margin account can not do cross-margin trading
+                    '51129': errors.InvalidOrder, // The value of the position and buy order has reached the position limit, and no further buying is allowed
+                    '51130': errors.BadSymbol, // Fixed margin currency error
+                    '51131': errors.InsufficientFunds, // Insufficient balance
+                    '51132': errors.InvalidOrder, // Your position amount is negative and less than the minimum trading amount
+                    '51133': errors.InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by multi-currency margin account
+                    '51134': errors.InvalidOrder, // Closing failed. Please check your holdings and pending orders
+                    '51135': errors.InvalidOrder, // Your closing price has triggered the limit price, and the max buy price is {0}
+                    '51136': errors.InvalidOrder, // Your closing price has triggered the limit price, and the min sell price is {0}
+                    '51137': errors.InvalidOrder, // Your opening price has triggered the limit price, and the max buy price is {0}
+                    '51138': errors.InvalidOrder, // Your opening price has triggered the limit price, and the min sell price is {0}
+                    '51139': errors.InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51155': errors.RestrictedLocation, // {"code":"1","data":[{"clOrdId":"e847xxx","ordId":"","sCode":"51155","sMsg":"You can't trade this pair or borrow this crypto due to local compliance restrictions. ","tag":"e847xxx","ts":"1753979177157"}],"inTime":"1753979177157408","msg":"All operations failed","outTime":"1753979177157874"}
+                    '51156': errors.BadRequest, // You're leading trades in long/short mode and can't use this API endpoint to close positions
+                    '51159': errors.BadRequest, // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51162': errors.InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
+                    '51163': errors.InvalidOrder, // You hold {instrument} positions. Close these positions and try again
+                    '51166': errors.InvalidOrder, // Currently, we don't support leading trades with this instrument
+                    '51174': errors.InvalidOrder, // The number of {param0} pending orders reached the upper limit of {param1} (orders).
+                    '51185': errors.InvalidOrder, // The maximum value allowed per order is {maxOrderValue} USD
+                    '51201': errors.InvalidOrder, // Value of per market order cannot exceed 100,000 USDT
+                    '51202': errors.InvalidOrder, // Market - order amount exceeds the max amount
+                    '51203': errors.InvalidOrder, // Order amount exceeds the limit {0}
+                    '51204': errors.InvalidOrder, // The price for the limit order can not be empty
+                    '51205': errors.InvalidOrder, // Reduce-Only is not available
+                    '51250': errors.InvalidOrder, // Algo order price is out of the available range
+                    '51251': errors.InvalidOrder, // Algo order type error (when user place an iceberg order)
+                    '51252': errors.InvalidOrder, // Algo order price is out of the available range
+                    '51253': errors.InvalidOrder, // Average amount exceeds the limit of per iceberg order
+                    '51254': errors.InvalidOrder, // Iceberg average amount error (when user place an iceberg order)
+                    '51255': errors.InvalidOrder, // Limit of per iceberg order: Total amount/1000 < x <= Total amount
+                    '51256': errors.InvalidOrder, // Iceberg order price variance error
+                    '51257': errors.InvalidOrder, // Trail order callback rate error
+                    '51258': errors.InvalidOrder, // Trail - order placement failed. The trigger price of a sell order should be higher than the last transaction price
+                    '51259': errors.InvalidOrder, // Trail - order placement failed. The trigger price of a buy order should be lower than the last transaction price
+                    '51260': errors.InvalidOrder, // Maximum {0} pending trail - orders can be held at the same time
+                    '51261': errors.InvalidOrder, // Each user can hold up to {0} pending stop - orders at the same time
+                    '51262': errors.InvalidOrder, // Maximum {0} pending iceberg orders can be held at the same time
+                    '51263': errors.InvalidOrder, // Maximum {0} pending time-weighted orders can be held at the same time
+                    '51264': errors.InvalidOrder, // Average amount exceeds the limit of per time-weighted order
+                    '51265': errors.InvalidOrder, // Time-weighted order limit error
+                    '51267': errors.InvalidOrder, // Time-weighted order strategy initiative rate error
+                    '51268': errors.InvalidOrder, // Time-weighted order strategy initiative range error
+                    '51269': errors.InvalidOrder, // Time-weighted order interval error, the interval should be {0}<= x<={1}
+                    '51270': errors.InvalidOrder, // The limit of time-weighted order price variance is 0 < x <= 1%
+                    '51271': errors.InvalidOrder, // Sweep ratio should be 0 < x <= 100%
+                    '51272': errors.InvalidOrder, // Price variance should be 0 < x <= 1%
+                    '51273': errors.InvalidOrder, // Total amount should be more than {0}
+                    '51274': errors.InvalidOrder, // Total quantity of time-weighted order must be larger than single order limit
+                    '51275': errors.InvalidOrder, // The amount of single stop-market order can not exceed the upper limit
+                    '51276': errors.InvalidOrder, // Stop - Market orders cannot specify a price
+                    '51277': errors.InvalidOrder, // TP trigger price can not be higher than the last price
+                    '51278': errors.InvalidOrder, // SL trigger price can not be lower than the last price
+                    '51279': errors.InvalidOrder, // TP trigger price can not be lower than the last price
+                    '51280': errors.InvalidOrder, // SL trigger price can not be higher than the last price
+                    '51321': errors.InvalidOrder, // You're leading trades. Currently, we don't support leading trades with arbitrage, iceberg, or TWAP bots
+                    '51322': errors.InvalidOrder, // You're leading trades that have been filled at market price. We've canceled your open stop orders to close your positions
+                    '51323': errors.BadRequest, // You're already leading trades with take profit or stop loss settings. Cancel your existing stop orders to proceed
+                    '51324': errors.BadRequest, // As a lead trader, you hold positions in {instrument}. To close your positions, place orders in the amount that equals the available amount for closing
+                    '51325': errors.InvalidOrder, // As a lead trader, you must use market price when placing stop orders
+                    '51327': errors.InvalidOrder, // closeFraction is only available for futures and perpetual swaps
+                    '51328': errors.InvalidOrder, // closeFraction is only available for reduceOnly orders
+                    '51329': errors.InvalidOrder, // closeFraction is only available in NET mode
+                    '51330': errors.InvalidOrder, // closeFraction is only available for stop market orders
+                    '51400': errors.OrderNotFound, // Cancellation failed as the order does not exist
+                    '51401': errors.OrderNotFound, // Cancellation failed as the order is already canceled
+                    '51402': errors.OrderNotFound, // Cancellation failed as the order is already completed
+                    '51403': errors.InvalidOrder, // Cancellation failed as the order type does not support cancellation
+                    '51404': errors.InvalidOrder, // Order cancellation unavailable during the second phase of call auction
+                    '51405': errors.ExchangeError, // Cancellation failed as you do not have any pending orders
+                    '51406': errors.ExchangeError, // Canceled - order count exceeds the limit {0}
+                    '51407': errors.BadRequest, // Either order ID or client order ID is required
+                    '51408': errors.ExchangeError, // Pair ID or name does not match the order info
+                    '51409': errors.ExchangeError, // Either pair ID or pair name ID is required
+                    '51410': errors.CancelPending, // Cancellation failed as the order is already under cancelling status
+                    '51500': errors.ExchangeError, // Either order price or amount is required
+                    '51501': errors.ExchangeError, // Maximum {0} orders can be modified
+                    '51502': errors.InsufficientFunds, // Order modification failed for insufficient margin or balance
+                    '51503': errors.ExchangeError, // Order modification failed as the order does not exist
+                    '51506': errors.ExchangeError, // Order modification unavailable for the order type
+                    '51508': errors.ExchangeError, // Orders are not allowed to be modified during the call auction
+                    '51509': errors.ExchangeError, // Modification failed as the order has been canceled
+                    '51510': errors.ExchangeError, // Modification failed as the order has been completed
+                    '51511': errors.ExchangeError, // Modification failed as the order price did not meet the requirement for Post Only
+                    '51600': errors.ExchangeError, // Status not found
+                    '51601': errors.ExchangeError, // Order status and order ID cannot exist at the same time
+                    '51602': errors.ExchangeError, // Either order status or order ID is required
+                    '51603': errors.OrderNotFound, // Order does not exist
+                    '51732': errors.AuthenticationError, // Required user KYC level not met
+                    '51733': errors.AuthenticationError, // User is under risk control
+                    '51734': errors.AuthenticationError, // User KYC Country is not supported
+                    '51735': errors.ExchangeError, // Sub-account is not supported
+                    '51736': errors.InsufficientFunds, // Insufficient {ccy} balance
                     // Data class
-                    '52000': errors.ExchangeError,
+                    '52000': errors.ExchangeError, // No updates
                     // SPOT/MARGIN error codes 54000-54999
-                    '54000': errors.ExchangeError,
-                    '54001': errors.ExchangeError,
-                    '54008': errors.InvalidOrder,
-                    '54009': errors.InvalidOrder,
-                    '54011': errors.InvalidOrder,
-                    '54072': errors.ExchangeError,
-                    '54073': errors.BadRequest,
-                    '54074': errors.ExchangeError,
+                    '54000': errors.ExchangeError, // Margin transactions unavailable
+                    '54001': errors.ExchangeError, // Only Multi-currency margin account can be set to borrow coins automatically
+                    '54008': errors.InvalidOrder, // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
+                    '54009': errors.InvalidOrder, // The range of {param0} should be [{param1}, {param2}].
+                    '54011': errors.InvalidOrder, // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54072': errors.ExchangeError, // This contract is currently view-only and not tradable.
+                    '54073': errors.BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
+                    '54074': errors.ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
                     // Trading bot Error Code from 55100 to 55999
-                    '55100': errors.InvalidOrder,
-                    '55101': errors.InvalidOrder,
-                    '55102': errors.InvalidOrder,
-                    '55103': errors.InvalidOrder,
-                    '55104': errors.InvalidOrder,
-                    '55111': errors.InvalidOrder,
-                    '55112': errors.InvalidOrder,
-                    '55113': errors.InvalidOrder,
+                    '55100': errors.InvalidOrder, // Take profit % should be within the range of {parameter1}-{parameter2}
+                    '55101': errors.InvalidOrder, // Stop loss % should be within the range of {parameter1}-{parameter2}
+                    '55102': errors.InvalidOrder, // Take profit % should be greater than the current bot’s PnL%
+                    '55103': errors.InvalidOrder, // Stop loss % should be less than the current bot’s PnL%
+                    '55104': errors.InvalidOrder, // Only futures grid supports take profit or stop loss based on profit percentage
+                    '55111': errors.InvalidOrder, // This signal name is in use, please try a new name
+                    '55112': errors.InvalidOrder, // This signal does not exist
+                    '55113': errors.InvalidOrder, // Create signal strategies with leverage greater than the maximum leverage of the instruments
                     // FUNDING error codes 58000-58999
-                    '58000': errors.ExchangeError,
-                    '58001': errors.AuthenticationError,
-                    '58002': errors.PermissionDenied,
-                    '58003': errors.ExchangeError,
-                    '58004': errors.AccountSuspended,
-                    '58005': errors.ExchangeError,
-                    '58006': errors.ExchangeError,
-                    '58007': errors.ExchangeError,
-                    '58100': errors.ExchangeError,
-                    '58101': errors.AccountSuspended,
-                    '58102': errors.RateLimitExceeded,
-                    '58103': errors.ExchangeError,
-                    '58104': errors.ExchangeError,
-                    '58105': errors.ExchangeError,
-                    '58106': errors.ExchangeError,
-                    '58107': errors.ExchangeError,
-                    '58108': errors.ExchangeError,
-                    '58109': errors.ExchangeError,
-                    '58110': errors.ExchangeError,
-                    '58111': errors.ExchangeError,
-                    '58112': errors.ExchangeError,
-                    '58114': errors.ExchangeError,
-                    '58115': errors.ExchangeError,
-                    '58116': errors.ExchangeError,
-                    '58117': errors.ExchangeError,
-                    '58125': errors.BadRequest,
-                    '58126': errors.BadRequest,
-                    '58127': errors.BadRequest,
-                    '58128': errors.BadRequest,
-                    '58200': errors.ExchangeError,
-                    '58201': errors.ExchangeError,
-                    '58202': errors.ExchangeError,
-                    '58203': errors.InvalidAddress,
-                    '58204': errors.AccountSuspended,
-                    '58205': errors.ExchangeError,
-                    '58206': errors.ExchangeError,
-                    '58207': errors.InvalidAddress,
-                    '58208': errors.ExchangeError,
-                    '58209': errors.ExchangeError,
-                    '58210': errors.ExchangeError,
-                    '58211': errors.ExchangeError,
-                    '58212': errors.ExchangeError,
-                    '58213': errors.AuthenticationError,
-                    '58221': errors.BadRequest,
-                    '58222': errors.BadRequest,
-                    '58224': errors.BadRequest,
-                    '58227': errors.BadRequest,
-                    '58228': errors.BadRequest,
-                    '58229': errors.InsufficientFunds,
-                    '58300': errors.ExchangeError,
-                    '58350': errors.InsufficientFunds,
+                    '58000': errors.ExchangeError, // Account type {0} does not supported when getting the sub-account balance
+                    '58001': errors.AuthenticationError, // Incorrect trade password
+                    '58002': errors.PermissionDenied, // Please activate Savings Account first
+                    '58003': errors.ExchangeError, // Currency type is not supported by Savings Account
+                    '58004': errors.AccountSuspended, // Account blocked (transfer & withdrawal endpoint: either end of the account does not authorize the transfer)
+                    '58005': errors.ExchangeError, // The redeemed amount must be no greater than {0}
+                    '58006': errors.ExchangeError, // Service unavailable for token {0}
+                    '58007': errors.ExchangeError, // Abnormal Assets interface. Please try again later
+                    '58100': errors.ExchangeError, // The trading product triggers risk control, and the platform has suspended the fund transfer-out function with related users. Please wait patiently
+                    '58101': errors.AccountSuspended, // Transfer suspended (transfer endpoint: either end of the account does not authorize the transfer)
+                    '58102': errors.RateLimitExceeded, // Too frequent transfer (transfer too frequently)
+                    '58103': errors.ExchangeError, // Parent account user id does not match sub-account user id
+                    '58104': errors.ExchangeError, // Since your P2P transaction is abnormal, you are restricted from making fund transfers. Please contact customer support to remove the restriction
+                    '58105': errors.ExchangeError, // Since your P2P transaction is abnormal, you are restricted from making fund transfers. Please transfer funds on our website or app to complete identity verification
+                    '58106': errors.ExchangeError, // Please enable the account for spot contract
+                    '58107': errors.ExchangeError, // Please enable the account for futures contract
+                    '58108': errors.ExchangeError, // Please enable the account for option contract
+                    '58109': errors.ExchangeError, // Please enable the account for swap contract
+                    '58110': errors.ExchangeError, // The contract triggers risk control, and the platform has suspended the fund transfer function of it. Please wait patiently
+                    '58111': errors.ExchangeError, // Funds transfer unavailable as the perpetual contract is charging the funding fee. Please try again later
+                    '58112': errors.ExchangeError, // Your fund transfer failed. Please try again later
+                    '58114': errors.ExchangeError, // Transfer amount must be more than 0
+                    '58115': errors.ExchangeError, // Sub-account does not exist
+                    '58116': errors.ExchangeError, // Transfer amount exceeds the limit
+                    '58117': errors.ExchangeError, // Account assets are abnormal, please deal with negative assets before transferring
+                    '58125': errors.BadRequest, // Non-tradable assets can only be transferred from sub-accounts to main accounts
+                    '58126': errors.BadRequest, // Non-tradable assets can only be transferred between funding accounts
+                    '58127': errors.BadRequest, // Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': errors.BadRequest, // Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58200': errors.ExchangeError, // Withdrawal from {0} to {1} is unavailable for this currency
+                    '58201': errors.ExchangeError, // Withdrawal amount exceeds the daily limit
+                    '58202': errors.ExchangeError, // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
+                    '58203': errors.InvalidAddress, // Please add a withdrawal address
+                    '58204': errors.AccountSuspended, // Withdrawal suspended
+                    '58205': errors.ExchangeError, // Withdrawal amount exceeds the upper limit
+                    '58206': errors.ExchangeError, // Withdrawal amount is lower than the lower limit
+                    '58207': errors.InvalidAddress, // Withdrawal failed due to address error
+                    '58208': errors.ExchangeError, // Withdrawal failed. Please link your email
+                    '58209': errors.ExchangeError, // Withdrawal failed. Withdraw feature is not available for sub-accounts
+                    '58210': errors.ExchangeError, // Withdrawal fee exceeds the upper limit
+                    '58211': errors.ExchangeError, // Withdrawal fee is lower than the lower limit (withdrawal endpoint: incorrect fee)
+                    '58212': errors.ExchangeError, // Withdrawal fee should be {0}% of the withdrawal amount
+                    '58213': errors.AuthenticationError, // Please set trading password before withdrawal
+                    '58221': errors.BadRequest, // Missing label of withdrawal address.
+                    '58222': errors.BadRequest, // Illegal withdrawal address.
+                    '58224': errors.BadRequest, // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
+                    '58227': errors.BadRequest, // Withdrawal of non-tradable assets can be withdrawn all at once only
+                    '58228': errors.BadRequest, // Withdrawal of non-tradable assets requires that the API Key must be bound to an IP
+                    '58229': errors.InsufficientFunds, // Insufficient funding account balance to pay fees {fee} USDT
+                    '58300': errors.ExchangeError, // Deposit-address count exceeds the limit
+                    '58350': errors.InsufficientFunds, // Insufficient balance
                     // Account error codes 59000-59999
-                    '59000': errors.ExchangeError,
-                    '59001': errors.ExchangeError,
-                    '59100': errors.ExchangeError,
-                    '59101': errors.ExchangeError,
-                    '59102': errors.ExchangeError,
-                    '59103': errors.InsufficientFunds,
-                    '59104': errors.ExchangeError,
-                    '59105': errors.ExchangeError,
-                    '59106': errors.ExchangeError,
-                    '59107': errors.ExchangeError,
-                    '59108': errors.InsufficientFunds,
-                    '59109': errors.ExchangeError,
-                    '59128': errors.InvalidOrder,
-                    '59200': errors.InsufficientFunds,
-                    '59201': errors.InsufficientFunds,
-                    '59216': errors.BadRequest,
-                    '59260': errors.PermissionDenied,
-                    '59262': errors.PermissionDenied,
-                    '59300': errors.ExchangeError,
-                    '59301': errors.ExchangeError,
-                    '59313': errors.ExchangeError,
-                    '59401': errors.ExchangeError,
-                    '59410': errors.OperationRejected,
-                    '59411': errors.InsufficientFunds,
-                    '59412': errors.OperationRejected,
-                    '59413': errors.OperationRejected,
-                    '59414': errors.BadRequest,
-                    '59500': errors.ExchangeError,
-                    '59501': errors.ExchangeError,
-                    '59502': errors.ExchangeError,
-                    '59503': errors.ExchangeError,
-                    '59504': errors.ExchangeError,
-                    '59505': errors.ExchangeError,
-                    '59506': errors.ExchangeError,
-                    '59507': errors.ExchangeError,
-                    '59508': errors.AccountSuspended,
-                    '59515': errors.ExchangeError,
-                    '59516': errors.ExchangeError,
-                    '59517': errors.ExchangeError,
-                    '59518': errors.ExchangeError,
-                    '59519': errors.ExchangeError,
-                    '59642': errors.BadRequest,
-                    '59643': errors.ExchangeError,
-                    '59683': errors.ExchangeError,
-                    '59684': errors.BadRequest,
-                    '59686': errors.BadRequest,
+                    '59000': errors.ExchangeError, // Your settings failed as you have positions or open orders
+                    '59001': errors.ExchangeError, // Switching unavailable as you have borrowings
+                    '59100': errors.ExchangeError, // You have open positions. Please cancel all open positions before changing the leverage
+                    '59101': errors.ExchangeError, // You have pending orders with isolated positions. Please cancel all the pending orders and adjust the leverage
+                    '59102': errors.ExchangeError, // Leverage exceeds the maximum leverage. Please adjust the leverage
+                    '59103': errors.InsufficientFunds, // Leverage is too low and no sufficient margin in your account. Please adjust the leverage
+                    '59104': errors.ExchangeError, // The leverage is too high. The borrowed position has exceeded the maximum position of this leverage. Please adjust the leverage
+                    '59105': errors.ExchangeError, // Leverage can not be less than {0}. Please adjust the leverage
+                    '59106': errors.ExchangeError, // The max available margin corresponding to your order tier is {0}. Please adjust your margin and place a new order
+                    '59107': errors.ExchangeError, // You have pending orders under the service, please modify the leverage after canceling all pending orders
+                    '59108': errors.InsufficientFunds, // Low leverage and insufficient margin, please adjust the leverage
+                    '59109': errors.ExchangeError, // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59128': errors.InvalidOrder, // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
+                    '59200': errors.InsufficientFunds, // Insufficient account balance
+                    '59201': errors.InsufficientFunds, // Negative account balance
+                    '59216': errors.BadRequest, // The position doesn't exist. Please try again
+                    '59260': errors.PermissionDenied, // You are not a spot lead trader yet. Complete the application on our website or app first.
+                    '59262': errors.PermissionDenied, // You are not a contract lead trader yet. Complete the application on our website or app first.
+                    '59300': errors.ExchangeError, // Margin call failed. Position does not exist
+                    '59301': errors.ExchangeError, // Margin adjustment failed for exceeding the max limit
+                    '59313': errors.ExchangeError, // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
+                    '59401': errors.ExchangeError, // Holdings already reached the limit
+                    '59410': errors.OperationRejected, // You can only borrow this crypto if it supports borrowing and borrowing is enabled.
+                    '59411': errors.InsufficientFunds, // Manual borrowing failed. Your account's free margin is insufficient
+                    '59412': errors.OperationRejected, // Manual borrowing failed. The amount exceeds your borrowing limit.
+                    '59413': errors.OperationRejected, // You didn't borrow this crypto. No repayment needed.
+                    '59414': errors.BadRequest, // Manual borrowing failed. The minimum borrowing limit is {param0}.needed.
+                    '59500': errors.ExchangeError, // Only the APIKey of the main account has permission
+                    '59501': errors.ExchangeError, // Only 50 APIKeys can be created per account
+                    '59502': errors.ExchangeError, // Note name cannot be duplicate with the currently created APIKey note name
+                    '59503': errors.ExchangeError, // Each APIKey can bind up to 20 IP addresses
+                    '59504': errors.ExchangeError, // The sub account does not support the withdrawal function
+                    '59505': errors.ExchangeError, // The passphrase format is incorrect
+                    '59506': errors.ExchangeError, // APIKey does not exist
+                    '59507': errors.ExchangeError, // The two accounts involved in a transfer must be two different sub accounts under the same parent account
+                    '59508': errors.AccountSuspended, // The sub account of {0} is suspended
+                    '59515': errors.ExchangeError, // You are currently not on the custody whitelist. Please contact customer service for assistance.
+                    '59516': errors.ExchangeError, // Please create the Copper custody funding account first.
+                    '59517': errors.ExchangeError, // Please create the Komainu custody funding account first.
+                    '59518': errors.ExchangeError, // You can’t create a sub-account using the API; please use the app or web.
+                    '59519': errors.ExchangeError, // You can’t use this function/feature while it's frozen, due to: {freezereason}
+                    '59642': errors.BadRequest, // Lead and copy traders can only use margin-free or single-currency margin account modes
+                    '59643': errors.ExchangeError, // Couldn’t switch account modes as you’re currently copying spot trades
+                    '59683': errors.ExchangeError, // Set this crypto as your collateral crypto before selecting it as your settlement currency.
+                    '59684': errors.BadRequest, // Borrowing isn’t supported for this currency.
+                    '59686': errors.BadRequest, // This crypto can’t be set as a settlement currency.
                     // WebSocket error Codes from 60000-63999
-                    '60001': errors.AuthenticationError,
-                    '60002': errors.AuthenticationError,
-                    '60003': errors.AuthenticationError,
-                    '60004': errors.AuthenticationError,
-                    '60005': errors.AuthenticationError,
-                    '60006': errors.InvalidNonce,
-                    '60007': errors.AuthenticationError,
-                    '60008': errors.AuthenticationError,
-                    '60009': errors.AuthenticationError,
-                    '60010': errors.AuthenticationError,
-                    '60011': errors.AuthenticationError,
-                    '60012': errors.BadRequest,
-                    '60013': errors.BadRequest,
-                    '60014': errors.RateLimitExceeded,
-                    '60015': errors.NetworkError,
-                    '60016': errors.ExchangeNotAvailable,
-                    '60017': errors.BadRequest,
-                    '60018': errors.BadRequest,
-                    '60019': errors.BadRequest,
-                    '60020': errors.ExchangeError,
-                    '60021': errors.AccountNotEnabled,
-                    '60022': errors.AuthenticationError,
-                    '60023': errors.DDoSProtection,
-                    '60024': errors.AuthenticationError,
-                    '60025': errors.ExchangeError,
-                    '60026': errors.AuthenticationError,
-                    '60027': errors.ArgumentsRequired,
-                    '60028': errors.NotSupported,
-                    '60029': errors.AccountNotEnabled,
-                    '60030': errors.AccountNotEnabled,
-                    '60031': errors.AuthenticationError,
-                    '60032': errors.AuthenticationError,
-                    '63999': errors.ExchangeError,
-                    '64000': errors.BadRequest,
-                    '64001': errors.BadRequest,
-                    '64002': errors.BadRequest,
-                    '64003': errors.AccountNotEnabled,
-                    '70010': errors.BadRequest,
-                    '70013': errors.BadRequest,
-                    '70016': errors.BadRequest,
-                    '70060': errors.BadRequest,
-                    '70061': errors.BadRequest,
-                    '70062': errors.BadRequest,
-                    '70064': errors.BadRequest,
-                    '70065': errors.BadRequest,
-                    '70066': errors.BadRequest,
-                    '70067': errors.BadRequest,
-                    '1009': errors.BadRequest,
-                    '4001': errors.AuthenticationError,
-                    '4002': errors.BadRequest,
-                    '4003': errors.RateLimitExceeded,
-                    '4004': errors.NetworkError,
-                    '4005': errors.ExchangeNotAvailable,
-                    '4006': errors.BadRequest,
-                    '4007': errors.AuthenticationError,
+                    '60001': errors.AuthenticationError, // "OK_ACCESS_KEY" can not be empty
+                    '60002': errors.AuthenticationError, // "OK_ACCESS_SIGN" can not be empty
+                    '60003': errors.AuthenticationError, // "OK_ACCESS_PASSPHRASE" can not be empty
+                    '60004': errors.AuthenticationError, // Invalid OK_ACCESS_TIMESTAMP
+                    '60005': errors.AuthenticationError, // Invalid OK_ACCESS_KEY
+                    '60006': errors.InvalidNonce, // Timestamp request expired
+                    '60007': errors.AuthenticationError, // Invalid sign
+                    '60008': errors.AuthenticationError, // Login is not supported for public channels
+                    '60009': errors.AuthenticationError, // Login failed
+                    '60010': errors.AuthenticationError, // Already logged in
+                    '60011': errors.AuthenticationError, // Please log in
+                    '60012': errors.BadRequest, // Illegal request
+                    '60013': errors.BadRequest, // Invalid args
+                    '60014': errors.RateLimitExceeded, // Requests too frequent
+                    '60015': errors.NetworkError, // Connection closed as there was no data transmission in the last 30 seconds
+                    '60016': errors.ExchangeNotAvailable, // Buffer is full, cannot write data
+                    '60017': errors.BadRequest, // Invalid url path
+                    '60018': errors.BadRequest, // The {0} {1} {2} {3} {4} does not exist
+                    '60019': errors.BadRequest, // Invalid op {op}
+                    '60020': errors.ExchangeError, // APIKey subscription amount exceeds the limit
+                    '60021': errors.AccountNotEnabled, // This operation does not support multiple accounts login
+                    '60022': errors.AuthenticationError, // Bulk login partially succeeded
+                    '60023': errors.DDoSProtection, // Bulk login requests too frequent
+                    '60024': errors.AuthenticationError, // Wrong passphrase
+                    '60025': errors.ExchangeError, // Token subscription amount exceeds the limit
+                    '60026': errors.AuthenticationError, // Batch login by APIKey and token simultaneously is not supported
+                    '60027': errors.ArgumentsRequired, // Parameter {0} can not be empty
+                    '60028': errors.NotSupported, // The current operation is not supported by this URL
+                    '60029': errors.AccountNotEnabled, // Only users who are VIP5 and above in trading fee tier are allowed to subscribe to books-l2-tbt channel
+                    '60030': errors.AccountNotEnabled, // Only users who are VIP4 and above in trading fee tier are allowed to subscribe to books50-l2-tbt channel
+                    '60031': errors.AuthenticationError, // The WebSocket endpoint does not support multiple account batch login,
+                    '60032': errors.AuthenticationError, // API key doesn't exist,
+                    '63999': errors.ExchangeError, // Internal system error
+                    '64000': errors.BadRequest, // Subscription parameter uly is unavailable anymore, please replace uly with instFamily. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64001': errors.BadRequest, // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64002': errors.BadRequest, // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64003': errors.AccountNotEnabled, // Your trading fee tier doesnt meet the requirement to access this channel
+                    '70010': errors.BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
+                    '70013': errors.BadRequest, // endTs needs to be bigger than or equal to beginTs.
+                    '70016': errors.BadRequest, // Please specify your instrument settings for at least one instType.
+                    '70060': errors.BadRequest, // The account doesn’t exist or the position side is incorrect. To and from accounts must be under the same main account.
+                    '70061': errors.BadRequest, // To move position, please enter a position that’s opposite to your current side and is smaller than or equal to your current size.
+                    '70062': errors.BadRequest, // account has reached the maximum number of position transfers allowed per day.
+                    '70064': errors.BadRequest, // Position does not exist.
+                    '70065': errors.BadRequest, // Couldn’t move position. Execution price cannot be determined
+                    '70066': errors.BadRequest, // Moving positions isn't supported in spot mode. Switch to any other account mode and try again.
+                    '70067': errors.BadRequest, // Moving positions isn't supported in margin trading.
+                    '1009': errors.BadRequest, // Request message exceeds the maximum frame length
+                    '4001': errors.AuthenticationError, // Login Failed
+                    '4002': errors.BadRequest, // Invalid Request
+                    '4003': errors.RateLimitExceeded, // APIKey subscription amount exceeds the limit 100
+                    '4004': errors.NetworkError, // No data received in 30s
+                    '4005': errors.ExchangeNotAvailable, // Buffer is full, cannot write data
+                    '4006': errors.BadRequest, // Abnormal disconnection
+                    '4007': errors.AuthenticationError, // API key has been updated or deleted. Please reconnect.
                     '4008': errors.RateLimitExceeded, // The number of subscribed channels exceeds the maximum limit.
                 },
                 'broad': {
-                    'Internal Server Error': errors.ExchangeNotAvailable,
+                    'Internal Server Error': errors.ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': errors.ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
@@ -1018,16 +1108,20 @@ class okx extends okx$1["default"] {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'BTCLN': 'Lightning',
                     'BTCLIGHTNING': 'Lightning',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
+                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
+                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
+                    'CRONOS': 'Crypto',
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
                     'APT': 'Aptos',
+                    'SONIC': 'Sonic',
                     'SCROLL': 'Scroll',
                     'ARBONE': 'Arbitrum One',
                     'AVAXC': 'Avalanche C-Chain',
@@ -1036,31 +1130,33 @@ class okx extends okx$1["default"] {
                     'SUI': 'SUI',
                     'ZKSYNCERA': 'zkSync Era',
                     'LINEA': 'Linea',
+                    'VAULTA': 'Vaulta',
                     'AR': 'Arweave',
                     'ASTR': 'Astar',
                     'BCH': 'BitcoinCash',
                     'BSV': 'Bitcoin SV',
                     'ADA': 'Cardano',
                     'CSPR': 'Casper',
+                    'CANTON': 'Canton Network',
                     'CELO': 'CELO',
                     'XCH': 'Chia',
-                    // 'CHZ': 'Chiliz', TBD: Chiliz 2.0 Chain vs Chiliz Chain
+                    'BABY': 'Babylon',
+                    // 'CHZ': 'Chiliz', TBD: Chiliz Chain New vs Chiliz Chain
                     'ATOM': 'Cosmos',
                     'DGB': 'Digibyte',
                     'DOGE': 'Dogecoin',
                     'EGLD': 'Elrond',
-                    'CFX': 'Conflux',
+                    'CFX': 'Conflux', // CFX_EVM is different
                     'EOS': 'EOS',
                     'CORE': 'CORE',
                     'ETC': 'Ethereum Classic',
                     'ETHW': 'EthereumPow',
                     // 'FTM': 'Fantom', 'Sonic' TBD
                     'FIL': 'Filecoin',
-                    'ONE': 'Harmony',
                     'HBAR': 'Hedera',
-                    'ICX': 'ICON',
+                    'HYPER': 'HyperEVM',
                     'ICP': 'Dfinity',
-                    'IOST': 'IOST',
+                    'PI': 'PI',
                     'IOTA': 'MIOTA',
                     'KLAY': 'Klaytn',
                     'KSM': 'Kusama',
@@ -1075,9 +1171,7 @@ class okx extends okx$1["default"] {
                     'NULS': 'NULS',
                     'OASYS': 'OASYS',
                     'ONT': 'Ontology',
-                    'OPTIMISM': 'Optimism',
-                    // 'OP': 'Optimism', or Optimism (V2), TBD
-                    'LAT': 'PlatON',
+                    'OP': 'Optimism', // TBD: OPTIMISM vs OPTIMISM (V2)
                     'DOT': 'Polkadot',
                     'MATIC': 'Polygon',
                     'RVN': 'Ravencoin',
@@ -1091,52 +1185,45 @@ class okx extends okx$1["default"] {
                     'THETA': 'Theta',
                     'WAX': 'Wax',
                     'ZIL': 'Zilliqa',
-                    // non-supported known network: CRP. KAVA, TAIKO, BOB, GNO, BLAST, RSK, SEI, MANTLE, HYPE, RUNE, OSMO, XIN, WEMIX, HT, FSN, NEO, TLOS, CANTO, SCRT, AURORA, XMR
+                    'ZEC': 'Zcash',
+                    'ZETA': 'ZetaChain',
+                    'TIA': 'Celestia',
+                    'SEI': 'SEI',
+                    'QUANTUM': 'Quantum',
+                    'PHAROS': 'Pharos',
+                    'RONIN': 'Ronin',
+                    'MEGAETH': 'MegaETH',
+                    'INJ': 'INJ',
+                    'FOGO': 'Fogo',
+                    'FLR': 'Flare',
+                    'FLOW': 'FLOW',
+                    'DYDX': 'DYDX',
+                    'AELF': 'AELF',
+                    'BERA': 'Berachain',
+                    'TEMPO': 'Tempo',
+                    // tbd 'STARK': 'Starknet',
+                    // tbd Story(IP)
+                    'MONAD': 'Monad',
+                    'PLASMA': 'Plasma',
+                    // tbd OKTC
+                    // tbd Enjin Relay Chain
                     // others:
-                    // "OKTC",
-                    // "X Layer",
                     // "Polygon (Bridged)",
-                    // "BTCK-OKTC",
-                    // "ETHK-OKTC",
-                    // "Starknet",
-                    // "LTCK-OKTC",
-                    // "XRPK-OKTC",
-                    // "BCHK-OKTC",
-                    // "ETCK-OKTC",
-                    // "Endurance Smart Chain",
-                    // "Berachain",
-                    // "CELO-TOKEN",
-                    // "CFX_EVM",
                     // "Cortex",
-                    // "DAIK-OKTC",
-                    // "Dora Vota Mainnet",
-                    // "DOTK-OKTC",
-                    // "DYDX",
-                    // "AELF",
-                    // "Enjin Relay Chain",
                     // "FEVM",
-                    // "FILK-OKTC",
-                    // "Flare",
                     // "Gravity Alpha Mainnet",
-                    // "INJ",
-                    // "Story",
-                    // "LINKK-OKTC",
                     // "Terra",
                     // "Terra Classic",
                     // "Terra Classic (USTC)",
-                    // "MERLIN Network",
                     // "Layer 3",
-                    // "PI",
-                    // "Ronin",
-                    // "Quantum",
-                    // "SHIBK-OKTC",
-                    // "SUSHIK-OKTC",
                     // "Celestia",
-                    // "TRXK-OKTC",
-                    // "UNIK-OKTC",
                     // "Venom",
-                    // "WBTCK-OKTC",
                     // "ZetaChain",
+                },
+                'networksById': {
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'BEP20': 'BEP20',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1157,14 +1244,14 @@ class okx extends okx$1["default"] {
                 'fetchPositions': {
                     'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
-                'createOrder': 'privatePostTradeBatchOrders',
+                'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': {
                     'types': ['spot', 'future', 'swap', 'option'], // spot, future, swap, option
                 },
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
-                'defaultType': 'spot',
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
@@ -1203,7 +1290,7 @@ class okx extends okx$1["default"] {
                 },
                 'accountsByType': {
                     'funding': '6',
-                    'trading': '18',
+                    'trading': '18', // unified trading account
                     'spot': '18',
                     'future': '18',
                     'futures': '18',
@@ -1220,7 +1307,7 @@ class okx extends okx$1["default"] {
                     'margin': 'MARGIN',
                     'swap': 'SWAP',
                     'future': 'FUTURES',
-                    'futures': 'FUTURES',
+                    'futures': 'FUTURES', // deprecated
                     'option': 'OPTION',
                     'SPOT': 'SPOT',
                     'MARGIN': 'MARGIN',
@@ -1260,9 +1347,9 @@ class okx extends okx$1["default"] {
                         },
                         'hedged': true,
                         'trailing': true,
-                        'iceberg': true,
+                        'iceberg': true, // todo implement
                         'leverage': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                     },
@@ -1289,19 +1376,19 @@ class okx extends okx$1["default"] {
                         'trailing': true,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // not supported
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 90,
-                        'daysBackCanceled': 1 / 12,
+                        'daysBack': 90, // 3 months
+                        'daysBackCanceled': 1 / 12, // 2 hour
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': true,
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 300,
+                        'limit': 300, // regular candles (recent & historical) both have 300 max
                         'mark': 100,
                         'index': 100,
                     },
@@ -1338,9 +1425,9 @@ class okx extends okx$1["default"] {
             },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
-                'AE': 'AET',
-                'WIN': 'WINTOKEN', // https://github.com/ccxt/ccxt/issues/5701
+                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
             },
+            'rollingWindowSize': 0.0, // okx always receives rateLimitExceeded with rolling window
         });
     }
     handleMarketTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {
@@ -1372,7 +1459,7 @@ class okx extends okx$1["default"] {
         const expiry = this.safeString(optionParts, 2);
         const strike = this.safeString(optionParts, 3);
         const optionType = this.safeString(optionParts, 4);
-        const datetime = this.convertExpireDate(expiry);
+        const datetime = (expiry === undefined) ? undefined : this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
         return {
             'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1420,8 +1507,19 @@ class okx extends okx$1["default"] {
         };
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        let isOption = false;
+        if (marketId !== undefined) {
+            const parts = marketId.split('-');
+            const partsLength = parts.length;
+            // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
+            // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
+            // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
+            // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
+            // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
+            // on the missing expiry.
+            isOption = (partsLength > 3) && (marketId.endsWith('-C') || marketId.endsWith('-P'));
+        }
+        if (isOption && (marketId !== undefined) && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -1433,7 +1531,7 @@ class okx extends okx$1["default"] {
      * @description the latest known information on the availability of the exchange API
      * @see https://www.okx.com/docs-v5/en/#status-get-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const response = await this.publicGetSystemStatus(params);
@@ -1515,7 +1613,7 @@ class okx extends okx$1["default"] {
      * @description fetch all the accounts associated with a profile
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
         const response = await this.privateGetAccountConfig(params);
@@ -1658,7 +1756,13 @@ class okx extends okx$1["default"] {
         //         "uly": "BTC-USD"
         //     }
         //
-        const id = this.safeString(market, 'instId');
+        // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
+        const id = this.safeString(market, 'instId', '');
         let type = this.safeStringLower(market, 'instType');
         if (type === 'futures') {
             type = 'future';
@@ -1675,12 +1779,22 @@ class okx extends okx$1["default"] {
         const underlying = this.safeString(market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split('-');
-            baseId = this.safeString(parts, 0);
-            quoteId = this.safeString(parts, 1);
+            baseId = this.safeString(parts, 0, '');
+            quoteId = this.safeString(parts, 1, '');
+        }
+        if (((baseId === '') || (quoteId === '')) && spot) { // to fix weird preopen markets
+            const instId = this.safeString(market, 'instId', '');
+            const parts = instId.split('-');
+            baseId = this.safeString(parts, 0, '');
+            quoteId = this.safeString(parts, 1, '');
         }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = base + '/' + quote;
+        // handle preopen empty markets
+        if (base === '' || quote === '') {
+            symbol = id;
+        }
         let expiry = undefined;
         let strikePrice = undefined;
         let optionType = undefined;
@@ -1706,12 +1820,19 @@ class okx extends okx$1["default"] {
                 }
             }
         }
-        const fees = this.safeDict2(this.fees, type, 'trading', {});
+        const feesType = (type === undefined) ? '' : type;
+        const fees = this.safeDict2(this.fees, feesType, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        const leverageAboveOne = Precise["default"].stringGt(maxLeverage, '1');
+        const quoteEqualSettle = (quoteId === settleId);
+        const baseEqualSettle = (baseId === settleId);
+        const status = this.safeString(market, 'state');
+        const instIdCode = this.safeInteger(market, 'instIdCode');
         return this.extend(fees, {
             'id': id,
+            'instIdCode': instIdCode,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -1721,20 +1842,20 @@ class okx extends okx$1["default"] {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot && (Precise["default"].stringGt(maxLeverage, '1')),
+            'margin': spot && leverageAboveOne,
             'swap': swap,
             'future': future,
             'option': option,
-            'active': true,
+            'active': status === 'live',
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? quoteEqualSettle : undefined,
+            'inverse': contract ? baseEqualSettle : undefined,
             'contractSize': contract ? this.safeNumber(market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
             'strike': this.parseNumber(strikePrice),
             'optionType': optionType,
-            'created': this.safeInteger2(market, 'contTdSwTime', 'listTime'),
+            'created': this.safeInteger2(market, 'contTdSwTime', 'listTime'), // contTdSwTime is public trading start time, while listTime considers pre-trading too
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
                 'price': this.safeNumber(market, 'tickSz'),
@@ -1816,7 +1937,22 @@ class okx extends okx$1["default"] {
         //     }
         //
         const dataResponse = this.safeList(response, 'data', []);
-        return this.parseMarkets(dataResponse);
+        const marketsWithoutTest = [];
+        for (let i = 0; i < dataResponse.length; i++) {
+            const data = dataResponse[i];
+            const instId = this.safeString(data, 'instId', '');
+            if (instId === '') {
+                continue; // skip broken "preopen" placeholder instruments that have no instId
+            }
+            if (this.isSandboxModeEnabled) {
+                const instFamily = this.safeString(data, 'instFamily', '');
+                if (instFamily.startsWith('TEST')) {
+                    continue;
+                }
+            }
+            marketsWithoutTest.push(data);
+        }
+        return this.parseMarkets(marketsWithoutTest);
     }
     /**
      * @method
@@ -1885,68 +2021,67 @@ class okx extends okx$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
         const dataByCurrencyId = this.groupBy(data, 'ccy');
-        const currencyIds = Object.keys(dataByCurrencyId);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const currency = this.safeCurrency(currencyId);
-            const code = currency['code'];
-            const chains = dataByCurrencyId[currencyId];
-            const networks = {};
-            let type = 'crypto';
-            const chainsLength = chains.length;
-            for (let j = 0; j < chainsLength; j++) {
-                const chain = chains[j];
-                // allow empty string for rare fiat-currencies, e.g. TRY
-                const networkId = this.safeString(chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
-                if (networkId === '') {
-                    // only happens for fiat 'TRY' currency
-                    type = 'fiat';
-                }
-                const idParts = networkId.split('-');
-                const parts = this.arraySlice(idParts, 1);
-                const chainPart = parts.join('-');
-                const networkCode = this.networkIdToCode(chainPart, currency['code']);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'canDep'),
-                    'withdraw': this.safeBool(chain, 'canWd'),
-                    'fee': this.safeNumber(chain, 'fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'minWd'),
-                            'max': this.safeNumber(chain, 'maxWd'),
-                        },
-                    },
-                    'info': chain,
-                };
+        const currencies = Object.values(dataByCurrencyId);
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(currency) {
+        const chains = currency;
+        // currencies are grouped by chain entries, so there is at least one entry
+        const firstChain = this.safeDict(chains, 0, {});
+        const currencyId = this.safeString(firstChain, 'ccy');
+        const code = this.safeCurrencyCode(currencyId);
+        const networks = {};
+        let type = 'crypto';
+        const chainsLength = chains.length;
+        for (let j = 0; j < chainsLength; j++) {
+            const chain = chains[j];
+            // allow empty string for rare fiat-currencies, e.g. TRY
+            const networkId = this.safeString(chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+            if (networkId === '') {
+                // only happens for fiat 'TRY' currency
+                type = 'fiat';
             }
-            const firstChain = this.safeDict(chains, 0, {});
-            result[code] = this.safeCurrencyStructure({
-                'info': chains,
-                'code': code,
-                'id': currencyId,
-                'name': this.safeString(firstChain, 'name'),
+            const idParts = networkId.split('-');
+            const parts = this.arraySlice(idParts, 1);
+            const chainPart = parts.join('-');
+            const networkCode = this.networkIdToCode(chainPart, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
+                'deposit': this.safeBool(chain, 'canDep'),
+                'withdraw': this.safeBool(chain, 'canWd'),
+                'fee': this.safeNumber(chain, 'fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'withdraw': {
+                        'min': this.safeNumber(chain, 'minWd'),
+                        'max': this.safeNumber(chain, 'maxWd'),
                     },
                 },
-                'type': type,
-                'networks': networks,
-            });
+                'info': chain,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': chains,
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString(firstChain, 'name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': type,
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1957,10 +2092,12 @@ class okx extends okx$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2045,9 +2182,14 @@ class okx extends okx$1["default"] {
         //          ts: '1728467346900'
         //     },
         //
+        const instType = this.safeString(ticker, 'instType');
+        let marketType = undefined;
+        if (instType !== undefined) {
+            marketType = (instType === 'SPOT') ? 'spot' : 'swap';
+        }
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'instId');
-        market = this.safeMarket(marketId, market, '-');
+        market = this.safeMarket(marketId, market, '-', marketType);
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
@@ -2088,10 +2230,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2134,10 +2278,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -2192,10 +2338,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2225,10 +2373,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -2355,10 +2505,12 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -2471,7 +2623,9 @@ class okx extends okx$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
@@ -2576,16 +2730,18 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -2723,10 +2879,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instType': this.convertToInstrumentType(market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -2774,10 +2932,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const request = {
         // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
@@ -2901,10 +3061,12 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
@@ -2923,10 +3085,12 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot markets only');
@@ -2939,6 +3103,9 @@ class okx extends okx$1["default"] {
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
+        const takeProfitPrice = this.safeValue2(params, 'takeProfitPrice', 'tpTriggerPx');
+        const stopLossPrice = this.safeValue2(params, 'stopLossPrice', 'slTriggerPx');
+        const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         let request = {
             'instId': market['id'],
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
@@ -2949,7 +3116,7 @@ class okx extends okx$1["default"] {
             'ordType': type,
             // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': this.amountToPrecision(symbol, amount),
+            // 'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false,
             //
@@ -2965,27 +3132,33 @@ class okx extends okx$1["default"] {
             // 'slTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
             // 'slOrdPx': 10, // Order price for Stop-Loss orders, if -1 will be executed at market price (conditional orders)
         };
+        const isConditionalOrOCO = conditional || (type === 'oco');
+        const closeFraction = this.safeString(params, 'closeFraction');
+        const shouldOmitSize = isConditionalOrOCO && closeFraction !== undefined;
+        if (!shouldOmitSize) {
+            request['sz'] = this.amountToPrecision(symbol, amount);
+        }
         const spot = market['spot'];
         const contract = market['contract'];
         const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
-        const takeProfitPrice = this.safeValue2(params, 'takeProfitPrice', 'tpTriggerPx');
+        // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const tpOrdPx = this.safeValue(params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString(params, 'tpTriggerPxType', 'last');
-        const stopLossPrice = this.safeValue2(params, 'stopLossPrice', 'slTriggerPx');
+        // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
         const slOrdPx = this.safeValue(params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString(params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         const stopLoss = this.safeValue(params, 'stopLoss');
-        const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const takeProfitDefined = (takeProfit !== undefined);
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
         const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
-        const isReduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const isReduceOnly = this.safeValue(params, 'reduceOnly', false) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -3040,7 +3213,7 @@ class okx extends okx$1["default"] {
         params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
-        const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
+        // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString(params, 'tgtCcy', defaultTgtCcy);
@@ -3104,9 +3277,9 @@ class okx extends okx$1["default"] {
             request['callbackSpread'] = trailingPrice;
             request['ordType'] = 'move_order_stop';
         }
-        else if (stopLossDefined || takeProfitDefined) {
+        else if (hasStopLoss || hasTakeProfit) {
             let attachAlgoOrd = {};
-            if (stopLossDefined) {
+            if (hasStopLoss) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
@@ -3149,7 +3322,7 @@ class okx extends okx$1["default"] {
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
-            if (takeProfitDefined) {
+            if (hasTakeProfit) {
                 const takeProfitTriggerPrice = this.safeValueN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
                 if (takeProfitTriggerPrice === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
@@ -3282,10 +3455,12 @@ class okx extends okx$1["default"] {
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let method = this.safeString(this.options, 'createOrder', 'privatePostTradeBatchOrders');
@@ -3326,15 +3501,20 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            const type = this.safeString(rawOrder, 'type');
+            if (marketId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
+            }
+            const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -3403,8 +3583,8 @@ class okx extends okx$1["default"] {
         const takeProfitTriggerPriceType = this.safeString(params, 'newTpTriggerPxType', 'last');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const stopLossDefined = (stopLoss !== undefined);
-        const takeProfitDefined = (takeProfit !== undefined);
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         if (isAlgoOrder) {
             if ((stopLossTriggerPrice === undefined) && (takeProfitTriggerPrice === undefined)) {
                 throw new errors.BadRequest(this.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order');
@@ -3437,7 +3617,7 @@ class okx extends okx$1["default"] {
                 request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
             }
-            if (stopLossDefined) {
+            if (hasStopLoss) {
                 stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
                 stopLossPrice = this.safeValue(stopLoss, 'price');
                 const stopLossType = this.safeString(stopLoss, 'type');
@@ -3445,7 +3625,7 @@ class okx extends okx$1["default"] {
                 request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType;
             }
-            if (takeProfitDefined) {
+            if (hasTakeProfit) {
                 takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
                 takeProfitPrice = this.safeValue(takeProfit, 'price');
                 const takeProfitType = this.safeString(takeProfit, 'type');
@@ -3495,10 +3675,12 @@ class okx extends okx$1["default"] {
      * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
      * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
      * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         let isAlgoOrder = undefined;
@@ -3545,7 +3727,7 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if trigger orders
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3557,7 +3739,9 @@ class okx extends okx$1["default"] {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeDict(orderInner, 0);
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -3604,14 +3788,16 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = [];
         const options = this.safeValue(this.options, 'cancelOrders', {});
@@ -3714,10 +3900,12 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersForSymbols(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = [];
         const options = this.safeDict(this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
@@ -3733,6 +3921,9 @@ class okx extends okx$1["default"] {
             const id = this.safeString(order, 'id');
             const clientOrderId = this.safeString2(order, 'clOrdId', 'clientOrderId');
             const symbol = this.safeString(order, 'symbol');
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol for each order');
+            }
             const market = this.market(symbol);
             let idKey = 'ordId';
             if (isStopOrTrailing) {
@@ -3801,9 +3992,15 @@ class okx extends okx$1["default"] {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        let timeOut = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            timeOut = this.parseToInt(timeout / 1000);
+        }
         const request = {
-            'timeOut': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
+            'timeOut': timeOut,
         };
         const response = await this.privatePostTradeCancelAllAfter(this.extend(request, params));
         //
@@ -3829,6 +4026,9 @@ class okx extends okx$1["default"] {
             'filled': 'closed',
             'effective': 'closed',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
@@ -4126,13 +4326,15 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra and exchange specific parameters
      * @param {boolean} [params.trigger] true if fetching trigger orders
-     * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -4285,14 +4487,17 @@ class okx extends okx$1["default"] {
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, params, maxLimit);
         }
         const request = {
         // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4310,7 +4515,7 @@ class okx extends okx$1["default"] {
             request['instId'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 100
+            request['limit'] = Math.min(limit, maxLimit); // default 100, max 100
         }
         const options = this.safeValue(this.options, 'fetchOpenOrders', {});
         const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
@@ -4319,7 +4524,7 @@ class okx extends okx$1["default"] {
         const ordType = this.safeString(params, 'ordType');
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trailing || trigger || (ordType in algoOrderTypes)) {
+        if (trailing || trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
         if (trailing) {
@@ -4449,10 +4654,12 @@ class okx extends okx$1["default"] {
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {int} [params.until] timestamp in ms to fetch orders for
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
         // 'uly': currency['id'],
@@ -4470,7 +4677,7 @@ class okx extends okx$1["default"] {
             request['instId'] = market['id'];
         }
         let type = undefined;
-        let query = undefined;
+        let query;
         [type, query] = this.handleMarketTypeAndParams('fetchCanceledOrders', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
@@ -4488,7 +4695,7 @@ class okx extends okx$1["default"] {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
         }
-        else if (trigger || (ordType in algoOrderTypes)) {
+        else if (trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             const algoId = this.safeString(params, 'algoId');
             if (algoId !== undefined) {
@@ -4639,14 +4846,17 @@ class okx extends okx$1["default"] {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params, maxLimit);
         }
         const request = {
         // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4665,11 +4875,11 @@ class okx extends okx$1["default"] {
             request['instId'] = market['id'];
         }
         let type = undefined;
-        let query = undefined;
+        let query;
         [type, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 100
+            request['limit'] = Math.min(limit, maxLimit); // default 100, max 100
         }
         const options = this.safeDict(this.options, 'fetchClosedOrders', {});
         const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
@@ -4678,7 +4888,7 @@ class okx extends okx$1["default"] {
         const ordType = this.safeString(params, 'ordType');
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trailing || trigger || (ordType in algoOrderTypes)) {
+        if (trailing || trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
         }
@@ -4821,10 +5031,12 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -4892,7 +5104,7 @@ class okx extends okx$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
@@ -4918,10 +5130,12 @@ class okx extends okx$1["default"] {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -5030,16 +5244,16 @@ class okx extends okx$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            '1': 'transfer',
-            '2': 'trade',
-            '3': 'trade',
-            '4': 'rebate',
-            '5': 'trade',
-            '6': 'transfer',
-            '7': 'trade',
-            '8': 'fee',
-            '9': 'trade',
-            '10': 'trade',
+            '1': 'transfer', // transfer
+            '2': 'trade', // trade
+            '3': 'trade', // delivery
+            '4': 'rebate', // auto token conversion
+            '5': 'trade', // liquidation
+            '6': 'transfer', // margin transfer
+            '7': 'trade', // interest deduction
+            '8': 'fee', // funding rate
+            '9': 'trade', // adl
+            '10': 'trade', // clawback
             '11': 'trade', // system token conversion
         };
         return this.safeString(types, type, type);
@@ -5154,7 +5368,7 @@ class okx extends okx$1["default"] {
         const chain = this.safeString(depositAddress, 'chain');
         const networks = this.safeValue(currency, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
-        let networkData = this.safeValue(networksById, chain);
+        let networkData = (chain === undefined) ? undefined : this.safeValue(networksById, chain);
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -5217,10 +5431,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -5260,10 +5476,12 @@ class okx extends okx$1["default"] {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the network name for the deposit address
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const rawNetwork = this.safeString(params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit(params, 'network');
         code = this.safeCurrencyCode(code);
@@ -5282,7 +5500,7 @@ class okx extends okx$1["default"] {
         }
         // if the network is not specified, return the first address
         const keys = Object.keys(response);
-        const first = this.safeString(keys, 0);
+        const first = this.safeString(keys, 0, '');
         return this.safeDict(response, first);
     }
     /**
@@ -5295,12 +5513,14 @@ class okx extends okx$1["default"] {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
@@ -5308,7 +5528,7 @@ class okx extends okx$1["default"] {
         const request = {
             'ccy': currency['id'],
             'toAddr': address,
-            'dest': '4',
+            'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt': this.numberToString(amount),
         };
         let network = this.safeString(params, 'network'); // this line allows the user to specify either ERC20 or ETH
@@ -5322,7 +5542,7 @@ class okx extends okx$1["default"] {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies();
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-            const targetNetwork = this.safeDict(currency['networks'], this.networkIdToCode(network), {});
+            const targetNetwork = this.safeDict(currency['networks'], this.networkIdToCode(network, currency['code']), {});
             fee = this.safeString(targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
@@ -5359,10 +5579,12 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -5437,10 +5659,12 @@ class okx extends okx$1["default"] {
      * @param {string} id deposit id
      * @param {string} code filter by currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposit(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'depId': id,
         };
@@ -5465,10 +5689,12 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -5535,10 +5761,12 @@ class okx extends okx$1["default"] {
      * @param {string} id withdrawal id
      * @param {string} code unified currency code of the currency withdrawn, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawal(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'wdId': id,
         };
@@ -5616,6 +5844,9 @@ class okx extends okx$1["default"] {
             '15': 'pending',
             '16': 'pending',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -5665,7 +5896,7 @@ class okx extends okx$1["default"] {
         const addressTo = this.safeString(transaction, 'to');
         const address = addressTo;
         let tagTo = this.safeString2(transaction, 'tag', 'memo');
-        tagTo = this.safeString2(transaction, 'pmtId', tagTo);
+        tagTo = (tagTo === undefined) ? this.safeString(transaction, 'pmtId') : this.safeString2(transaction, 'pmtId', tagTo);
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
@@ -5677,6 +5908,16 @@ class okx extends okx$1["default"] {
         }
         const currencyId = this.safeString(transaction, 'ccy');
         const code = this.safeCurrencyCode(currencyId);
+        let network = undefined;
+        const chain = this.safeString(transaction, 'chain');
+        if (chain !== undefined) {
+            const chainParts = chain.split('-');
+            const networkParts = this.arraySlice(chainParts, 1);
+            const networkId = networkParts.join('-');
+            if (networkId !== undefined) {
+                network = this.networkIdToCode(networkId, code);
+            }
+        }
         const amount = this.safeNumber(transaction, 'amt');
         const status = this.parseTransactionStatus(this.safeString(transaction, 'state'));
         const txid = this.safeString(transaction, 'txId');
@@ -5694,7 +5935,7 @@ class okx extends okx$1["default"] {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -5723,10 +5964,12 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params);
         if (marginMode === undefined) {
@@ -5795,10 +6038,12 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [type, query] = this.handleMarketTypeAndParams('fetchPosition', market, params);
         const request = {
@@ -5872,10 +6117,12 @@ class okx extends okx$1["default"] {
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'instType': 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
         // 'instId': market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
@@ -5963,7 +6210,7 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] MARGIN (if needed)
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsForSymbol(symbol, params = {}) {
         return await this.fetchPositions([symbol], params);
@@ -6101,7 +6348,12 @@ class okx extends okx$1["default"] {
             initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+            if (market['linear']) {
+                initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+            }
+            else {
+                initialMarginString = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
+            }
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -6151,10 +6403,12 @@ class okx extends okx$1["default"] {
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -6162,8 +6416,8 @@ class okx extends okx$1["default"] {
         const request = {
             'ccy': currency['id'],
             'amt': this.currencyToPrecision(code, amount),
-            'type': '0',
-            'from': fromId,
+            'type': '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account (Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
+            'from': fromId, // remitting account, 6: Funding account, 18: Trading account
             'to': toId, // beneficiary account, 6: Funding account, 18: Trading account
             // 'subAcct': 'sub-account-name', // optional, only required when type is 1, 2 or 4
             // 'loanTrans': false, // Whether or not borrowed coins can be transferred out under Multi-currency margin and Portfolio margin. The default is false
@@ -6274,8 +6528,8 @@ class okx extends okx$1["default"] {
             'datetime': this.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': this.safeString(accountsById, fromAccountId),
-            'toAccount': this.safeString(accountsById, toAccountId),
+            'fromAccount': (fromAccountId === undefined) ? undefined : this.safeString(accountsById, fromAccountId),
+            'toAccount': (toAccountId === undefined) ? undefined : this.safeString(accountsById, toAccountId),
             'status': this.parseTransferStatus(this.safeString(transfer, 'state')),
         };
     }
@@ -6283,10 +6537,15 @@ class okx extends okx$1["default"] {
         const statuses = {
             'success': 'ok',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     async fetchTransfer(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -6325,10 +6584,12 @@ class okx extends okx$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'type': '1', // https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
@@ -6438,7 +6699,7 @@ class okx extends okx$1["default"] {
                 }
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -6506,6 +6767,7 @@ class okx extends okx$1["default"] {
     parseFundingInterval(interval) {
         const intervals = {
             '3600000': '1h',
+            '7200000': '2h',
             '14400000': '4h',
             '28800000': '8h',
             '57600000': '16h',
@@ -6520,7 +6782,7 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingInterval(symbol, params = {}) {
         return await this.fetchFundingRate(symbol, params);
@@ -6532,10 +6794,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
@@ -6571,10 +6835,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+     * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, 'swap', true);
         const request = { 'instId': 'ANY' };
         const response = await this.publicGetPublicFundingRate(this.extend(request, params));
@@ -6606,10 +6872,12 @@ class okx extends okx$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'ccy': currency['id'],
@@ -6743,6 +7011,15 @@ class okx extends okx$1["default"] {
             const marketInner = this.safeMarket(instId);
             const currencyId = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
+            const balanceChange = this.safeString(entry, 'balChg');
+            const positionBalanceChange = this.safeString(entry, 'posBalChg');
+            let amount = undefined;
+            if ((balanceChange !== undefined) && (!Precise["default"].stringEq(balanceChange, '0'))) {
+                amount = balanceChange;
+            }
+            else {
+                amount = positionBalanceChange;
+            }
             result.push({
                 'info': entry,
                 'symbol': marketInner['symbol'],
@@ -6750,7 +7027,7 @@ class okx extends okx$1["default"] {
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'id': this.safeString(entry, 'billId'),
-                'amount': this.safeNumber(entry, 'balChg'),
+                'amount': this.parseNumber(amount),
             });
         }
         const sorted = this.sortBy(result, 'timestamp');
@@ -6777,7 +7054,9 @@ class okx extends okx$1["default"] {
         if ((leverage < 1) || (leverage > 125)) {
             throw new errors.BadRequest(this.id + ' setLeverage() leverage should be between 1 and 125');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
@@ -6829,7 +7108,7 @@ class okx extends okx$1["default"] {
     async fetchPositionMode(symbol = undefined, params = {}) {
         const accounts = await this.fetchAccounts();
         const length = accounts.length;
-        let selectedAccount = undefined;
+        let selectedAccount;
         if (length > 1) {
             const accountId = this.safeString(params, 'accountId');
             if (accountId === undefined) {
@@ -6908,7 +7187,9 @@ class okx extends okx$1["default"] {
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const lever = this.safeInteger2(params, 'lever', 'leverage');
         if ((lever === undefined) || (lever < 1) || (lever > 125)) {
@@ -6943,10 +7224,12 @@ class okx extends okx$1["default"] {
      * @description fetch the borrow interest rates of all currencies
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRates(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountInterestRate(params);
         //
         //    {
@@ -6974,10 +7257,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRate(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -7061,10 +7346,12 @@ class okx extends okx$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
      * @param {int} [limit] max number of borrow rate prices to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
     async fetchBorrowRateHistories(codes = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'ccy': currency['id'],
         // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
@@ -7102,12 +7389,14 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
      * @param {string} code unified currency code
      * @param {int} [since] timestamp for the earliest borrow rate
-     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -7140,7 +7429,9 @@ class okx extends okx$1["default"] {
         return this.parseBorrowRateHistory(data, code, since, limit);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const posSide = this.safeString(params, 'posSide', 'net');
         params = this.omit(params, ['posSide']);
@@ -7255,7 +7546,7 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
@@ -7268,7 +7559,7 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'add', params);
@@ -7281,10 +7572,12 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType(market['type']);
         const uly = this.safeString(market['info'], 'uly');
@@ -7363,7 +7656,7 @@ class okx extends okx$1["default"] {
             tiers.push({
                 'tier': this.safeInteger(tier, 'tier'),
                 'symbol': this.safeSymbol(marketId, market),
-                'currency': market['quote'],
+                'currency': this.safeString(market, 'quote'),
                 'minNotional': this.safeNumber(tier, 'minSz'),
                 'maxNotional': this.safeNumber(tier, 'maxSz'),
                 'maintenanceMarginRate': this.safeNumber(tier, 'mmr'),
@@ -7381,14 +7674,16 @@ class okx extends okx$1["default"] {
      * @param {string} code the unified currency code for the currency of the interest
      * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
      * @param {int} [since] timestamp in ms of the earliest time to receive interest records for
-     * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure} to retrieve
+     * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure} to retrieve
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.type] Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBorrowInterest', params);
         if (marginMode === undefined) {
@@ -7450,7 +7745,7 @@ class okx extends okx$1["default"] {
             'interestRate': this.safeNumber(info, 'interestRate'),
             'amountBorrowed': this.safeNumber(info, 'liab'),
             'marginMode': this.safeString(info, 'mgnMode'),
-            'timestamp': timestamp,
+            'timestamp': timestamp, // Interest accrued time
             'datetime': this.iso8601(timestamp),
         };
     }
@@ -7462,10 +7757,12 @@ class okx extends okx$1["default"] {
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -7501,10 +7798,12 @@ class okx extends okx$1["default"] {
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const id = this.safeString2(params, 'id', 'ordId');
         params = this.omit(params, 'id');
         if (id === undefined) {
@@ -7567,10 +7866,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
      * @param {string} symbol Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
@@ -7611,10 +7912,12 @@ class okx extends okx$1["default"] {
      * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
      * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
-     * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterests(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true);
         let market = undefined;
         if (symbols !== undefined) {
@@ -7672,7 +7975,7 @@ class okx extends okx$1["default"] {
      * @param {int} [limit] Not used by okx, but parsed internally by CCXT
      * @param {object} [params] Exchange specific parameters
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
-     * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterestHistory(symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         const options = this.safeDict(this.options, 'fetchOpenInterestHistory', {});
@@ -7681,7 +7984,9 @@ class okx extends okx$1["default"] {
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // handle unified currency code or symbol
         let currencyId = undefined;
         let market = undefined;
@@ -7778,8 +8083,8 @@ class okx extends okx$1["default"] {
         }
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(id),
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': baseVolume, // deprecated
+            'quoteVolume': quoteVolume, // deprecated
             'openInterestAmount': openInterestAmount,
             'openInterestValue': openInterestValue,
             'timestamp': timestamp,
@@ -7804,10 +8109,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (codes !== undefined) {
             const ids = this.currencyIds(codes);
@@ -7893,7 +8200,9 @@ class okx extends okx$1["default"] {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
-                depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                if (currencyId !== undefined) {
+                    depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                }
                 const chain = this.safeString(feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;
@@ -7933,13 +8242,15 @@ class okx extends okx$1["default"] {
      * @param {int} [since] timestamp in ms
      * @param {int} [limit] number of records
      * @param {object} [params] exchange specific params
-     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
@@ -8032,10 +8343,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
      * @param {object} [params] exchange specific params
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
-     * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}
+     * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
     async fetchUnderlyingAssets(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchUnderlyingAssets', undefined, params);
         if ((marketType === undefined) || (marketType === 'spot')) {
@@ -8070,12 +8383,14 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const optionParts = marketId.split('-');
         const request = {
             'uly': market['info']['uly'],
@@ -8131,10 +8446,12 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.uly Underlying, either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         let symbolsLength = undefined;
@@ -8158,7 +8475,7 @@ class okx extends okx$1["default"] {
         if (symbols !== undefined) {
             if (symbolsLength === 1) {
                 market = this.market(symbols[0]);
-                const marketId = market['id'];
+                const marketId = this.safeString(market, 'id', '');
                 const optionParts = marketId.split('-');
                 request['uly'] = market['info']['uly'];
                 request['instFamily'] = market['info']['instFamily'];
@@ -8263,10 +8580,12 @@ class okx extends okx$1["default"] {
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         const code = this.safeString(params, 'code');
@@ -8323,10 +8642,12 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOption(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -8370,10 +8691,12 @@ class okx extends okx$1["default"] {
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
-     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOptionChain(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'uly': currency['code'] + '-USD',
@@ -8462,10 +8785,12 @@ class okx extends okx$1["default"] {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'baseCcy': fromCode.toUpperCase(),
             'quoteCcy': toCode.toUpperCase(),
@@ -8515,10 +8840,12 @@ class okx extends okx$1["default"] {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'quoteId': id,
             'baseCcy': fromCode,
@@ -8566,10 +8893,12 @@ class okx extends okx$1["default"] {
      * @param {string} id the id of the trade that you want to fetch
      * @param {string} [code] the unified currency code of the conversion trade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTrade(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'clTReqId': id,
         };
@@ -8619,10 +8948,12 @@ class okx extends okx$1["default"] {
      * @param {int} [limit] the maximum number of conversion structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         [request, params] = this.handleUntilOption('after', request, params);
         if (since !== undefined) {
@@ -8736,7 +9067,9 @@ class okx extends okx$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchConvertCurrencies(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAssetConvertCurrencies(params);
         //
         //     {
@@ -8840,10 +9173,12 @@ class okx extends okx$1["default"] {
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
-     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const auto = this.safeBool(params, 'auto');
         if (type === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory () requires a type argument');
@@ -8928,7 +9263,7 @@ class okx extends okx$1["default"] {
         //        msg: ''
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const modifications = this.parseMarginModifications(data);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
@@ -8949,10 +9284,12 @@ class okx extends okx$1["default"] {
      * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
      * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
      * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const marginMode = this.safeString(params, 'marginMode');
         const instType = this.safeStringUpper(params, 'instType');
         params = this.omit(params, ['until', 'marginMode', 'instType']);
@@ -9009,7 +9346,7 @@ class okx extends okx$1["default"] {
         //        msg: ''
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const positions = this.parsePositions(data, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
     }
@@ -9024,10 +9361,15 @@ class okx extends okx$1["default"] {
      * @param {int} [limit] the maximum number of long short ratio structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
-     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchLongShortRatioHistory() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -9038,7 +9380,7 @@ class okx extends okx$1["default"] {
             request['end'] = until;
         }
         if (timeframe !== undefined) {
-            request['period'] = timeframe;
+            request['period'] = this.safeString(this.timeframes, timeframe, timeframe);
         }
         if (since !== undefined) {
             request['begin'] = since;

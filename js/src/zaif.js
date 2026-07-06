@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class zaif
@@ -27,35 +27,64 @@ export default class zaif extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but unimplemented
                 'swap': false,
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createStopLossOrder': false,
+                'createTakeProfitOrder': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchLeverageTiers': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMySettlementHistory': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
+                'setMarginMode': false,
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e',
                 'api': {
                     'rest': 'https://api.zaif.jp',
                 },
@@ -91,22 +120,22 @@ export default class zaif extends Exchange {
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5,
+                        'active_orders': 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
                         'cancel_order': 5,
                         'deposit_history': 5,
                         'get_id_info': 5,
-                        'get_info': 10,
-                        'get_info2': 5,
+                        'get_info': 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
                         'get_personal_info': 5,
                         'trade': 5,
-                        'trade_history': 50,
+                        'trade_history': 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
                         'withdraw': 5,
                         'withdraw_history': 5,
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1,
+                        'createInvoice': 1, // unverified
                         'getInvoice': 1,
                         'getInvoiceIdsByOrderNumber': 1,
                         'cancelInvoice': 1,
@@ -114,17 +143,17 @@ export default class zaif extends Exchange {
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66,
-                        'position_history': 66,
-                        'active_positions': 5,
-                        'create_position': 33,
-                        'change_position': 33,
+                        'get_positions': 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': 66, // 10 in 60 seconds
+                        'active_positions': 5, // 20 in 10 seconds
+                        'create_position': 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': 33, // 3 in 10 seconds
                         'cancel_position': 33, // 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1,
+                        'groups/{group_id}': 1, // testing
                         'last_price/{group_id}/{pair}': 1,
                         'ticker/{group_id}/{pair}': 1,
                         'trades/{group_id}/{pair}': 1,
@@ -137,12 +166,12 @@ export default class zaif extends Exchange {
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': true,
-                        'triggerPrice': true,
+                        'marginMode': true, // todo
+                        'triggerPrice': true, // todo implement
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -152,29 +181,29 @@ export default class zaif extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': undefined,
-                    'fetchMyTrades': undefined,
+                    'fetchMyTrades': undefined, // todo
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
-                        'marginMode': true,
+                        'marginMode': true, // todo
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
-                        'marginMode': true,
+                        'marginMode': true, // todo
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -254,7 +283,7 @@ export default class zaif extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': undefined, // can trade or not
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -321,10 +350,12 @@ export default class zaif extends Exchange {
      * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetInfo(params);
         return this.parseBalance(response);
     }
@@ -336,10 +367,12 @@ export default class zaif extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -394,10 +427,12 @@ export default class zaif extends Exchange {
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -462,10 +497,12 @@ export default class zaif extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -503,10 +540,12 @@ export default class zaif extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (type !== 'limit') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
@@ -531,7 +570,7 @@ export default class zaif extends Exchange {
      * @param {string} id order id
      * @param {string} symbol not used by zaif cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const request = {
@@ -619,10 +658,12 @@ export default class zaif extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
         // 'is_token': false,
@@ -644,10 +685,12 @@ export default class zaif extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
         // 'from': 0,
@@ -676,12 +719,14 @@ export default class zaif extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if (code === 'JPY') {
             throw new ExchangeError(this.id + ' withdraw() does not allow ' + code + ' withdrawals');

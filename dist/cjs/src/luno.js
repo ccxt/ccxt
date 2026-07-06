@@ -17,7 +17,7 @@ class luno extends luno$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'luno',
-            'name': 'luno',
+            'name': 'Luno',
             'countries': ['GB', 'SG', 'ZA'],
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit': 200,
@@ -215,7 +215,7 @@ class luno extends luno$1["default"] {
             },
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': true, // based on volume from your primary currency (not the same for everyone)
                     'percentage': true,
                     'taker': this.parseNumber('0.001'),
                     'maker': this.parseNumber('0'),
@@ -230,11 +230,11 @@ class luno extends luno$1["default"] {
                     },
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'triggerDirection': true, // todo
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -254,8 +254,8 @@ class luno extends luno$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -303,6 +303,7 @@ class luno extends luno$1["default"] {
                     'inverse': undefined,
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
     /**
@@ -330,39 +331,19 @@ class luno extends luno$1["default"] {
         //     }
         //
         const currenciesData = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < currenciesData.length; i++) {
-            const networkEntry = currenciesData[i];
-            const id = this.safeString(networkEntry, 'native_currency');
-            const code = this.safeCurrencyCode(id);
-            if (!(code in result)) {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'precision': undefined,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'networks': {},
-                    'info': {},
-                };
-            }
+        const grouped = this.groupBy(currenciesData, 'native_currency');
+        const values = Object.values(grouped);
+        return this.parseCurrencies(values);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency[0], 'native_currency'); // first item is guaranteed
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        for (let i = 0; i < rawCurrency.length; i++) {
+            const networkEntry = rawCurrency[i];
             const networkId = this.safeString(networkEntry, 'name');
-            const networkCode = this.networkIdToCode(networkId);
-            result[code]['networks'][networkCode] = {
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
                 'limits': {
@@ -382,18 +363,30 @@ class luno extends luno$1["default"] {
                 'precision': undefined,
                 'info': networkEntry,
             };
-            // add entry in info
-            const info = this.safeList(result[code], 'info', []);
-            info.push(networkEntry);
-            result[code]['info'] = info;
         }
-        // only after all entries are formed in currencies, restructure each entry
-        const allKeys = Object.keys(result);
-        for (let i = 0; i < allKeys.length; i++) {
-            const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure(result[code]); // this is needed after adding network entry
-        }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -492,7 +485,7 @@ class luno extends luno$1["default"] {
      * @description fetch all the accounts associated with a profile
      * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
         const response = await this.privateGetBalance(params);
@@ -547,10 +540,12 @@ class luno extends luno$1["default"] {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetBalance(params);
         //
         //     {
@@ -573,10 +568,12 @@ class luno extends luno$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -681,10 +678,12 @@ class luno extends luno$1["default"] {
      * @param {string} id order id
      * @param {string} symbol not used by luno fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -692,7 +691,9 @@ class luno extends luno$1["default"] {
         return this.parseOrder(response);
     }
     async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (state !== undefined) {
@@ -715,7 +716,7 @@ class luno extends luno$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByState(undefined, symbol, since, limit, params);
@@ -729,7 +730,7 @@ class luno extends luno$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByState('PENDING', symbol, since, limit, params);
@@ -743,7 +744,7 @@ class luno extends luno$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByState('COMPLETE', symbol, since, limit, params);
@@ -792,10 +793,12 @@ class luno extends luno$1["default"] {
      * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetTickers(params);
         const tickers = this.indexBy(response['tickers'], 'pair');
@@ -817,10 +820,12 @@ class luno extends luno$1["default"] {
      * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -901,13 +906,13 @@ class luno extends luno$1["default"] {
         let feeCost = undefined;
         if (feeBaseString !== undefined) {
             if (!Precise["default"].stringEquals(feeBaseString, '0.0')) {
-                feeCurrency = market['base'];
+                feeCurrency = this.safeString(market, 'base');
                 feeCost = feeBaseString;
             }
         }
         else if (feeCounterString !== undefined) {
             if (!Precise["default"].stringEquals(feeCounterString, '0.0')) {
-                feeCurrency = market['quote'];
+                feeCurrency = this.safeString(market, 'quote');
                 feeCost = feeCounterString;
             }
         }
@@ -917,7 +922,7 @@ class luno extends luno$1["default"] {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -941,10 +946,12 @@ class luno extends luno$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -982,7 +989,9 @@ class luno extends luno$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'duration': this.safeValue(this.timeframes, timeframe, timeframe),
@@ -1042,13 +1051,15 @@ class luno extends luno$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1091,10 +1102,12 @@ class luno extends luno$1["default"] {
      * @see https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1128,10 +1141,12 @@ class luno extends luno$1["default"] {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1167,10 +1182,12 @@ class luno extends luno$1["default"] {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1208,10 +1225,12 @@ class luno extends luno$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         let currency = undefined;
         let id = this.safeString(params, 'id'); // account id
@@ -1275,7 +1294,7 @@ class luno extends luno$1["default"] {
         const firstWord = this.safeString(words, 0);
         const thirdWord = this.safeString(words, 2);
         const fourthWord = this.safeString(words, 3);
-        let type = this.safeString(types, firstWord, undefined);
+        let type = this.safeString(types, firstWord);
         if ((type === undefined) && (thirdWord === 'fee')) {
             type = 'fee';
         }
@@ -1352,10 +1371,12 @@ class luno extends luno$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] an optional name for the new address
      * @param {int} [params.account_id] an optional account id for the new address
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -1391,10 +1412,12 @@ class luno extends luno$1["default"] {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] a specific cryptocurrency address to retrieve
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],

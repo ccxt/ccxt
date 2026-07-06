@@ -63,7 +63,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-lbank.fetchTime ([params])
+lbank.fetchTime (params?)
 ```
 
 
@@ -82,7 +82,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-lbank.fetchCurrencies ([params])
+lbank.fetchCurrencies (params?)
 ```
 
 
@@ -106,7 +106,7 @@ retrieves data on all markets for lbank
 
 
 ```javascript
-lbank.fetchMarkets ([params])
+lbank.fetchMarkets (params?)
 ```
 
 
@@ -116,7 +116,7 @@ lbank.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new  
 
@@ -127,7 +127,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lbank.fetchTicker (symbol[, params])
+lbank.fetchTicker (symbol, params?)
 ```
 
 
@@ -137,7 +137,7 @@ lbank.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -152,7 +152,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-lbank.fetchTickers (symbols[, params])
+lbank.fetchTickers (symbols, params?)
 ```
 
 
@@ -162,7 +162,7 @@ lbank.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -178,7 +178,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.fetchOrderBook (symbol[, limit, params])
+lbank.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -188,7 +188,7 @@ lbank.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -205,7 +205,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lbank.fetchTrades (symbol[, since, limit, params])
+lbank.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -229,7 +229,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lbank.fetchOHLCV (symbol, timeframe[, since, limit, params])
+lbank.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -239,7 +239,7 @@ lbank.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list  
 
@@ -250,7 +250,7 @@ fetch the current funding rate
 
 
 ```javascript
-lbank.fetchFundingRate (symbol[, params])
+lbank.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -260,7 +260,7 @@ lbank.fetchFundingRate (symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list  
 
@@ -271,7 +271,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-lbank.fetchFundingRates (symbols[, params])
+lbank.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -281,7 +281,7 @@ lbank.fetchFundingRates (symbols[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -296,7 +296,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-lbank.fetchBalance ([params])
+lbank.fetchBalance (params?)
 ```
 
 
@@ -306,7 +306,7 @@ lbank.fetchBalance ([params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query  
 
@@ -317,7 +317,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-lbank.fetchTradingFee (symbol[, params])
+lbank.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -327,7 +327,7 @@ lbank.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query  
 
@@ -337,7 +337,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-lbank.fetchTradingFees ([params])
+lbank.fetchTradingFees (params?)
 ```
 
 
@@ -347,7 +347,7 @@ lbank.fetchTradingFees ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -363,7 +363,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-lbank.createMarketBuyOrderWithCost (symbol, cost[, params])
+lbank.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -373,7 +373,7 @@ lbank.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -392,7 +392,7 @@ create a trade order
 
 
 ```javascript
-lbank.createOrder (symbol, type, side, amount[, price, params])
+lbank.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -402,7 +402,7 @@ lbank.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -418,7 +418,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-lbank.fetchOrder (id, symbol[, params])
+lbank.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -428,7 +428,7 @@ lbank.fetchOrder (id, symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#past-transaction-details  
 
@@ -441,7 +441,7 @@ fetch all trades made by the user
 
 
 ```javascript
-lbank.fetchMyTrades (symbol[, since, limit, params])
+lbank.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -451,7 +451,7 @@ lbank.fetchMyTrades (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#query-all-orders  
 
@@ -464,7 +464,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-lbank.fetchOrders (symbol[, since, limit, params])
+lbank.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -474,7 +474,7 @@ lbank.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#current-pending-order  
 
@@ -487,7 +487,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-lbank.fetchOpenOrders (symbol[, since, limit, params])
+lbank.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -497,7 +497,7 @@ lbank.fetchOpenOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#cancel-order-new  
 
@@ -509,7 +509,7 @@ cancels an open order
 
 
 ```javascript
-lbank.cancelOrder (id, symbol[, params])
+lbank.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -519,7 +519,7 @@ lbank.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair  
 
@@ -530,7 +530,7 @@ cancel all open orders in a market
 
 
 ```javascript
-lbank.cancelAllOrders (symbol[, params])
+lbank.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -540,7 +540,7 @@ lbank.cancelAllOrders (symbol[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**
 
@@ -555,7 +555,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-lbank.fetchDepositAddress (code[, params])
+lbank.fetchDepositAddress (code, params?)
 ```
 
 
@@ -565,7 +565,7 @@ lbank.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#withdrawal  
 
@@ -579,7 +579,7 @@ make a withdrawal
 
 
 ```javascript
-lbank.withdraw (code, amount, address, tag[, params])
+lbank.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -589,7 +589,7 @@ lbank.withdraw (code, amount, address, tag[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#get-recharge-history  
 
@@ -602,7 +602,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-lbank.fetchDeposits (code[, since, limit, params])
+lbank.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -612,7 +612,7 @@ lbank.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#get-withdrawal-history  
 
@@ -625,7 +625,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-lbank.fetchWithdrawals (code[, since, limit, params])
+lbank.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -637,7 +637,7 @@ lbank.fetchWithdrawals (code[, since, limit, params])
 please use fetchDepositWithdrawFees instead
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -647,7 +647,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-lbank.fetchTransactionFees (codes[, params])
+lbank.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -657,7 +657,7 @@ lbank.fetchTransactionFees (codes[, params])
 when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**
 
@@ -672,7 +672,7 @@ when using private endpoint, only returns information for currencies with non-ze
 
 
 ```javascript
-lbank.fetchDepositWithdrawFees ([codes, params])
+lbank.fetchDepositWithdrawFees (codes?, params?)
 ```
 
 
@@ -696,7 +696,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lbank.fetchOHLCVWs (symbol, timeframe[, since, limit, params])
+lbank.fetchOHLCVWs (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -720,7 +720,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lbank.watchOHLCV (symbol, timeframe[, since, limit, params])
+lbank.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -730,7 +730,7 @@ lbank.watchOHLCV (symbol, timeframe[, since, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction  
 
@@ -741,7 +741,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lbank.fetchTickerWs (symbol[, params])
+lbank.fetchTickerWs (symbol, params?)
 ```
 
 
@@ -762,7 +762,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lbank.watchTicker (symbol, params[])
+lbank.watchTicker (symbol, params)
 ```
 
 
@@ -772,7 +772,7 @@ lbank.watchTicker (symbol, params[])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction  
 
@@ -785,7 +785,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lbank.fetchTradesWs (symbol[, since, limit, params])
+lbank.fetchTradesWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -795,7 +795,7 @@ lbank.fetchTradesWs (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#trade-record  
 
@@ -808,7 +808,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lbank.watchTrades (symbol[, since, limit, params])
+lbank.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -818,7 +818,7 @@ lbank.watchTrades (symbol[, since, limit, params])
 get the list of trades associated with the user
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders  
 
@@ -831,7 +831,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-lbank.watchOrders ([symbol, since, limit, params])
+lbank.watchOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -841,7 +841,7 @@ lbank.watchOrders ([symbol, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.lbank.com/docs/index.html#update-subscribed-asset  
 
@@ -851,7 +851,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-lbank.watchBalance ([params])
+lbank.watchBalance (params?)
 ```
 
 
@@ -873,7 +873,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.fetchOrderBookWs (symbol, limit, params[])
+lbank.fetchOrderBookWs (symbol, limit, params)
 ```
 
 
@@ -895,6 +895,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.watchOrderBook (symbol, limit, params[])
+lbank.watchOrderBook (symbol, limit, params)
 ```
 

@@ -48,10 +48,12 @@ export default class independentreserve extends independentreserveRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
@@ -134,10 +136,12 @@ export default class independentreserve extends independentreserveRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         if (limit === undefined) {
@@ -249,7 +253,7 @@ export default class independentreserve extends independentreserveRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'Price', 'Volume');
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'Price', 'Volume');
         bookside.storeArray (bidAsk);
     }
 
@@ -289,7 +293,7 @@ export default class independentreserve extends independentreserveRest {
             'OrderBookSnapshot': this.handleOrderBook,
             'OrderBookChange': this.handleOrderBook,
         };
-        const handler = this.safeValue (handlers, event);
+        const handler = (event === undefined) ? undefined : this.safeValue (handlers, event);
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;

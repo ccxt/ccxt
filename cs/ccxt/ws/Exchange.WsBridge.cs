@@ -52,9 +52,10 @@ public partial class Exchange
         }
     }
 
-    void rejectFutures (WebSocketClient urlClient, object error)
+    void rejectFutures(WebSocketClient urlClient, object error)
     {
-        foreach (var KeyValue in urlClient.subscriptions) {
+        foreach (var KeyValue in urlClient.subscriptions)
+        {
             urlClient.subscriptions.Remove(KeyValue.Key);
             Future existingFuture = null;
             if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
@@ -163,6 +164,14 @@ public partial class Exchange
                     client.webSocket.Options.SetRequestHeader(key, headers[key].ToString());
                 }
             }
+
+            var wsCookies = this.safeDict(ws, "cookies", new Dictionary<string, object>() { }) as Dictionary<string, object>;
+            if (wsCookies != null && wsCookies.Count > 0)
+            {
+                var cookieString = string.Join("; ", wsCookies.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+                client.webSocket.Options.SetRequestHeader("Cookie", cookieString);
+            }
+
             return client;
         });
     }

@@ -55,6 +55,7 @@
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
 * [fetchCrossBorrowRate](#fetchcrossborrowrate)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
@@ -80,7 +81,7 @@ retrieves data on all markets for whitebit
 
 
 ```javascript
-whitebit.fetchMarkets ([params])
+whitebit.fetchMarkets (params?)
 ```
 
 
@@ -100,7 +101,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-whitebit.fetchCurrencies ([params])
+whitebit.fetchCurrencies (params?)
 ```
 
 
@@ -112,7 +113,7 @@ whitebit.fetchCurrencies ([params])
 please use fetchDepositWithdrawFees instead
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#fee  
 
@@ -123,7 +124,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-whitebit.fetchTransactionFees (codes[, params])
+whitebit.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -133,7 +134,7 @@ whitebit.fetchTransactionFees (codes[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#fee  
 
@@ -144,7 +145,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-whitebit.fetchDepositWithdrawFees (codes[, params])
+whitebit.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -154,7 +155,7 @@ whitebit.fetchDepositWithdrawFees (codes[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.whitebit.com/public/http-v4/#asset-status-list  
 
@@ -164,7 +165,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-whitebit.fetchTradingFees ([params])
+whitebit.fetchTradingFees (params?)
 ```
 
 
@@ -174,7 +175,7 @@ whitebit.fetchTradingFees ([params])
 fetch the trading limits for a market
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [trading limits structure](https://docs.ccxt.com/#/?id=trading-limits-structure)
+**Returns**: <code>object</code> - a [trading limits structure](https://docs.ccxt.com/?id=trading-limits-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#market-info  
 
@@ -185,7 +186,7 @@ fetch the trading limits for a market
 
 
 ```javascript
-whitebit.fetchTradingLimits (symbols[, params])
+whitebit.fetchTradingLimits (symbols, params?)
 ```
 
 
@@ -195,7 +196,7 @@ whitebit.fetchTradingLimits (symbols[, params])
 fetch the deposit and withdrawal limits for a currency
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [funding limits structure](https://docs.ccxt.com/#/?id=funding-limits-structure)
+**Returns**: <code>object</code> - a [funding limits structure](https://docs.ccxt.com/?id=funding-limits-structure)
 
 **See**
 
@@ -210,7 +211,7 @@ fetch the deposit and withdrawal limits for a currency
 
 
 ```javascript
-whitebit.fetchFundingLimits (codes[, params])
+whitebit.fetchFundingLimits (codes, params?)
 ```
 
 
@@ -220,7 +221,7 @@ whitebit.fetchFundingLimits (codes[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#market-activity  
 
@@ -231,7 +232,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-whitebit.fetchTicker (symbol[, params])
+whitebit.fetchTicker (symbol, params?)
 ```
 
 
@@ -241,7 +242,7 @@ whitebit.fetchTicker (symbol[, params])
 fetches information on an order by the id
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -259,7 +260,7 @@ fetches information on an order by the id
 
 
 ```javascript
-whitebit.fetchOrder (id, symbol[, params])
+whitebit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -269,7 +270,7 @@ whitebit.fetchOrder (id, symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#market-activity  
 
@@ -277,11 +278,12 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures |
+| params.method | <code>string</code> | No | either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap |
 
 
 ```javascript
-whitebit.fetchTickers ([symbols, params])
+whitebit.fetchTickers (symbols?, params?)
 ```
 
 
@@ -291,7 +293,7 @@ whitebit.fetchTickers ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#orderbook  
 
@@ -303,7 +305,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-whitebit.fetchOrderBook (symbol[, limit, params])
+whitebit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -313,7 +315,7 @@ whitebit.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.whitebit.com/public/http-v4/#recent-trades  
 
@@ -326,7 +328,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-whitebit.fetchTrades (symbol[, since, limit, params])
+whitebit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -336,7 +338,7 @@ whitebit.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-history  
 
@@ -349,7 +351,7 @@ fetch all trades made by the user
 
 
 ```javascript
-whitebit.fetchMyTrades (symbol[, since, limit, params])
+whitebit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -373,7 +375,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-whitebit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+whitebit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -383,7 +385,7 @@ whitebit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#server-status  
 
@@ -393,7 +395,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-whitebit.fetchStatus ([params])
+whitebit.fetchStatus (params?)
 ```
 
 
@@ -413,7 +415,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-whitebit.fetchTime ([params])
+whitebit.fetchTime (params?)
 ```
 
 
@@ -423,7 +425,7 @@ whitebit.fetchTime ([params])
 create a market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -435,7 +437,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-whitebit.createMarketOrderWithCost (symbol, side, cost[, params])
+whitebit.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -445,7 +447,7 @@ whitebit.createMarketOrderWithCost (symbol, side, cost[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -456,7 +458,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-whitebit.createMarketBuyOrderWithCost (symbol, cost[, params])
+whitebit.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -466,7 +468,7 @@ whitebit.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -493,7 +495,7 @@ create a trade order
 
 
 ```javascript
-whitebit.createOrder (symbol, type, side, amount[, price, params])
+whitebit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -503,7 +505,7 @@ whitebit.createOrder (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#modify-order  
 
@@ -519,7 +521,7 @@ edit a trade order
 
 
 ```javascript
-whitebit.editOrder (id, symbol, type, side, amount, price[, params])
+whitebit.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -529,7 +531,7 @@ whitebit.editOrder (id, symbol, type, side, amount, price[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#cancel-order  
 
@@ -541,7 +543,7 @@ cancels an open order
 
 
 ```javascript
-whitebit.cancelOrder (id, symbol[, params])
+whitebit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -551,7 +553,7 @@ whitebit.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders  
 
@@ -564,7 +566,7 @@ cancel all open orders
 
 
 ```javascript
-whitebit.cancelAllOrders (symbol[, params])
+whitebit.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -574,7 +576,7 @@ whitebit.cancelAllOrders (symbol[, params])
 fetches information on multiple orders made by the user (combines open and closed orders)
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -591,7 +593,7 @@ fetches information on multiple orders made by the user (combines open and close
 
 
 ```javascript
-whitebit.fetchOrders (symbol[, since, limit, params])
+whitebit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -614,7 +616,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-whitebit.cancelAllOrdersAfter (timeout[, params])
+whitebit.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -624,7 +626,7 @@ whitebit.cancelAllOrdersAfter (timeout[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -638,7 +640,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-whitebit.fetchBalance ([params])
+whitebit.fetchBalance (params?)
 ```
 
 
@@ -648,7 +650,7 @@ whitebit.fetchBalance ([params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders  
 
@@ -661,7 +663,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-whitebit.fetchOpenOrders ([symbol, since, limit, params])
+whitebit.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -671,7 +673,7 @@ whitebit.fetchOpenOrders ([symbol, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders  
 
@@ -684,7 +686,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-whitebit.fetchClosedOrders (symbol[, since, limit, params])
+whitebit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -694,7 +696,7 @@ whitebit.fetchClosedOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-deals  
 
@@ -708,7 +710,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-whitebit.fetchOrderTrades (id, symbol[, since, limit, params])
+whitebit.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -718,7 +720,7 @@ whitebit.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history  
 
@@ -732,7 +734,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-whitebit.fetchWithdrawals (code[, since, limit, params])
+whitebit.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -742,7 +744,7 @@ whitebit.fetchWithdrawals (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history  
 
@@ -756,7 +758,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-whitebit.fetchTransactions ([code, since, limit, params])
+whitebit.fetchTransactions (code?, since?, limit?, params?)
 ```
 
 
@@ -766,7 +768,7 @@ whitebit.fetchTransactions ([code, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**
 
@@ -781,7 +783,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-whitebit.fetchDepositAddress (code[, params])
+whitebit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -791,7 +793,7 @@ whitebit.fetchDepositAddress (code[, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit  
 
@@ -804,7 +806,7 @@ create a currency deposit address
 
 
 ```javascript
-whitebit.createDepositAddress (code[, params])
+whitebit.createDepositAddress (code, params?)
 ```
 
 
@@ -814,7 +816,7 @@ whitebit.createDepositAddress (code[, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/#/?id=account-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/?id=account-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#sub-account-list  
 
@@ -824,7 +826,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-whitebit.fetchAccounts ([params])
+whitebit.fetchAccounts (params?)
 ```
 
 
@@ -846,7 +848,7 @@ set the level of leverage for a market
 
 
 ```javascript
-whitebit.setLeverage (leverage, symbol[, params])
+whitebit.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -856,7 +858,7 @@ whitebit.setLeverage (leverage, symbol[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances  
 
@@ -870,7 +872,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-whitebit.transfer (code, amount, fromAccount, toAccount[, params])
+whitebit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -880,7 +882,7 @@ whitebit.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#create-withdraw-request  
 
@@ -894,7 +896,7 @@ make a withdrawal
 
 
 ```javascript
-whitebit.withdraw (code, amount, address, tag[, params])
+whitebit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -904,7 +906,7 @@ whitebit.withdraw (code, amount, address, tag[, params])
 fetch information on a deposit
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history  
 
@@ -916,7 +918,7 @@ fetch information on a deposit
 
 
 ```javascript
-whitebit.fetchDeposit (id, code[, params])
+whitebit.fetchDeposit (id, code, params?)
 ```
 
 
@@ -926,7 +928,7 @@ whitebit.fetchDeposit (id, code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history  
 
@@ -939,7 +941,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-whitebit.fetchDeposits (code[, since, limit, params])
+whitebit.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -949,7 +951,7 @@ whitebit.fetchDeposits (code[, since, limit, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#open-positions  
 
@@ -963,7 +965,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-whitebit.fetchBorrowInterest (code, symbol[, since, limit, params])
+whitebit.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -973,7 +975,7 @@ whitebit.fetchBorrowInterest (code, symbol[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list  
 
@@ -984,7 +986,7 @@ fetch the current funding rate
 
 
 ```javascript
-whitebit.fetchFundingRate (symbol[, params])
+whitebit.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -994,7 +996,7 @@ whitebit.fetchFundingRate (symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list  
 
@@ -1005,7 +1007,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-whitebit.fetchFundingRates (symbols[, params])
+whitebit.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1015,7 +1017,7 @@ whitebit.fetchFundingRates (symbols[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#funding-history  
 
@@ -1029,7 +1031,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-whitebit.fetchFundingHistory ([symbol, since, limit, params])
+whitebit.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1039,7 +1041,7 @@ whitebit.fetchFundingHistory ([symbol, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history  
 
@@ -1058,7 +1060,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-whitebit.fetchDepositsWithdrawals ([code, since, limit, params])
+whitebit.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -1068,7 +1070,7 @@ whitebit.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#convert-estimate  
 
@@ -1081,7 +1083,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-whitebit.fetchConvertQuote (fromCode, toCode, amount[, params])
+whitebit.fetchConvertQuote (fromCode, toCode, amount, params?)
 ```
 
 
@@ -1091,7 +1093,7 @@ whitebit.fetchConvertQuote (fromCode, toCode, amount[, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#convert-confirm  
 
@@ -1105,7 +1107,7 @@ convert from one currency to another
 
 
 ```javascript
-whitebit.createConvertTrade (id, fromCode, toCode[, amount, params])
+whitebit.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1115,7 +1117,7 @@ whitebit.createConvertTrade (id, fromCode, toCode[, amount, params])
 fetch the users history of conversion trades
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#convert-history  
 
@@ -1132,7 +1134,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-whitebit.fetchConvertTradeHistory ([code, since, limit, params])
+whitebit.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -1142,7 +1144,7 @@ whitebit.fetchConvertTradeHistory ([code, since, limit, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#positions-history  
 
@@ -1156,7 +1158,7 @@ fetches historical positions
 
 
 ```javascript
-whitebit.fetchPositionHistory (symbol[, since, limit, params])
+whitebit.fetchPositionHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1166,7 +1168,7 @@ whitebit.fetchPositionHistory (symbol[, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#open-positions  
 
@@ -1177,7 +1179,7 @@ fetch all open positions
 
 
 ```javascript
-whitebit.fetchPositions ([symbols, params])
+whitebit.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1187,7 +1189,7 @@ whitebit.fetchPositions ([symbols, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.whitebit.com/private/http-trade-v4/#open-positions  
 
@@ -1198,7 +1200,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-whitebit.fetchPosition (symbol[, params])
+whitebit.fetchPosition (symbol, params?)
 ```
 
 
@@ -1208,7 +1210,7 @@ whitebit.fetchPosition (symbol[, params])
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 **See**: https://docs.whitebit.com/private/http-main-v4/#get-plans  
 
@@ -1219,7 +1221,31 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-whitebit.fetchCrossBorrowRate (code[, params])
+whitebit.fetchCrossBorrowRate (code, params?)
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
+
+**See**: https://docs.whitebit.com/api-reference/market-data/funding-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch (default 100, max 100) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
+
+
+```javascript
+whitebit.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1243,7 +1269,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-whitebit.watchOHLCV (symbol, timeframe[, since, limit, params])
+whitebit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1253,7 +1279,7 @@ whitebit.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/websocket/#market-depth  
 
@@ -1265,7 +1291,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-whitebit.watchOrderBook (symbol[, limit, params])
+whitebit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1275,7 +1301,7 @@ whitebit.watchOrderBook (symbol[, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.whitebit.com/public/websocket/#market-statistics  
 
@@ -1286,7 +1312,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-whitebit.watchTicker (symbol[, params])
+whitebit.watchTicker (symbol, params?)
 ```
 
 
@@ -1296,7 +1322,7 @@ whitebit.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.whitebit.com/public/websocket/#market-statistics  
 
@@ -1307,7 +1333,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-whitebit.watchTickers ([symbols, params])
+whitebit.watchTickers (symbols?, params?)
 ```
 
 
@@ -1317,7 +1343,7 @@ whitebit.watchTickers ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.whitebit.com/public/websocket/#market-trades  
 
@@ -1330,7 +1356,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-whitebit.watchTrades (symbol[, since, limit, params])
+whitebit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1340,7 +1366,7 @@ whitebit.watchTrades (symbol[, since, limit, params])
 watches trades made by the user
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.whitebit.com/private/websocket/#deals  
 
@@ -1353,7 +1379,7 @@ watches trades made by the user
 
 
 ```javascript
-whitebit.watchMyTrades (symbol[, since, limit, params])
+whitebit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1363,7 +1389,7 @@ whitebit.watchMyTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.whitebit.com/private/websocket/#orders-pending  
 
@@ -1376,7 +1402,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-whitebit.watchOrders (symbol[, since, limit, params])
+whitebit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1386,7 +1412,7 @@ whitebit.watchOrders (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -1401,6 +1427,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-whitebit.watchBalance ([params])
+whitebit.watchBalance (params?)
 ```
 

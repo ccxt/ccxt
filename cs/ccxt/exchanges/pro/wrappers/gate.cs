@@ -138,7 +138,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CreateOrdersWs(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrdersWs(orders, parameters);
@@ -148,7 +148,7 @@ public partial class gate
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#cancel-matched-open-orders"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -165,7 +165,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
@@ -219,7 +219,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -298,7 +298,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrdersWs(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -332,7 +332,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrdersWs(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -356,6 +356,7 @@ public partial class gate
     /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-api"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#order-book-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -371,7 +372,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -383,6 +384,8 @@ public partial class gate
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#tickers-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -392,7 +395,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTicker(symbol, parameters);
@@ -403,6 +406,8 @@ public partial class gate
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#tickers-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -412,7 +417,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
@@ -424,6 +429,7 @@ public partial class gate
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#best-bid-or-ask-price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -433,7 +439,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBidsAsks(symbols, parameters);
@@ -443,6 +449,10 @@ public partial class gate
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -464,7 +474,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -476,6 +486,10 @@ public partial class gate
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -497,7 +511,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -509,6 +523,9 @@ public partial class gate
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -542,6 +559,10 @@ public partial class gate
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#user-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#user-trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#user-trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#user-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -563,7 +584,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -575,6 +596,10 @@ public partial class gate
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#balances-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#balances-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#balances-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -584,7 +609,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBalance(parameters);
@@ -624,6 +649,10 @@ public partial class gate
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#orders-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#orders-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#orders-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -657,7 +686,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

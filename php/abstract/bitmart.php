@@ -277,6 +277,27 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_post_spot_v4_batch_orders($params = array()) {
         return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_spot_v4_algo_submit_order($params = array()) {
+        return $this->request('spot/v4/algo/submit_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function private_post_spot_v4_algo_cancel_order($params = array()) {
+        return $this->request('spot/v4/algo/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function private_post_spot_v4_algo_cancel_all($params = array()) {
+        return $this->request('spot/v4/algo/cancel_all', 'private', 'POST', $params, null, null, array("cost" => 12));
+    }
+    public function private_post_spot_v4_query_algo_order($params = array()) {
+        return $this->request('spot/v4/query/algo/order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_spot_v4_query_algo_client_order($params = array()) {
+        return $this->request('spot/v4/query/algo/client-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_spot_v4_query_algo_open_orders($params = array()) {
+        return $this->request('spot/v4/query/algo/open-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_spot_v4_query_algo_history_orders($params = array()) {
+        return $this->request('spot/v4/query/algo/history-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function private_post_spot_v3_cancel_order($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -615,6 +636,27 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privatePostSpotV4BatchOrders($params = array()) {
         return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostSpotV4AlgoSubmitOrder($params = array()) {
+        return $this->request('spot/v4/algo/submit_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function privatePostSpotV4AlgoCancelOrder($params = array()) {
+        return $this->request('spot/v4/algo/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function privatePostSpotV4AlgoCancelAll($params = array()) {
+        return $this->request('spot/v4/algo/cancel_all', 'private', 'POST', $params, null, null, array("cost" => 12));
+    }
+    public function privatePostSpotV4QueryAlgoOrder($params = array()) {
+        return $this->request('spot/v4/query/algo/order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostSpotV4QueryAlgoClientOrder($params = array()) {
+        return $this->request('spot/v4/query/algo/client-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostSpotV4QueryAlgoOpenOrders($params = array()) {
+        return $this->request('spot/v4/query/algo/open-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostSpotV4QueryAlgoHistoryOrders($params = array()) {
+        return $this->request('spot/v4/query/algo/history-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostSpotV3CancelOrder($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));

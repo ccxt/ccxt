@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -54,10 +54,12 @@ export default class bitstamp extends bitstampRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -139,7 +141,7 @@ export default class bitstamp extends bitstampRest {
 
     handleBidAsks (bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
@@ -170,10 +172,12 @@ export default class bitstamp extends bitstampRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
@@ -193,7 +197,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -280,13 +284,15 @@ export default class bitstamp extends bitstampRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const channel = 'private-my_orders';
@@ -329,7 +335,7 @@ export default class bitstamp extends bitstampRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const subscription = this.safeValue (client.subscriptions, channel);
+        const subscription = (channel === undefined) ? undefined : this.safeValue (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         order['event'] = this.safeString (message, 'event');
@@ -338,7 +344,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "id": "1894876776091648",
@@ -381,7 +387,7 @@ export default class bitstamp extends bitstampRest {
         const amount = this.safeString (order, 'amount_str');
         const filled = this.safeString (order, 'amount_traded');
         const event = this.safeString (order, 'event');
-        let status = undefined;
+        let status: Str = undefined;
         if (Precise.stringEq (filled, amount)) {
             status = 'closed';
         } else if (event === 'order_deleted') {

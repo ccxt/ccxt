@@ -1,8 +1,5 @@
-- [Huobi Open Close Contract](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 const exchange = new ccxt.huobi ({
     'apiKey': 'YOUR_API_KEY',
@@ -65,5 +62,5 @@ const exchange = new ccxt.huobi ({
         console.log (e.constructor.name, e.message)
     }
 }) ()
- 
+
 ```

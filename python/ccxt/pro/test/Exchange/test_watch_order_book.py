@@ -30,9 +30,9 @@ async def test_watch_order_book(exchange, skipped_properties, symbol):
             now = exchange.milliseconds()
             # continue;
             success = False
-        if success:
+        if (success) and (response is not None):
             # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
+            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
             now = exchange.milliseconds()
             test_order_book(exchange, skipped_properties, method, response, symbol)
     return True

@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/toobit.js';
 import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, Dict, int, DepositAddress, Market, MarketInterface, FundingRateHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees, Leverage, Currencies } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ export default class toobit extends Exchange {
             'version': 'v1',
             'rateLimit': 20, // 50 requests per second
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -30,18 +30,33 @@ export default class toobit extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
@@ -49,6 +64,8 @@ export default class toobit extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -56,13 +73,16 @@ export default class toobit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setMarginMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225',
+                'logo': 'https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
@@ -407,7 +427,7 @@ export default class toobit extends Exchange {
      * @description the latest known information on the availability of the exchange API
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus (params = {}) {
         const response = await this.commonGetApiV1Ping (params);
@@ -581,8 +601,10 @@ export default class toobit extends Exchange {
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const parsed = this.parseCurrency (coin);
-            const code = parsed['code'];
-            result[code] = parsed;
+            if (parsed !== undefined) {
+                const code = parsed['code'];
+                result[code] = parsed;
+            }
         }
         return result;
     }
@@ -591,11 +613,11 @@ export default class toobit extends Exchange {
         const id = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const rawNetworks = this.safeList (rawCurrency, 'chainTypes');
+        const rawNetworks = this.safeList (rawCurrency, 'chainTypes', []);
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString (rawNetwork, 'chainType');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -790,18 +812,20 @@ export default class toobit extends Exchange {
         const symbols = this.safeList (response, 'symbols', []);
         const contracts = this.safeList (response, 'contracts', []);
         const all = this.arrayConcat (symbols, contracts);
-        const result = [];
+        const result: MarketInterface[] = [];
         for (let i = 0; i < all.length; i++) {
             const market = all[i];
             const parsed = this.parseMarket (market);
-            result.push (parsed);
+            if (parsed !== undefined) {
+                result.push (parsed);
+            }
         }
         return result;
     }
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'baseAsset');
+        const baseId = this.safeString (market, 'baseAsset', '');
         const quoteId = this.safeString (market, 'quoteAsset');
         const baseParts = baseId.split ('-');
         const baseIdClean = baseParts[0];
@@ -882,10 +906,12 @@ export default class toobit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -935,10 +961,12 @@ export default class toobit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1006,7 +1034,7 @@ export default class toobit extends Exchange {
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const isBuyer = this.safeBool (trade, 'isBuyer');
-        let side = undefined;
+        let side: Str = undefined;
         let isBuyerMaker = this.safeBool (trade, 'ibm');
         if (isBuyerMaker === undefined) {
             const isBuyerTaker = this.safeBool (trade, 'm');
@@ -1029,7 +1057,7 @@ export default class toobit extends Exchange {
         }
         const feeCurrencyId = this.safeString (trade, 'feeCoinId');
         const feeAmount = this.safeString (trade, 'feeAmount');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeAmount !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -1037,7 +1065,7 @@ export default class toobit extends Exchange {
             };
         }
         const isMaker = this.safeBool (trade, 'isMaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
@@ -1074,7 +1102,9 @@ export default class toobit extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1091,7 +1121,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: Dict[] = [];
         let endpoint = undefined;
         [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
@@ -1184,24 +1214,28 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        let type = undefined;
-        let market = undefined;
+        let type: Str = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbols !== undefined) {
             const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol);
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+            }
             const length = symbols.length;
-            if (length === 1) {
+            if ((length === 1) && (market !== undefined)) {
                 request['symbol'] = market['id'];
             }
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             response = await this.commonGetQuoteV1Ticker24hr (this.extend (request, params));
         } else {
@@ -1266,7 +1300,9 @@ export default class toobit extends Exchange {
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices (symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (symbols !== undefined) {
@@ -1309,10 +1345,12 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (symbols !== undefined) {
@@ -1338,7 +1376,7 @@ export default class toobit extends Exchange {
     }
 
     parseBidsAsksCustom (tickers, symbols: Strings = undefined, params = {}): Tickers {
-        const results = [];
+        const results: Ticker[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const parsedTicker = this.parseBidAskCustom (tickers[i]);
             const ticker = this.extend (parsedTicker, params);
@@ -1367,10 +1405,12 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (symbols !== undefined) {
@@ -1426,18 +1466,23 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1478,11 +1523,13 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        let response = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let response: NullableDict = undefined;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (this.inArray (marketType, [ 'swap', 'future' ])) {
@@ -1551,13 +1598,15 @@ export default class toobit extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request = {};
-        let response = undefined;
+        let response: Dict = {};
         if (market['spot']) {
             [ request, params ] = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder (this.extend (request, params));
@@ -1593,6 +1642,9 @@ export default class toobit extends Exchange {
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const id = market['id'];
         const request: Dict = {
             'symbol': id,
@@ -1612,7 +1664,7 @@ export default class toobit extends Exchange {
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        let isPostOnly = undefined;
+        let isPostOnly: Bool = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
         if (isPostOnly) {
             request['type'] = 'LIMIT_MAKER';
@@ -1628,7 +1680,7 @@ export default class toobit extends Exchange {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        let reduceOnly = undefined;
+        let reduceOnly: Bool = undefined;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
             side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
@@ -1646,7 +1698,7 @@ export default class toobit extends Exchange {
             request['type'] = 'LIMIT'; // weird, but exchange works this way
             request['priceType'] = 'MARKET';
         }
-        let isPostOnly = undefined;
+        let isPostOnly: Bool = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
         if (isPostOnly) {
             request['timeInForce'] = 'LIMIT_MAKER';
@@ -1659,11 +1711,13 @@ export default class toobit extends Exchange {
         }
         const stopLoss = this.safeDict (params, 'stopLoss');
         const takeProfit = this.safeDict (params, 'takeProfit');
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const triggerPriceTypes = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
         };
-        if (stopLoss !== undefined) {
+        if (hasStopLoss) {
             request['stopLoss'] = this.safeValue (stopLoss, 'triggerPrice');
             const limitPrice = this.safeValue (stopLoss, 'price');
             if (limitPrice !== undefined) {
@@ -1676,7 +1730,7 @@ export default class toobit extends Exchange {
             }
             params = this.omit (params, 'stopLoss');
         }
-        if (takeProfit !== undefined) {
+        if (hasTakeProfit) {
             request['takeProfit'] = this.safeValue (takeProfit, 'triggerPrice');
             const limitPrice = this.safeValue (takeProfit, 'price');
             if (limitPrice !== undefined) {
@@ -1803,6 +1857,9 @@ export default class toobit extends Exchange {
             'CANCELED': 'canceled',
             'REJECTED': 'canceled',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1812,6 +1869,9 @@ export default class toobit extends Exchange {
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1824,24 +1884,24 @@ export default class toobit extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const request = {};
         if (this.safeString (params, 'clientOrderId') === undefined) {
             request['orderId'] = id;
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params, 'none');
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        let response = undefined;
+        let response: Dict = {};
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
         } else {
@@ -1863,22 +1923,24 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
      * @param {string} symbol unified symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, 'none');
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -1906,24 +1968,26 @@ export default class toobit extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const idsString = ids.join (',');
         const request: Dict = {
             'ids': idsString,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params, 'none');
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, params));
             //
@@ -1961,18 +2025,20 @@ export default class toobit extends Exchange {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'orderId': id,
         };
         const market = this.market (symbol);
-        let response = undefined;
+        let response: Dict = {};
         if (market['spot']) {
             response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
         } else {
@@ -2019,12 +2085,14 @@ export default class toobit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2032,9 +2100,9 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        let response = undefined;
+        let response: Dict[] = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -2079,10 +2147,12 @@ export default class toobit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2091,14 +2161,14 @@ export default class toobit extends Exchange {
             request['startTime'] = since;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        let response = undefined;
+        let response: Dict[] = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotTradeOrders (request);
             //
@@ -2143,13 +2213,15 @@ export default class toobit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         // returns the most recent closed or canceled orders up to circa two weeks ago
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2158,9 +2230,9 @@ export default class toobit extends Exchange {
             request['startTime'] = since;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        let response = undefined;
+        let response: Dict[] = [];
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
         } else {
@@ -2192,7 +2264,7 @@ export default class toobit extends Exchange {
             //    ]
             //
         }
-        const ordersList = [];
+        const ordersList: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
@@ -2210,13 +2282,15 @@ export default class toobit extends Exchange {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2226,10 +2300,10 @@ export default class toobit extends Exchange {
         }
         const market = this.market (symbol);
         request['symbol'] = market['id'];
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response = undefined;
+        let response: Dict[] = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
             //
@@ -2293,10 +2367,12 @@ export default class toobit extends Exchange {
      * @param {string} fromAccount 'spot', 'swap'
      * @param {string} toAccount 'spot', 'swap'
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -2348,11 +2424,13 @@ export default class toobit extends Exchange {
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         let request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2365,9 +2443,9 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow (this.extend (request, params));
         } else {
@@ -2399,7 +2477,7 @@ export default class toobit extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'created');
         const after = this.safeNumber (item, 'total');
-        const amountRaw = this.safeString (item, 'change');
+        const amountRaw = this.safeString (item, 'change', '');
         const amount = this.parseNumber (Precise.stringAbs (amountRaw));
         let direction = 'in';
         if (amountRaw.startsWith ('-')) {
@@ -2438,13 +2516,15 @@ export default class toobit extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
-        let response = undefined;
-        let marketType = undefined;
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let response: NullableDict = undefined;
+        let marketType: Str = undefined;
+        let market: Market = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchTradingFees(): does not support ' + marketType + ' markets');
@@ -2498,7 +2578,7 @@ export default class toobit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposit structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         return await this.fetchDepositsOrWithdrawalsHelper ('deposits', code, since, limit, params);
@@ -2513,15 +2593,17 @@ export default class toobit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         return await this.fetchDepositsOrWithdrawalsHelper ('withdrawals', code, since, limit, params);
     }
 
-    async fetchDepositsOrWithdrawalsHelper (type, code, since, limit, params) {
-        await this.loadMarkets ();
-        let currency = undefined;
+    async fetchDepositsOrWithdrawalsHelper (type, code, since, limit, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         let request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2534,7 +2616,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: Dict[] = [];
         if (type === 'deposits') {
             response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
             //
@@ -2637,7 +2719,7 @@ export default class toobit extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeString = this.safeString (transaction, 'fee');
         const feeCoin = this.safeString (transaction, 'feeCoinName');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeString !== undefined) {
             fee = {
                 'cost': this.parseNumber (feeString),
@@ -2681,6 +2763,9 @@ export default class toobit extends Exchange {
             '11': 'failed',
             '3': 'ok',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2691,10 +2776,12 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -2703,7 +2790,7 @@ export default class toobit extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() : param["network"] is required');
         }
-        request['chainType'] = this.networkCodeToId (networkCode);
+        request['chainType'] = this.networkCodeToId (networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -2741,22 +2828,25 @@ export default class toobit extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() : param["network"] is required');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
             'quantity': this.currencyToPrecision (currency['code'], amount),
-            'network': networkCode,
+            'chainType': networkCode,
+            'clientOrderId': this.milliseconds (),
         };
         if (tag !== undefined) {
             request['addressExt'] = tag;
@@ -2788,7 +2878,9 @@ export default class toobit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
@@ -2819,7 +2911,9 @@ export default class toobit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2839,10 +2933,12 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2882,12 +2978,14 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const length = symbols.length;
             if (length > 1) {
@@ -2960,7 +3058,7 @@ export default class toobit extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
         const isDelete = method === 'DELETE';
@@ -3004,7 +3102,9 @@ export default class toobit extends Exchange {
                 body += '&signature=' + signature;
             }
             headers = {
+                'Referrer': 'CCXT',
                 'X-BB-APIKEY': this.apiKey,
+                'X-BB-API-PLATFORM': this.safeString (this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

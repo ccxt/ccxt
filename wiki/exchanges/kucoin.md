@@ -20,39 +20,90 @@
 * [fetchOHLCV](#fetchohlcv)
 * [createDepositAddress](#createdepositaddress)
 * [fetchDepositAddress](#fetchdepositaddress)
+* [fetchContractDepositAddress](#fetchcontractdepositaddress)
 * [fetchDepositAddressesByNetwork](#fetchdepositaddressesbynetwork)
 * [fetchOrderBook](#fetchorderbook)
 * [createOrder](#createorder)
+* [createSpotOrder](#createspotorder)
+* [createContractOrder](#createcontractorder)
+* [createUtaOrder](#createutaorder)
 * [createMarketOrderWithCost](#createmarketorderwithcost)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
 * [createMarketSellOrderWithCost](#createmarketsellorderwithcost)
 * [createOrders](#createorders)
+* [createSpotOrders](#createspotorders)
+* [createContractOrders](#createcontractorders)
 * [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
+* [cancelSpotOrder](#cancelspotorder)
+* [cancelContractOrder](#cancelcontractorder)
+* [cancelUtaOrder](#cancelutaorder)
 * [cancelAllOrders](#cancelallorders)
+* [cancelAllSpotOrders](#cancelallspotorders)
+* [cancelAllContractOrders](#cancelallcontractorders)
+* [cancelAllUtaOrders](#cancelallutaorders)
 * [fetchOrdersByStatus](#fetchordersbystatus)
+* [fetchSpotOrdersByStatus](#fetchspotordersbystatus)
+* [fetchContractOrdersByStatus](#fetchcontractordersbystatus)
+* [fetchUtaOrdersByStatus](#fetchutaordersbystatus)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrder](#fetchorder)
+* [fetchSpotOrder](#fetchspotorder)
+* [fetchContractOrder](#fetchcontractorder)
+* [fetchUtaOrder](#fetchutaorder)
 * [fetchOrderTrades](#fetchordertrades)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchMySpotTrades](#fetchmyspottrades)
+* [fetchMyContractTrades](#fetchmycontracttrades)
+* [fetchMyUtaTrades](#fetchmyutatrades)
 * [fetchTrades](#fetchtrades)
 * [fetchTradingFee](#fetchtradingfee)
 * [withdraw](#withdraw)
 * [fetchDeposits](#fetchdeposits)
+* [fetchContractDeposits](#fetchcontractdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [fetchContractWithdrawals](#fetchcontractwithdrawals)
 * [fetchBalance](#fetchbalance)
+* [fetchContractBalance](#fetchcontractbalance)
+* [fetchUtaBalance](#fetchutabalance)
 * [transfer](#transfer)
+* [transferUta](#transferuta)
+* [transferClassic](#transferclassic)
 * [fetchLedger](#fetchledger)
 * [fetchBorrowInterest](#fetchborrowinterest)
 * [fetchBorrowRateHistories](#fetchborrowratehistories)
 * [fetchBorrowRateHistory](#fetchborrowratehistory)
+* [fetchCrossBorrowRate](#fetchcrossborrowrate)
 * [borrowCrossMargin](#borrowcrossmargin)
 * [borrowIsolatedMargin](#borrowisolatedmargin)
 * [repayCrossMargin](#repaycrossmargin)
 * [repayIsolatedMargin](#repayisolatedmargin)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
+* [setContractLeverage](#setcontractleverage)
+* [fetchFundingInterval](#fetchfundinginterval)
+* [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchFundingHistory](#fetchfundinghistory)
+* [fetchPosition](#fetchposition)
+* [fetchPositions](#fetchpositions)
+* [fetchPositionsHistory](#fetchpositionshistory)
+* [cancelOrders](#cancelorders)
+* [addMargin](#addmargin)
+* [fetchMarginMode](#fetchmarginmode)
+* [setMarginMode](#setmarginmode)
+* [setPositionMode](#setpositionmode)
+* [fetchPositionMode](#fetchpositionmode)
+* [closePosition](#closeposition)
+* [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
+* [fetchLeverageTiers](#fetchleveragetiers)
+* [fetchOpenInterests](#fetchopeninterests)
+* [fetchOpenInterestHistory](#fetchopeninteresthistory)
+* [isUTAEnabled](#isutaenabled)
+* [fetchTransfers](#fetchtransfers)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
@@ -70,6 +121,12 @@
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+* [watchPosition](#watchposition)
+* [watchPositions](#watchpositions)
+* [watchFundingRate](#watchfundingrate)
+* [unWatchFundingRate](#unwatchfundingrate)
+* [watchMarkPrice](#watchmarkprice)
+* [unWatchMarkPrice](#unwatchmarkprice)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -79,7 +136,11 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://docs.kucoin.com/#server-time  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -87,7 +148,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-kucoin.fetchTime ([params])
+kucoin.fetchTime (params?)
 ```
 
 
@@ -97,17 +158,25 @@ kucoin.fetchTime ([params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://docs.kucoin.com/#service-status  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
+- https://www.kucoin.com/docs-new/rest/ua/get-service-status
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | spot or swap |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.tradeType | <code>string</code> | No | *uta only* set to SPOT or FUTURES |
 
 
 ```javascript
-kucoin.fetchStatus ([params])
+kucoin.fetchStatus (params?)
 ```
 
 
@@ -121,17 +190,19 @@ retrieves data on all markets for kucoin
 
 **See**
 
-- https://docs.kucoin.com/#get-symbols-list-deprecated
-- https://docs.kucoin.com/#get-all-tickers
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
+- https://www.kucoin.com/docs-new/rest/ua/get-symbol
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
-kucoin.fetchMarkets ([params])
+kucoin.fetchMarkets (params?)
 ```
 
 
@@ -151,7 +222,7 @@ loads the migration status for the account (hf or not)
 
 
 ```javascript
-kucoin.loadMigrationStatus (force, [undefined])
+kucoin.loadMigrationStatus (force)
 ```
 
 
@@ -163,15 +234,20 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.kucoin.com/#get-currencies  
+**See**
 
-| Param | Type | Description |
-| --- | --- | --- |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
+- https://www.kucoin.com/docs-new/rest/ua/get-currencies
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
-kucoin.fetchCurrencies (params, [undefined])
+kucoin.fetchCurrencies (params)
 ```
 
 
@@ -181,17 +257,18 @@ kucoin.fetchCurrencies (params, [undefined])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
-**See**: https://docs.kucoin.com/#list-accounts  
+**See**: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
-kucoin.fetchAccounts ([params])
+kucoin.fetchAccounts (params?)
 ```
 
 
@@ -201,7 +278,7 @@ kucoin.fetchAccounts ([params])
 *DEPRECATED* please use fetchDepositWithdrawFee instead
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.kucoin.com/#get-withdrawal-quotas  
 
@@ -212,7 +289,7 @@ kucoin.fetchAccounts ([params])
 
 
 ```javascript
-kucoin.fetchTransactionFee (code, params[])
+kucoin.fetchTransactionFee (code, params)
 ```
 
 
@@ -222,9 +299,9 @@ kucoin.fetchTransactionFee (code, params[])
 fetch the fee for deposits and withdrawals
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://docs.kucoin.com/#get-withdrawal-quotas  
+**See**: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -234,7 +311,7 @@ fetch the fee for deposits and withdrawals
 
 
 ```javascript
-kucoin.fetchDepositWithdrawFee (code[, params])
+kucoin.fetchDepositWithdrawFee (code, params?)
 ```
 
 
@@ -244,18 +321,26 @@ kucoin.fetchDepositWithdrawFee (code[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.kucoin.com/#get-all-tickers  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
+- https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.type | <code>string</code> | No | spot or swap (default is spot) |
+| params.method | <code>string</code> | No | *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive) |
 
 
 ```javascript
-kucoin.fetchTickers (symbols[, params])
+kucoin.fetchTickers (symbols?, params?)
 ```
 
 
@@ -265,9 +350,9 @@ kucoin.fetchTickers (symbols[, params])
 fetches the mark price for multiple markets
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices  
+**See**: https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -276,7 +361,7 @@ fetches the mark price for multiple markets
 
 
 ```javascript
-kucoin.fetchMarkPrices ([symbols, params])
+kucoin.fetchMarkPrices (symbols?, params?)
 ```
 
 
@@ -286,18 +371,24 @@ kucoin.fetchMarkPrices ([symbols, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.kucoin.com/#get-24hr-stats  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
+- https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
-kucoin.fetchTicker (symbol[, params])
+kucoin.fetchTicker (symbol, params?)
 ```
 
 
@@ -307,9 +398,13 @@ kucoin.fetchTicker (symbol[, params])
 fetches the mark price for a specific market
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -318,7 +413,7 @@ fetches the mark price for a specific market
 
 
 ```javascript
-kucoin.fetchMarkPrice (symbol[, params])
+kucoin.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -330,7 +425,12 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.kucoin.com/#get-klines  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+- https://www.kucoin.com/docs-new/rest/ua/get-klines
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -339,11 +439,12 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-kucoin.fetchOHLCV (symbol, timeframe[, since, limit, params])
+kucoin.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -353,9 +454,9 @@ kucoin.fetchOHLCV (symbol, timeframe[, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-  
+**See**: https://www.kucoin.com/docs-new/rest/account-info/deposit/add-deposit-address-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -365,7 +466,7 @@ create a currency deposit address
 
 
 ```javascript
-kucoin.createDepositAddress (code[, params])
+kucoin.createDepositAddress (code, params?)
 ```
 
 
@@ -375,19 +476,46 @@ kucoin.createDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://docs.kucoin.com/#get-deposit-addresses-v2  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+- https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.network | <code>string</code> | No | the blockchain network name |
+| params.accountType | <code>string</code> | No | 'main', 'contract' or 'uta' (default is 'main') |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) endpoint, defaults to false |
 
 
 ```javascript
-kucoin.fetchDepositAddress (code[, params])
+kucoin.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchContractDepositAddress" id="fetchcontractdepositaddress"></a>
+
+### fetchContractDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+
+**See**: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchContractDepositAddress (code, params?)
 ```
 
 
@@ -397,18 +525,23 @@ kucoin.fetchDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an array of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an array of [address structures](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://docs.kucoin.com/#get-deposit-addresses-v2  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+- https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) endpoint, defaults to false |
 
 
 ```javascript
-kucoin.fetchDepositAddressesByNetwork (code[, params])
+kucoin.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -418,12 +551,14 @@ kucoin.fetchDepositAddressesByNetwork (code[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
-- https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
+- https://www.kucoin.com/docs-new/rest/ua/get-orderbook
 
 
 | Param | Type | Required | Description |
@@ -431,10 +566,11 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
-kucoin.fetchOrderBook (symbol[, limit, params])
+kucoin.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -444,17 +580,56 @@ kucoin.fetchOrderBook (symbol[, limit, params])
 Create an order on the exchange
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://docs.kucoin.com/spot#place-a-new-order
-- https://docs.kucoin.com/spot#place-a-new-order-2
-- https://docs.kucoin.com/spot#place-a-margin-order
-- https://docs.kucoin.com/spot-hf/#place-hf-order
-- https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
-- https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
-- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+- https://www.kucoin.com/docs-new/rest/ua/place-order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| type | <code>string</code> | Yes | 'limit' or 'market' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | the amount of currency to trade |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) endpoint, defaults to false Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params |
+
+
+```javascript
+kucoin.createOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="createSpotOrder" id="createspotorder"></a>
+
+### createSpotOrder{docsify-ignore}
+helper method for creating spot orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
 
 
 | Param | Type | Required | Description |
@@ -468,7 +643,7 @@ Create an order on the exchange
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.marginMode | <code>string</code> | No | 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned |
 | params.timeInForce | <code>string</code> | No | GTC, GTT, IOC, or FOK, default is GTC, limit orders only |
-| params.postOnly | <code>string</code> | No | Post only flag, invalid when timeInForce is IOC or FOK EXCHANGE SPECIFIC PARAMETERS |
+| params.postOnly | <code>bool</code> | No | Post only flag, invalid when timeInForce is IOC or FOK EXCHANGE SPECIFIC PARAMETERS |
 | params.clientOid | <code>string</code> | No | client order id, defaults to uuid if not passed |
 | params.remark | <code>string</code> | No | remark for the order, length cannot exceed 100 utf8 characters |
 | params.tradeType | <code>string</code> | No | 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders limit orders --------------------------------------------------- |
@@ -487,7 +662,102 @@ Create an order on the exchange
 
 
 ```javascript
-kucoin.createOrder (symbol, type, side, amount[, price, params])
+kucoin.createSpotOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="createContractOrder" id="createcontractorder"></a>
+
+### createContractOrder{docsify-ignore}
+helper method for creating contract orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| type | <code>string</code> | Yes | 'limit' or 'market' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | the amount of currency to trade |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType |
+| params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType |
+| params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+| params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
+| params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
+| params.reduceOnly | <code>bool</code> | No | A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true. |
+| params.timeInForce | <code>string</code> | No | GTC, GTT, IOC, or FOK, default is GTC, limit orders only |
+| params.postOnly | <code>bool</code> | No | Post only flag, invalid when timeInForce is IOC or FOK |
+| params.cost | <code>float</code> | No | the cost of the order in units of USDT |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'isolated' |
+| params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode, default is false ----------------- Exchange Specific Parameters ----------------- |
+| params.leverage | <code>float</code> | No | Leverage size of the order (mandatory param in request, default is 1) |
+| params.clientOid | <code>string</code> | No | client order id, defaults to uuid if not passed |
+| params.remark | <code>string</code> | No | remark for the order, length cannot exceed 100 utf8 characters |
+| params.stop | <code>string</code> | No | 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice. |
+| params.triggerPriceType | <code>string</code> | No | "last", "mark", "index" - defaults to "mark" |
+| params.stopPriceType | <code>string</code> | No | exchange-specific alternative for triggerPriceType: TP, IP or MP |
+| params.closeOrder | <code>bool</code> | No | set to true to close position |
+| params.test | <code>bool</code> | No | set to true to use the test order endpoint (does not submit order, use to validate params) |
+| params.forceHold | <code>bool</code> | No | A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\ |
+| params.positionSide | <code>string</code> | No | *swap and future only* hedged two-way position side, LONG or SHORT |
+
+
+```javascript
+kucoin.createContractOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="createUtaOrder" id="createutaorder"></a>
+
+### createUtaOrder{docsify-ignore}
+helper method for creating uta orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/place-order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| type | <code>string</code> | Yes | 'limit' or 'market' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | the amount of currency to trade |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id, defaults to uuid if not passed |
+| params.cost | <code>float</code> | No | the cost of the order in units of quote currency |
+| params.timeInForce | <code>string</code> | No | GTC, GTD, IOC, FOK or PO |
+| params.postOnly | <code>bool</code> | No | Post only flag, invalid when timeInForce is IOC or FOK (default is false) |
+| params.reduceOnly | <code>bool</code> | No | *contract markets only* A mark to reduce the position size only. Set to false by default |
+| params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+| params.triggerDirection | <code>string</code> | No | 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice |
+| params.triggerPriceType | <code>string</code> | No | *contract markets only* "last", "mark", "index" - defaults to "mark" |
+| params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
+| params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders) Exchange-specific parameters ------------------------------------------------- |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic', default is 'unified' |
+| params.stp | <code>string</code> | No | '', // self trade prevention, CN, CO, CB or DC |
+| params.cancelAfter | <code>int</code> | No | Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD |
+| params.sizeUnit | <code>string</code> | No | *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT' Classic account parameters |
+| params.autoBorrow | <code>bool</code> | No | *classic margin orders only* |
+| params.autoRepay | <code>bool</code> | No | *classic margin orders only* |
+| params.hedged | <code>string</code> | No | *classic contract orders only* true for hedged mode, false for one way mode, default is false |
+| params.leverage | <code>int</code> | No | *classic contract orders with isolated marginMode only* Leverage size of the order |
+
+
+```javascript
+kucoin.createUtaOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -497,9 +767,13 @@ kucoin.createOrder (symbol, type, side, amount[, price, params])
 create a market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -510,7 +784,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-kucoin.createMarketOrderWithCost (symbol, side, cost[, params])
+kucoin.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -520,9 +794,13 @@ kucoin.createMarketOrderWithCost (symbol, side, cost[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -532,7 +810,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-kucoin.createMarketBuyOrderWithCost (symbol, cost[, params])
+kucoin.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -542,9 +820,13 @@ kucoin.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -554,7 +836,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-kucoin.createMarketSellOrderWithCost (symbol, cost[, params])
+kucoin.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -564,13 +846,38 @@ kucoin.createMarketSellOrderWithCost (symbol, cost[, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
-- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params |
+
+
+```javascript
+kucoin.createOrders (orders, params?)
+```
+
+
+<a name="createSpotOrders" id="createspotorders"></a>
+
+### createSpotOrders{docsify-ignore}
+helper method for creating spot orders in batch
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
 
 
 | Param | Type | Required | Description |
@@ -582,7 +889,28 @@ create a list of trade orders
 
 
 ```javascript
-kucoin.createOrders (orders[, params])
+kucoin.createSpotOrders (orders, params?)
+```
+
+
+<a name="createContractOrders" id="createcontractorders"></a>
+
+### createContractOrders{docsify-ignore}
+helper method for creating contract orders in batch
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.createContractOrders (orders, params?)
 ```
 
 
@@ -592,9 +920,9 @@ kucoin.createOrders (orders[, params])
 edit an order, kucoin currently only supports the modification of HF orders
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kucoin.com/spot-hf/#modify-order  
+**See**: https://www.kucoin.com/docs-new/rest/spot-trading/orders/modify-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -609,7 +937,7 @@ edit an order, kucoin currently only supports the modification of HF orders
 
 
 ```javascript
-kucoin.editOrder (id, symbol, type, side, amount[, price, params])
+kucoin.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -623,14 +951,56 @@ cancels an open order
 
 **See**
 
-- https://docs.kucoin.com/spot#cancel-an-order
-- https://docs.kucoin.com/spot#cancel-an-order-2
-- https://docs.kucoin.com/spot#cancel-single-order-by-clientoid
-- https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
-- https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
-- https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
-- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
-- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/ua/cancel-order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', used if symbol is not provided (default is 'spot') |
+| params.marginMode | <code>string</code> | No | *spot only* 'cross' or 'isolated' |
+| params.uta | <code>boolean</code> | No | true for cancelling order with unified account endpoint (default is false) Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params |
+
+
+```javascript
+kucoin.cancelOrder (id, symbol, params?)
+```
+
+
+<a name="cancelSpotOrder" id="cancelspotorder"></a>
+
+### cancelSpotOrder{docsify-ignore}
+helper method for cancelling spot orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: Response from the exchange
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
 
 
 | Param | Type | Required | Description |
@@ -641,10 +1011,63 @@ cancels an open order
 | params.trigger | <code>bool</code> | No | True if cancelling a stop order |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 | params.sync | <code>bool</code> | No | false, // true to use the hf sync call |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
 
 
 ```javascript
-kucoin.cancelOrder (id, symbol[, params])
+kucoin.cancelSpotOrder (id, symbol, params?)
+```
+
+
+<a name="cancelContractOrder" id="cancelcontractorder"></a>
+
+### cancelContractOrder{docsify-ignore}
+helper method for cancelling contract orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | cancel order by client order id |
+
+
+```javascript
+kucoin.cancelContractOrder (id, symbol, params?)
+```
+
+
+<a name="cancelUtaOrder" id="cancelutaorder"></a>
+
+### cancelUtaOrder{docsify-ignore}
+helper method for cancelling uta orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: Response from the exchange
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/cancel-order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is 'unified') |
+| params.clientOrderId | <code>string</code> | No | client order id, required if id is not provided |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin) |
+
+
+```javascript
+kucoin.cancelUtaOrder (id, symbol, params?)
 ```
 
 
@@ -658,9 +1081,45 @@ cancel all open orders
 
 **See**
 
-- https://docs.kucoin.com/spot#cancel-all-orders
-- https://docs.kucoin.com/spot#cancel-orders
-- https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+- https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', used if symbol is not provided (default is 'spot') |
+| params.marginMode | <code>string</code> | No | *spot only* 'cross' or 'isolated' |
+| params.uta | <code>boolean</code> | No | true for cancelling orders with unified account endpoint (default is false) Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params |
+
+
+```javascript
+kucoin.cancelAllOrders (symbol, params?)
+```
+
+
+<a name="cancelAllSpotOrders" id="cancelallspotorders"></a>
+
+### cancelAllSpotOrders{docsify-ignore}
+helper method for cancelling all spot orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: Response from the exchange
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
 
 
 | Param | Type | Required | Description |
@@ -669,29 +1128,117 @@ cancel all open orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | *invalid for isolated margin* true if cancelling all stop orders |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
-| params.orderIds | <code>string</code> | No | *stop orders only* Comma seperated order IDs |
+| params.orderIds | <code>string</code> | No | *stop orders only* Comma separated order IDs |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 
 
 ```javascript
-kucoin.cancelAllOrders (symbol[, params])
+kucoin.cancelAllSpotOrders (symbol, params?)
+```
+
+
+<a name="cancelAllContractOrders" id="cancelallcontractorders"></a>
+
+### cancelAllContractOrders{docsify-ignore}
+helper method for cancelling all contract orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: Response from the exchange
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>object</code> | No | When true, all the trigger orders will be cancelled |
+
+
+```javascript
+kucoin.cancelAllContractOrders (symbol, params?)
+```
+
+
+<a name="cancelAllUtaOrders" id="cancelallutaorders"></a>
+
+### cancelAllUtaOrders{docsify-ignore}
+helper method for cancelling all uta orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: Response from the exchange
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>bool</code> | No | true if cancelling all stop orders |
+| params.marginMode | <code>string</code> | No | 'CROSS' or 'ISOLATED' |
+
+
+```javascript
+kucoin.cancelAllUtaOrders (symbol, params?)
 ```
 
 
 <a name="fetchOrdersByStatus" id="fetchordersbystatus"></a>
 
 ### fetchOrdersByStatus{docsify-ignore}
-fetch a list of orders
+fetches a list of orders placed on the exchange
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: An [array of order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [array of order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://docs.kucoin.com/spot#list-orders
-- https://docs.kucoin.com/spot#list-stop-orders
-- https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-- https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+- https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+- https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| status | <code>string</code> | Yes | 'active' or 'closed', only 'active' is valid for stop orders |
+| symbol | <code>string</code> | Yes | unified symbol for the market to retrieve orders from |
+| since | <code>int</code> | No | timestamp in ms of the earliest order to retrieve |
+| limit | <code>int</code> | No | The maximum number of orders to retrieve |
+| params | <code>object</code> | No | exchange specific parameters |
+| params.uta | <code>boolean</code> | No | true for fetch orders with uta endpoint (default is false) Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params |
+
+
+```javascript
+kucoin.fetchOrdersByStatus (status, symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchSpotOrdersByStatus" id="fetchspotordersbystatus"></a>
+
+### fetchSpotOrdersByStatus{docsify-ignore}
+fetch a list of spot orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: An [array of order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
 
 
 | Param | Type | Required | Description |
@@ -704,15 +1251,82 @@ fetch a list of orders
 | params.until | <code>int</code> | No | end time in ms |
 | params.side | <code>string</code> | No | buy or sell |
 | params.type | <code>string</code> | No | limit, market, limit_stop or market_stop |
-| params.tradeType | <code>string</code> | No | TRADE for spot trading, MARGIN_TRADE for Margin Trading |
+| params.tradeType | <code>string</code> | No | TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading |
 | params.currentPage | <code>int</code> | No | *trigger orders only* current page |
-| params.orderIds | <code>string</code> | No | *trigger orders only* comma seperated order ID list |
+| params.orderIds | <code>string</code> | No | *trigger orders only* comma separated order ID list |
 | params.trigger | <code>bool</code> | No | True if fetching a trigger order |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin orders |
 
 
 ```javascript
-kucoin.fetchOrdersByStatus (status, symbol[, since, limit, params])
+kucoin.fetchSpotOrdersByStatus (status, symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchContractOrdersByStatus" id="fetchcontractordersbystatus"></a>
+
+### fetchContractOrdersByStatus{docsify-ignore}
+fetches a list of contract orders placed on the exchange
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: An [array of order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| status | <code>string</code> | Yes | 'active' or 'closed', only 'active' is valid for stop orders |
+| symbol | <code>string</code> | Yes | unified symbol for the market to retrieve orders from |
+| since | <code>int</code> | No | timestamp in ms of the earliest order to retrieve |
+| limit | <code>int</code> | No | The maximum number of orders to retrieve |
+| params | <code>object</code> | No | exchange specific parameters |
+| params.trigger | <code>bool</code> | No | set to true to retrieve untriggered stop orders |
+| params.until | <code>int</code> | No | End time in ms |
+| params.side | <code>string</code> | No | buy or sell |
+| params.type | <code>string</code> | No | limit or market |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kucoin.fetchContractOrdersByStatus (status, symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchUtaOrdersByStatus" id="fetchutaordersbystatus"></a>
+
+### fetchUtaOrdersByStatus{docsify-ignore}
+helper method for fetching orders by status with uta endpoint
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: An [array of order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+- https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| status | <code>string</code> | Yes | 'active' or 'closed', only 'active' is valid for stop orders |
+| symbol | <code>string</code> | Yes | unified symbol for the market to retrieve orders from |
+| since | <code>int</code> | No | timestamp in ms of the earliest order to retrieve |
+| limit | <code>int</code> | No | The maximum number of orders to retrieve |
+| params | <code>object</code> | No | exchange specific parameters |
+| params.until | <code>int</code> | No | End time in ms |
+| params.side | <code>string</code> | No | *closed orders only* 'BUY' or 'SELL' |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is unified) |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kucoin.fetchUtaOrdersByStatus (status, symbol, since?, limit?, params?)
 ```
 
 
@@ -722,14 +1336,17 @@ kucoin.fetchOrdersByStatus (status, symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://docs.kucoin.com/spot#list-orders
-- https://docs.kucoin.com/spot#list-stop-orders
-- https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-- https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+- https://www.kucoin.com/docs-new/rest/ua/get-order-history
 
 
 | Param | Type | Required | Description |
@@ -748,7 +1365,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-kucoin.fetchClosedOrders (symbol[, since, limit, params])
+kucoin.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -758,14 +1375,18 @@ kucoin.fetchClosedOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://docs.kucoin.com/spot#list-orders
-- https://docs.kucoin.com/spot#list-stop-orders
-- https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-- https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+- https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
 
 
 | Param | Type | Required | Description |
@@ -780,32 +1401,71 @@ fetch all unfilled currently open orders
 | params.type | <code>string</code> | No | limit, market, limit_stop or market_stop |
 | params.tradeType | <code>string</code> | No | TRADE for spot trading, MARGIN_TRADE for Margin Trading |
 | params.currentPage | <code>int</code> | No | *trigger orders only* current page |
-| params.orderIds | <code>string</code> | No | *trigger orders only* comma seperated order ID list |
+| params.orderIds | <code>string</code> | No | *trigger orders only* comma separated order ID list |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-kucoin.fetchOpenOrders (symbol[, since, limit, params])
+kucoin.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
 <a name="fetchOrder" id="fetchorder"></a>
 
 ### fetchOrder{docsify-ignore}
-fetch an order
+fetches information on an order made by the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://docs.kucoin.com/spot#get-an-order
-- https://docs.kucoin.com/spot#get-single-active-order-by-clientoid
-- https://docs.kucoin.com/spot#get-single-order-info
-- https://docs.kucoin.com/spot#get-single-order-by-clientoid
-- https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
-- https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/ua/get-order-details
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', used if symbol is not provided (default is 'spot') |
+| params.uta | <code>bool</code> | No | true if fetching an order with uta endpoint (default is false) Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params |
+
+
+```javascript
+kucoin.fetchOrder (id, symbol, params?)
+```
+
+
+<a name="fetchSpotOrder" id="fetchspotorder"></a>
+
+### fetchSpotOrder{docsify-ignore}
+fetch a spot order
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
 
 
 | Param | Type | Required | Description |
@@ -816,10 +1476,62 @@ fetch an order
 | params.trigger | <code>bool</code> | No | true if fetching a trigger order |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 | params.clientOid | <code>bool</code> | No | unique order id created by users to identify their orders |
+| params.marginMode | <code>object</code> | No | 'cross' or 'isolated' |
 
 
 ```javascript
-kucoin.fetchOrder (id, symbol[, params])
+kucoin.fetchSpotOrder (id, symbol, params?)
+```
+
+
+<a name="fetchContractOrder" id="fetchcontractorder"></a>
+
+### fetchContractOrder{docsify-ignore}
+fetc contract order
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+- https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchContractOrder (id, symbol, params?)
+```
+
+
+<a name="fetchUtaOrder" id="fetchutaorder"></a>
+
+### fetchUtaOrder{docsify-ignore}
+fetch uta order
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-order-details  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is 'unified') |
+| params.clientOrderId | <code>string</code> | No | client order id, required if id is not provided |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin) |
+
+
+```javascript
+kucoin.fetchUtaOrder (id, symbol, params?)
 ```
 
 
@@ -829,12 +1541,14 @@ kucoin.fetchOrder (id, symbol[, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
 - https://docs.kucoin.com/#list-fills
-- https://docs.kucoin.com/spot-hf/#transaction-details
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+- https://www.kucoin.com/docs-new/rest/ua/get-trade-history
 
 
 | Param | Type | Required | Description |
@@ -844,10 +1558,12 @@ fetch all the trades made from a single order
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', used if symbol is not provided (default is 'spot') |
+| params.uta | <code>boolean</code> | No | set to true if fetching trades from uta endpoint, default is false. |
 
 
 ```javascript
-kucoin.fetchOrderTrades (id, symbol[, since, limit, params])
+kucoin.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -857,12 +1573,42 @@ kucoin.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
-- https://docs.kucoin.com/#list-fills
-- https://docs.kucoin.com/spot-hf/#transaction-details
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+- https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.type | <code>string</code> | No | 'spot' or 'swap', used if symbol is not provided (default is 'spot') Check fetchMySpotTrades() and fetchMyContractTrades() for more details on the extra parameters that can be used in params |
+
+
+```javascript
+kucoin.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchMySpotTrades" id="fetchmyspottrades"></a>
+
+### fetchMySpotTrades{docsify-ignore}
+fetch all spot trades made by the user
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+- https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
 
 
 | Param | Type | Required | Description |
@@ -873,11 +1619,65 @@ fetch all trades made by the user
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin trades |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-kucoin.fetchMyTrades (symbol[, since, limit, params])
+kucoin.fetchMySpotTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchMyContractTrades" id="fetchmycontracttrades"></a>
+
+### fetchMyContractTrades{docsify-ignore}
+fetch all contract trades made by the user
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | End time in ms |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kucoin.fetchMyContractTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchMyUtaTrades" id="fetchmyutatrades"></a>
+
+### fetchMyUtaTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-trade-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve (default is 50, max is 200) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic', defaults to 'unified' |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin) |
+| params.side | <code>string</code> | No | 'BUY' or 'SELL' (both if not provided) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kucoin.fetchMyUtaTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -887,9 +1687,14 @@ kucoin.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
+- https://www.kucoin.com/docs-new/rest/ua/get-trades
+- https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-trade-history
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -897,10 +1702,11 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
-kucoin.fetchTrades (symbol[, since, limit, params])
+kucoin.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -910,18 +1716,24 @@ kucoin.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
+- https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+- https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) endpoint, defaults to false |
 
 
 ```javascript
-kucoin.fetchTradingFee (symbol[, params])
+kucoin.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -931,9 +1743,9 @@ kucoin.fetchTradingFee (symbol[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-  
+**See**: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/withdraw-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -945,7 +1757,7 @@ make a withdrawal
 
 
 ```javascript
-kucoin.withdraw (code, amount, address, tag[, params])
+kucoin.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -955,10 +1767,11 @@ kucoin.withdraw (code, amount, address, tag[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
+- https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
 - https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
 - https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
 
@@ -970,11 +1783,34 @@ fetch all deposits made to an account
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.accountType | <code>string</code> | No | 'main' or 'contract' (default is 'main') |
 
 
 ```javascript
-kucoin.fetchDeposits (code[, since, limit, params])
+kucoin.fetchDeposits (code, since?, limit?, params?)
+```
+
+
+<a name="fetchContractDeposits" id="fetchcontractdeposits"></a>
+
+### fetchContractDeposits{docsify-ignore}
+helper method for fetching deposits for futures accounts
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchContractDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -984,10 +1820,11 @@ kucoin.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
+- https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
 - https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
 - https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
 
@@ -999,11 +1836,34 @@ fetch all withdrawals made from an account
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.accountType | <code>string</code> | No | 'main' or 'contract' (default is 'main') |
 
 
 ```javascript
-kucoin.fetchWithdrawals (code[, since, limit, params])
+kucoin.fetchWithdrawals (code, since?, limit?, params?)
+```
+
+
+<a name="fetchContractWithdrawals" id="fetchcontractwithdrawals"></a>
+
+### fetchContractWithdrawals{docsify-ignore}
+helper method for fetching withdrawals for futures accounts
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchContractWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -1013,13 +1873,16 @@ kucoin.fetchWithdrawals (code[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-- https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
-- https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-detail-spot
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+- https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+- https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
 
 
 | Param | Type | Required | Description |
@@ -1028,10 +1891,58 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.marginMode | <code>object</code> | No | 'cross' or 'isolated', margin type for fetching margin balance |
 | params.type | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.hf | <code>object</code> | No | *default if false* if true, the result includes the balance of the high frequency account |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) endpoint, defaults to false |
 
 
 ```javascript
-kucoin.fetchBalance ([params])
+kucoin.fetchBalance (params?)
+```
+
+
+<a name="fetchContractBalance" id="fetchcontractbalance"></a>
+
+### fetchContractBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.code | <code>object</code> | No | the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used |
+
+
+```javascript
+kucoin.fetchContractBalance (params?)
+```
+
+
+<a name="fetchUtaBalance" id="fetchutabalance"></a>
+
+### fetchUtaBalance{docsify-ignore}
+helper method for fetching balance with unified trading account (uta) endpoint
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+- https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified') |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross) |
+
+
+```javascript
+kucoin.fetchUtaBalance (params?)
 ```
 
 
@@ -1041,13 +1952,12 @@ kucoin.fetchBalance ([params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
-- https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
-- https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
+- https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+- https://www.kucoin.com/docs-new/rest/ua/flex-transfer
 
 
 | Param | Type | Required | Description |
@@ -1057,10 +1967,65 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) endpoint, defaults to false Check transferClassic() and transferUta() for more details on params |
 
 
 ```javascript
-kucoin.transfer (code, amount, fromAccount, toAccount[, params])
+kucoin.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="transferUta" id="transferuta"></a>
+
+### transferUta{docsify-ignore}
+transfer currency internally between wallets on the same account with uta endpoint
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/flex-transfer  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from |
+| toAccount | <code>string</code> | Yes | account to transfer to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transferType | <code>string</code> | No | INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL) |
+| params.fromUserId | <code>string</code> | No | required if transferType is SUB_TO_PARENT or SUB_TO_SUB |
+| params.toUserId | <code>string</code> | No | required if transferType is PARENT_TO_SUB or SUB_TO_SUB |
+
+
+```javascript
+kucoin.transferUta (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="transferClassic" id="transferclassic"></a>
+
+### transferClassic{docsify-ignore}
+transfer currency internally between wallets on the same account with classic endpoints
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from |
+| toAccount | <code>string</code> | Yes | account to transfer to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transferType | <code>string</code> | No | INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL) |
+| params.fromUserId | <code>string</code> | No | required if transferType is SUB_TO_PARENT |
+| params.toUserId | <code>string</code> | No | required if transferType is PARENT_TO_SUB |
+
+
+```javascript
+kucoin.transferClassic (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1070,13 +2035,15 @@ kucoin.transfer (code, amount, fromAccount, toAccount[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
-- https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
-- https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+- https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
 
 
 | Param | Type | Required | Description |
@@ -1085,13 +2052,15 @@ fetch the history of changes, actions done by the user or operations that altere
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
 | limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.hf | <code>boolean</code> | No | default false, when true will fetch ledger entries for the high frequency trading account |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.uta | <code>boolean</code> | No | default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-kucoin.fetchLedger ([code, since, limit, params])
+kucoin.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1101,12 +2070,12 @@ kucoin.fetchLedger ([code, since, limit, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**
 
-- https://docs.kucoin.com/#get-repay-record
-- https://docs.kucoin.com/#query-isolated-margin-account-info
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+- https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
 
 
 | Param | Type | Required | Description |
@@ -1120,7 +2089,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-kucoin.fetchBorrowInterest ([code, symbol, since, limit, params])
+kucoin.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
 ```
 
 
@@ -1130,9 +2099,9 @@ kucoin.fetchBorrowInterest ([code, symbol, since, limit, params])
 retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a dictionary of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) indexed by the market symbol
+**Returns**: <code>object</code> - a dictionary of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure) indexed by the market symbol
 
-**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records  
+**See**: https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1145,7 +2114,7 @@ retrieves a history of a multiple currencies borrow interest rate at specific ti
 
 
 ```javascript
-kucoin.fetchBorrowRateHistories (codes[, since, limit, params])
+kucoin.fetchBorrowRateHistories (codes, since?, limit?, params?)
 ```
 
 
@@ -1155,22 +2124,43 @@ kucoin.fetchBorrowRateHistories (codes[, since, limit, params])
 retrieves a history of a currencies borrow interest rate at specific time slots
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure)
 
-**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records  
+**See**: https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | timestamp for the earliest borrow rate |
-| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) to retrieve |
+| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure) to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' default is 'cross' |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 
 
 ```javascript
-kucoin.fetchBorrowRateHistory (code[, since, limit, params])
+kucoin.fetchBorrowRateHistory (code, since?, limit?, params?)
+```
+
+
+<a name="fetchCrossBorrowRate" id="fetchcrossborrowrate"></a>
+
+### fetchCrossBorrowRate{docsify-ignore}
+fetch the rate of interest to borrow a currency for margin trading
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -1180,9 +2170,9 @@ kucoin.fetchBorrowRateHistory (code[, since, limit, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
-**See**: https://docs.kucoin.com/#1-margin-borrowing  
+**See**: https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1193,7 +2183,7 @@ create a loan to borrow margin
 
 
 ```javascript
-kucoin.borrowCrossMargin (code, amount[, params])
+kucoin.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -1203,9 +2193,9 @@ kucoin.borrowCrossMargin (code, amount[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
-**See**: https://docs.kucoin.com/#1-margin-borrowing  
+**See**: https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1217,7 +2207,7 @@ create a loan to borrow margin
 
 
 ```javascript
-kucoin.borrowIsolatedMargin (symbol, code, amount[, params])
+kucoin.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1227,9 +2217,9 @@ kucoin.borrowIsolatedMargin (symbol, code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
-**See**: https://docs.kucoin.com/#2-repayment  
+**See**: https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1239,7 +2229,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-kucoin.repayCrossMargin (code, amount[, params])
+kucoin.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -1249,9 +2239,9 @@ kucoin.repayCrossMargin (code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
-**See**: https://docs.kucoin.com/#2-repayment  
+**See**: https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1262,7 +2252,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-kucoin.repayIsolatedMargin (symbol, code, amount[, params])
+kucoin.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1272,7 +2262,7 @@ kucoin.repayIsolatedMargin (symbol, code, amount[, params])
 fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.kucoin.com/#get-currencies  
 
@@ -1283,7 +2273,28 @@ fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get
 
 
 ```javascript
-kucoin.fetchDepositWithdrawFees (codes[, params])
+kucoin.fetchDepositWithdrawFees (codes, params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1295,17 +2306,565 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier  
+**See**
+
+- https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+- https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+- https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+- https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | leverage | <code>int</code> | No | New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage |
 | symbol | <code>string</code> | No | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
+| params.marginMode | <code>string</code> | No | *spot non-uta only* 'cross' or 'isolated' default is 'cross' |
+| params.code | <code>string</code> | No | *uta margin only* the unified currency code for the margin to set the leverage for |
 
 
 ```javascript
-kucoin.setLeverage ([leverage, symbol, params])
+kucoin.setLeverage (leverage?, symbol?, params?)
+```
+
+
+<a name="setContractLeverage" id="setcontractleverage"></a>
+
+### setContractLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+- https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
+
+
+```javascript
+kucoin.setContractLeverage (leverage, symbol, params?)
+```
+
+
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+- https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchFundingInterval (symbol, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+- https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
+
+
+```javascript
+kucoin.fetchFundingRate (symbol, params?)
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
+- https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | not used by kucuoinfutures |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | end time in ms |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to true |
+
+
+```javascript
+kucoin.fetchFundingRateHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the history of funding payments paid and received on this account
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
+| limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+
+
+```javascript
+kucoin.fetchFundingHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchPosition" id="fetchposition"></a>
+
+### fetchPosition{docsify-ignore}
+fetch data on an open position
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+- https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.pageSize | <code>integer</code> | No | *uta only* page size for the uta endpoint (default 50, max 200) |
+| params.pageNumber | <code>integer</code> | No | *uta only* page number for the uta endpoint (default 1) |
+
+
+```javascript
+kucoin.fetchPosition (symbol, params?)
+```
+
+
+<a name="fetchPositions" id="fetchpositions"></a>
+
+### fetchPositions{docsify-ignore}
+fetch all open positions
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+- https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.pageSize | <code>integer</code> | No | *uta only* page size for the uta endpoint (default 50, max 200) |
+| params.pageNumber | <code>integer</code> | No | *uta only* page number for the uta endpoint (default 1) |
+
+
+```javascript
+kucoin.fetchPositions (symbols, params?)
+```
+
+
+<a name="fetchPositionsHistory" id="fetchpositionshistory"></a>
+
+### fetchPositionsHistory{docsify-ignore}
+fetches historical positions
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+- https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | the earliest time in ms to fetch position history for |
+| limit | <code>int</code> | No | the maximum number of entries to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | closing end time |
+| params.pageId | <code>int</code> | No | page id |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+
+
+```javascript
+kucoin.fetchPositionsHistory (symbols?, since?, limit?, params?)
+```
+
+
+<a name="cancelOrders" id="cancelorders"></a>
+
+### cancelOrders{docsify-ignore}
+cancel multiple orders for contract markets
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/3470241e0
+- https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
+| params.uta | <code>boolean</code> | No | set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders |
+| params.accountMode | <code>string</code> | No | *for uta endpoint only* 'unified' or 'classic' (default is 'unified') |
+| params.marginMode | <code>string</code> | No | *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only) |
+
+
+```javascript
+kucoin.cancelOrders (ids, symbol, params?)
+```
+
+
+<a name="addMargin" id="addmargin"></a>
+
+### addMargin{docsify-ignore}
+add margin
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/add-isolated-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.positionSide | <code>string</code> | No | *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH') |
+
+
+```javascript
+kucoin.addMargin (symbol, amount, params?)
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchMarginMode (symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated'
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.setMarginMode (marginMode, symbol, params?)
+```
+
+
+<a name="setPositionMode" id="setpositionmode"></a>
+
+### setPositionMode{docsify-ignore}
+set hedged to true or false for a market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a response from the exchange
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| hedged | <code>bool</code> | Yes | set to true to use two way position |
+| symbol | <code>string</code> | No | not used by bybit setPositionMode () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.setPositionMode (hedged, symbol?, params?)
+```
+
+
+<a name="fetchPositionMode" id="fetchpositionmode"></a>
+
+### fetchPositionMode{docsify-ignore}
+fetchs the position mode, hedged or one way
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchPositionMode (symbol?, params?)
+```
+
+
+<a name="closePosition" id="closeposition"></a>
+
+### closePosition{docsify-ignore}
+closes open positions for a market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**
+
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+- https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| side | <code>string</code> | Yes | not used by kucoin closePositions |
+| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id of the order |
+
+
+```javascript
+kucoin.closePosition (symbol, side, params?)
+```
+
+
+<a name="fetchMarketLeverageTiers" id="fetchmarketleveragetiers"></a>
+
+### fetchMarketLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true to fetch leverage tiers for unified trading account instead of futures account (default is false) |
+
+
+```javascript
+kucoin.fetchMarketLeverageTiers (symbol, params?)
+```
+
+
+<a name="fetchLeverageTiers" id="fetchleveragetiers"></a>
+
+### fetchLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-position-tiers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchLeverageTiers (symbols, params?)
+```
+
+
+<a name="fetchOpenInterests" id="fetchopeninterests"></a>
+
+### fetchOpenInterests{docsify-ignore}
+Retrieves the open interest for a list of symbols
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | Unified CCXT market symbol |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+kucoin.fetchOpenInterests (symbols?, params?)
+```
+
+
+<a name="fetchOpenInterestHistory" id="fetchopeninteresthistory"></a>
+
+### fetchOpenInterestHistory{docsify-ignore}
+Retrieves the open interest history of a currency
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - an array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| timeframe | <code>string</code> | Yes | '5m', '15m', '30m', '1h', '4h' or '1d' |
+| since | <code>int</code> | No | the time(ms) of the earliest record to retrieve as a unix timestamp |
+| limit | <code>int</code> | No | default 30，max 200 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kucoin.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="isUTAEnabled" id="isutaenabled"></a>
+
+### isUTAEnabled{docsify-ignore}
+returns true or false so the user can check if unified account is enabled
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>boolean</code> - true if unified account is enabled, false otherwise
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-account-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.isUTAEnabled (params?)
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kucoin.fetchTransfers (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -1315,18 +2874,24 @@ kucoin.setLeverage ([leverage, symbol, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot  
+**See**
+
+- https://www.kucoin.com/docs-new/3470063w0
+- https://www.kucoin.com/docs-new/3470081w0
+- https://www.kucoin.com/docs-new/3470222w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 
 
 ```javascript
-kucoin.watchTicker (symbol[, params])
+kucoin.watchTicker (symbol, params?)
 ```
 
 
@@ -1336,18 +2901,24 @@ kucoin.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot  
+**See**
+
+- https://www.kucoin.com/docs-new/3470063w0
+- https://www.kucoin.com/docs-new/3470081w0
+- https://www.kucoin.com/docs-new/3470222w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 
 
 ```javascript
-kucoin.unWatchTicker (symbol[, params])
+kucoin.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1357,19 +2928,26 @@ kucoin.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker  
+**See**
+
+- https://www.kucoin.com/docs-new/3470063w0
+- https://www.kucoin.com/docs-new/3470064w0
+- https://www.kucoin.com/docs-new/3470081w0
+- https://www.kucoin.com/docs-new/3470222w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | either '/market/snapshot' or '/market/ticker' default is '/market/ticker' |
+| params.method | <code>string</code> | No | *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker' |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 
 
 ```javascript
-kucoin.watchTickers (symbols[, params])
+kucoin.watchTickers (symbols, params?)
 ```
 
 
@@ -1379,9 +2957,13 @@ kucoin.watchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data  
+**See**
+
+- https://www.kucoin.com/docs-new/3470067w0
+- https://www.kucoin.com/docs-new/3470080w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1390,7 +2972,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-kucoin.watchBidsAsks (symbols[, params])
+kucoin.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1402,7 +2984,12 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines  
+**See**
+
+- https://www.kucoin.com/docs-new/3470071w0
+- https://www.kucoin.com/docs-new/3470086w0
+- https://www.kucoin.com/docs-new/3470223w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1411,10 +2998,11 @@ watches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 
 
 ```javascript
-kucoin.watchOHLCV (symbol, timeframe[, since, limit, params])
+kucoin.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1426,17 +3014,23 @@ unWatches historical candlestick data containing the open, high, low, and close 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines  
+**See**
+
+- https://www.kucoin.com/docs-new/3470071w0
+- https://www.kucoin.com/docs-new/3470086w0
+- https://www.kucoin.com/docs-new/3470223w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 
 
 ```javascript
-kucoin.unWatchOHLCV (symbol, timeframe[, params])
+kucoin.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1446,9 +3040,14 @@ kucoin.unWatchOHLCV (symbol, timeframe[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
+**See**
+
+- https://www.kucoin.com/docs-new/3470072w0
+- https://www.kucoin.com/docs-new/3470084w0
+- https://www.kucoin.com/docs-new/3470224w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1456,10 +3055,11 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 
 
 ```javascript
-kucoin.watchTrades (symbol[, since, limit, params])
+kucoin.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1469,9 +3069,13 @@ kucoin.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
+**See**
+
+- https://www.kucoin.com/docs-new/3470072w0
+- https://www.kucoin.com/docs-new/3470084w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1482,7 +3086,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-kucoin.watchTradesForSymbols (symbols[, since, limit, params])
+kucoin.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1492,9 +3096,13 @@ kucoin.watchTradesForSymbols (symbols[, since, limit, params])
 unWatches trades stream
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
+**See**
+
+- https://www.kucoin.com/docs-new/3470072w0
+- https://www.kucoin.com/docs-new/3470084w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1503,7 +3111,7 @@ unWatches trades stream
 
 
 ```javascript
-kucoin.unWatchTradesForSymbols (symbols[, params])
+kucoin.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -1513,18 +3121,24 @@ kucoin.unWatchTradesForSymbols (symbols[, params])
 unWatches trades stream
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
+**See**
+
+- https://www.kucoin.com/docs-new/3470072w0
+- https://www.kucoin.com/docs-new/3470084w0
+- https://www.kucoin.com/docs-new/3470224w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 
 
 ```javascript
-kucoin.unWatchTrades (symbol[, params])
+kucoin.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1534,14 +3148,17 @@ kucoin.unWatchTrades (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+- https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+- https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+- https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+- https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+- https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+- https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+- https://www.kucoin.com/docs-new/3470221w0 // uta
 
 
 | Param | Type | Required | Description |
@@ -1549,11 +3166,12 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 | params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
 
 
 ```javascript
-kucoin.watchOrderBook (symbol[, limit, params])
+kucoin.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1563,7 +3181,7 @@ kucoin.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1577,11 +3195,12 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), default is false |
 | params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
 
 
 ```javascript
-kucoin.unWatchOrderBook (symbol[, params])
+kucoin.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1591,14 +3210,17 @@ kucoin.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+- https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+- https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+- https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+- https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+- https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+- https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+- https://www.kucoin.com/docs-new/3470221w0 // uta
 
 
 | Param | Type | Required | Description |
@@ -1606,11 +3228,10 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
 
 
 ```javascript
-kucoin.watchOrderBookForSymbols (symbols[, limit, params])
+kucoin.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1620,25 +3241,27 @@ kucoin.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+- https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+- https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+- https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+- https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+- https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+- https://www.kucoin.com/docs-new/3470082w0 // futures incremental
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
+| params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures |
 
 
 ```javascript
-kucoin.unWatchOrderBookForSymbols (symbols[, params])
+kucoin.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -1648,12 +3271,15 @@ kucoin.unWatchOrderBookForSymbols (symbols[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
-- https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
+- https://www.kucoin.com/docs-new/3470074w0 // spot regular orders
+- https://www.kucoin.com/docs-new/3470139w0 // spot trigger orders
+- https://www.kucoin.com/docs-new/3470090w0 // contract regular orders
+- https://www.kucoin.com/docs-new/3470091w0 // contract trigger orders
+- https://www.kucoin.com/docs-new/3470228w0 // uta orders
 
 
 | Param | Type | Required | Description |
@@ -1662,23 +3288,30 @@ watches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
 | params.trigger | <code>boolean</code> | No | trigger orders are watched if true |
+| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot' if symbol is not provided) |
 
 
 ```javascript
-kucoin.watchOrders (symbol[, since, limit, params])
+kucoin.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
 <a name="watchMyTrades" id="watchmytrades"></a>
 
 ### watchMyTrades{docsify-ignore}
-watches information on multiple trades made by the user
+watches information on multiple trades made by the user on spot
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change  
+**See**
+
+- https://www.kucoin.com/docs-new/3470074w0
+- https://www.kucoin.com/docs-new/3470090w0
+- https://www.kucoin.com/docs-new/3470264w0
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1686,11 +3319,12 @@ watches information on multiple trades made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders' |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
+| params.method | <code>string</code> | No | *classic (non-uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders' |
 
 
 ```javascript
-kucoin.watchMyTrades (symbol[, since, limit, params])
+kucoin.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1700,16 +3334,152 @@ kucoin.watchMyTrades (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change  
+**See**
+
+- https://www.kucoin.com/docs-new/3470075w0 // spot balance
+- https://www.kucoin.com/docs-new/3470092w0 // contract balance
+- https://www.kucoin.com/docs-new/3470231w0 // uta balance
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
+| params.type | <code>string</code> | No | *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot') |
 
 
 ```javascript
-kucoin.watchBalance ([params])
+kucoin.watchBalance (params?)
+```
+
+
+<a name="watchPosition" id="watchposition"></a>
+
+### watchPosition{docsify-ignore}
+watch open positions for a specific symbol
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470093w0  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code>, <code>undefined</code> | unified market symbol |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.watchPosition (symbol, params)
+```
+
+
+<a name="watchPositions" id="watchpositions"></a>
+
+### watchPositions{docsify-ignore}
+watch all open positions
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470233w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum number of positions to retrieve |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
+
+
+```javascript
+kucoin.watchPositions (symbols?, since?, limit?, params)
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470270w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.watchFundingRate (symbol, params?)
+```
+
+
+<a name="unWatchFundingRate" id="unwatchfundingrate"></a>
+
+### unWatchFundingRate{docsify-ignore}
+unWatches the current funding rate for a symbol
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470270w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.unWatchFundingRate (symbol, params?)
+```
+
+
+<a name="watchMarkPrice" id="watchmarkprice"></a>
+
+### watchMarkPrice{docsify-ignore}
+watches a mark price for a specific market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470272w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.watchMarkPrice (symbol, params?)
+```
+
+
+<a name="unWatchMarkPrice" id="unwatchmarkprice"></a>
+
+### unWatchMarkPrice{docsify-ignore}
+unWatches a mark price for a specific market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs-new/3470272w0  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.unWatchMarkPrice (symbol, params?)
 ```
 

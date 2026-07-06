@@ -12,6 +12,7 @@ public partial class bitbank : Exchange
             { "name", "bitbank" },
             { "countries", new List<object>() {"JP"} },
             { "version", "v1" },
+            { "rateLimit", 100 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -131,14 +132,46 @@ public partial class bitbank : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"{pair}/ticker", "tickers", "tickers_jpy", "{pair}/depth", "{pair}/transactions", "{pair}/transactions/{yyyymmdd}", "{pair}/candlestick/{candletype}/{yyyymmdd}", "{pair}/circuit_break_info"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "{pair}/ticker", 1 },
+                        { "tickers", 1 },
+                        { "tickers_jpy", 1 },
+                        { "{pair}/depth", 1 },
+                        { "{pair}/transactions", 1 },
+                        { "{pair}/transactions/{yyyymmdd}", 1 },
+                        { "{pair}/candlestick/{candletype}/{yyyymmdd}", 1 },
+                        { "{pair}/circuit_break_info", 1 },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"user/assets", "user/spot/order", "user/spot/active_orders", "user/margin/positions", "user/spot/trade_history", "user/deposit_history", "user/unconfirmed_deposits", "user/deposit_originators", "user/withdrawal_account", "user/withdrawal_history", "spot/status", "spot/pairs"} },
-                    { "post", new List<object>() {"user/spot/order", "user/spot/cancel_order", "user/spot/cancel_orders", "user/spot/orders_info", "user/confirm_deposits", "user/confirm_deposits_all", "user/request_withdrawal"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "user/assets", 1 },
+                        { "user/spot/order", 1 },
+                        { "user/spot/active_orders", 1 },
+                        { "user/margin/positions", 1 },
+                        { "user/spot/trade_history", 1 },
+                        { "user/deposit_history", 1 },
+                        { "user/unconfirmed_deposits", 1 },
+                        { "user/deposit_originators", 1 },
+                        { "user/withdrawal_account", 1 },
+                        { "user/withdrawal_history", 1 },
+                        { "spot/status", 1 },
+                        { "spot/pairs", 1 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "user/spot/order", 1.66 },
+                        { "user/spot/cancel_order", 1.66 },
+                        { "user/spot/cancel_orders", 1.66 },
+                        { "user/spot/orders_info", 1.66 },
+                        { "user/confirm_deposits", 1.66 },
+                        { "user/confirm_deposits_all", 1.66 },
+                        { "user/request_withdrawal", 1.66 },
+                    } },
                 } },
                 { "markets", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"spot/pairs"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "spot/pairs", 1 },
+                    } },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -365,12 +398,15 @@ public partial class bitbank : Exchange
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -388,12 +424,15 @@ public partial class bitbank : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -461,12 +500,15 @@ public partial class bitbank : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -483,12 +525,15 @@ public partial class bitbank : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.marketsGetSpotPairs(parameters);
         //
         //     {
@@ -579,7 +624,10 @@ public partial class bitbank : Exchange
             object duration = this.parseTimeframe(timeframe);
             since = subtract(this.milliseconds(), multiply(multiply(duration, 1000), limit));
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -641,12 +689,15 @@ public partial class bitbank : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetUserAssets(parameters);
         //
         //     {
@@ -693,7 +744,7 @@ public partial class bitbank : Exchange
             { "CANCELED_UNFILLED", "canceled" },
             { "CANCELED_PARTIALLY_FILLED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -746,12 +797,15 @@ public partial class bitbank : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -776,13 +830,16 @@ public partial class bitbank : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "order_id", id },
             { "pair", getValue(market, "id") },
@@ -823,13 +880,16 @@ public partial class bitbank : Exchange
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "order_id", id },
             { "pair", getValue(market, "id") },
@@ -870,13 +930,16 @@ public partial class bitbank : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
@@ -903,12 +966,15 @@ public partial class bitbank : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -937,12 +1003,15 @@ public partial class bitbank : Exchange
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-accounts
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -972,7 +1041,7 @@ public partial class bitbank : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -984,7 +1053,10 @@ public partial class bitbank : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " uuid is required for withdrawal")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -1183,7 +1255,7 @@ public partial class bitbank : Exchange
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
             object code = this.safeString(data, "code");
-            object message = this.safeString(errorMessages, code, "Error");
+            object message = this.safeString(errorMessages, ((string)code), "Error");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, message);
             throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
         }

@@ -1,16 +1,11 @@
 {
     "BTC": {
-        "id": "btc",
-        "numericId": 11,
-        "code": "BTC",
-        "name": "BTC",
         "info": {
             "txLimits": {
                 "minDeposit": "0.0001",
-                "minWithdraw": "0.000005",
+                "minWithdraw": "0.0001",
                 "maxWithdraw": "1000",
-                "withdrawCommissionPercentage": "NaN",
-                "withdrawCommissionFixed": "0.0005"
+                "withdrawCommissionFixed": "0.00005"
             },
             "id": "11",
             "status": "1",
@@ -18,7 +13,7 @@
             "title": "Bitcoin",
             "logoURL": "https://img2.freepng.ru/20171216/19e/bitcoin-png-5a354f46d0c7d2.8667284615134431428552.jpg",
             "isDiscount": false,
-            "address": "https://bitcoin.org/",
+            "address": "https://www.blockchain.com/btc",
             "description": "Bitcoin currency",
             "decimals": "8",
             "blockChain": "Bitcoin",
@@ -37,21 +32,17 @@
                 }
             ]
         },
+        "id": "btc",
+        "numericId": 11,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "BTC",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0005,
-        "precision": 0.00000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.000005,
-                "max": 1000
-            },
-            "deposit": {
-                "min": 0.0001
-            }
-        },
+        "fee": 0.00005,
+        "fees": {},
         "networks": {
             "BTC": {
                 "id": "Bitcoin",
@@ -59,25 +50,28 @@
                 "deposit": true,
                 "withdraw": true,
                 "active": true,
-                "fee": 0.0005,
-                "precision": 0.00000001,
+                "fee": 0.00005,
+                "precision": 1e-8,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "withdraw": {
-                        "min": 0.000005,
+                        "min": 0.0001,
                         "max": 1000
                     },
                     "deposit": {
-                        "min": 0.0001
+                        "min": 0.0001,
+                        "max": null
                     }
                 },
                 "info": {
                     "txLimits": {
                         "minDeposit": "0.0001",
-                        "minWithdraw": "0.000005",
+                        "minWithdraw": "0.0001",
                         "maxWithdraw": "1000",
-                        "withdrawCommissionPercentage": "NaN",
-                        "withdrawCommissionFixed": "0.0005"
+                        "withdrawCommissionFixed": "0.00005"
                     },
                     "id": "11",
                     "status": "1",
@@ -85,7 +79,7 @@
                     "title": "Bitcoin",
                     "logoURL": "https://img2.freepng.ru/20171216/19e/bitcoin-png-5a354f46d0c7d2.8667284615134431428552.jpg",
                     "isDiscount": false,
-                    "address": "https://bitcoin.org/",
+                    "address": "https://www.blockchain.com/btc",
                     "description": "Bitcoin currency",
                     "decimals": "8",
                     "blockChain": "Bitcoin",
@@ -105,20 +99,29 @@
                     ]
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0001,
+                "max": 1000
+            },
+            "deposit": {
+                "min": 0.0001,
+                "max": null
+            }
         }
     },
     "ETH": {
-        "id": "eth",
-        "numericId": 2,
-        "code": "ETH",
-        "name": "ETH",
         "info": {
             "txLimits": {
                 "minDeposit": "0.0001",
-                "minWithdraw": "0.02",
+                "minWithdraw": "0.008",
                 "maxWithdraw": "10000",
-                "withdrawCommissionPercentage": "NaN",
-                "withdrawCommissionFixed": "0.005"
+                "withdrawCommissionFixed": "0.0001"
             },
             "id": "2",
             "status": "1",
@@ -126,7 +129,7 @@
             "title": "Ethereum",
             "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
             "isDiscount": false,
-            "address": "https://ethereum.org/",
+            "address": "https://etherscan.io",
             "description": "Ethereum ETH",
             "decimals": "18",
             "blockChain": "Ethereum",
@@ -136,7 +139,7 @@
             "timeStart": "2021-01-28T08:57:41.719Z",
             "type": "crypto",
             "typeNetwork": "internalGW",
-            "idSorting": "2",
+            "idSorting": "3",
             "links": [
                 {
                     "tx": "https://etherscan.io/tx/",
@@ -145,21 +148,17 @@
                 }
             ]
         },
+        "id": "eth",
+        "numericId": 2,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "ETH",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.005,
-        "precision": 0.00000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.02,
-                "max": 10000
-            },
-            "deposit": {
-                "min": 0.0001
-            }
-        },
+        "fee": 0.0001,
+        "fees": {},
         "networks": {
             "ETH": {
                 "id": "Ethereum",
@@ -167,25 +166,28 @@
                 "deposit": true,
                 "withdraw": true,
                 "active": true,
-                "fee": 0.005,
-                "precision": 0.000000000000000001,
+                "fee": 0.0001,
+                "precision": 1e-18,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "withdraw": {
-                        "min": 0.02,
+                        "min": 0.008,
                         "max": 10000
                     },
                     "deposit": {
-                        "min": 0.0001
+                        "min": 0.0001,
+                        "max": null
                     }
                 },
                 "info": {
                     "txLimits": {
                         "minDeposit": "0.0001",
-                        "minWithdraw": "0.02",
+                        "minWithdraw": "0.008",
                         "maxWithdraw": "10000",
-                        "withdrawCommissionPercentage": "NaN",
-                        "withdrawCommissionFixed": "0.005"
+                        "withdrawCommissionFixed": "0.0001"
                     },
                     "id": "2",
                     "status": "1",
@@ -193,7 +195,7 @@
                     "title": "Ethereum",
                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
                     "isDiscount": false,
-                    "address": "https://ethereum.org/",
+                    "address": "https://etherscan.io",
                     "description": "Ethereum ETH",
                     "decimals": "18",
                     "blockChain": "Ethereum",
@@ -203,7 +205,7 @@
                     "timeStart": "2021-01-28T08:57:41.719Z",
                     "type": "crypto",
                     "typeNetwork": "internalGW",
-                    "idSorting": "2",
+                    "idSorting": "3",
                     "links": [
                         {
                             "tx": "https://etherscan.io/tx/",
@@ -213,13 +215,23 @@
                     ]
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.008,
+                "max": 10000
+            },
+            "deposit": {
+                "min": 0.0001,
+                "max": null
+            }
         }
     },
     "USDT": {
-        "id": "usdt",
-        "numericId": 3,
-        "code": "USDT",
-        "name": "USDT",
         "info": {
             "txLimits": {
                 "minDeposit": "0.001",
@@ -266,20 +278,17 @@
                 }
             ]
         },
+        "id": "usdt",
+        "numericId": 3,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "USDT",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 1,
-                "max": 100000
-            },
-            "deposit": {
-                "min": 0.001
-            }
-        },
+        "fee": 2,
+        "fees": {},
         "networks": {
             "TRC20": {
                 "id": "Tron",
@@ -290,13 +299,17 @@
                 "fee": 2,
                 "precision": 0.000001,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "withdraw": {
                         "min": 1,
                         "max": 100000
                     },
                     "deposit": {
-                        "min": 0.001
+                        "min": 0.001,
+                        "max": null
                     }
                 },
                 "info": {
@@ -355,13 +368,17 @@
                 "fee": 2,
                 "precision": 0.000001,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "withdraw": {
                         "min": 1,
                         "max": 100000
                     },
                     "deposit": {
-                        "min": 0.001
+                        "min": 0.001,
+                        "max": null
                     }
                 },
                 "info": {
@@ -420,13 +437,17 @@
                 "fee": 2,
                 "precision": 0.000001,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "withdraw": {
                         "min": 1,
                         "max": 100000
                     },
                     "deposit": {
-                        "min": 0.001
+                        "min": 0.001,
+                        "max": null
                     }
                 },
                 "info": {
@@ -476,20 +497,29 @@
                     ]
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 100000
+            },
+            "deposit": {
+                "min": 0.001,
+                "max": null
+            }
         }
     },
     "LTC": {
-        "id": "ltc",
-        "numericId": 13,
-        "code": "LTC",
-        "name": "LTC",
         "info": {
             "txLimits": {
                 "minDeposit": "0.001",
-                "minWithdraw": "0.0001",
+                "minWithdraw": "0.01",
                 "maxWithdraw": "100",
-                "withdrawCommissionPercentage": "NaN",
-                "withdrawCommissionFixed": "0.001"
+                "withdrawCommissionFixed": "0.0001"
             },
             "id": "13",
             "status": "1",
@@ -497,7 +527,7 @@
             "title": "Litecoin",
             "logoURL": "https://litecoin.org/",
             "isDiscount": false,
-            "address": "https://litecoin.org/",
+            "address": "https://blockchair.com/ru/litecoin",
             "description": "Litecoin currency",
             "decimals": "8",
             "blockChain": "Litecoin",
@@ -507,7 +537,7 @@
             "timeStart": "2021-10-13T11:57:56.573Z",
             "type": "crypto",
             "typeNetwork": "internalGW",
-            "idSorting": "7",
+            "idSorting": "12",
             "links": [
                 {
                     "tx": "https://blockchair.com/ru/litecoin/transaction/",
@@ -516,21 +546,17 @@
                 }
             ]
         },
+        "id": "ltc",
+        "numericId": 13,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "LTC",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.001,
-        "precision": 0.00000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.0001,
-                "max": 100
-            },
-            "deposit": {
-                "min": 0.001
-            }
-        },
+        "fee": 0.0001,
+        "fees": {},
         "networks": {
             "LTC": {
                 "id": "Litecoin",
@@ -538,25 +564,28 @@
                 "deposit": true,
                 "withdraw": true,
                 "active": true,
-                "fee": 0.001,
-                "precision": 0.00000001,
+                "fee": 0.0001,
+                "precision": 1e-8,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "withdraw": {
-                        "min": 0.0001,
+                        "min": 0.01,
                         "max": 100
                     },
                     "deposit": {
-                        "min": 0.001
+                        "min": 0.001,
+                        "max": null
                     }
                 },
                 "info": {
                     "txLimits": {
                         "minDeposit": "0.001",
-                        "minWithdraw": "0.0001",
+                        "minWithdraw": "0.01",
                         "maxWithdraw": "100",
-                        "withdrawCommissionPercentage": "NaN",
-                        "withdrawCommissionFixed": "0.001"
+                        "withdrawCommissionFixed": "0.0001"
                     },
                     "id": "13",
                     "status": "1",
@@ -564,7 +593,7 @@
                     "title": "Litecoin",
                     "logoURL": "https://litecoin.org/",
                     "isDiscount": false,
-                    "address": "https://litecoin.org/",
+                    "address": "https://blockchair.com/ru/litecoin",
                     "description": "Litecoin currency",
                     "decimals": "8",
                     "blockChain": "Litecoin",
@@ -574,7 +603,7 @@
                     "timeStart": "2021-10-13T11:57:56.573Z",
                     "type": "crypto",
                     "typeNetwork": "internalGW",
-                    "idSorting": "7",
+                    "idSorting": "12",
                     "links": [
                         {
                             "tx": "https://blockchair.com/ru/litecoin/transaction/",
@@ -584,19 +613,29 @@
                     ]
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.01,
+                "max": 100
+            },
+            "deposit": {
+                "min": 0.001,
+                "max": null
+            }
         }
     },
     "DEL": {
-        "id": "del",
-        "numericId": 9,
-        "code": "DEL",
-        "name": "DEL",
         "info": {
             "txLimits": {
                 "minDeposit": "1",
-                "minWithdraw": "0.1",
+                "minWithdraw": "1",
                 "maxWithdraw": "5000000",
-                "withdrawCommissionFixed": "2"
+                "withdrawCommissionFixed": "30"
             },
             "id": "9",
             "status": "1",
@@ -607,62 +646,62 @@
             "address": "https://explorer.decimalchain.com",
             "description": "DecimalChain",
             "decimals": "18",
-            "blockChain": "Decimal",
+            "blockChain": "decimal",
             "precision": "8",
             "currentRate": null,
             "active": true,
             "timeStart": "2021-01-29T04:47:24.183Z",
             "type": "crypto",
-            "typeNetwork": "internalGW",
-            "idSorting": "4",
+            "typeNetwork": "externalGW",
+            "idSorting": "6",
             "links": [
                 {
                     "tx": "https://explorer.decimalchain.com/transactions/",
                     "address": "https://explorer.decimalchain.com/address/",
-                    "blockChain": "Decimal"
+                    "blockChain": "decimal"
                 }
             ]
         },
+        "id": "del",
+        "numericId": 9,
+        "code": "DEL",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "DEL",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 2,
-        "precision": 0.00000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.1,
-                "max": 5000000
-            },
-            "deposit": {
-                "min": 1
-            }
-        },
+        "fee": 30,
+        "fees": {},
         "networks": {
-            "Decimal": {
-                "id": "Decimal",
-                "network": "Decimal",
+            "decimal": {
+                "id": "decimal",
+                "network": "decimal",
                 "deposit": true,
                 "withdraw": true,
                 "active": true,
-                "fee": 2,
-                "precision": 0.000000000000000001,
+                "fee": 30,
+                "precision": 1e-18,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "withdraw": {
-                        "min": 0.1,
+                        "min": 1,
                         "max": 5000000
                     },
                     "deposit": {
-                        "min": 1
+                        "min": 1,
+                        "max": null
                     }
                 },
                 "info": {
                     "txLimits": {
                         "minDeposit": "1",
-                        "minWithdraw": "0.1",
+                        "minWithdraw": "1",
                         "maxWithdraw": "5000000",
-                        "withdrawCommissionFixed": "2"
+                        "withdrawCommissionFixed": "30"
                     },
                     "id": "9",
                     "status": "1",
@@ -673,22 +712,36 @@
                     "address": "https://explorer.decimalchain.com",
                     "description": "DecimalChain",
                     "decimals": "18",
-                    "blockChain": "Decimal",
+                    "blockChain": "decimal",
                     "precision": "8",
                     "currentRate": null,
                     "active": true,
                     "timeStart": "2021-01-29T04:47:24.183Z",
                     "type": "crypto",
-                    "typeNetwork": "internalGW",
-                    "idSorting": "4",
+                    "typeNetwork": "externalGW",
+                    "idSorting": "6",
                     "links": [
                         {
                             "tx": "https://explorer.decimalchain.com/transactions/",
                             "address": "https://explorer.decimalchain.com/address/",
-                            "blockChain": "Decimal"
+                            "blockChain": "decimal"
                         }
                     ]
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 5000000
+            },
+            "deposit": {
+                "min": 1,
+                "max": null
             }
         }
     }

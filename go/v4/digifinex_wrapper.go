@@ -6,7 +6,7 @@ type Digifinex struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewDigifinex(userConfig map[string]interface{}) *Digifinex {
+func NewDigifinex(userConfig map[string]any) *Digifinex {
 	p := NewDigifinexCore()
 	p.Init(userConfig)
 	return &Digifinex{
@@ -30,10 +30,11 @@ func NewDigifinexFromCore(core *DigifinexCore) *Digifinex {
  * @method
  * @name digifinex#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Digifinex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Digifinex) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -45,29 +46,33 @@ func (this *Digifinex) FetchCurrencies(params ...interface{}) (Currencies, error
  * @method
  * @name digifinex#fetchMarkets
  * @description retrieves data on all markets for digifinex
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Digifinex) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Digifinex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Digifinex) FetchMarketsV2(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Digifinex) FetchMarketsV2(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchMarketsV2(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
-func (this *Digifinex) FetchMarketsV1(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Digifinex) FetchMarketsV1(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchMarketsV1(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
 
 /**
@@ -78,9 +83,9 @@ func (this *Digifinex) FetchMarketsV1(params ...interface{}) ([]map[string]inter
  * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Digifinex) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Digifinex) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -97,7 +102,7 @@ func (this *Digifinex) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Digifinex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -107,12 +112,12 @@ func (this *Digifinex) FetchOrderBook(symbol string, options ...FetchOrderBookOp
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -131,7 +136,7 @@ func (this *Digifinex) FetchOrderBook(symbol string, options ...FetchOrderBookOp
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Digifinex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -141,12 +146,12 @@ func (this *Digifinex) FetchTickers(options ...FetchTickersOptions) (Tickers, er
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -165,7 +170,7 @@ func (this *Digifinex) FetchTickers(options ...FetchTickersOptions) (Tickers, er
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Digifinex) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -175,7 +180,7 @@ func (this *Digifinex) FetchTicker(symbol string, options ...FetchTickerOptions)
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -190,10 +195,11 @@ func (this *Digifinex) FetchTicker(symbol string, options ...FetchTickerOptions)
  * @method
  * @name digifinex#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Digifinex) FetchTime(params ...interface{}) (int64, error) {
+func (this *Digifinex) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -205,15 +211,16 @@ func (this *Digifinex) FetchTime(params ...interface{}) (int64, error) {
  * @method
  * @name digifinex#fetchStatus
  * @description the latest known information on the availability of the exchange API
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Digifinex) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Digifinex) FetchStatus(params ...any) (map[string]any, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -226,7 +233,7 @@ func (this *Digifinex) FetchStatus(params ...interface{}) (map[string]interface{
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Digifinex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -236,17 +243,17 @@ func (this *Digifinex) FetchTrades(symbol string, options ...FetchTradesOptions)
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -279,22 +286,22 @@ func (this *Digifinex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) (
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -322,7 +329,7 @@ func (this *Digifinex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) (
  * @param {bool} [params.reduceOnly] true or false
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -332,12 +339,12 @@ func (this *Digifinex) CreateOrder(symbol string, typeVar string, side string, a
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -356,7 +363,7 @@ func (this *Digifinex) CreateOrder(symbol string, typeVar string, side string, a
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -366,7 +373,7 @@ func (this *Digifinex) CreateOrders(orders []OrderRequest, options ...CreateOrde
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -385,7 +392,7 @@ func (this *Digifinex) CreateOrders(orders []OrderRequest, options ...CreateOrde
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -395,7 +402,7 @@ func (this *Digifinex) CreateMarketBuyOrderWithCost(symbol string, cost float64,
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -415,7 +422,7 @@ func (this *Digifinex) CreateMarketBuyOrderWithCost(symbol string, cost float64,
  * @param {string} id order id
  * @param {string} symbol not used by digifinex cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -425,12 +432,12 @@ func (this *Digifinex) CancelOrder(id string, options ...CancelOrderOptions) (Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -445,10 +452,11 @@ func (this *Digifinex) CancelOrder(id string, options ...CancelOrderOptions) (Or
  * @method
  * @name digifinex#cancelOrders
  * @description cancel multiple orders
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
  * @param {string[]} ids order ids
  * @param {string} symbol not used by digifinex cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -458,12 +466,12 @@ func (this *Digifinex) CancelOrders(ids []string, options ...CancelOrdersOptions
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -484,7 +492,7 @@ func (this *Digifinex) CancelOrders(ids []string, options ...CancelOrdersOptions
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -494,22 +502,22 @@ func (this *Digifinex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -530,7 +538,7 @@ func (this *Digifinex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -540,22 +548,22 @@ func (this *Digifinex) FetchOrders(options ...FetchOrdersOptions) ([]Order, erro
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -575,7 +583,7 @@ func (this *Digifinex) FetchOrders(options ...FetchOrdersOptions) ([]Order, erro
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Digifinex) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -585,12 +593,12 @@ func (this *Digifinex) FetchOrder(id string, options ...FetchOrderOptions) (Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -611,7 +619,7 @@ func (this *Digifinex) FetchOrder(id string, options ...FetchOrderOptions) (Orde
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Digifinex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -621,22 +629,22 @@ func (this *Digifinex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -657,7 +665,7 @@ func (this *Digifinex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, 
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Digifinex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -667,22 +675,22 @@ func (this *Digifinex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -697,9 +705,10 @@ func (this *Digifinex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry
  * @method
  * @name digifinex#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Digifinex) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -709,7 +718,7 @@ func (this *Digifinex) FetchDepositAddress(code string, options ...FetchDepositA
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -719,7 +728,7 @@ func (this *Digifinex) FetchDepositAddress(code string, options ...FetchDepositA
 	}
 	return NewDepositAddress(res), nil
 }
-func (this *Digifinex) FetchTransactionsByType(typeVar interface{}, options ...FetchTransactionsByTypeOptions) ([]Transaction, error) {
+func (this *Digifinex) FetchTransactionsByType(typeVar any, options ...FetchTransactionsByTypeOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsByTypeOptionsStruct{}
 
@@ -727,22 +736,22 @@ func (this *Digifinex) FetchTransactionsByType(typeVar interface{}, options ...F
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -757,11 +766,12 @@ func (this *Digifinex) FetchTransactionsByType(typeVar interface{}, options ...F
  * @method
  * @name digifinex#fetchDeposits
  * @description fetch all deposits made to an account
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Digifinex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -771,22 +781,22 @@ func (this *Digifinex) FetchDeposits(options ...FetchDepositsOptions) ([]Transac
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -801,11 +811,12 @@ func (this *Digifinex) FetchDeposits(options ...FetchDepositsOptions) ([]Transac
  * @method
  * @name digifinex#fetchWithdrawals
  * @description fetch all withdrawals made from an account
+ * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Digifinex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -815,22 +826,22 @@ func (this *Digifinex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]T
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -852,7 +863,7 @@ func (this *Digifinex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]T
  * @param {string} fromAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer from
  * @param {string} toAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Digifinex) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -862,7 +873,7 @@ func (this *Digifinex) Transfer(code string, amount float64, fromAccount string,
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -882,7 +893,7 @@ func (this *Digifinex) Transfer(code string, amount float64, fromAccount string,
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Digifinex) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -892,12 +903,12 @@ func (this *Digifinex) Withdraw(code string, amount float64, address string, opt
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -915,27 +926,27 @@ func (this *Digifinex) FetchBorrowInterest(options ...FetchBorrowInterestOptions
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -963,7 +974,7 @@ func (this *Digifinex) FetchCrossBorrowRate(code string, options ...FetchCrossBo
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -980,9 +991,9 @@ func (this *Digifinex) FetchCrossBorrowRate(code string, options ...FetchCrossBo
  * @description fetch the borrow interest rates of all currencies
  * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Digifinex) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Digifinex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	res := <-this.Core.FetchCrossBorrowRates(params...)
 	if IsError(res) {
 		return CrossBorrowRates{}, CreateReturnError(res)
@@ -997,7 +1008,7 @@ func (this *Digifinex) FetchCrossBorrowRates(params ...interface{}) (CrossBorrow
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Digifinex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1007,7 +1018,7 @@ func (this *Digifinex) FetchFundingRate(symbol string, options ...FetchFundingRa
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1025,7 +1036,7 @@ func (this *Digifinex) FetchFundingRate(symbol string, options ...FetchFundingRa
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Digifinex) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 
@@ -1035,7 +1046,7 @@ func (this *Digifinex) FetchFundingInterval(symbol string, options ...FetchFundi
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1050,11 +1061,12 @@ func (this *Digifinex) FetchFundingInterval(symbol string, options ...FetchFundi
  * @method
  * @name digifinex#fetchFundingRateHistory
  * @description fetches historical funding rate prices
+ * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Digifinex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1064,22 +1076,22 @@ func (this *Digifinex) FetchFundingRateHistory(options ...FetchFundingRateHistor
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1097,7 +1109,7 @@ func (this *Digifinex) FetchFundingRateHistory(options ...FetchFundingRateHistor
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Digifinex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -1107,7 +1119,7 @@ func (this *Digifinex) FetchTradingFee(symbol string, options ...FetchTradingFee
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1126,7 +1138,7 @@ func (this *Digifinex) FetchTradingFee(symbol string, options ...FetchTradingFee
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Digifinex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1136,12 +1148,12 @@ func (this *Digifinex) FetchPositions(options ...FetchPositionsOptions) ([]Posit
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1160,7 +1172,7 @@ func (this *Digifinex) FetchPositions(options ...FetchPositionsOptions) ([]Posit
  * @description fetch data on a single open contract trade position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Digifinex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1170,7 +1182,7 @@ func (this *Digifinex) FetchPosition(symbol string, options ...FetchPositionOpti
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1193,7 +1205,7 @@ func (this *Digifinex) FetchPosition(symbol string, options ...FetchPositionOpti
  * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
  * @returns {object} response from the exchange
  */
-func (this *Digifinex) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+func (this *Digifinex) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
 
 	opts := SetLeverageOptionsStruct{}
 
@@ -1201,20 +1213,20 @@ func (this *Digifinex) SetLeverage(leverage int64, options ...SetLeverageOptions
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetLeverage(leverage, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1226,7 +1238,7 @@ func (this *Digifinex) SetLeverage(leverage int64, options ...SetLeverageOptions
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Digifinex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -1236,22 +1248,22 @@ func (this *Digifinex) FetchTransfers(options ...FetchTransfersOptions) ([]Trans
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1269,7 +1281,7 @@ func (this *Digifinex) FetchTransfers(options ...FetchTransfersOptions) ([]Trans
  * @description retrieve information on the maximum leverage, for different trade sizes
  * @param {string[]|undefined} symbols a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Digifinex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 
@@ -1279,12 +1291,12 @@ func (this *Digifinex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) 
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1302,7 +1314,7 @@ func (this *Digifinex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) 
  * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *Digifinex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 
@@ -1312,7 +1324,7 @@ func (this *Digifinex) FetchMarketLeverageTiers(symbol string, options ...FetchM
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1330,9 +1342,9 @@ func (this *Digifinex) FetchMarketLeverageTiers(symbol string, options ...FetchM
  * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
  * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Digifinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1340,20 +1352,20 @@ func (this *Digifinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawF
 		opt(&opts)
 	}
 
-	var codes interface{} = nil
+	var codes any = nil
 	if opts.Codes != nil {
 		codes = *opts.Codes
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return (res).(map[string]interface{}), nil
+	return (res).(map[string]any), nil
 }
 
 /**
@@ -1366,7 +1378,7 @@ func (this *Digifinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawF
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding payment
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Digifinex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1376,22 +1388,22 @@ func (this *Digifinex) FetchFundingHistory(options ...FetchFundingHistoryOptions
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1412,7 +1424,7 @@ func (this *Digifinex) FetchFundingHistory(options ...FetchFundingHistoryOptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Digifinex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Digifinex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 
 	opts := SetMarginModeOptionsStruct{}
 
@@ -1420,32 +1432,38 @@ func (this *Digifinex) SetMarginMode(marginMode string, options ...SetMarginMode
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetMarginMode(marginMode, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 // missing typed methods from base
 // nolint
-func (this *Digifinex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Digifinex) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
+}
+func (this *Digifinex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
 func (this *Digifinex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Digifinex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Digifinex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Digifinex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Digifinex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1525,10 +1543,13 @@ func (this *Digifinex) EditLimitSellOrder(id string, symbol string, amount float
 func (this *Digifinex) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
 }
+func (this *Digifinex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
+}
 func (this *Digifinex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Digifinex) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Digifinex) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Digifinex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1537,7 +1558,7 @@ func (this *Digifinex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greek
 func (this *Digifinex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchBidsAsks(options...)
 }
-func (this *Digifinex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Digifinex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -1546,7 +1567,7 @@ func (this *Digifinex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndC
 func (this *Digifinex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Digifinex) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Digifinex) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Digifinex) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1567,10 +1588,10 @@ func (this *Digifinex) FetchDepositAddressesByNetwork(code string, options ...Fe
 func (this *Digifinex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Digifinex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Digifinex) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Digifinex) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Digifinex) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
@@ -1588,7 +1609,7 @@ func (this *Digifinex) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCV
 func (this *Digifinex) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Digifinex) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Digifinex) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Digifinex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1648,6 +1669,9 @@ func (this *Digifinex) FetchOption(symbol string, options ...FetchOptionOptions)
 func (this *Digifinex) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
+func (this *Digifinex) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Digifinex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -1657,13 +1681,13 @@ func (this *Digifinex) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Digifinex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Digifinex) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Digifinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Digifinex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Digifinex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Digifinex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1678,16 +1702,16 @@ func (this *Digifinex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) 
 func (this *Digifinex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Digifinex) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Digifinex) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Digifinex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Digifinex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Digifinex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Digifinex) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1699,7 +1723,7 @@ func (this *Digifinex) FetchTransfer(id string, options ...FetchTransferOptions)
 func (this *Digifinex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Digifinex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Digifinex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Digifinex) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -1774,13 +1798,13 @@ func (this *Digifinex) CreateTriggerOrderWs(symbol string, typeVar string, side 
 func (this *Digifinex) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Digifinex) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Digifinex) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Digifinex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Digifinex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Digifinex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1822,46 +1846,46 @@ func (this *Digifinex) FetchTickerWs(symbol string, options ...FetchTickerWsOpti
 func (this *Digifinex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Digifinex) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Digifinex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Digifinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Digifinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Digifinex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Digifinex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Digifinex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Digifinex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Digifinex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Digifinex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Digifinex) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Digifinex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Digifinex) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Digifinex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Digifinex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Digifinex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Digifinex) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Digifinex) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Digifinex) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

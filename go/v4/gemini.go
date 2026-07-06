@@ -13,18 +13,18 @@ func NewGeminiCore() *GeminiCore {
 	return p
 }
 
-func (this *GeminiCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *GeminiCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "gemini",
 		"name":      "Gemini",
-		"countries": []interface{}{"US"},
+		"countries": []any{"US"},
 		"rateLimit": 100,
 		"version":   "v1",
 		"pro":       true,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                           nil,
 			"spot":                           true,
-			"margin":                         false,
+			"margin":                         nil,
 			"swap":                           true,
 			"future":                         false,
 			"option":                         false,
@@ -86,101 +86,130 @@ func (this *GeminiCore) Describe() interface{} {
 			"setPositionMode":                false,
 			"withdraw":                       true,
 		},
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"public":      "https://api.gemini.com",
 				"private":     "https://api.gemini.com",
 				"web":         "https://docs.gemini.com",
 				"webExchange": "https://exchange.gemini.com",
 			},
 			"www": "https://gemini.com/",
-			"doc": []interface{}{"https://docs.gemini.com/rest-api", "https://docs.sandbox.gemini.com"},
-			"test": map[string]interface{}{
+			"doc": []any{"https://docs.gemini.com/rest-api", "https://docs.sandbox.gemini.com"},
+			"test": map[string]any{
 				"public":      "https://api.sandbox.gemini.com",
 				"private":     "https://api.sandbox.gemini.com",
 				"web":         "https://docs.gemini.com",
 				"webExchange": "https://exchange.gemini.com",
 			},
-			"fees": []interface{}{"https://gemini.com/api-fee-schedule", "https://gemini.com/trading-fees", "https://gemini.com/transfer-fees"},
+			"fees": []any{"https://gemini.com/api-fee-schedule", "https://gemini.com/trading-fees", "https://gemini.com/transfer-fees"},
 		},
-		"api": map[string]interface{}{
-			"webExchange": map[string]interface{}{
-				"get": []interface{}{""},
+		"api": map[string]any{
+			"webExchange": map[string]any{
+				"get": []any{""},
 			},
-			"web": map[string]interface{}{
-				"get": []interface{}{"rest-api"},
+			"web": map[string]any{
+				"get": []any{"rest-api"},
 			},
-			"public": map[string]interface{}{
-				"get": map[string]interface{}{
-					"v1/symbols":                      5,
-					"v1/symbols/details/{symbol}":     5,
-					"v1/staking/rates":                5,
-					"v1/pubticker/{symbol}":           5,
-					"v2/ticker/{symbol}":              5,
-					"v2/candles/{symbol}/{timeframe}": 5,
-					"v1/trades/{symbol}":              5,
-					"v1/auction/{symbol}":             5,
-					"v1/auction/{symbol}/history":     5,
-					"v1/pricefeed":                    5,
-					"v1/book/{symbol}":                5,
-					"v1/earn/rates":                   5,
+			"public": map[string]any{
+				"get": map[string]any{
+					"v1/symbols":                                   5,
+					"v1/symbols/details/{symbol}":                  5,
+					"v1/network/{token}":                           5,
+					"v1/staking/rates":                             5,
+					"v1/pubticker/{symbol}":                        5,
+					"v1/feepromos":                                 5,
+					"v2/ticker/{symbol}":                           5,
+					"v2/candles/{symbol}/{timeframe}":              5,
+					"v1/trades/{symbol}":                           5,
+					"v1/auction/{symbol}":                          5,
+					"v1/auction/{symbol}/history":                  5,
+					"v1/pricefeed":                                 5,
+					"v1/fundingamount/{symbol}":                    5,
+					"v1/fundingamountreport/records.xlsx":          5,
+					"v1/book/{symbol}":                             5,
+					"v1/earn/rates":                                5,
+					"v2/derivatives/candles/{symbol}/{time_frame}": 5,
+					"v2/fxrate/{symbol}/{timestamp}":               5,
+					"v1/riskstats/{symbol}":                        5,
 				},
 			},
-			"private": map[string]interface{}{
-				"post": map[string]interface{}{
-					"v1/staking/unstake":                     1,
-					"v1/staking/stake":                       1,
-					"v1/staking/rewards":                     1,
-					"v1/staking/history":                     1,
-					"v1/order/new":                           1,
-					"v1/order/cancel":                        1,
-					"v1/wrap/{symbol}":                       1,
-					"v1/order/cancel/session":                1,
-					"v1/order/cancel/all":                    1,
-					"v1/order/status":                        1,
-					"v1/orders":                              1,
-					"v1/mytrades":                            1,
-					"v1/notionalvolume":                      1,
-					"v1/tradevolume":                         1,
-					"v1/clearing/new":                        1,
-					"v1/clearing/status":                     1,
-					"v1/clearing/cancel":                     1,
-					"v1/clearing/confirm":                    1,
-					"v1/balances":                            1,
-					"v1/balances/staking":                    1,
-					"v1/notionalbalances/{currency}":         1,
-					"v1/transfers":                           1,
-					"v1/addresses/{network}":                 1,
-					"v1/deposit/{network}/newAddress":        1,
-					"v1/deposit/{currency}/newAddress":       1,
-					"v1/withdraw/{currency}":                 1,
-					"v1/account/transfer/{currency}":         1,
-					"v1/payments/addbank":                    1,
-					"v1/payments/methods":                    1,
-					"v1/payments/sen/withdraw":               1,
-					"v1/balances/earn":                       1,
-					"v1/earn/interest":                       1,
-					"v1/earn/history":                        1,
-					"v1/approvedAddresses/{network}/request": 1,
-					"v1/approvedAddresses/account/{network}": 1,
-					"v1/approvedAddresses/{network}/remove":  1,
-					"v1/account":                             1,
-					"v1/account/create":                      1,
-					"v1/account/list":                        1,
-					"v1/heartbeat":                           1,
-					"v1/roles":                               1,
+			"private": map[string]any{
+				"get": map[string]any{
+					"v1/perpetuals/fundingpaymentreport/records.xlsx": 1,
+				},
+				"post": map[string]any{
+					"v1/staking/unstake":                              1,
+					"v1/staking/stake":                                1,
+					"v1/staking/rewards":                              1,
+					"v1/staking/history":                              1,
+					"v1/order/new":                                    1,
+					"v1/order/cancel":                                 1,
+					"v1/wrap/{symbol}":                                1,
+					"v1/order/cancel/session":                         1,
+					"v1/order/cancel/all":                             1,
+					"v1/order/status":                                 1,
+					"v1/orders":                                       1,
+					"v1/mytrades":                                     1,
+					"v1/notionalvolume":                               1,
+					"v1/tradevolume":                                  1,
+					"v1/clearing/new":                                 1,
+					"v1/clearing/status":                              1,
+					"v1/clearing/cancel":                              1,
+					"v1/clearing/confirm":                             1,
+					"v1/balances":                                     1,
+					"v1/balances/staking":                             1,
+					"v1/notionalbalances/{currency}":                  1,
+					"v1/transfers":                                    1,
+					"v1/addresses/{network}":                          1,
+					"v1/deposit/{network}/newAddress":                 1,
+					"v1/deposit/{currency}/newAddress":                1,
+					"v1/withdraw/{currency}":                          1,
+					"v1/account/transfer/{currency}":                  1,
+					"v1/payments/addbank":                             1,
+					"v1/payments/methods":                             1,
+					"v1/payments/sen/withdraw":                        1,
+					"v1/balances/earn":                                1,
+					"v1/earn/interest":                                1,
+					"v1/earn/history":                                 1,
+					"v1/approvedAddresses/{network}/request":          1,
+					"v1/approvedAddresses/account/{network}":          1,
+					"v1/approvedAddresses/{network}/remove":           1,
+					"v1/account":                                      1,
+					"v1/account/create":                               1,
+					"v1/account/list":                                 1,
+					"v1/heartbeat":                                    1,
+					"v1/roles":                                        1,
+					"v1/custodyaccountfees":                           1,
+					"v1/withdraw/{currencyCodeLowerCase}/feeEstimate": 1,
+					"v1/payments/addbank/cad":                         1,
+					"v1/transactions":                                 1,
+					"v1/margin/account":                               1,
+					"v1/margin/rates":                                 1,
+					"v1/margin/order/preview":                         1,
+					"v1/clearing/list":                                1,
+					"v1/clearing/broker/list":                         1,
+					"v1/clearing/broker/new":                          1,
+					"v1/clearing/trades":                              1,
+					"v1/instant/quote":                                1,
+					"v1/instant/execute":                              1,
+					"v1/account/rename":                               1,
+					"v1/oauth/revokeByToken":                          1,
+					"v1/margin":                                       1,
+					"v1/perpetuals/fundingPayment":                    1,
+					"v1/perpetuals/fundingpaymentreport/records.json": 1,
+					"v1/positions":                                    1,
 				},
 			},
 		},
 		"precisionMode": TICK_SIZE,
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"taker": 0.004,
 				"maker": 0.002,
 			},
 		},
-		"httpExceptions": map[string]interface{}{
+		"httpExceptions": map[string]any{
 			"400": BadRequest,
 			"403": PermissionDenied,
 			"404": OrderNotFound,
@@ -190,7 +219,7 @@ func (this *GeminiCore) Describe() interface{} {
 			"502": ExchangeNotAvailable,
 			"503": OnMaintenance,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1m",
 			"5m":  "5m",
 			"15m": "15m",
@@ -199,8 +228,8 @@ func (this *GeminiCore) Describe() interface{} {
 			"6h":  "6hr",
 			"1d":  "1day",
 		},
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"AuctionNotOpen":            BadRequest,
 				"ClientOrderIdTooLong":      BadRequest,
 				"ClientOrderIdMustBeString": BadRequest,
@@ -233,31 +262,31 @@ func (this *GeminiCore) Describe() interface{} {
 				"System":                    ExchangeError,
 				"UnsupportedOption":         BadRequest,
 			},
-			"broad": map[string]interface{}{
+			"broad": map[string]any{
 				"The Gemini Exchange is currently undergoing maintenance.":        OnMaintenance,
 				"We are investigating technical issues with the Gemini Exchange.": ExchangeNotAvailable,
 				"Internal Server Error": ExchangeNotAvailable,
 			},
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"fetchMarketsMethod":        "fetch_markets_from_api",
 			"fetchMarketFromWebRetries": 10,
-			"fetchMarketsFromAPI": map[string]interface{}{
+			"fetchMarketsFromAPI": map[string]any{
 				"fetchDetailsForAllSymbols": false,
-				"quoteCurrencies":           []interface{}{"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH", "SOL", "USDC"},
+				"quoteCurrencies":           []any{"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH", "SOL", "USDC"},
 			},
-			"fetchMarkets": map[string]interface{}{
+			"fetchMarkets": map[string]any{
 				"webApiEnable":  true,
 				"webApiRetries": 10,
 			},
-			"fetchUsdtMarkets": []interface{}{"btcusdt", "ethusdt"},
-			"fetchCurrencies": map[string]interface{}{
+			"fetchUsdtMarkets": []any{"btcusdt", "ethusdt"},
+			"fetchCurrencies": map[string]any{
 				"webApiEnable":      true,
 				"webApiRetries":     5,
 				"webApiMuteFailure": true,
 			},
 			"fetchTickerMethod": "fetchTickerV1",
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"BTC":   "bitcoin",
 				"ERC20": "ethereum",
 				"BCH":   "bitcoincash",
@@ -272,18 +301,18 @@ func (this *GeminiCore) Describe() interface{} {
 				"DOT":   "polkadot",
 			},
 			"nonce": "milliseconds",
-			"conflictingMarkets": map[string]interface{}{
-				"paxgusd": map[string]interface{}{
+			"conflictingMarkets": map[string]any{
+				"paxgusd": map[string]any{
 					"base":  "PAXG",
 					"quote": "USD",
 				},
 			},
-			"brokenPairs": []interface{}{"efilusd", "maticrlusd", "maticusdc", "eurusdc", "maticgusd", "maticusd", "efilfil", "eurusd"},
+			"brokenPairs": []any{"efilusd", "maticrlusd", "maticusdc", "eurusdc", "maticgusd", "maticusd", "efilfil", "eurusd"},
 		},
-		"features": map[string]interface{}{
-			"default": map[string]interface{}{
+		"features": map[string]any{
+			"default": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
 					"triggerPriceType":           nil,
@@ -291,7 +320,7 @@ func (this *GeminiCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -306,20 +335,20 @@ func (this *GeminiCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"daysBack":       nil,
 					"untilDays":      nil,
 					"symbolRequired": true,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
 					"trigger":        false,
@@ -328,20 +357,20 @@ func (this *GeminiCore) Describe() interface{} {
 				},
 				"fetchOrders":       nil,
 				"fetchClosedOrders": nil,
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": nil,
 				},
 			},
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"extends": "default",
 			},
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "default",
 				},
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
@@ -356,17 +385,17 @@ func (this *GeminiCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *GeminiCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes37815 := (<-this.FetchCurrenciesFromWeb(params))
-		PanicOnError(retRes37815)
-		ch <- retRes37815
+		retRes40815 := (<-this.FetchCurrenciesFromWeb(params))
+		PanicOnError(retRes40815)
+		ch <- retRes40815
 		return nil
 
 	}()
@@ -381,19 +410,19 @@ func (this *GeminiCore) FetchCurrencies(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *GeminiCore) FetchCurrenciesFromWeb(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchCurrenciesFromWeb(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		data := (<-this.FetchWebEndpoint("fetchCurrencies", "webExchangeGet", true, "=\"currencyData\">", "</script>"))
 		PanicOnError(data)
 		if IsTrue(IsEqual(data, nil)) {
 
-			ch <- map[string]interface{}{}
+			ch <- map[string]any{}
 			return nil
 		}
 		//
@@ -416,71 +445,69 @@ func (this *GeminiCore) FetchCurrenciesFromWeb(optionalArgs ...interface{}) <-ch
 		//        ]
 		//    }
 		//
-		var result interface{} = map[string]interface{}{}
 		AddElementToObject(this.Options, "tradingPairs", this.SafeList(data, "tradingPairs"))
-		var currenciesArray interface{} = this.SafeValue(data, "currencies", []interface{}{})
-		for i := 0; IsLessThan(i, GetArrayLength(currenciesArray)); i++ {
-			var currency interface{} = GetValue(currenciesArray, i)
-			var id interface{} = this.SafeString(currency, 0)
-			var code interface{} = this.SafeCurrencyCode(id)
-			var typeVar interface{} = Ternary(IsTrue(this.SafeString(currency, 7)), "fiat", "crypto")
-			var precision interface{} = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, 5)))
-			var networks interface{} = map[string]interface{}{}
-			var networkId interface{} = this.SafeString(currency, 9)
-			var networkCode interface{} = nil
-			if IsTrue(!IsEqual(networkId, nil)) {
-				networkCode = this.NetworkIdToCode(networkId)
-				AddElementToObject(networks, networkCode, map[string]interface{}{
-					"info":      currency,
-					"id":        networkId,
-					"network":   networkCode,
-					"active":    nil,
-					"deposit":   nil,
-					"withdraw":  nil,
-					"fee":       nil,
-					"precision": precision,
-					"limits": map[string]interface{}{
-						"deposit": map[string]interface{}{
-							"min": nil,
-							"max": nil,
-						},
-						"withdraw": map[string]interface{}{
-							"min": nil,
-							"max": nil,
-						},
-					},
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
-				"info":      currency,
-				"id":        id,
-				"code":      code,
-				"name":      this.SafeString(currency, 1),
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"type":      typeVar,
-				"precision": precision,
-				"limits": map[string]interface{}{
-					"deposit": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": networks,
-			}))
-		}
+		var currenciesArray any = this.SafeValue(data, "currencies", []any{})
 
-		ch <- result
+		ch <- this.ParseCurrencies(currenciesArray)
 		return nil
 
 	}()
 	return ch
+}
+func (this *GeminiCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, 0)
+	var code any = this.SafeCurrencyCode(id)
+	var typeVar any = Ternary(IsTrue(this.SafeString(rawCurrency, 7)), "fiat", "crypto")
+	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5)))
+	var networks any = map[string]any{}
+	var networkId any = this.SafeString(rawCurrency, 9)
+	var networkCode any = nil
+	if IsTrue(!IsEqual(networkId, nil)) {
+		networkCode = this.NetworkIdToCode(networkId, code)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"info":      rawCurrency,
+			"id":        networkId,
+			"network":   networkCode,
+			"active":    nil,
+			"deposit":   nil,
+			"withdraw":  nil,
+			"fee":       nil,
+			"precision": precision,
+			"limits": map[string]any{
+				"deposit": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"withdraw": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+			},
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":      rawCurrency,
+		"id":        id,
+		"code":      code,
+		"name":      this.SafeString(rawCurrency, 1),
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"type":      typeVar,
+		"precision": precision,
+		"limits": map[string]any{
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": networks,
+	})
 }
 
 /**
@@ -491,16 +518,16 @@ func (this *GeminiCore) FetchCurrenciesFromWeb(optionalArgs ...interface{}) <-ch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *GeminiCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var method interface{} = this.SafeValue(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
+		var method any = this.SafeValue(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
 		if IsTrue(IsEqual(method, "fetch_markets_from_web")) {
-			var promises interface{} = []interface{}{}
+			var promises any = []any{}
 			AppendToArray(&promises, this.FetchMarketsFromWeb(params)) // get usd markets
 			AppendToArray(&promises, this.FetchUSDTMarkets(params))    // get usdt markets
 
@@ -511,41 +538,41 @@ func (this *GeminiCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 			return nil
 		}
 
-		retRes49315 := (<-this.FetchMarketsFromAPI(params))
-		PanicOnError(retRes49315)
-		ch <- retRes49315
+		retRes52215 := (<-this.FetchMarketsFromAPI(params))
+		PanicOnError(retRes52215)
+		ch <- retRes52215
 		return nil
 
 	}()
 	return ch
 }
-func (this *GeminiCore) FetchMarketsFromWeb(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchMarketsFromWeb(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		data := (<-this.FetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>"))
 		PanicOnError(data)
-		var error interface{} = Add(this.Id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.")
-		var tables interface{} = Split(data, "tbody>")
-		var numTables interface{} = GetArrayLength(tables)
+		var error any = Add(this.Id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.")
+		var tables any = Split(data, "tbody>")
+		var numTables any = GetArrayLength(tables)
 		if IsTrue(IsLessThan(numTables, 2)) {
 			panic(NotSupported(error))
 		}
-		var rows interface{} = Split(GetValue(tables, 1), "\n<tr>\n") // eslint-disable-line quotes
-		var numRows interface{} = GetArrayLength(rows)
+		var rows any = Split(GetValue(tables, 1), "\n<tr>\n") // eslint-disable-line quotes
+		var numRows any = GetArrayLength(rows)
 		if IsTrue(IsLessThan(numRows, 2)) {
 			panic(NotSupported(error))
 		}
-		var result interface{} = []interface{}{}
+		var result any = []any{}
 		// skip the first element (empty string)
 		for i := 1; IsLessThan(i, numRows); i++ {
-			var row interface{} = GetValue(rows, i)
-			var cells interface{} = Split(row, "</td>\n") // eslint-disable-line quotes
-			var numCells interface{} = GetArrayLength(cells)
+			var row any = GetValue(rows, i)
+			var cells any = Split(row, "</td>\n") // eslint-disable-line quotes
+			var numCells any = GetArrayLength(cells)
 			if IsTrue(IsLessThan(numCells, 5)) {
 				panic(NotSupported(error))
 			}
@@ -556,23 +583,23 @@ func (this *GeminiCore) FetchMarketsFromWeb(optionalArgs ...interface{}) <-chan 
 			//         '<td>0.01 USD', // quote currency price increment
 			//         '</tr>'
 			//     ]
-			var marketId interface{} = Replace(GetValue(cells, 0), "<td>", "")
+			var marketId any = Replace(GetValue(cells, 0), "<td>", "")
 			marketId = Replace(marketId, "*", "")
 			// const base = this.safeCurrencyCode (baseId);
-			var minAmountString interface{} = Replace(GetValue(cells, 1), "<td>", "")
-			var minAmountParts interface{} = Split(minAmountString, " ")
-			var minAmount interface{} = this.SafeNumber(minAmountParts, 0)
-			var amountPrecisionString interface{} = Replace(GetValue(cells, 2), "<td>", "")
-			var amountPrecisionParts interface{} = Split(amountPrecisionString, " ")
-			var idLength interface{} = Subtract(GetArrayLength(marketId), 0)
-			var startingIndex interface{} = Subtract(idLength, 3)
-			var pricePrecisionString interface{} = Replace(GetValue(cells, 3), "<td>", "")
-			var pricePrecisionParts interface{} = Split(pricePrecisionString, " ")
-			var quoteId interface{} = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
-			var baseId interface{} = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
-			var base interface{} = this.SafeCurrencyCode(baseId)
-			var quote interface{} = this.SafeCurrencyCode(quoteId)
-			AppendToArray(&result, map[string]interface{}{
+			var minAmountString any = Replace(GetValue(cells, 1), "<td>", "")
+			var minAmountParts any = Split(minAmountString, " ")
+			var minAmount any = this.SafeNumber(minAmountParts, 0)
+			var amountPrecisionString any = Replace(GetValue(cells, 2), "<td>", "")
+			var amountPrecisionParts any = Split(amountPrecisionString, " ")
+			var idLength any = Subtract(GetArrayLength(marketId), 0)
+			var startingIndex any = Subtract(idLength, 3)
+			var pricePrecisionString any = Replace(GetValue(cells, 3), "<td>", "")
+			var pricePrecisionParts any = Split(pricePrecisionString, " ")
+			var quoteId any = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
+			var baseId any = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
+			var base any = this.SafeCurrencyCode(baseId)
+			var quote any = this.SafeCurrencyCode(quoteId)
+			AppendToArray(&result, map[string]any{
 				"id":             marketId,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -596,24 +623,24 @@ func (this *GeminiCore) FetchMarketsFromWeb(optionalArgs ...interface{}) <-chan 
 				"expiryDatetime": nil,
 				"strike":         nil,
 				"optionType":     nil,
-				"precision": map[string]interface{}{
+				"precision": map[string]any{
 					"amount": this.SafeNumber(amountPrecisionParts, 0),
 					"price":  this.SafeNumber(pricePrecisionParts, 0),
 				},
-				"limits": map[string]interface{}{
-					"leverage": map[string]interface{}{
+				"limits": map[string]any{
+					"leverage": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"amount": map[string]interface{}{
+					"amount": map[string]any{
 						"min": minAmount,
 						"max": nil,
 					},
-					"price": map[string]interface{}{
+					"price": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"cost": map[string]interface{}{
+					"cost": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
@@ -629,8 +656,8 @@ func (this *GeminiCore) FetchMarketsFromWeb(optionalArgs ...interface{}) <-chan 
 	}()
 	return ch
 }
-func (this *GeminiCore) ParseMarketActive(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *GeminiCore) ParseMarketActive(status any) any {
+	var statuses any = map[string]any{
 		"open":        true,
 		"closed":      false,
 		"cancel_only": true,
@@ -642,25 +669,25 @@ func (this *GeminiCore) ParseMarketActive(status interface{}) interface{} {
 	}
 	return this.SafeBool(statuses, status, true)
 }
-func (this *GeminiCore) FetchUSDTMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchUSDTMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// these markets can't be scrapped and fetchMarketsFrom api does an extra call
 		// to load market ids which we don't need here
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		if IsTrue(InOp(this.Urls, "test")) {
 
-			ch <- []interface{}{} // sandbox does not have usdt markets
+			ch <- []any{} // sandbox does not have usdt markets
 			return nil
 		}
-		var fetchUsdtMarkets interface{} = this.SafeValue(this.Options, "fetchUsdtMarkets", []interface{}{})
-		var result interface{} = []interface{}{}
+		var fetchUsdtMarkets any = this.SafeValue(this.Options, "fetchUsdtMarkets", []any{})
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(fetchUsdtMarkets)); i++ {
-			var marketId interface{} = GetValue(fetchUsdtMarkets, i)
-			var request interface{} = map[string]interface{}{
+			var marketId any = GetValue(fetchUsdtMarkets, i)
+			var request any = map[string]any{
 				"symbol": marketId,
 			}
 			// don't use Promise.all here, for some reason the exchange can't handle it and crashes
@@ -676,12 +703,12 @@ func (this *GeminiCore) FetchUSDTMarkets(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *GeminiCore) FetchMarketsFromAPI(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchMarketsFromAPI(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		marketIdsRaw := (<-this.PublicGetV1Symbols(params))
@@ -693,20 +720,20 @@ func (this *GeminiCore) FetchMarketsFromAPI(optionalArgs ...interface{}) <-chan 
 		//         ...
 		//     ]
 		//
-		var result interface{} = []interface{}{}
-		var options interface{} = this.SafeDict(this.Options, "fetchMarketsFromAPI", map[string]interface{}{})
-		var brokenPairs interface{} = this.SafeList(this.Options, "brokenPairs", []interface{}{})
-		var marketIds interface{} = []interface{}{}
+		var result any = []any{}
+		var options any = this.SafeDict(this.Options, "fetchMarketsFromAPI", map[string]any{})
+		var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
+		var marketIds any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(marketIdsRaw)); i++ {
 			if !IsTrue(this.InArray(GetValue(marketIdsRaw, i), brokenPairs)) {
 				AppendToArray(&marketIds, GetValue(marketIdsRaw, i))
 			}
 		}
 		if IsTrue(this.SafeBool(options, "fetchDetailsForAllSymbols", false)) {
-			var promises interface{} = []interface{}{}
+			var promises any = []any{}
 			for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-				var marketId interface{} = GetValue(marketIds, i)
-				var request interface{} = map[string]interface{}{
+				var marketId any = GetValue(marketIds, i)
+				var request any = map[string]any{
 					"symbol": marketId,
 				}
 				AppendToArray(&promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
@@ -719,12 +746,12 @@ func (this *GeminiCore) FetchMarketsFromAPI(optionalArgs ...interface{}) <-chan 
 			}
 		} else {
 			// use trading-pairs info, if it was fetched
-			var tradingPairs interface{} = this.SafeList(this.Options, "tradingPairs")
+			var tradingPairs any = this.SafeList(this.Options, "tradingPairs")
 			if IsTrue(!IsEqual(tradingPairs, nil)) {
-				var indexedTradingPairs interface{} = this.IndexBy(tradingPairs, 0)
+				var indexedTradingPairs any = this.IndexBy(tradingPairs, 0)
 				for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-					var marketId interface{} = GetValue(marketIds, i)
-					var pairInfo interface{} = this.SafeList(indexedTradingPairs, ToUpper(marketId))
+					var marketId any = GetValue(marketIds, i)
+					var pairInfo any = this.SafeList(indexedTradingPairs, ToUpper(marketId))
 					if IsTrue(IsTrue(!IsEqual(pairInfo, nil)) && !IsTrue(this.InArray(marketId, brokenPairs))) {
 						AppendToArray(&result, this.ParseMarket(pairInfo))
 					}
@@ -744,7 +771,7 @@ func (this *GeminiCore) FetchMarketsFromAPI(optionalArgs ...interface{}) <-chan 
 	}()
 	return ch
 }
-func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
+func (this *GeminiCore) ParseMarket(response any) any {
 	//
 	// response might be:
 	//
@@ -777,20 +804,20 @@ func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
 	//         "contract_price_currency": "GUSD"
 	//     }
 	//
-	var marketId interface{} = nil
-	var baseId interface{} = nil
-	var quoteId interface{} = nil
-	var settleId interface{} = nil
-	var tickSize interface{} = nil
-	var amountPrecision interface{} = nil
-	var minSize interface{} = nil
-	var status interface{} = nil
-	var swap interface{} = false
-	var contractSize interface{} = nil
-	var linear interface{} = nil
-	var inverse interface{} = nil
-	var isString interface{} = (IsString(response))
-	var isArray interface{} = (IsArray(response))
+	var marketId any = nil
+	var baseId any = nil
+	var quoteId any = nil
+	var settleId any = nil
+	var tickSize any = nil
+	var amountPrecision any = nil
+	var minSize any = nil
+	var status any = nil
+	var swap any = false
+	var contractSize any = nil
+	var linear any = nil
+	var inverse any = nil
+	var isString any = (IsString(response))
+	var isArray any = (IsArray(response))
 	if IsTrue(!IsTrue(isString) && !IsTrue(isArray)) {
 		marketId = this.SafeStringLower(response, "symbol")
 		amountPrecision = this.SafeNumber(response, "tick_size") // right, exchange has an imperfect naming and this turns out to be an amount-precision
@@ -810,24 +837,24 @@ func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 2))) // quantityTickDecimalPlaces
 			minSize = this.SafeNumber(response, 3)                                                // quantityMinimum
 		}
-		var marketIdUpper interface{} = ToUpper(marketId)
-		var isPerp interface{} = (IsGreaterThanOrEqual(GetIndexOf(marketIdUpper, "PERP"), 0))
-		var marketIdWithoutPerp interface{} = Replace(marketIdUpper, "PERP", "")
-		var conflictingMarkets interface{} = this.SafeDict(this.Options, "conflictingMarkets", map[string]interface{}{})
-		var lowerCaseId interface{} = ToLower(marketIdWithoutPerp)
+		var marketIdUpper any = ToUpper(marketId)
+		var isPerp any = (IsGreaterThanOrEqual(GetIndexOf(marketIdUpper, "PERP"), 0))
+		var marketIdWithoutPerp any = Replace(marketIdUpper, "PERP", "")
+		var conflictingMarkets any = this.SafeDict(this.Options, "conflictingMarkets", map[string]any{})
+		var lowerCaseId any = ToLower(marketIdWithoutPerp)
 		if IsTrue(InOp(conflictingMarkets, lowerCaseId)) {
-			var conflictingMarket interface{} = GetValue(conflictingMarkets, lowerCaseId)
+			var conflictingMarket any = GetValue(conflictingMarkets, lowerCaseId)
 			baseId = GetValue(conflictingMarket, "base")
 			quoteId = GetValue(conflictingMarket, "quote")
 			if IsTrue(isPerp) {
 				settleId = GetValue(conflictingMarket, "quote")
 			}
 		} else {
-			var quoteCurrencies interface{} = this.HandleOption("fetchMarketsFromAPI", "quoteCurrencies", []interface{}{})
+			var quoteCurrencies any = this.HandleOption("fetchMarketsFromAPI", "quoteCurrencies", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(quoteCurrencies)); i++ {
-				var quoteCurrency interface{} = GetValue(quoteCurrencies, i)
+				var quoteCurrency any = GetValue(quoteCurrencies, i)
 				if IsTrue(EndsWith(marketIdWithoutPerp, quoteCurrency)) {
-					var quoteLength interface{} = this.ParseToInt(Multiply(OpNeg(1), GetArrayLength(quoteCurrency)))
+					var quoteLength any = this.ParseToInt(Multiply(OpNeg(1), GetArrayLength(quoteCurrency)))
 					baseId = Slice(marketIdWithoutPerp, 0, quoteLength)
 					quoteId = quoteCurrency
 					if IsTrue(isPerp) {
@@ -838,10 +865,10 @@ func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
 			}
 		}
 	}
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var settle interface{} = this.SafeCurrencyCode(settleId)
-	var symbol interface{} = Add(Add(base, "/"), quote)
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var settle any = this.SafeCurrencyCode(settleId)
+	var symbol any = Add(Add(base, "/"), quote)
 	if IsTrue(!IsEqual(settleId, nil)) {
 		symbol = Add(Add(symbol, ":"), settle)
 		swap = true
@@ -849,8 +876,9 @@ func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
 		linear = true           // always linear
 		inverse = false
 	}
-	var typeVar interface{} = Ternary(IsTrue(swap), "swap", "spot")
-	return map[string]interface{}{
+	var typeVar any = Ternary(IsTrue(swap), "swap", "spot")
+	var isSpot any = !IsTrue(swap)
+	return map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -860,7 +888,7 @@ func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
 		"quoteId":        quoteId,
 		"settleId":       settleId,
 		"type":           typeVar,
-		"spot":           !IsTrue(swap),
+		"spot":           isSpot,
 		"margin":         false,
 		"swap":           swap,
 		"future":         false,
@@ -874,24 +902,24 @@ func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"price":  tickSize,
 			"amount": amountPrecision,
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": minSize,
 				"max": nil,
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
@@ -909,22 +937,24 @@ func (this *GeminiCore) ParseMarket(response interface{}) interface{} {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *GeminiCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8628 := (<-this.LoadMarkets())
-		PanicOnError(retRes8628)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes89312 := (<-this.LoadMarkets())
+			PanicOnError(retRes89312)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -941,18 +971,20 @@ func (this *GeminiCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 	}()
 	return ch
 }
-func (this *GeminiCore) FetchTickerV1(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchTickerV1(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8768 := (<-this.LoadMarkets())
-		PanicOnError(retRes8768)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes90912 := (<-this.LoadMarkets())
+			PanicOnError(retRes90912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -977,18 +1009,20 @@ func (this *GeminiCore) FetchTickerV1(symbol interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *GeminiCore) FetchTickerV2(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchTickerV2(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8988 := (<-this.LoadMarkets())
-		PanicOnError(retRes8988)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes93312 := (<-this.LoadMarkets())
+			PanicOnError(retRes93312)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -1014,20 +1048,20 @@ func (this *GeminiCore) FetchTickerV2(symbol interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *GeminiCore) FetchTickerV1AndV2(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchTickerV1AndV2(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var tickerPromiseA interface{} = this.FetchTickerV1(symbol, params)
-		var tickerPromiseB interface{} = this.FetchTickerV2(symbol, params)
-		tickerAtickerBVariable := (<-promiseAll([]interface{}{tickerPromiseA, tickerPromiseB}))
+		var tickerPromiseA any = this.FetchTickerV1(symbol, params)
+		var tickerPromiseB any = this.FetchTickerV2(symbol, params)
+		tickerAtickerBVariable := (<-promiseAll([]any{tickerPromiseA, tickerPromiseB}))
 		tickerA := GetValue(tickerAtickerBVariable, 0)
 		tickerB := GetValue(tickerAtickerBVariable, 1)
 
-		ch <- this.DeepExtend(tickerA, map[string]interface{}{
+		ch <- this.DeepExtend(tickerA, map[string]any{
 			"open":       GetValue(tickerB, "open"),
 			"high":       GetValue(tickerB, "high"),
 			"low":        GetValue(tickerB, "low"),
@@ -1051,40 +1085,40 @@ func (this *GeminiCore) FetchTickerV1AndV2(symbol interface{}, optionalArgs ...i
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *GeminiCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var method interface{} = this.SafeValue(this.Options, "fetchTickerMethod", "fetchTickerV1")
+		var method any = this.SafeValue(this.Options, "fetchTickerMethod", "fetchTickerV1")
 		if IsTrue(IsEqual(method, "fetchTickerV1")) {
 
-			retRes94919 := (<-this.FetchTickerV1(symbol, params))
-			PanicOnError(retRes94919)
-			ch <- retRes94919
+			retRes98519 := (<-this.FetchTickerV1(symbol, params))
+			PanicOnError(retRes98519)
+			ch <- retRes98519
 			return nil
 		}
 		if IsTrue(IsEqual(method, "fetchTickerV2")) {
 
-			retRes95219 := (<-this.FetchTickerV2(symbol, params))
-			PanicOnError(retRes95219)
-			ch <- retRes95219
+			retRes98819 := (<-this.FetchTickerV2(symbol, params))
+			PanicOnError(retRes98819)
+			ch <- retRes98819
 			return nil
 		}
 
-		retRes95415 := (<-this.FetchTickerV1AndV2(symbol, params))
-		PanicOnError(retRes95415)
-		ch <- retRes95415
+		retRes99015 := (<-this.FetchTickerV1AndV2(symbol, params))
+		PanicOnError(retRes99015)
+		ch <- retRes99015
 		return nil
 
 	}()
 	return ch
 }
-func (this *GeminiCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GeminiCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	// fetchTickers
 	//
@@ -1123,17 +1157,17 @@ func (this *GeminiCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var volume interface{} = this.SafeValue(ticker, "volume", map[string]interface{}{})
-	var timestamp interface{} = this.SafeInteger(volume, "timestamp")
-	var symbol interface{} = nil
-	var marketId interface{} = this.SafeStringLower(ticker, "pair")
+	var volume any = this.SafeValue(ticker, "volume", map[string]any{})
+	var timestamp any = this.SafeInteger(volume, "timestamp")
+	var symbol any = nil
+	var marketId any = this.SafeStringLower(ticker, "pair")
 	market = this.SafeMarket(marketId, market)
-	var baseId interface{} = nil
-	var quoteId interface{} = nil
-	var base interface{} = nil
-	var quote interface{} = nil
+	var baseId any = nil
+	var quoteId any = nil
+	var base any = nil
+	var quote any = nil
 	if IsTrue(IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsEqual(market, nil)))) {
-		var idLength interface{} = Subtract(GetLength(marketId), 0)
+		var idLength any = Subtract(GetLength(marketId), 0)
 		if IsTrue(IsEqual(idLength, 7)) {
 			baseId = Slice(marketId, 0, 4)
 			quoteId = Slice(marketId, 4, 7)
@@ -1150,13 +1184,13 @@ func (this *GeminiCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 		baseId = this.SafeStringUpper(market, "baseId")
 		quoteId = this.SafeStringUpper(market, "quoteId")
 	}
-	var price interface{} = this.SafeString(ticker, "price")
-	var last interface{} = this.SafeString2(ticker, "last", "close", price)
-	var percentage interface{} = this.SafeString(ticker, "percentChange24h")
-	var open interface{} = this.SafeString(ticker, "open")
-	var baseVolume interface{} = this.SafeString(volume, baseId)
-	var quoteVolume interface{} = this.SafeString(volume, quoteId)
-	return this.SafeTicker(map[string]interface{}{
+	var price any = this.SafeString(ticker, "price")
+	var last any = this.SafeString2(ticker, "last", "close", price)
+	var percentage any = this.SafeString(ticker, "percentChange24h")
+	var open any = this.SafeString(ticker, "open")
+	var baseVolume any = this.SafeString(volume, baseId)
+	var quoteVolume any = this.SafeString(volume, quoteId)
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1187,20 +1221,22 @@ func (this *GeminiCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @see https://docs.gemini.com/rest-api/#price-feed
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *GeminiCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10618 := (<-this.LoadMarkets())
-		PanicOnError(retRes10618)
+			retRes109812 := (<-this.LoadMarkets())
+			PanicOnError(retRes109812)
+		}
 
 		response := (<-this.PublicGetV1Pricefeed(params))
 		PanicOnError(response)
@@ -1218,8 +1254,8 @@ func (this *GeminiCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		//         },
 		//     ]
 		//
-		var result interface{} = this.ParseTickers(response, symbols)
-		var brokenPairs interface{} = this.SafeList(this.Options, "brokenPairs", []interface{}{})
+		var result any = this.ParseTickers(response, symbols)
+		var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
 
 		ch <- this.RemoveKeysFromDict(result, brokenPairs)
 		return nil
@@ -1227,7 +1263,7 @@ func (this *GeminiCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *GeminiCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GeminiCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// public fetchTrades
 	//
@@ -1263,20 +1299,20 @@ func (this *GeminiCore) ParseTrade(trade interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(trade, "timestampms")
-	var id interface{} = this.SafeString(trade, "tid")
-	var orderId interface{} = this.SafeString(trade, "order_id")
-	var feeCurrencyId interface{} = this.SafeString(trade, "fee_currency")
-	var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)
-	var fee interface{} = map[string]interface{}{
+	var timestamp any = this.SafeInteger(trade, "timestampms")
+	var id any = this.SafeString(trade, "tid")
+	var orderId any = this.SafeString(trade, "order_id")
+	var feeCurrencyId any = this.SafeString(trade, "fee_currency")
+	var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+	var fee any = map[string]any{
 		"cost":     this.SafeString(trade, "fee_amount"),
 		"currency": feeCurrencyCode,
 	}
-	var priceString interface{} = this.SafeString(trade, "price")
-	var amountString interface{} = this.SafeString(trade, "amount")
-	var side interface{} = this.SafeStringLower(trade, "type")
-	var symbol interface{} = this.SafeSymbol(nil, market)
-	return this.SafeTrade(map[string]interface{}{
+	var priceString any = this.SafeString(trade, "price")
+	var amountString any = this.SafeString(trade, "amount")
+	var side any = this.SafeStringLower(trade, "type")
+	var symbol any = this.SafeSymbol(nil, market)
+	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
 		"info":         trade,
@@ -1302,24 +1338,26 @@ func (this *GeminiCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *GeminiCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11588 := (<-this.LoadMarkets())
-		PanicOnError(retRes11588)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes119712 := (<-this.LoadMarkets())
+			PanicOnError(retRes119712)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1351,15 +1389,15 @@ func (this *GeminiCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 	}()
 	return ch
 }
-func (this *GeminiCore) ParseBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *GeminiCore) ParseBalance(response any) any {
+	var result any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-		var balance interface{} = GetValue(response, i)
-		var currencyId interface{} = this.SafeString(balance, "currency")
-		var code interface{} = this.SafeCurrencyCode(currencyId)
-		var account interface{} = this.Account()
+		var balance any = GetValue(response, i)
+		var currencyId any = this.SafeString(balance, "currency")
+		var code any = this.SafeCurrencyCode(currencyId)
+		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		AddElementToObject(result, code, account)
@@ -1373,18 +1411,20 @@ func (this *GeminiCore) ParseBalance(response interface{}) interface{} {
  * @description fetch the trading fees for multiple markets
  * @see https://docs.gemini.com/rest-api/#get-notional-volume
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *GeminiCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchTradingFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12098 := (<-this.LoadMarkets())
-		PanicOnError(retRes12098)
+			retRes125012 := (<-this.LoadMarkets())
+			PanicOnError(retRes125012)
+		}
 
 		response := (<-this.PrivatePostV1Notionalvolume(params))
 		PanicOnError(response)
@@ -1416,16 +1456,16 @@ func (this *GeminiCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 		//          ]
 		//     }
 		//
-		var makerBps interface{} = this.SafeString(response, "api_maker_fee_bps")
-		var takerBps interface{} = this.SafeString(response, "api_taker_fee_bps")
-		var makerString interface{} = Precise.StringDiv(makerBps, "10000")
-		var takerString interface{} = Precise.StringDiv(takerBps, "10000")
-		var maker interface{} = this.ParseNumber(makerString)
-		var taker interface{} = this.ParseNumber(takerString)
-		var result interface{} = map[string]interface{}{}
+		var makerBps any = this.SafeString(response, "api_maker_fee_bps")
+		var takerBps any = this.SafeString(response, "api_taker_fee_bps")
+		var makerString any = Precise.StringDiv(makerBps, "10000")
+		var takerString any = Precise.StringDiv(takerBps, "10000")
+		var maker any = this.ParseNumber(makerString)
+		var taker any = this.ParseNumber(takerString)
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol interface{} = GetValue(this.Symbols, i)
-			AddElementToObject(result, symbol, map[string]interface{}{
+			var symbol any = GetValue(this.Symbols, i)
+			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
 				"maker":      maker,
@@ -1448,18 +1488,20 @@ func (this *GeminiCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.gemini.com/rest-api/#get-available-balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *GeminiCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12698 := (<-this.LoadMarkets())
-		PanicOnError(retRes12698)
+			retRes131212 := (<-this.LoadMarkets())
+			PanicOnError(retRes131212)
+		}
 
 		response := (<-this.PrivatePostV1Balances(params))
 		PanicOnError(response)
@@ -1470,7 +1512,7 @@ func (this *GeminiCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *GeminiCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GeminiCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// createOrder (private)
 	//
@@ -1571,20 +1613,20 @@ func (this *GeminiCore) ParseOrder(order interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(order, "timestampms")
-	var amount interface{} = this.SafeString(order, "original_amount")
-	var remaining interface{} = this.SafeString(order, "remaining_amount")
-	var filled interface{} = this.SafeString(order, "executed_amount")
-	var status interface{} = "closed"
+	var timestamp any = this.SafeInteger(order, "timestampms")
+	var amount any = this.SafeString(order, "original_amount")
+	var remaining any = this.SafeString(order, "remaining_amount")
+	var filled any = this.SafeString(order, "executed_amount")
+	var status any = "closed"
 	if IsTrue(GetValue(order, "is_live")) {
 		status = "open"
 	}
 	if IsTrue(GetValue(order, "is_cancelled")) {
 		status = "canceled"
 	}
-	var price interface{} = this.SafeString(order, "price")
-	var average interface{} = this.SafeString(order, "avg_execution_price")
-	var typeVar interface{} = this.SafeString(order, "type")
+	var price any = this.SafeString(order, "price")
+	var average any = this.SafeString(order, "avg_execution_price")
+	var typeVar any = this.SafeString(order, "type")
 	if IsTrue(IsEqual(typeVar, "exchange limit")) {
 		typeVar = "limit"
 	} else if IsTrue(IsTrue(IsEqual(typeVar, "market buy")) || IsTrue(IsEqual(typeVar, "market sell"))) {
@@ -1592,16 +1634,16 @@ func (this *GeminiCore) ParseOrder(order interface{}, optionalArgs ...interface{
 	} else {
 		typeVar = GetValue(order, "type")
 	}
-	var fee interface{} = nil
-	var marketId interface{} = this.SafeString(order, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	var id interface{} = this.SafeString(order, "order_id")
-	var side interface{} = this.SafeStringLower(order, "side")
-	var clientOrderId interface{} = this.SafeString(order, "client_order_id")
-	var optionsArray interface{} = this.SafeValue(order, "options", []interface{}{})
-	var option interface{} = this.SafeString(optionsArray, 0)
-	var timeInForce interface{} = "GTC"
-	var postOnly interface{} = false
+	var fee any = nil
+	var marketId any = this.SafeString(order, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market)
+	var id any = this.SafeString(order, "order_id")
+	var side any = this.SafeStringLower(order, "side")
+	var clientOrderId any = this.SafeString(order, "client_order_id")
+	var optionsArray any = this.SafeValue(order, "options", []any{})
+	var option any = this.SafeString(optionsArray, 0)
+	var timeInForce any = "GTC"
+	var postOnly any = false
 	if IsTrue(!IsEqual(option, nil)) {
 		if IsTrue(IsEqual(option, "immediate-or-cancel")) {
 			timeInForce = "IOC"
@@ -1612,7 +1654,7 @@ func (this *GeminiCore) ParseOrder(order interface{}, optionalArgs ...interface{
 			postOnly = true
 		}
 	}
-	return this.SafeOrder(map[string]interface{}{
+	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"info":               order,
@@ -1645,21 +1687,23 @@ func (this *GeminiCore) ParseOrder(order interface{}, optionalArgs ...interface{
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GeminiCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14508 := (<-this.LoadMarkets())
-		PanicOnError(retRes14508)
-		var request interface{} = map[string]interface{}{
+			retRes149512 := (<-this.LoadMarkets())
+			PanicOnError(retRes149512)
+		}
+		var request any = map[string]any{
 			"order_id": id,
 		}
 
@@ -1705,11 +1749,11 @@ func (this *GeminiCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GeminiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1718,11 +1762,13 @@ func (this *GeminiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14938 := (<-this.LoadMarkets())
-		PanicOnError(retRes14938)
+			retRes154012 := (<-this.LoadMarkets())
+			PanicOnError(retRes154012)
+		}
 
 		response := (<-this.PrivatePostV1Orders(params))
 		PanicOnError(response)
@@ -1751,7 +1797,7 @@ func (this *GeminiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		//          }
 		//      ]
 		//
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol) // throws on non-existent symbol
 		}
@@ -1774,32 +1820,34 @@ func (this *GeminiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GeminiCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15418 := (<-this.LoadMarkets())
-		PanicOnError(retRes15418)
+			retRes159012 := (<-this.LoadMarkets())
+			PanicOnError(retRes159012)
+		}
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
-		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "client_order_id")
-		params = this.Omit(params, []interface{}{"clientOrderId", "client_order_id"})
+		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
+		params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			clientOrderId = ToString(this.Milliseconds())
 		}
-		var market interface{} = this.Market(symbol)
-		var amountString interface{} = this.AmountToPrecision(symbol, amount)
-		var priceString interface{} = this.PriceToPrecision(symbol, price)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var amountString any = this.AmountToPrecision(symbol, amount)
+		var priceString any = this.PriceToPrecision(symbol, price)
+		var request any = map[string]any{
 			"client_order_id": clientOrderId,
 			"symbol":          GetValue(market, "id"),
 			"amount":          amountString,
@@ -1809,8 +1857,8 @@ func (this *GeminiCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		}
 		typeVar = this.SafeString(params, "type", typeVar)
 		params = this.Omit(params, "type")
-		var triggerPrice interface{} = this.SafeStringN(params, []interface{}{"triggerPrice", "stop_price", "stopPrice"})
-		params = this.Omit(params, []interface{}{"triggerPrice", "stop_price", "stopPrice", "type"})
+		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stop_price", "stopPrice"})
+		params = this.Omit(params, []any{"triggerPrice", "stop_price", "stopPrice", "type"})
 		if IsTrue(IsEqual(typeVar, "stopLimit")) {
 			panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), typeVar), " orders")))
 		}
@@ -1819,26 +1867,26 @@ func (this *GeminiCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 			AddElementToObject(request, "type", "exchange stop limit")
 		} else {
 			// No options can be applied to stop-limit orders at this time.
-			var timeInForce interface{} = this.SafeString(params, "timeInForce")
+			var timeInForce any = this.SafeString(params, "timeInForce")
 			params = this.Omit(params, "timeInForce")
 			if IsTrue(!IsEqual(timeInForce, nil)) {
 				if IsTrue(IsTrue((IsEqual(timeInForce, "IOC"))) || IsTrue((IsEqual(timeInForce, "immediate-or-cancel")))) {
-					AddElementToObject(request, "options", []interface{}{"immediate-or-cancel"})
+					AddElementToObject(request, "options", []any{"immediate-or-cancel"})
 				} else if IsTrue(IsTrue((IsEqual(timeInForce, "FOK"))) || IsTrue((IsEqual(timeInForce, "fill-or-kill")))) {
-					AddElementToObject(request, "options", []interface{}{"fill-or-kill"})
+					AddElementToObject(request, "options", []any{"fill-or-kill"})
 				} else if IsTrue(IsEqual(timeInForce, "PO")) {
-					AddElementToObject(request, "options", []interface{}{"maker-or-cancel"})
+					AddElementToObject(request, "options", []any{"maker-or-cancel"})
 				}
 			}
-			var postOnly interface{} = this.SafeBool(params, "postOnly", false)
+			var postOnly any = this.SafeBool(params, "postOnly", false)
 			params = this.Omit(params, "postOnly")
 			if IsTrue(postOnly) {
-				AddElementToObject(request, "options", []interface{}{"maker-or-cancel"})
+				AddElementToObject(request, "options", []any{"maker-or-cancel"})
 			}
 			// allowing override for auction-only and indication-of-interest order options
-			var options interface{} = this.SafeString(params, "options")
+			var options any = this.SafeString(params, "options")
 			if IsTrue(!IsEqual(options, nil)) {
-				AddElementToObject(request, "options", []interface{}{options})
+				AddElementToObject(request, "options", []any{options})
 			}
 		}
 
@@ -1883,21 +1931,23 @@ func (this *GeminiCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GeminiCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16348 := (<-this.LoadMarkets())
-		PanicOnError(retRes16348)
-		var request interface{} = map[string]interface{}{
+			retRes168512 := (<-this.LoadMarkets())
+			PanicOnError(retRes168512)
+		}
+		var request any = map[string]any{
 			"order_id": id,
 		}
 
@@ -1944,11 +1994,11 @@ func (this *GeminiCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *GeminiCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1957,16 +2007,18 @@ func (this *GeminiCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16818 := (<-this.LoadMarkets())
-		PanicOnError(retRes16818)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes173412 := (<-this.LoadMarkets())
+			PanicOnError(retRes173412)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1996,26 +2048,28 @@ func (this *GeminiCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *GeminiCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17118 := (<-this.LoadMarkets())
-		PanicOnError(retRes17118)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+			retRes176612 := (<-this.LoadMarkets())
+			PanicOnError(retRes176612)
+		}
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
 			"amount":   amount,
 			"address":  address,
@@ -2046,7 +2100,7 @@ func (this *GeminiCore) Withdraw(code interface{}, amount interface{}, address i
 		//         "message":"Cryptocurrency withdrawal address whitelists are not enabled for account 24. Please contact support@gemini.com for information on setting up a withdrawal address whitelist."
 		//     }
 		//
-		var result interface{} = this.SafeString(response, "result")
+		var result any = this.SafeString(response, "result")
 		if IsTrue(IsEqual(result, "error")) {
 			panic(ExchangeError(Add(Add(this.Id, " withdraw() failed: "), this.Json(response))))
 		}
@@ -2057,8 +2111,8 @@ func (this *GeminiCore) Withdraw(code interface{}, amount interface{}, address i
 	}()
 	return ch
 }
-func (this *GeminiCore) Nonce() interface{} {
-	var nonceMethod interface{} = this.SafeString(this.Options, "nonce", "milliseconds")
+func (this *GeminiCore) Nonce() any {
+	var nonceMethod any = this.SafeString(this.Options, "nonce", "milliseconds")
 	if IsTrue(IsEqual(nonceMethod, "milliseconds")) {
 		return this.Milliseconds()
 	}
@@ -2074,11 +2128,11 @@ func (this *GeminiCore) Nonce() interface{} {
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *GeminiCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2087,12 +2141,14 @@ func (this *GeminiCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17698 := (<-this.LoadMarkets())
-		PanicOnError(retRes17698)
-		var request interface{} = map[string]interface{}{}
+			retRes182612 := (<-this.LoadMarkets())
+			PanicOnError(retRes182612)
+		}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit_transfers", limit)
 		}
@@ -2109,7 +2165,7 @@ func (this *GeminiCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-
 	}()
 	return ch
 }
-func (this *GeminiCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GeminiCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// withdraw
 	//
@@ -2130,22 +2186,22 @@ func (this *GeminiCore) ParseTransaction(transaction interface{}, optionalArgs .
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp interface{} = this.SafeInteger(transaction, "timestampms")
-	var currencyId interface{} = this.SafeString(transaction, "currency")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	var address interface{} = this.SafeString(transaction, "destination")
-	var typeVar interface{} = this.SafeStringLower(transaction, "type")
+	var timestamp any = this.SafeInteger(transaction, "timestampms")
+	var currencyId any = this.SafeString(transaction, "currency")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var address any = this.SafeString(transaction, "destination")
+	var typeVar any = this.SafeStringLower(transaction, "type")
 	// if status field is available, then it's complete
-	var statusRaw interface{} = this.SafeString(transaction, "status")
-	var fee interface{} = nil
-	var feeAmount interface{} = this.SafeNumber(transaction, "feeAmount")
+	var statusRaw any = this.SafeString(transaction, "status")
+	var fee any = nil
+	var feeAmount any = this.SafeNumber(transaction, "feeAmount")
 	if IsTrue(!IsEqual(feeAmount, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"cost":     feeAmount,
 			"currency": code,
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString2(transaction, "eid", "withdrawalId"),
 		"txid":        this.SafeString(transaction, "txHash"),
@@ -2168,14 +2224,14 @@ func (this *GeminiCore) ParseTransaction(transaction interface{}, optionalArgs .
 		"fee":         fee,
 	}
 }
-func (this *GeminiCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *GeminiCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"Advanced": "ok",
 		"Complete": "ok",
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *GeminiCore) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GeminiCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
 	//      {
 	//          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -2185,9 +2241,9 @@ func (this *GeminiCore) ParseDepositAddress(depositAddress interface{}, optional
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address interface{} = this.SafeString(depositAddress, "address")
-	var code interface{} = this.SafeCurrencyCode(nil, currency)
-	return map[string]interface{}{
+	var address any = this.SafeString(depositAddress, "address")
+	var code any = this.SafeCurrencyCode(nil, currency)
+	return map[string]any{
 		"currency": code,
 		"network":  nil,
 		"address":  address,
@@ -2204,26 +2260,28 @@ func (this *GeminiCore) ParseDepositAddress(depositAddress interface{}, optional
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the endpoint
  * @param {string} [params.network]  *required* The chain of currency
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *GeminiCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18778 := (<-this.LoadMarkets())
-		PanicOnError(retRes18778)
+			retRes193612 := (<-this.LoadMarkets())
+			PanicOnError(retRes193612)
+		}
 
 		groupedByNetwork := (<-this.FetchDepositAddressesByNetwork(code, params))
 		PanicOnError(groupedByNetwork)
-		var networkCode interface{} = nil
+		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
-		var networkGroup interface{} = this.IndexBy(this.SafeValue(groupedByNetwork, networkCode), "currency")
+		var networkGroup any = this.IndexBy(this.SafeValue(groupedByNetwork, networkCode), "currency")
 
 		ch <- this.SafeValue(networkGroup, code)
 		return nil
@@ -2240,35 +2298,37 @@ func (this *GeminiCore) FetchDepositAddress(code interface{}, optionalArgs ...in
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network]  *required* The chain of currency
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *GeminiCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18968 := (<-this.LoadMarkets())
-		PanicOnError(retRes18968)
-		var currency interface{} = this.Currency(code)
+			retRes195712 := (<-this.LoadMarkets())
+			PanicOnError(retRes195712)
+		}
+		var currency any = this.Currency(code)
 		code = GetValue(currency, "code")
-		var networkCode interface{} = nil
+		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(IsEqual(networkCode, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddresses() requires a network parameter")))
 		}
-		var networkId interface{} = this.NetworkCodeToId(networkCode)
-		var request interface{} = map[string]interface{}{
+		var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		var request any = map[string]any{
 			"network": networkId,
 		}
 
 		response := (<-this.PrivatePostV1AddressesNetwork(this.Extend(request, params)))
 		PanicOnError(response)
-		var results interface{} = this.ParseDepositAddresses(response, []interface{}{code}, false, map[string]interface{}{
+		var results any = this.ParseDepositAddresses(response, []any{code}, false, map[string]any{
 			"network":  networkCode,
 			"currency": code,
 		})
@@ -2279,34 +2339,35 @@ func (this *GeminiCore) FetchDepositAddressesByNetwork(code interface{}, optiona
 	}()
 	return ch
 }
-func (this *GeminiCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GeminiCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url interface{} = Add("/", this.ImplodeParams(path, params))
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
+	var url any = Add("/", this.ImplodeParams(path, params))
+	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var apiKey interface{} = this.ApiKey
+		var apiKey any = this.ApiKey
 		if IsTrue(IsLessThan(GetIndexOf(apiKey, "account"), 0)) {
 			panic(AuthenticationError(Add(this.Id, " sign() requires an account-key, master-keys are not-supported")))
 		}
-		var nonce interface{} = ToString(this.Nonce())
-		var request interface{} = this.Extend(map[string]interface{}{
-			"request": url,
+		var nonce any = ToString(this.Nonce())
+		var finalUrl any = url
+		var request any = this.Extend(map[string]any{
+			"request": finalUrl,
 			"nonce":   nonce,
 		}, query)
-		var payload interface{} = this.Json(request)
+		var payload any = this.Json(request)
 		payload = this.StringToBase64(payload)
-		var signature interface{} = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-		headers = map[string]interface{}{
+		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
+		headers = map[string]any{
 			"Content-Type":       "text/plain",
 			"X-GEMINI-APIKEY":    this.ApiKey,
 			"X-GEMINI-PAYLOAD":   payload,
@@ -2321,17 +2382,17 @@ func (this *GeminiCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 	if IsTrue(IsTrue((IsEqual(method, "POST"))) || IsTrue((IsEqual(method, "DELETE")))) {
 		body = this.Json(query)
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *GeminiCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *GeminiCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(response, nil)) {
 		if IsTrue(IsString(body)) {
-			var feedback interface{} = Add(Add(this.Id, " "), body)
+			var feedback any = Add(Add(this.Id, " "), body)
 			this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		}
 		return nil // fallback to default error handler
@@ -2343,11 +2404,11 @@ func (this *GeminiCore) HandleErrors(httpCode interface{}, reason interface{}, u
 	//         "message": "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
 	//     }
 	//
-	var result interface{} = this.SafeString(response, "result")
+	var result any = this.SafeString(response, "result")
 	if IsTrue(IsEqual(result, "error")) {
-		var reasonInner interface{} = this.SafeString(response, "reason")
-		var message interface{} = this.SafeString(response, "message")
-		var feedback interface{} = Add(Add(this.Id, " "), message)
+		var reasonInner any = this.SafeString(response, "reason")
+		var message any = this.SafeString(response, "message")
+		var feedback any = Add(Add(this.Id, " "), message)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), reasonInner, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
@@ -2363,29 +2424,31 @@ func (this *GeminiCore) HandleErrors(httpCode interface{}, reason interface{}, u
  * @see https://docs.gemini.com/rest-api/#new-deposit-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *GeminiCore) CreateDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19868 := (<-this.LoadMarkets())
-		PanicOnError(retRes19868)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+			retRes205012 := (<-this.LoadMarkets())
+			PanicOnError(retRes205012)
+		}
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
 		}
 
 		response := (<-this.PrivatePostV1DepositCurrencyNewAddress(this.Extend(request, params)))
 		PanicOnError(response)
-		var address interface{} = this.SafeString(response, "address")
+		var address any = this.SafeString(response, "address")
 		this.CheckAddress(address)
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"currency": code,
 			"address":  address,
 			"tag":      nil,
@@ -2410,9 +2473,9 @@ func (this *GeminiCore) CreateDepositAddress(code interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *GeminiCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GeminiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -2421,14 +2484,16 @@ func (this *GeminiCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20168 := (<-this.LoadMarkets())
-		PanicOnError(retRes20168)
-		var market interface{} = this.Market(symbol)
-		var timeframeId interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var request interface{} = map[string]interface{}{
+			retRes208212 := (<-this.LoadMarkets())
+			PanicOnError(retRes208212)
+		}
+		var market any = this.Market(symbol)
+		var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
+		var request any = map[string]any{
 			"timeframe": timeframeId,
 			"symbol":    GetValue(market, "id"),
 		}
@@ -2450,8 +2515,74 @@ func (this *GeminiCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 	return ch
 }
 
-func (this *GeminiCore) Init(userConfig map[string]interface{}) {
+/**
+ * @method
+ * @name gemini#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://docs.gemini.com/rest/derivatives#get-risk-stats
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *GeminiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes211212 := (<-this.LoadMarkets())
+			PanicOnError(retRes211212)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
+			"symbol": GetValue(market, "id"),
+		}
+
+		response := (<-this.PublicGetV1RiskstatsSymbol(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//    {
+		//        product_type: 'PerpetualSwapContract',
+		//        mark_price: '9.023',
+		//        index_price: '9.02072',
+		//        open_interest: '4681.9',
+		//        open_interest_notional: '42244.7837'
+		//    }
+		//
+		ch <- this.ParseOpenInterest(response, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *GeminiCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
+	//
+	//    {
+	//        product_type: 'PerpetualSwapContract',
+	//        mark_price: '9.023',
+	//        index_price: '9.02072',
+	//        open_interest: '4681.9',
+	//        open_interest_notional: '42244.7837'
+	//    }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	return this.SafeOpenInterest(map[string]any{
+		"info":               interest,
+		"symbol":             this.SafeString(market, "symbol"),
+		"openInterestAmount": this.SafeString(interest, "open_interest"),
+		"openInterestValue":  this.SafeString(interest, "open_interest_notional"),
+		"timestamp":          nil,
+		"datetime":           nil,
+	}, market)
+}
+
+func (this *GeminiCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

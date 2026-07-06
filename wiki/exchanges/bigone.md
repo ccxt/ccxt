@@ -44,7 +44,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bigone.fetchCurrencies ([params])
+bigone.fetchCurrencies (params?)
 ```
 
 
@@ -64,7 +64,7 @@ retrieves data on all markets for bigone
 
 
 ```javascript
-bigone.fetchMarkets ([params])
+bigone.fetchMarkets (params?)
 ```
 
 
@@ -74,7 +74,7 @@ bigone.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://open.big.one/docs/spot_tickers.html  
 
@@ -85,7 +85,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bigone.fetchTicker (symbol[, params])
+bigone.fetchTicker (symbol, params?)
 ```
 
 
@@ -95,7 +95,7 @@ bigone.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://open.big.one/docs/spot_tickers.html  
 
@@ -106,7 +106,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bigone.fetchTickers ([symbols, params])
+bigone.fetchTickers (symbols?, params?)
 ```
 
 
@@ -126,7 +126,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bigone.fetchTime ([params])
+bigone.fetchTime (params?)
 ```
 
 
@@ -136,7 +136,7 @@ bigone.fetchTime ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot  
 
@@ -148,7 +148,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bigone.fetchOrderBook (symbol[, limit, params])
+bigone.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -158,7 +158,7 @@ bigone.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://open.big.one/docs/spot_asset_pair_trade.html  
 
@@ -171,7 +171,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bigone.fetchTrades (symbol[, since, limit, params])
+bigone.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -196,7 +196,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bigone.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bigone.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -206,7 +206,7 @@ bigone.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -220,7 +220,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bigone.fetchBalance ([params])
+bigone.fetchBalance (params?)
 ```
 
 
@@ -230,7 +230,7 @@ bigone.fetchBalance ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#create-order  
 
@@ -242,7 +242,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bigone.createMarketBuyOrderWithCost (symbol, cost[, params])
+bigone.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -252,7 +252,7 @@ bigone.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#create-order  
 
@@ -273,7 +273,7 @@ create a trade order
 
 
 ```javascript
-bigone.createOrder (symbol, type, side, amount[, price, params])
+bigone.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -283,7 +283,7 @@ bigone.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#cancel-order  
 
@@ -295,7 +295,7 @@ cancels an open order
 
 
 ```javascript
-bigone.cancelOrder (id, symbol[, params])
+bigone.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -305,7 +305,7 @@ bigone.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#cancel-all-orders  
 
@@ -316,7 +316,7 @@ cancel all open orders
 
 
 ```javascript
-bigone.cancelAllOrders (symbol[, params])
+bigone.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -326,7 +326,7 @@ bigone.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#get-one-order  
 
@@ -338,7 +338,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bigone.fetchOrder (id, symbol[, params])
+bigone.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -348,7 +348,7 @@ bigone.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair  
 
@@ -361,7 +361,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bigone.fetchOrders (symbol[, since, limit, params])
+bigone.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -371,7 +371,7 @@ bigone.fetchOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://open.big.one/docs/spot_trade.html#trades-of-user  
 
@@ -384,7 +384,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bigone.fetchMyTrades (symbol[, since, limit, params])
+bigone.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -394,7 +394,7 @@ bigone.fetchMyTrades (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair  
 
@@ -407,7 +407,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bigone.fetchOpenOrders (symbol[, since, limit, params])
+bigone.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -417,7 +417,7 @@ bigone.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair  
 
@@ -430,7 +430,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bigone.fetchClosedOrders (symbol[, since, limit, params])
+bigone.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -440,7 +440,7 @@ bigone.fetchClosedOrders (symbol[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user  
 
@@ -451,7 +451,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bigone.fetchDepositAddress (code[, params])
+bigone.fetchDepositAddress (code, params?)
 ```
 
 
@@ -461,7 +461,7 @@ bigone.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://open.big.one/docs/spot_deposit.html#deposit-of-user  
 
@@ -474,7 +474,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bigone.fetchDeposits (code[, since, limit, params])
+bigone.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -484,7 +484,7 @@ bigone.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user  
 
@@ -497,7 +497,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bigone.fetchWithdrawals (code[, since, limit, params])
+bigone.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -507,7 +507,7 @@ bigone.fetchWithdrawals (code[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://open.big.one/docs/spot_transfer.html#transfer-of-user  
 
@@ -521,7 +521,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bigone.transfer (code, amount, fromAccount, toAccount[, params])
+bigone.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -531,7 +531,7 @@ bigone.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user  
 
@@ -545,6 +545,6 @@ make a withdrawal
 
 
 ```javascript
-bigone.withdraw (code, amount, address, tag[, params])
+bigone.withdraw (code, amount, address, tag, params?)
 ```
 

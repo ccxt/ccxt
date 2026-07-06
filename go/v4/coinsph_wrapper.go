@@ -6,7 +6,7 @@ type Coinsph struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewCoinsph(userConfig map[string]interface{}) *Coinsph {
+func NewCoinsph(userConfig map[string]any) *Coinsph {
 	p := NewCoinsphCore()
 	p.Init(userConfig)
 	return &Coinsph{
@@ -34,7 +34,7 @@ func NewCoinsphFromCore(core *CoinsphCore) *Coinsph {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Coinsph) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinsph) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -46,27 +46,27 @@ func (this *Coinsph) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @method
  * @name coinsph#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://coins-docs.github.io/rest-api/#test-connectivity
+ * @see https://docs.coins.ph/rest-api/#test-connectivity
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Coinsph) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinsph) FetchStatus(params ...any) (map[string]any, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name coinsph#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://coins-docs.github.io/rest-api/#check-server-time
+ * @see https://docs.coins.ph/rest-api/#check-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Coinsph) FetchTime(params ...interface{}) (int64, error) {
+func (this *Coinsph) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -78,11 +78,11 @@ func (this *Coinsph) FetchTime(params ...interface{}) (int64, error) {
  * @method
  * @name coinsph#fetchMarkets
  * @description retrieves data on all markets for coinsph
- * @see https://coins-docs.github.io/rest-api/#exchange-information
+ * @see https://docs.coins.ph/rest-api/#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Coinsph) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Coinsph) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -94,12 +94,12 @@ func (this *Coinsph) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @method
  * @name coinsph#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
- * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
- * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+ * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+ * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+ * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coinsph) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -109,12 +109,12 @@ func (this *Coinsph) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -129,12 +129,12 @@ func (this *Coinsph) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @method
  * @name coinsph#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
- * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
- * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+ * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+ * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+ * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coinsph) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -144,7 +144,7 @@ func (this *Coinsph) FetchTicker(symbol string, options ...FetchTickerOptions) (
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -159,11 +159,11 @@ func (this *Coinsph) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @method
  * @name coinsph#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://coins-docs.github.io/rest-api/#order-book
+ * @see https://docs.coins.ph/rest-api/#order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coinsph) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -173,12 +173,12 @@ func (this *Coinsph) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -193,7 +193,7 @@ func (this *Coinsph) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @method
  * @name coinsph#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
+ * @see https://docs.coins.ph/rest-api/#klinecandlestick-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -210,22 +210,22 @@ func (this *Coinsph) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -240,12 +240,12 @@ func (this *Coinsph) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @method
  * @name coinsph#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://coins-docs.github.io/rest-api/#recent-trades-list
+ * @see https://docs.coins.ph/rest-api/#recent-trades-list
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Coinsph) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -255,17 +255,17 @@ func (this *Coinsph) FetchTrades(symbol string, options ...FetchTradesOptions) (
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -280,12 +280,12 @@ func (this *Coinsph) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @method
  * @name coinsph#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+ * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Coinsph) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -295,22 +295,22 @@ func (this *Coinsph) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -325,13 +325,13 @@ func (this *Coinsph) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @method
  * @name coinsph#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+ * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Coinsph) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -341,22 +341,22 @@ func (this *Coinsph) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -371,11 +371,11 @@ func (this *Coinsph) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @method
  * @name coinsph#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://coins-docs.github.io/rest-api/#accept-the-quote
+ * @see https://docs.coins.ph/rest-api/#accept-the-quote
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Coinsph) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinsph) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -387,7 +387,7 @@ func (this *Coinsph) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name coinsph#createOrder
  * @description create a trade order
- * @see https://coins-docs.github.io/rest-api/#new-order--trade
+ * @see https://docs.coins.ph/rest-api/#new-order--trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
  * @param {string} side 'buy' or 'sell'
@@ -396,7 +396,7 @@ func (this *Coinsph) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinsph) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -406,12 +406,12 @@ func (this *Coinsph) CreateOrder(symbol string, typeVar string, side string, amo
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -426,11 +426,11 @@ func (this *Coinsph) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name coinsph#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+ * @see https://docs.coins.ph/rest-api/#query-order-user_data
  * @param {int|string} id order id
  * @param {string} symbol not used by coinsph fetchOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinsph) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -440,12 +440,12 @@ func (this *Coinsph) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -460,12 +460,12 @@ func (this *Coinsph) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @method
  * @name coinsph#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+ * @see https://docs.coins.ph/rest-api/#current-open-orders-user_data
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinsph) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -475,22 +475,22 @@ func (this *Coinsph) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -505,12 +505,12 @@ func (this *Coinsph) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @method
  * @name coinsph#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
+ * @see https://docs.coins.ph/rest-api/#history-orders-user_data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinsph) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -520,22 +520,22 @@ func (this *Coinsph) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -550,11 +550,11 @@ func (this *Coinsph) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @method
  * @name coinsph#cancelOrder
  * @description cancels an open order
- * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
+ * @see https://docs.coins.ph/rest-api/#cancel-order-trade
  * @param {string} id order id
  * @param {string} symbol not used by coinsph cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinsph) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -564,12 +564,12 @@ func (this *Coinsph) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -584,10 +584,10 @@ func (this *Coinsph) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @method
  * @name coinsph#cancelAllOrders
  * @description cancel open orders of market
- * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+ * @see https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinsph) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -597,12 +597,12 @@ func (this *Coinsph) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -617,10 +617,10 @@ func (this *Coinsph) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @method
  * @name coinsph#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+ * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Coinsph) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -630,7 +630,7 @@ func (this *Coinsph) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -645,11 +645,11 @@ func (this *Coinsph) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @method
  * @name coinsph#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+ * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Coinsph) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Coinsph) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -661,13 +661,13 @@ func (this *Coinsph) FetchTradingFees(params ...interface{}) (TradingFees, error
  * @method
  * @name coinsph#withdraw
  * @description make a withdrawal to coins_ph account
- * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
+ * @see https://docs.coins.ph/rest-api/#withdrawuser_data
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address not used by coinsph withdraw ()
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinsph) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -677,12 +677,12 @@ func (this *Coinsph) Withdraw(code string, amount float64, address string, optio
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -697,12 +697,12 @@ func (this *Coinsph) Withdraw(code string, amount float64, address string, optio
  * @method
  * @name coinsph#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+ * @see https://docs.coins.ph/rest-api/#deposit-history-user_data
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinsph) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -712,22 +712,22 @@ func (this *Coinsph) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -742,12 +742,12 @@ func (this *Coinsph) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @method
  * @name coinsph#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+ * @see https://docs.coins.ph/rest-api/#withdraw-history-user_data
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinsph) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -757,22 +757,22 @@ func (this *Coinsph) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -787,11 +787,11 @@ func (this *Coinsph) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @method
  * @name coinsph#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+ * @see https://docs.coins.ph/rest-api/#deposit-address-user_data
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for fetch deposit address
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Coinsph) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -801,7 +801,7 @@ func (this *Coinsph) FetchDepositAddress(code string, options ...FetchDepositAdd
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -814,11 +814,20 @@ func (this *Coinsph) FetchDepositAddress(code string, options ...FetchDepositAdd
 
 // missing typed methods from base
 // nolint
-func (this *Coinsph) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Coinsph) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
-func (this *Coinsph) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Coinsph) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Coinsph) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
+func (this *Coinsph) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Coinsph) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Coinsph) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -904,10 +913,13 @@ func (this *Coinsph) EditLimitSellOrder(id string, symbol string, amount float64
 func (this *Coinsph) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
 }
+func (this *Coinsph) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
+}
 func (this *Coinsph) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Coinsph) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Coinsph) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Coinsph) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -919,13 +931,13 @@ func (this *Coinsph) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, er
 func (this *Coinsph) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Coinsph) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Coinsph) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Coinsph) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinsph) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Coinsph) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -940,7 +952,7 @@ func (this *Coinsph) FetchConvertTradeHistory(options ...FetchConvertTradeHistor
 func (this *Coinsph) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Coinsph) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Coinsph) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Coinsph) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -952,13 +964,13 @@ func (this *Coinsph) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Coinsph) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Coinsph) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coinsph) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Coinsph) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Coinsph) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Coinsph) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -988,7 +1000,7 @@ func (this *Coinsph) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOp
 func (this *Coinsph) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Coinsph) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Coinsph) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Coinsph) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1057,6 +1069,9 @@ func (this *Coinsph) FetchOption(symbol string, options ...FetchOptionOptions) (
 func (this *Coinsph) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
+func (this *Coinsph) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Coinsph) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -1066,7 +1081,7 @@ func (this *Coinsph) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 func (this *Coinsph) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Coinsph) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinsph) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinsph) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1075,7 +1090,7 @@ func (this *Coinsph) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Coinsph) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinsph) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinsph) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1093,13 +1108,13 @@ func (this *Coinsph) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Coinsph) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinsph) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Coinsph) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Coinsph) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Coinsph) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1114,10 +1129,10 @@ func (this *Coinsph) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 func (this *Coinsph) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Coinsph) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Coinsph) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Coinsph) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinsph) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Coinsph) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -1195,13 +1210,13 @@ func (this *Coinsph) CreateTriggerOrderWs(symbol string, typeVar string, side st
 func (this *Coinsph) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Coinsph) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Coinsph) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Coinsph) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinsph) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinsph) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1243,46 +1258,46 @@ func (this *Coinsph) FetchTickerWs(symbol string, options ...FetchTickerWsOption
 func (this *Coinsph) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Coinsph) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Coinsph) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinsph) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Coinsph) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Coinsph) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Coinsph) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Coinsph) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Coinsph) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Coinsph) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Coinsph) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Coinsph) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Coinsph) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Coinsph) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Coinsph) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Coinsph) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Coinsph) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Coinsph) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinsph) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Coinsph) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

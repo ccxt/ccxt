@@ -34,7 +34,7 @@ if [ $ESLINT_EXIT_CODE -ne 0 ]; then
 fi
 
 # Run python linting
-ruff ./python/ccxt
+npm run check-python-ruff
 PYTHON_EXIT_CODE=$?
 
 if [ $PYTHON_EXIT_CODE -ne 0 ]; then

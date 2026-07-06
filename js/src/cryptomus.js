@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { md5 } from '@noble/hashes/legacy.js';
 import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { md5 } from './static_dependencies/noble-hashes/md5.js';
 // ---------------------------------------------------------------------------
 /**
  * @class cryptomus
@@ -21,7 +21,7 @@ export default class cryptomus extends Exchange {
             'id': 'cryptomus',
             'name': 'Cryptomus',
             'countries': ['CA'],
-            'rateLimit': 100,
+            'rateLimit': 100, // todo check
             'version': 'v2',
             'certified': false,
             'pro': false,
@@ -158,39 +158,39 @@ export default class cryptomus extends Exchange {
             },
             'timeframes': {},
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7',
+                'logo': 'https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0',
                 'api': {
                     'public': 'https://api.cryptomus.com',
                     'private': 'https://api.cryptomus.com',
                 },
                 'www': 'https://cryptomus.com',
                 'doc': 'https://doc.cryptomus.com/personal',
-                'fees': 'https://cryptomus.com/tariffs',
+                'fees': 'https://cryptomus.com/tariffs', // todo check
                 'referral': 'https://app.cryptomus.com/signup/?ref=JRP4yj', // todo
             },
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': 1,
-                        'v2/user-api/exchange/market/price': 1,
-                        'v1/exchange/market/assets': 1,
-                        'v1/exchange/market/order-book/{currencyPair}': 1,
-                        'v1/exchange/market/tickers': 1,
+                        'v2/user-api/exchange/markets': 1, // done
+                        'v2/user-api/exchange/market/price': 1, // not used
+                        'v1/exchange/market/assets': 1, // done
+                        'v1/exchange/market/order-book/{currencyPair}': 1, // done
+                        'v1/exchange/market/tickers': 1, // done
                         'v1/exchange/market/trades/{currencyPair}': 1, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/exchange/orders': 1,
-                        'v2/user-api/exchange/orders/history': 1,
-                        'v2/user-api/exchange/account/balance': 1,
-                        'v2/user-api/exchange/account/tariffs': 1,
+                        'v2/user-api/exchange/orders': 1, // done
+                        'v2/user-api/exchange/orders/history': 1, // done
+                        'v2/user-api/exchange/account/balance': 1, // done
+                        'v2/user-api/exchange/account/tariffs': 1, // done
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
                         'v2/user-api/transaction/list': 1,
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': 1,
+                        'v2/user-api/exchange/orders': 1, // done
                         'v2/user-api/exchange/orders/market': 1, // done
                     },
                     'delete': {
@@ -250,7 +250,7 @@ export default class cryptomus extends Exchange {
             'exceptions': {
                 'exact': {
                     '500': ExchangeError,
-                    '6': InsufficientFunds,
+                    '6': InsufficientFunds, // {"code":6,"message":"Insufficient funds."}
                     'Insufficient funds.': InsufficientFunds,
                     'Minimum amount 15 USDT': InvalidOrder,
                     // {"code":500,"message":"Server error."}
@@ -407,46 +407,50 @@ export default class cryptomus extends Exchange {
         //
         const coins = this.safeList(response, 'result');
         const groupedById = this.groupBy(coins, 'currency_code');
-        const keys = Object.keys(groupedById);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            const networkEntries = groupedById[id];
-            for (let j = 0; j < networkEntries.length; j++) {
-                const networkEntry = networkEntries[j];
-                const networkId = this.safeString(networkEntry, 'network_code');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkEntry, 'min_withdraw'),
-                            'max': this.safeNumber(networkEntry, 'max_withdraw'),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(networkEntry, 'min_deposit'),
-                            'max': this.safeNumber(networkEntry, 'max_deposit'),
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool(networkEntry, 'can_withdraw'),
-                    'withdraw': this.safeBool(networkEntry, 'can_deposit'),
-                    'fee': undefined,
-                    'precision': undefined,
-                    'info': networkEntry,
-                };
+        const groupedArray = Object.values(groupedById);
+        return this.parseCurrencies(groupedArray);
+    }
+    parseCurrency(rawCurrency) {
+        // currency here is array of networks
+        let id = undefined; // all entried have same id, as they were grouped by
+        let code = undefined;
+        const networks = {};
+        for (let i = 0; i < rawCurrency.length; i++) {
+            const networkEntry = rawCurrency[i];
+            // set ID on first loop
+            if (id === undefined) {
+                id = this.safeString(networkEntry, 'currency_code');
+                code = this.safeCurrencyCode(id);
             }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'info': networkEntries,
-            });
+            const networkId = this.safeString(networkEntry, 'network_code');
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkEntry, 'min_withdraw'),
+                        'max': this.safeNumber(networkEntry, 'max_withdraw'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(networkEntry, 'min_deposit'),
+                        'max': this.safeNumber(networkEntry, 'max_deposit'),
+                    },
+                },
+                'active': undefined,
+                'deposit': this.safeBool(networkEntry, 'can_deposit'),
+                'withdraw': this.safeBool(networkEntry, 'can_withdraw'),
+                'fee': undefined,
+                'precision': undefined,
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -455,10 +459,12 @@ export default class cryptomus extends Exchange {
      * @see https://doc.cryptomus.com/personal/market-cap/tickers
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetV1ExchangeMarketTickers(params);
         //
@@ -521,10 +527,12 @@ export default class cryptomus extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currencyPair': market['id'],
@@ -565,10 +573,12 @@ export default class cryptomus extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currencyPair': market['id'],
@@ -607,11 +617,11 @@ export default class cryptomus extends Exchange {
             'id': this.safeString(trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'side': this.safeString(trade, 'type'),
             'price': this.safeString(trade, 'price'),
-            'amount': this.safeString(trade, 'quote_volume'),
-            'cost': this.safeString(trade, 'base_volume'),
+            'amount': this.safeString(trade, 'quote_volume'), // quote_volume is amount
+            'cost': this.safeString(trade, 'base_volume'), // base_volume is cost
             'takerOrMaker': undefined,
             'type': undefined,
             'order': undefined,
@@ -628,10 +638,12 @@ export default class cryptomus extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://doc.cryptomus.com/personal/converts/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const response = await this.privateGetV2UserApiExchangeAccountBalance(this.extend(request, params));
         //
@@ -684,10 +696,12 @@ export default class cryptomus extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -704,7 +718,7 @@ export default class cryptomus extends Exchange {
         const priceToString = this.numberToString(price);
         let cost = undefined;
         [cost, params] = this.handleParamString(params, 'cost');
-        let response = undefined;
+        let response;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
@@ -740,7 +754,7 @@ export default class cryptomus extends Exchange {
         }
         //
         //     {
-        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
         return this.parseOrder(response, market);
@@ -753,10 +767,12 @@ export default class cryptomus extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         request['orderId'] = id;
         const response = await this.privateDeleteV2UserApiExchangeOrdersOrderId(this.extend(request, params));
@@ -781,10 +797,12 @@ export default class cryptomus extends Exchange {
      * @param {string} [params.client_order_id] client order id
      * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
      * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -856,10 +874,12 @@ export default class cryptomus extends Exchange {
      * @param {string} [params.client_order_id] client order id
      * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
      * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1017,7 +1037,7 @@ export default class cryptomus extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
         const response = await this.privateGetV2UserApiExchangeAccountTariffs(params);
@@ -1078,8 +1098,12 @@ export default class cryptomus extends Exchange {
         const feeTiers = this.safeList(data, 'tariff_steps', []);
         const result = {};
         const tiers = this.parseFeeTiers(feeTiers);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

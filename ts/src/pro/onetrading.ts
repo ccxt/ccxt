@@ -4,9 +4,9 @@
 import onetradingRest from '../onetrading.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ export default class onetrading extends onetradingRest {
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.authenticate (params);
@@ -146,10 +146,12 @@ export default class onetrading extends onetradingRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = 'MARKET_TICKER';
@@ -173,10 +175,12 @@ export default class onetrading extends onetradingRest {
      * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
      * @param {string} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         if (symbols === undefined) {
             symbols = [];
@@ -274,10 +278,12 @@ export default class onetrading extends onetradingRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -318,10 +324,12 @@ export default class onetrading extends onetradingRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -402,7 +410,7 @@ export default class onetrading extends onetradingRest {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        const bidAsk = this.parseBidAsk (delta, 1, 2);
+        const bidAsk = this.parseOrderBookBidAsk (delta, 1, 2);
         const type = this.safeString (delta, 0);
         if (type === 'BUY') {
             const bids = orderbook['bids'];
@@ -437,10 +445,12 @@ export default class onetrading extends onetradingRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -972,7 +982,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const orders = this.orders;
         const update = this.safeValue (message, 'update', {});
         const updateType = this.safeString (update, 'type');
@@ -1062,7 +1072,9 @@ export default class onetrading extends onetradingRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
@@ -1095,7 +1107,7 @@ export default class onetrading extends onetradingRest {
             subscription[marketId] = {};
         }
         subscription[marketId][timeframe] = true;
-        const properties = [];
+        const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
             const marketIdtimeframes = Object.keys (subscription[marketIds[i]]);
@@ -1313,7 +1325,7 @@ export default class onetrading extends onetradingRest {
     }
 
     async watchMany (messageHash, request, subscriptionHash, symbols: Strings = [], params = {}) {
-        let marketIds = [];
+        let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
             marketIds = Object.keys (this.markets_by_id);

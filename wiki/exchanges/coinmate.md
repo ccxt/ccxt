@@ -5,6 +5,7 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchBalance](#fetchbalance)
 * [fetchOrderBook](#fetchorderbook)
@@ -20,6 +21,26 @@
 * [createOrder](#createorder)
 * [fetchOrder](#fetchorder)
 * [cancelOrder](#cancelorder)
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the bingx server
+
+**Kind**: instance method of [<code>coinmate</code>](#coinmate)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the bingx server
+
+**See**: https://coinmate.docs.apiary.io/#reference/system/get-server-time/get  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinmate.fetchTime (params?)
+```
+
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -37,7 +58,7 @@ retrieves data on all markets for coinmate
 
 
 ```javascript
-coinmate.fetchMarkets ([params])
+coinmate.fetchMarkets (params?)
 ```
 
 
@@ -47,7 +68,7 @@ coinmate.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/balance/get-balances/post  
 
@@ -57,7 +78,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinmate.fetchBalance ([params])
+coinmate.fetchBalance (params?)
 ```
 
 
@@ -67,7 +88,7 @@ coinmate.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get  
 
@@ -79,7 +100,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinmate.fetchOrderBook (symbol[, limit, params])
+coinmate.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -89,7 +110,7 @@ coinmate.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get  
 
@@ -100,7 +121,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinmate.fetchTicker (symbol[, params])
+coinmate.fetchTicker (symbol, params?)
 ```
 
 
@@ -110,7 +131,7 @@ coinmate.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get  
 
@@ -121,7 +142,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinmate.fetchTickers (symbols[, params])
+coinmate.fetchTickers (symbols, params?)
 ```
 
 
@@ -131,7 +152,7 @@ coinmate.fetchTickers (symbols[, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post  
 
@@ -144,7 +165,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-coinmate.fetchDepositsWithdrawals ([code, since, limit, params])
+coinmate.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -154,7 +175,7 @@ coinmate.fetchDepositsWithdrawals ([code, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -176,7 +197,7 @@ make a withdrawal
 
 
 ```javascript
-coinmate.withdraw (code, amount, address, tag[, params])
+coinmate.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -186,7 +207,7 @@ coinmate.withdraw (code, amount, address, tag[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post  
 
@@ -199,7 +220,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinmate.fetchMyTrades (symbol[, since, limit, params])
+coinmate.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -209,7 +230,7 @@ coinmate.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://coinmate.docs.apiary.io/#reference/transactions/transactions/get  
 
@@ -222,7 +243,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinmate.fetchTrades (symbol[, since, limit, params])
+coinmate.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -232,7 +253,7 @@ coinmate.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post  
 
@@ -243,7 +264,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-coinmate.fetchTradingFee (symbol[, params])
+coinmate.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -253,7 +274,7 @@ coinmate.fetchTradingFee (symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post  
 
@@ -266,7 +287,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coinmate.fetchOpenOrders (symbol[, since, limit, params])
+coinmate.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -276,7 +297,7 @@ coinmate.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/order/order-history/post  
 
@@ -289,7 +310,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-coinmate.fetchOrders (symbol[, since, limit, params])
+coinmate.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -299,7 +320,7 @@ coinmate.fetchOrders (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -320,7 +341,7 @@ create a trade order
 
 
 ```javascript
-coinmate.createOrder (symbol, type, side, amount[, price, params])
+coinmate.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -330,7 +351,7 @@ coinmate.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -346,7 +367,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinmate.fetchOrder (id, symbol[, params])
+coinmate.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -356,7 +377,7 @@ coinmate.fetchOrder (id, symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/order/cancel-order/post  
 
@@ -368,6 +389,6 @@ cancels an open order
 
 
 ```javascript
-coinmate.cancelOrder (id, symbol[, params])
+coinmate.cancelOrder (id, symbol, params?)
 ```
 

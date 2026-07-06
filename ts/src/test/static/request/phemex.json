@@ -5,6 +5,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchPositionHistory": [
+            {
+                "description": "default",
+                "method": "fetchPositionHistory",
+                "url": "https://api.phemex.com/api-data/g-futures/closedPosition?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "setMarginMode": [
             {
                 "description": "cross",
@@ -35,7 +46,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.phemex.com/public/products",
                 "input": [],
@@ -374,6 +385,13 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "by default uses spot",
+                "method": "fetchMyTrades",
+                "url": "https://api.phemex.com/exchange/spot/order/trades",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
                 "url": "https://api.phemex.com/exchange/spot/order/trades?limit=5&symbol=sLTCUSDT&start=1699457638000",
@@ -396,7 +414,7 @@
             {
                 "description": "Swap private trades - inverse",
                 "method": "fetchMyTrades",
-                "url": "https://api.phemex.com/exchange/order/trade?limit=5&symbol=BTCUSD&start=1699457638000",
+                "url": "https://api.phemex.com/exchange/order/trade?limit=5&symbol=BTCUSD&start=1699457638000&tradeType=Trade",
                 "input": [
                     "BTC/USD:BTC",
                     1699457638000,
@@ -407,7 +425,12 @@
                 "description": "my trades without symbol should return usdt settled trades",
                 "method": "fetchMyTrades",
                 "url": "https://testnet-api.phemex.com/exchange/order/v2/tradingList?currency=USDT&offset=0&limit=200",
-                "input": []
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {"type": "swap"}
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -950,6 +973,24 @@
                   "USDT",
                   null,
                   1
+                ]
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.phemex.com/g-accounts/accountPositions?currency=USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    "BTC/USD:BTC"
                 ]
             }
         ]

@@ -15,7 +15,7 @@ function precise_equal_str($exchange, $result, $key, $expected) {
 
 
 function test_safe_ticker() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     // CASE 1 - by open
@@ -130,4 +130,17 @@ function test_safe_ticker() {
     assert(precise_equal_str($exchange, $result8, 'indexPrice', '5.8'));
     assert(precise_equal_str($exchange, $result8, 'markPrice', '5.9'));
     assert($result8['info'] !== null);
+    // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
+    $ticker9 = array(
+        'open' => 6,
+        'close' => 6,
+        'last' => 6,
+        'change' => 0,
+        'percentage' => 0,
+    );
+    $result9 = $exchange->safe_ticker($ticker9);
+    assert(precise_equal_str($exchange, $result9, 'change', '0'));
+    assert(precise_equal_str($exchange, $result9, 'percentage', '0'));
+    assert(precise_equal_str($exchange, $result9, 'open', '6.0'));
+    assert(precise_equal_str($exchange, $result9, 'last', '6.0'));
 }

@@ -18,6 +18,8 @@
 * [cancelAllOrders](#cancelallorders)
 * [cancelAllOrdersAfter](#cancelallordersafter)
 * [fetchOpenOrders](#fetchopenorders)
+* [fetchOrders](#fetchorders)
+* [fetchOrder](#fetchorder)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchMyTrades](#fetchmytrades)
@@ -48,7 +50,7 @@ Fetches the available trading markets from the exchange, Multi-collateral market
 
 
 ```javascript
-krakenfutures.fetchMarkets ([params])
+krakenfutures.fetchMarkets (params?)
 ```
 
 
@@ -58,7 +60,7 @@ krakenfutures.fetchMarkets ([params])
 Fetches a list of open orders in a market
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: An [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: An [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook  
 
@@ -70,7 +72,7 @@ Fetches a list of open orders in a market
 
 
 ```javascript
-krakenfutures.fetchOrderBook (symbol[, limit, params])
+krakenfutures.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -80,7 +82,7 @@ krakenfutures.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>object</code> - an array of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - an array of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-tickers  
 
@@ -91,7 +93,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-krakenfutures.fetchTickers (symbols[, params])
+krakenfutures.fetchTickers (symbols, params?)
 ```
 
 
@@ -116,7 +118,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-krakenfutures.fetchOHLCV (symbol, timeframe[, since, limit, params])
+krakenfutures.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -126,7 +128,7 @@ krakenfutures.fetchOHLCV (symbol, timeframe[, since, limit, params])
 Fetch a history of filled trades that this account has made
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: An array of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: An array of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -146,7 +148,7 @@ Fetch a history of filled trades that this account has made
 
 
 ```javascript
-krakenfutures.fetchTrades (symbol[, since, limit, params])
+krakenfutures.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -156,7 +158,7 @@ krakenfutures.fetchTrades (symbol[, since, limit, params])
 Create an order on the exchange
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/send-order  
 
@@ -178,7 +180,7 @@ Create an order on the exchange
 
 
 ```javascript
-krakenfutures.createOrder (symbol, type, side, amount[, price, params])
+krakenfutures.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -188,7 +190,7 @@ krakenfutures.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order  
 
@@ -199,7 +201,7 @@ create a list of trade orders
 
 
 ```javascript
-krakenfutures.createOrders (orders[, params])
+krakenfutures.createOrders (orders, params?)
 ```
 
 
@@ -209,7 +211,7 @@ krakenfutures.createOrders (orders[, params])
 Edit an open order on the exchange
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring  
 
@@ -225,7 +227,7 @@ Edit an open order on the exchange
 
 
 ```javascript
-krakenfutures.editOrder (id, symbol, type, side, amount[, price, params])
+krakenfutures.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -235,7 +237,7 @@ krakenfutures.editOrder (id, symbol, type, side, amount[, price, params])
 Cancel an open order on the exchange
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/cancel-order  
 
@@ -247,7 +249,7 @@ Cancel an open order on the exchange
 
 
 ```javascript
-krakenfutures.cancelOrder (id, symbol[, params])
+krakenfutures.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -257,7 +259,7 @@ krakenfutures.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order  
 
@@ -270,7 +272,7 @@ cancel multiple orders
 
 
 ```javascript
-krakenfutures.cancelOrders (ids[, symbol, params])
+krakenfutures.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -291,7 +293,7 @@ Cancels all orders on the exchange, including trigger orders
 
 
 ```javascript
-krakenfutures.cancelAllOrders (symbol[, params])
+krakenfutures.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -312,7 +314,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-krakenfutures.cancelAllOrdersAfter (timeout[, params])
+krakenfutures.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -322,7 +324,7 @@ krakenfutures.cancelAllOrdersAfter (timeout[, params])
 Gets all open orders, including trigger orders, for an account from the exchange api
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: An array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders  
 
@@ -335,7 +337,52 @@ Gets all open orders, including trigger orders, for an account from the exchange
 
 
 ```javascript
-krakenfutures.fetchOpenOrders (symbol[, since, limit, params])
+krakenfutures.fetchOpenOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOrders" id="fetchorders"></a>
+
+### fetchOrders{docsify-ignore}
+Gets all orders for an account from the exchange api
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified market symbol |
+| since | <code>int</code> | No | Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT) |
+| limit | <code>int</code> | No | How many orders to return. (Not used by kraken api but filtered internally by CCXT) |
+| params | <code>object</code> | No | Exchange specific parameters |
+
+
+```javascript
+krakenfutures.fetchOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
+| symbol | <code>string</code> | Yes | unified market symbol that the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+krakenfutures.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -345,7 +392,7 @@ krakenfutures.fetchOpenOrders (symbol[, since, limit, params])
 Gets all closed orders, including trigger orders, for an account from the exchange api
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: An array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events  
 
@@ -355,10 +402,11 @@ Gets all closed orders, including trigger orders, for an account from the exchan
 | since | <code>int</code> | No | Timestamp (ms) of earliest order. |
 | limit | <code>int</code> | No | How many orders to return. |
 | params | <code>object</code> | No | Exchange specific parameters |
+| params.trigger | <code>bool</code> | No | set to true if you wish to fetch only trigger orders |
 
 
 ```javascript
-krakenfutures.fetchClosedOrders (symbol[, since, limit, params])
+krakenfutures.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -368,7 +416,7 @@ krakenfutures.fetchClosedOrders (symbol[, since, limit, params])
 Gets all canceled orders, including trigger orders, for an account from the exchange api
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: An array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/history/get-order-events  
 
@@ -378,10 +426,11 @@ Gets all canceled orders, including trigger orders, for an account from the exch
 | since | <code>int</code> | No | Timestamp (ms) of earliest order. |
 | limit | <code>int</code> | No | How many orders to return. |
 | params | <code>object</code> | No | Exchange specific parameters |
+| params.trigger | <code>bool</code> | No | set to true if you wish to fetch only trigger orders |
 
 
 ```javascript
-krakenfutures.fetchCanceledOrders (symbol[, since, limit, params])
+krakenfutures.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -391,7 +440,7 @@ krakenfutures.fetchCanceledOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-fills  
 
@@ -405,7 +454,7 @@ fetch all trades made by the user
 
 
 ```javascript
-krakenfutures.fetchMyTrades (symbol[, since, limit, params])
+krakenfutures.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -415,7 +464,7 @@ krakenfutures.fetchMyTrades (symbol[, since, limit, params])
 Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: A [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: A [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-accounts  
 
@@ -427,7 +476,7 @@ Fetch the balance for a sub-account, all sub-account balances are inside 'info' 
 
 
 ```javascript
-krakenfutures.fetchBalance ([params])
+krakenfutures.fetchBalance (params?)
 ```
 
 
@@ -437,7 +486,7 @@ krakenfutures.fetchBalance ([params])
 fetch the current funding rates for multiple markets
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>Array&lt;Order&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-tickers  
 
@@ -448,7 +497,7 @@ fetch the current funding rates for multiple markets
 
 
 ```javascript
-krakenfutures.fetchFundingRates (symbols[, params])
+krakenfutures.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -458,7 +507,7 @@ krakenfutures.fetchFundingRates (symbols[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates  
 
@@ -466,12 +515,12 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the api endpoint |
 
 
 ```javascript
-krakenfutures.fetchFundingRateHistory (symbol[, since, limit, params])
+krakenfutures.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -492,7 +541,7 @@ Fetches current contract trading positions
 
 
 ```javascript
-krakenfutures.fetchPositions (symbols[, params])
+krakenfutures.fetchPositions (symbols, params?)
 ```
 
 
@@ -502,7 +551,7 @@ krakenfutures.fetchPositions (symbols[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-instruments  
 
@@ -513,7 +562,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-krakenfutures.fetchLeverageTiers (symbols[, params])
+krakenfutures.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -523,7 +572,7 @@ krakenfutures.fetchLeverageTiers (symbols[, params])
 transfer from futures wallet to spot wallet
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -534,7 +583,7 @@ transfer from futures wallet to spot wallet
 
 
 ```javascript
-krakenfutures.transferOut (code, amount[, params])
+krakenfutures.transferOut (code, amount, params?)
 ```
 
 
@@ -544,7 +593,7 @@ krakenfutures.transferOut (code, amount[, params])
 transfers currencies between sub-accounts
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -562,7 +611,7 @@ transfers currencies between sub-accounts
 
 
 ```javascript
-krakenfutures.transfer (code, amount, fromAccount, toAccount[, params])
+krakenfutures.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -584,7 +633,7 @@ set the level of leverage for a market
 
 
 ```javascript
-krakenfutures.setLeverage (leverage, symbol[, params])
+krakenfutures.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -594,7 +643,7 @@ krakenfutures.setLeverage (leverage, symbol[, params])
 fetch the set leverage for all contract and margin markets
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting  
 
@@ -605,7 +654,7 @@ fetch the set leverage for all contract and margin markets
 
 
 ```javascript
-krakenfutures.fetchLeverages ([symbols, params])
+krakenfutures.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -615,7 +664,7 @@ krakenfutures.fetchLeverages ([symbols, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting  
 
@@ -626,6 +675,6 @@ fetch the set leverage for a market
 
 
 ```javascript
-krakenfutures.fetchLeverage (symbol[, params])
+krakenfutures.fetchLeverage (symbol, params?)
 ```
 

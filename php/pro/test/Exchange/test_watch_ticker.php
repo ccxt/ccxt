@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_ticker($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -21,7 +20,7 @@ function test_watch_ticker($exchange, $skipped_properties, $symbol) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_ticker($symbol));
+                $response = \React\Async\await($exchange->watch_ticker($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
@@ -31,7 +30,7 @@ function test_watch_ticker($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             if ($success === true) {
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
                 test_ticker($exchange, $skipped_properties, $method, $response, $symbol);
             }

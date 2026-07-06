@@ -3,6 +3,56 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on SOL",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    10.1,
+                    "8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc",
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "needBrokerAudit": false,
+                    "id": "2112046725602537472",
+                    "canWithdraw": true,
+                    "refuseReason": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "needBrokerAudit": false,
+                        "id": "2112046725602537472",
+                        "canWithdraw": true,
+                        "refuseReason": "0"
+                    },
+                    "id": "2112046725602537472",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "fee": null,
+                    "comment": null,
+                    "internal": null
+                }
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "fetchOrders symbol spot",
@@ -3749,7 +3799,7 @@
                         "precision": null,
                         "type": null,
                         "name": "TetherUS",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0.0006,
@@ -3761,7 +3811,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 7.5,
                                 "precision": null,
                                 "limits": {
@@ -3790,7 +3840,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -3819,7 +3869,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 0.3,
                                 "precision": null,
                                 "limits": {
@@ -3848,7 +3898,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -3877,7 +3927,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 0.35,
                                 "precision": null,
                                 "limits": {
@@ -3906,7 +3956,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 0.15,
                                 "precision": null,
                                 "limits": {
@@ -3935,7 +3985,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 0.23005,
                                 "precision": null,
                                 "limits": {
@@ -3964,7 +4014,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 0.0006,
                                 "precision": null,
                                 "limits": {

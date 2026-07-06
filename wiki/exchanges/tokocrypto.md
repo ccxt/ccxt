@@ -42,7 +42,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-tokocrypto.fetchTime ([params])
+tokocrypto.fetchTime (params?)
 ```
 
 
@@ -62,7 +62,7 @@ retrieves data on all markets for tokocrypto
 
 
 ```javascript
-tokocrypto.fetchMarkets ([params])
+tokocrypto.fetchMarkets (params?)
 ```
 
 
@@ -72,7 +72,7 @@ tokocrypto.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#order-book  
 
@@ -84,7 +84,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-tokocrypto.fetchOrderBook (symbol[, limit, params])
+tokocrypto.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -94,7 +94,7 @@ tokocrypto.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -111,7 +111,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-tokocrypto.fetchTrades (symbol[, since, limit, params])
+tokocrypto.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -121,7 +121,7 @@ tokocrypto.fetchTrades (symbol[, since, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics  
 
@@ -132,7 +132,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-tokocrypto.fetchTickers (symbols[, params])
+tokocrypto.fetchTickers (symbols, params?)
 ```
 
 
@@ -142,7 +142,7 @@ tokocrypto.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics  
 
@@ -153,7 +153,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-tokocrypto.fetchTicker (symbol[, params])
+tokocrypto.fetchTicker (symbol, params?)
 ```
 
 
@@ -163,7 +163,7 @@ tokocrypto.fetchTicker (symbol[, params])
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker  
 
@@ -174,7 +174,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-tokocrypto.fetchBidsAsks (symbols[, params])
+tokocrypto.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -200,7 +200,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-tokocrypto.fetchOHLCV (symbol, timeframe[, since, limit, params])
+tokocrypto.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -210,7 +210,7 @@ tokocrypto.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#account-information-signed  
 
@@ -223,7 +223,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-tokocrypto.fetchBalance ([params])
+tokocrypto.fetchBalance (params?)
 ```
 
 
@@ -233,7 +233,7 @@ tokocrypto.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#new-order--signed  
 
@@ -250,7 +250,7 @@ create a trade order
 
 
 ```javascript
-tokocrypto.createOrder (symbol, type, side, amount[, price, params])
+tokocrypto.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -260,7 +260,7 @@ tokocrypto.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#query-order-signed  
 
@@ -272,7 +272,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-tokocrypto.fetchOrder (id, symbol[, params])
+tokocrypto.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -282,7 +282,7 @@ tokocrypto.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#all-orders-signed  
 
@@ -295,7 +295,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-tokocrypto.fetchOrders (symbol[, since, limit, params])
+tokocrypto.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -305,7 +305,7 @@ tokocrypto.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#all-orders-signed  
 
@@ -318,7 +318,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-tokocrypto.fetchOpenOrders (symbol[, since, limit, params])
+tokocrypto.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -328,7 +328,7 @@ tokocrypto.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#all-orders-signed  
 
@@ -341,7 +341,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-tokocrypto.fetchClosedOrders (symbol[, since, limit, params])
+tokocrypto.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -351,7 +351,7 @@ tokocrypto.fetchClosedOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#cancel-order-signed  
 
@@ -363,7 +363,7 @@ cancels an open order
 
 
 ```javascript
-tokocrypto.cancelOrder (id, symbol[, params])
+tokocrypto.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -373,7 +373,7 @@ tokocrypto.cancelOrder (id, symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#account-trade-list-signed  
 
@@ -386,7 +386,7 @@ fetch all trades made by the user
 
 
 ```javascript
-tokocrypto.fetchMyTrades (symbol[, since, limit, params])
+tokocrypto.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -396,7 +396,7 @@ tokocrypto.fetchMyTrades (symbol[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#deposit-address-signed  
 
@@ -407,7 +407,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-tokocrypto.fetchDepositAddress (code[, params])
+tokocrypto.fetchDepositAddress (code, params?)
 ```
 
 
@@ -417,7 +417,7 @@ tokocrypto.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#deposit-history-signed  
 
@@ -431,7 +431,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-tokocrypto.fetchDeposits (code[, since, limit, params])
+tokocrypto.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -441,7 +441,7 @@ tokocrypto.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#withdraw-signed  
 
@@ -454,7 +454,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-tokocrypto.fetchWithdrawals (code[, since, limit, params])
+tokocrypto.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -464,7 +464,7 @@ tokocrypto.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#withdraw-signed  
 
@@ -478,6 +478,6 @@ make a withdrawal
 
 
 ```javascript
-tokocrypto.withdraw (code, amount, address, tag[, params])
+tokocrypto.withdraw (code, amount, address, tag, params?)
 ```
 

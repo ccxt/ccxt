@@ -21,6 +21,7 @@
 * [createOrders](#createorders)
 * [cancelOrders](#cancelorders)
 * [editOrder](#editorder)
+* [editOrders](#editorders)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
@@ -84,7 +85,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinex.fetchCurrencies ([params])
+coinex.fetchCurrencies (params?)
 ```
 
 
@@ -108,7 +109,7 @@ retrieves data on all markets for coinex
 
 
 ```javascript
-coinex.fetchMarkets ([params])
+coinex.fetchMarkets (params?)
 ```
 
 
@@ -118,7 +119,7 @@ coinex.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -133,7 +134,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinex.fetchTicker (symbol[, params])
+coinex.fetchTicker (symbol, params?)
 ```
 
 
@@ -143,7 +144,7 @@ coinex.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -158,7 +159,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinex.fetchTickers (symbols[, params])
+coinex.fetchTickers (symbols, params?)
 ```
 
 
@@ -178,7 +179,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-coinex.fetchTime ([params])
+coinex.fetchTime (params?)
 ```
 
 
@@ -188,7 +189,7 @@ coinex.fetchTime ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -204,7 +205,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinex.fetchOrderBook (symbol[, limit, params])
+coinex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -214,7 +215,7 @@ coinex.fetchOrderBook (symbol[, limit, params])
 get the list of the most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -231,7 +232,7 @@ get the list of the most recent trades for a particular symbol
 
 
 ```javascript
-coinex.fetchTrades (symbol[, since, limit, params])
+coinex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -241,7 +242,7 @@ coinex.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**
 
@@ -256,7 +257,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-coinex.fetchTradingFee (symbol[, params])
+coinex.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -266,7 +267,7 @@ coinex.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**
 
@@ -280,7 +281,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-coinex.fetchTradingFees ([params])
+coinex.fetchTradingFees (params?)
 ```
 
 
@@ -308,7 +309,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -318,7 +319,7 @@ coinex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -335,7 +336,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinex.fetchBalance ([params])
+coinex.fetchBalance (params?)
 ```
 
 
@@ -345,7 +346,7 @@ coinex.fetchBalance ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -361,7 +362,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-coinex.createMarketBuyOrderWithCost (symbol, cost[, params])
+coinex.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -371,7 +372,7 @@ coinex.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -401,7 +402,7 @@ create a trade order
 
 
 ```javascript
-coinex.createOrder (symbol, type, side, amount[, price, params])
+coinex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -411,7 +412,7 @@ coinex.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders (all orders should be of the same symbol)
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -428,7 +429,7 @@ create a list of trade orders (all orders should be of the same symbol)
 
 
 ```javascript
-coinex.createOrders (orders[, params])
+coinex.createOrders (orders, params?)
 ```
 
 
@@ -438,7 +439,7 @@ coinex.createOrders (orders[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -457,7 +458,7 @@ cancel multiple orders
 
 
 ```javascript
-coinex.cancelOrders (ids, symbol[, params])
+coinex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -467,7 +468,7 @@ coinex.cancelOrders (ids, symbol[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -490,7 +491,32 @@ edit a trade order
 
 
 ```javascript
-coinex.editOrder (id, symbol, type, side, amount[, price, params])
+coinex.editOrder (id, symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="editOrders" id="editorders"></a>
+
+### editOrders{docsify-ignore}
+edit a list of trade orders
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+- https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.editOrders (orders, params?)
 ```
 
 
@@ -500,7 +526,7 @@ coinex.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -524,7 +550,7 @@ cancels an open order
 
 
 ```javascript
-coinex.cancelOrder (id, symbol[, params])
+coinex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -534,7 +560,7 @@ coinex.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -550,7 +576,7 @@ cancel all open orders in a market
 
 
 ```javascript
-coinex.cancelAllOrders (symbol[, params])
+coinex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -560,7 +586,7 @@ coinex.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -576,7 +602,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinex.fetchOrder (id, symbol[, params])
+coinex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -586,7 +612,7 @@ coinex.fetchOrder (id, symbol[, params])
 fetch a list of orders
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -608,7 +634,7 @@ fetch a list of orders
 
 
 ```javascript
-coinex.fetchOrdersByStatus (status, symbol[, since, limit, params])
+coinex.fetchOrdersByStatus (status, symbol, since?, limit?, params?)
 ```
 
 
@@ -618,7 +644,7 @@ coinex.fetchOrdersByStatus (status, symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -639,7 +665,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coinex.fetchOpenOrders (symbol[, since, limit, params])
+coinex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -649,7 +675,7 @@ coinex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -670,7 +696,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-coinex.fetchClosedOrders (symbol[, since, limit, params])
+coinex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -680,7 +706,7 @@ coinex.fetchClosedOrders (symbol[, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address  
 
@@ -692,7 +718,7 @@ create a currency deposit address
 
 
 ```javascript
-coinex.createDepositAddress (code[, params])
+coinex.createDepositAddress (code, params?)
 ```
 
 
@@ -702,7 +728,7 @@ coinex.createDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address  
 
@@ -714,7 +740,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-coinex.fetchDepositAddress (code[, params])
+coinex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -724,7 +750,7 @@ coinex.fetchDepositAddress (code[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -743,7 +769,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinex.fetchMyTrades (symbol[, since, limit, params])
+coinex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -753,7 +779,7 @@ coinex.fetchMyTrades (symbol[, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -769,7 +795,7 @@ fetch all open positions
 
 
 ```javascript
-coinex.fetchPositions ([symbols, params])
+coinex.fetchPositions (symbols?, params?)
 ```
 
 
@@ -779,7 +805,7 @@ coinex.fetchPositions ([symbols, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/list-pending-position  
 
@@ -790,7 +816,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-coinex.fetchPosition (symbol[, params])
+coinex.fetchPosition (symbol, params?)
 ```
 
 
@@ -813,7 +839,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-coinex.setMarginMode (marginMode, symbol[, params])
+coinex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -836,7 +862,7 @@ set the level of leverage for a market
 
 
 ```javascript
-coinex.setLeverage (leverage, symbol[, params])
+coinex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -846,7 +872,7 @@ coinex.setLeverage (leverage, symbol[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 **See**: https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level  
 
@@ -857,7 +883,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-coinex.fetchLeverageTiers (symbols[, params])
+coinex.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -867,7 +893,7 @@ coinex.fetchLeverageTiers (symbols[, params])
 add margin
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin  
 
@@ -879,7 +905,7 @@ add margin
 
 
 ```javascript
-coinex.addMargin (symbol, amount[, params])
+coinex.addMargin (symbol, amount, params?)
 ```
 
 
@@ -889,7 +915,7 @@ coinex.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin  
 
@@ -901,7 +927,7 @@ remove margin from a position
 
 
 ```javascript
-coinex.reduceMargin (symbol, amount[, params])
+coinex.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -911,7 +937,7 @@ coinex.reduceMargin (symbol, amount[, params])
 fetch the history of funding fee payments paid and received on this account
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history  
 
@@ -924,7 +950,7 @@ fetch the history of funding fee payments paid and received on this account
 
 
 ```javascript
-coinex.fetchFundingHistory (symbol[, since, limit, params])
+coinex.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -934,7 +960,7 @@ coinex.fetchFundingHistory (symbol[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate  
 
@@ -945,7 +971,7 @@ fetch the current funding rate
 
 
 ```javascript
-coinex.fetchFundingRate (symbol[, params])
+coinex.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -955,7 +981,7 @@ coinex.fetchFundingRate (symbol[, params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate  
 
@@ -966,7 +992,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-coinex.fetchFundingInterval (symbol[, params])
+coinex.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -976,7 +1002,7 @@ coinex.fetchFundingInterval (symbol[, params])
 fetch the current funding rates for multiple markets
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate  
 
@@ -987,7 +1013,7 @@ fetch the current funding rates for multiple markets
 
 
 ```javascript
-coinex.fetchFundingRates (symbols[, params])
+coinex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -997,7 +1023,7 @@ coinex.fetchFundingRates (symbols[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal  
 
@@ -1012,7 +1038,7 @@ make a withdrawal
 
 
 ```javascript
-coinex.withdraw (code, amount, address[, tag, params])
+coinex.withdraw (code, amount, address, tag?, params?)
 ```
 
 
@@ -1022,7 +1048,7 @@ coinex.withdraw (code, amount, address[, tag, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history  
 
@@ -1030,14 +1056,14 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 
 
 ```javascript
-coinex.fetchFundingRateHistory (symbol[, since, limit, params])
+coinex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1047,7 +1073,7 @@ coinex.fetchFundingRateHistory (symbol[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/transfer/http/transfer  
 
@@ -1062,7 +1088,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-coinex.transfer (code, amount, fromAccount, toAccount[, params])
+coinex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1072,7 +1098,7 @@ coinex.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history  
 
@@ -1086,7 +1112,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-coinex.fetchTransfers (code[, since, limit, params])
+coinex.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1096,7 +1122,7 @@ coinex.fetchTransfers (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-withdrawal-history  
 
@@ -1109,7 +1135,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-coinex.fetchWithdrawals ([code, since, limit, params])
+coinex.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -1119,7 +1145,7 @@ coinex.fetchWithdrawals ([code, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history  
 
@@ -1132,7 +1158,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-coinex.fetchDeposits ([code, since, limit, params])
+coinex.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -1142,7 +1168,7 @@ coinex.fetchDeposits ([code, since, limit, params])
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure)
+**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/?id=isolated-borrow-rate-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit  
 
@@ -1154,7 +1180,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-coinex.fetchIsolatedBorrowRate (symbol[, params])
+coinex.fetchIsolatedBorrowRate (symbol, params?)
 ```
 
 
@@ -1164,7 +1190,7 @@ coinex.fetchIsolatedBorrowRate (symbol[, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history  
 
@@ -1178,7 +1204,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-coinex.fetchBorrowInterest ([code, symbol, since, limit, params])
+coinex.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
 ```
 
 
@@ -1188,7 +1214,7 @@ coinex.fetchBorrowInterest ([code, symbol, since, limit, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-borrow  
 
@@ -1202,7 +1228,7 @@ create a loan to borrow margin
 
 
 ```javascript
-coinex.borrowIsolatedMargin (symbol, code, amount[, params])
+coinex.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1212,7 +1238,7 @@ coinex.borrowIsolatedMargin (symbol, code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-repay  
 
@@ -1226,7 +1252,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-coinex.repayIsolatedMargin (symbol, code, amount[, params])
+coinex.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1236,7 +1262,7 @@ coinex.repayIsolatedMargin (symbol, code, amount[, params])
 fetch the fee for deposits and withdrawals
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config  
 
@@ -1247,7 +1273,7 @@ fetch the fee for deposits and withdrawals
 
 
 ```javascript
-coinex.fetchDepositWithdrawFee (code[, params])
+coinex.fetchDepositWithdrawFee (code, params?)
 ```
 
 
@@ -1257,18 +1283,18 @@ coinex.fetchDepositWithdrawFee (code[, params])
 fetch the fees for deposits and withdrawals
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes |  | Yes |  |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinex.fetchDepositWithdrawFees (codes[, params])
+coinex.fetchDepositWithdrawFees (codes?, params?)
 ```
 
 
@@ -1278,7 +1304,7 @@ coinex.fetchDepositWithdrawFees (codes[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit  
 
@@ -1290,7 +1316,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-coinex.fetchLeverage (symbol[, params])
+coinex.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1300,7 +1326,7 @@ coinex.fetchLeverage (symbol[, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position  
 
@@ -1314,7 +1340,7 @@ fetches historical positions
 
 
 ```javascript
-coinex.fetchPositionHistory (symbol[, since, limit, params])
+coinex.fetchPositionHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1324,7 +1350,7 @@ coinex.fetchPositionHistory (symbol[, since, limit, params])
 closes an open position for a market
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/close-position  
 
@@ -1340,7 +1366,7 @@ closes an open position for a market
 
 
 ```javascript
-coinex.closePosition (symbol[, side, params])
+coinex.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1350,7 +1376,7 @@ coinex.closePosition (symbol[, side, params])
 fetches the history of margin added or reduced from contract isolated positions
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history  
 
@@ -1366,7 +1392,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-coinex.fetchMarginAdjustmentHistory (symbol[, type, since, limit, params])
+coinex.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params)
 ```
 
 
@@ -1376,7 +1402,7 @@ coinex.fetchMarginAdjustmentHistory (symbol[, type, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -1390,7 +1416,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-coinex.watchBalance ([params])
+coinex.watchBalance (params?)
 ```
 
 
@@ -1400,7 +1426,7 @@ coinex.watchBalance ([params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -1417,7 +1443,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-coinex.watchMyTrades ([symbol, since, limit, params])
+coinex.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1427,7 +1453,7 @@ coinex.watchMyTrades ([symbol, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1442,7 +1468,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinex.watchTicker (symbol[, params])
+coinex.watchTicker (symbol, params?)
 ```
 
 
@@ -1452,7 +1478,7 @@ coinex.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1467,7 +1493,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinex.watchTickers (symbols[, params])
+coinex.watchTickers (symbols, params?)
 ```
 
 
@@ -1477,7 +1503,7 @@ coinex.watchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1494,7 +1520,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinex.watchTrades (symbol[, since, limit, params])
+coinex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1504,7 +1530,7 @@ coinex.watchTrades (symbol[, since, limit, params])
 watch the most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1521,7 +1547,7 @@ watch the most recent trades for a list of symbols
 
 
 ```javascript
-coinex.watchTradesForSymbols (symbols[, since, limit, params])
+coinex.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1531,7 +1557,7 @@ coinex.watchTradesForSymbols (symbols[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1547,7 +1573,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinex.watchOrderBookForSymbols (symbols[, limit, params])
+coinex.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1557,7 +1583,7 @@ coinex.watchOrderBookForSymbols (symbols[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1573,7 +1599,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinex.watchOrderBook (symbol[, limit, params])
+coinex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1583,7 +1609,7 @@ coinex.watchOrderBook (symbol[, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1601,7 +1627,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-coinex.watchOrders (symbol[, since, limit, params])
+coinex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1611,7 +1637,7 @@ coinex.watchOrders (symbol[, since, limit, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1626,6 +1652,6 @@ watches best bid & ask for symbols
 
 
 ```javascript
-coinex.watchBidsAsks ([symbols, params])
+coinex.watchBidsAsks (symbols?, params?)
 ```
 

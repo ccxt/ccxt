@@ -8,11 +8,10 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class phemex extends \ccxt\async\phemex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -53,9 +52,9 @@ class phemex extends \ccxt\async\phemex {
         if ($en === null) {
             return null;
         }
-        $precise = new Precise ($en);
+        $precise = new Precise($en);
         $precise->decimals = $this->sum($precise->decimals, $scale);
-        $precise->reduce ();
+        $precise->reduce();
         return (string) $precise;
     }
 
@@ -81,8 +80,10 @@ class phemex extends \ccxt\async\phemex {
     }
 
     public function request_id() {
+        $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
+        $this->unlock_id();
         return $requestId;
     }
 
@@ -302,11 +303,11 @@ class phemex extends \ccxt\async\phemex {
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
             $this->tickers[$symbol] = $ticker;
-            $client->resolve ($ticker, $messageHash);
+            $client->resolve($ticker, $messageHash);
         }
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -317,16 +318,18 @@ class phemex extends \ccxt\async\phemex {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->settle] set to USDT to use hedged perpetual api
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
             $usePerpetualApi = $this->safe_string($params, 'settle') === 'USDT';
             $messageHash = ':balance';
             $messageHash = $usePerpetualApi ? 'perpetual' . $messageHash : $type . $messageHash;
             return Async\await($this->subscribe_private($type, $messageHash, $params));
-        }) ();
+        })();
     }
 
     public function handle_balance($type, $client, $message) {
@@ -401,7 +404,7 @@ class phemex extends \ccxt\async\phemex {
             $this->balance = $this->safe_balance($this->balance);
         }
         $messageHash = $type . ':balance';
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
     public function handle_trades(Client $client, $message) {
@@ -439,15 +442,15 @@ class phemex extends \ccxt\async\phemex {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $trades = $this->safe_value_2($message, 'trades', 'trades_p', array());
         $parsed = $this->parse_trades($trades, $market);
         for ($i = 0; $i < count($parsed); $i++) {
-            $stored->append ($parsed[$i]);
+            $stored->append($parsed[$i]);
         }
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -496,18 +499,18 @@ class phemex extends \ccxt\async\phemex {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
+                $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             for ($i = 0; $i < count($ohlcvs); $i++) {
                 $candle = $ohlcvs[$i];
-                $stored->append ($candle);
+                $stored->append($candle);
             }
-            $client->resolve ($stored, $messageHash);
+            $client->resolve($stored, $messageHash);
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -518,9 +521,11 @@ class phemex extends \ccxt\async\phemex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $isSwap = $market['swap'];
@@ -540,10 +545,10 @@ class phemex extends \ccxt\async\phemex {
             );
             $request = $this->deep_extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -555,9 +560,11 @@ class phemex extends \ccxt\async\phemex {
              * @param {string[]} [$symbols] unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the channel to $subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $first = $symbols[0];
             $market = $this->market($first);
@@ -587,10 +594,10 @@ class phemex extends \ccxt\async\phemex {
                 return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -603,9 +610,11 @@ class phemex extends \ccxt\async\phemex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
@@ -618,20 +627,20 @@ class phemex extends \ccxt\async\phemex {
             $subscribe = array(
                 'method' => $method,
                 'id' => $requestId,
-                'params' => [
+                'params' => array(
                     $market['id'],
-                ],
+                ),
             );
             $request = $this->deep_extend($subscribe, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
@@ -644,9 +653,11 @@ class phemex extends \ccxt\async\phemex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
@@ -659,17 +670,17 @@ class phemex extends \ccxt\async\phemex {
             $subscribe = array(
                 'method' => $method,
                 'id' => $requestId,
-                'params' => [
+                'params' => array(
                     $market['id'],
-                ],
+                ),
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -685,7 +696,9 @@ class phemex extends \ccxt\async\phemex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
@@ -698,23 +711,23 @@ class phemex extends \ccxt\async\phemex {
             $subscribe = array(
                 'method' => $method,
                 'id' => $requestId,
-                'params' => [
+                'params' => array(
                     $market['id'],
                     $this->safe_integer($this->timeframes, $timeframe),
-                ],
+                ),
             );
             $request = $this->deep_extend($subscribe, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function custom_handle_delta($bookside, $delta, $market = null) {
         $bidAsk = $this->custom_parse_bid_ask($delta, 0, 1, $market);
-        $bookside->storeArray ($bidAsk);
+        $bookside->storeArray($bidAsk);
     }
 
     public function custom_handle_deltas($bookside, $deltas, $market = null) {
@@ -782,7 +795,7 @@ class phemex extends \ccxt\async\phemex {
             $snapshot['nonce'] = $nonce;
             $orderbook = $this->order_book($snapshot, $depth);
             $this->orderbooks[$symbol] = $orderbook;
-            $client->resolve ($orderbook, $messageHash);
+            $client->resolve($orderbook, $messageHash);
         } else {
             if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
                 $orderbook = $this->orderbooks[$symbol];
@@ -795,12 +808,12 @@ class phemex extends \ccxt\async\phemex {
                 $orderbook['timestamp'] = $timestamp;
                 $orderbook['datetime'] = $this->iso8601($timestamp);
                 $this->orderbooks[$symbol] = $orderbook;
-                $client->resolve ($orderbook, $messageHash);
+                $client->resolve($orderbook, $messageHash);
             }
         }
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -808,9 +821,11 @@ class phemex extends \ccxt\async\phemex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $type = null;
             $messageHash = 'trades:';
@@ -830,10 +845,10 @@ class phemex extends \ccxt\async\phemex {
             }
             $trades = Async\await($this->subscribe_private($type, $messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_my_trades(Client $client, $message) {
@@ -938,7 +953,7 @@ class phemex extends \ccxt\async\phemex {
         $cachedTrades = $this->myTrades;
         if ($cachedTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $cachedTrades = new ArrayCacheBySymbolById ($limit);
+            $cachedTrades = new ArrayCacheBySymbolById($limit);
         }
         $marketIds = array();
         $type = null;
@@ -947,7 +962,7 @@ class phemex extends \ccxt\async\phemex {
             $marketId = $this->safe_string($rawTrade, 'symbol');
             $market = $this->safe_market($marketId);
             $parsed = $this->parse_trade($rawTrade);
-            $cachedTrades->append ($parsed);
+            $cachedTrades->append($parsed);
             $symbol = $parsed['symbol'];
             if ($type === null) {
                 $type = ($market['settle'] === 'USDT') ? 'perpetual' : $market['type'];
@@ -958,14 +973,14 @@ class phemex extends \ccxt\async\phemex {
         for ($i = 0; $i < count($keys); $i++) {
             $market = $keys[$i];
             $hash = $channel . ':' . $market;
-            $client->resolve ($cachedTrades, $hash);
+            $client->resolve($cachedTrades, $hash);
         }
         // generic subscription
         $messageHash = $channel . ':' . $type;
-        $client->resolve ($cachedTrades, $messageHash);
+        $client->resolve($cachedTrades, $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -973,9 +988,11 @@ class phemex extends \ccxt\async\phemex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders:';
             $market = null;
             $type = null;
@@ -995,10 +1012,10 @@ class phemex extends \ccxt\async\phemex {
             }
             $orders = Async\await($this->subscribe_private($type, $messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_orders(Client $client, $message) {
@@ -1196,13 +1213,13 @@ class phemex extends \ccxt\async\phemex {
         $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
         $marketIds = array();
         if ($this->orders === null) {
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $type = null;
         $stored = $this->orders;
         for ($i = 0; $i < count($parsedOrders); $i++) {
             $parsed = $parsedOrders[$i];
-            $stored->append ($parsed);
+            $stored->append($parsed);
             $symbol = $parsed['symbol'];
             $market = $this->market($symbol);
             if ($type === null) {
@@ -1214,11 +1231,11 @@ class phemex extends \ccxt\async\phemex {
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $currentMessageHash = 'orders' . ':' . $keys[$i];
-            $client->resolve ($this->orders, $currentMessageHash);
+            $client->resolve($this->orders, $currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
         $messageHash = 'orders:' . $type;
-        $client->resolve ($this->orders, $messageHash);
+        $client->resolve($this->orders, $messageHash);
     }
 
     public function parse_ws_swap_order($order, $market = null) {
@@ -1354,7 +1371,7 @@ class phemex extends \ccxt\async\phemex {
         $symbol = $market['symbol'];
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
-        $type = $this->parseOrderType ($this->safe_string($order, 'ordType'));
+        $type = $this->parseOrderType($this->safe_string($order, 'ordType'));
         $price = $this->safe_string($order, 'priceRp', $this->from_ep($this->safe_string($order, 'priceEp'), $market));
         $amount = $this->safe_string($order, 'orderQty');
         $filled = $this->safe_string($order, 'cumQty');
@@ -1397,7 +1414,7 @@ class phemex extends \ccxt\async\phemex {
     public function handle_message(Client $client, $message) {
         // private spot update
         // {
-        //     "orders" => array( closed => [ ], fills => [ ], open => array() ),
+        //     "orders" => array( closed => array(), fills => array(), open => array() ),
         //     "sequence" => 40435835,
         //     "timestamp" => "1650443245600839241",
         //     "type" => "snapshot",
@@ -1541,19 +1558,21 @@ class phemex extends \ccxt\async\phemex {
         $status = $this->safe_string($result, 'status');
         $messageHash = 'authenticated';
         if ($status === 'success') {
-            $client->resolve ($message, $messageHash);
+            $client->resolve($message, $messageHash);
         } else {
-            $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
-            $client->reject ($error, $messageHash);
+            $error = new AuthenticationError($this->id . ' ' . $this->json($message));
+            $client->reject($error, $messageHash);
             if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
     }
 
-    public function subscribe_private($type, $messageHash, $params = array ()) {
+    public function subscribe_private($type, $messageHash, $params = array()) {
         return Async\async(function () use ($type, $messageHash, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $requestId = $this->seconds();
@@ -1573,10 +1592,10 @@ class phemex extends \ccxt\async\phemex {
             );
             $request = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $request, $channel));
-        }) ();
+        })();
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'];
@@ -1604,6 +1623,6 @@ class phemex extends \ccxt\async\phemex {
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;
-        }) ();
+        })();
     }
 }
