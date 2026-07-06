@@ -26,7 +26,7 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
         'code': 'BTC', // uppercase string literal of a currency
         'name': 'Bitcoin', // uppercase string, base currency
         'networks': {},
-        'type':  'crypto', // crypto, fiat, leverage, other
+        'type': 'crypto', // crypto, fiat, leveraged, other
     });
     const networkFormat = exchange.deepExtend (baseFormat, {
         'network': 'BEP20', // can be either uppercase unified code or lowercase network id
