@@ -59,6 +59,9 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
             test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
             for i in range(0, len(values)):
                 ticker = values[i]
-                test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+                try:
+                    test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+                except Exception as ex:
+                    await test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker)
             now = exchange.milliseconds()
     return True

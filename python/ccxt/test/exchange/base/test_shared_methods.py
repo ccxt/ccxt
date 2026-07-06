@@ -559,3 +559,21 @@ def exchange_prop(exchange, key, default_value=None):
     # try UpperCase key also, for other langs
     key_upper = exchange.capitalize(str(key))
     return exchange.get_property(exchange, key_upper, default_value)
+
+
+def validate_ticker_exception_for_percentage(ex, exchange, ticker):
+    # only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    e_message = exchange.exception_message(ex, False)
+    if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
+        symbol = ticker['symbol']
+        if symbol is not None:
+            # if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if not (symbol in exchange.markets):
+                return
+            # if OHLCV supported
+            if exchange.feature_value(symbol, 'fetchOHLCV') is not None:
+                ohlcv = exchange.fetch_ohlcv(symbol, '1d', None, 5)
+                if len(ohlcv) <= 1:
+                    # if only 1 day, then allow it
+                    return
+    assert e_message == '', e_message  # trigger error
