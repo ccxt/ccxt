@@ -505,7 +505,7 @@ export default class Exchange {
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     loadDydxProtos(): Promise<void>;
     toDydxLong(numStr: string): object;
-    retrieveDydxCredentials(entropy: string): object;
+    retrieveDydxCredentials(privateKey: string): object;
     encodeDydxTxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
     encodeDydxTxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;
