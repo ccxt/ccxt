@@ -353,19 +353,19 @@ export default class bithumb extends Exchange {
             'options': {
                 'generation': 2, // either API generation 1 or 2
                 'quoteCurrencies': {
-                    'BTC': {
-                        'limits': {
-                            'cost': {
-                                'min': 0.0002,
-                                'max': 100,
-                            },
-                        },
-                    },
                     'KRW': {
                         'limits': {
                             'cost': {
                                 'min': 500,
                                 'max': 5000000000,
+                            },
+                        },
+                    },
+                    'BTC': {
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
                             },
                         },
                     },
@@ -1259,8 +1259,8 @@ export default class bithumb extends Exchange {
             } else if (timeframe === '1M') {
                 response = await this.publicGetV1CandlesMonths (this.extend (request, params));
             } else {
-                const timeframeInteger = this.parseToInt (timeframe);
-                request['unit'] = this.safeInteger (this.timeframes, timeframe, timeframeInteger);
+                const timeframeInteger = this.safeInteger (this.timeframes, timeframe);
+                request['unit'] = timeframeInteger;
                 response = await this.publicGetV1CandlesMinutesUnit (this.extend (request, params));
             }
             //
