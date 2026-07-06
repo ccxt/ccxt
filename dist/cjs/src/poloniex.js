@@ -29,7 +29,7 @@ class poloniex extends poloniex$1["default"] {
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -1816,7 +1816,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        let response = undefined;
+        let response = [];
         if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, params));
             //
@@ -1858,7 +1858,7 @@ class poloniex extends poloniex$1["default"] {
             //                "qCcy": "USDT"
             //            },
             //
-            response = this.safeList(raw, 'data');
+            response = this.safeList(raw, 'data', []);
         }
         else if (isTrigger) {
             response = await this.privateGetSmartorders(this.extend(request, params));
@@ -1996,13 +1996,13 @@ class poloniex extends poloniex$1["default"] {
         };
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
-        let response = undefined;
+        let response = {};
         if (market['swap'] || market['future']) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, params));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
-            response = this.safeDict(responseInitial, 'data');
+            response = this.safeDict(responseInitial, 'data', {});
         }
         else if (triggerPrice !== undefined) {
             response = await this.privatePostSmartorders(this.extend(request, params));
@@ -2128,7 +2128,7 @@ class poloniex extends poloniex$1["default"] {
         };
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
-        let response = undefined;
+        let response = {};
         if (triggerPrice !== undefined) {
             response = await this.privatePutSmartordersId(this.extend(request, params));
         }
@@ -2180,7 +2180,7 @@ class poloniex extends poloniex$1["default"] {
             //        }
             //    }
             //
-            return this.parseOrder(this.safeDict(raw, 'data'));
+            return this.parseOrder(this.safeDict(raw, 'data', {}));
         }
         const clientOrderId = this.safeValue(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -2189,7 +2189,7 @@ class poloniex extends poloniex$1["default"] {
         request['id'] = id;
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
-        let response = undefined;
+        let response = {};
         if (isTrigger) {
             response = await this.privateDeleteSmartordersId(this.extend(request, params));
         }
@@ -2232,7 +2232,7 @@ class poloniex extends poloniex$1["default"] {
                 market['id'],
             ];
         }
-        let response = undefined;
+        let response = [];
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
@@ -2251,7 +2251,7 @@ class poloniex extends poloniex$1["default"] {
             //        ]
             //    }
             //
-            response = this.safeList(raw, 'data');
+            response = this.safeList(raw, 'data', []);
             return this.parseOrders(response, market);
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
@@ -2311,7 +2311,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        let response = undefined;
+        let response = {};
         if (isTrigger) {
             response = await this.privateGetSmartordersId(this.extend(request, params));
             response = this.safeValue(response, 0);
@@ -2549,7 +2549,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3038,7 +3038,8 @@ class poloniex extends poloniex$1["default"] {
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee({});
-        depositWithdrawFee['info'][currency['code']] = fee;
+        const currencyCode = this.safeString(currency, 'code');
+        depositWithdrawFee['info'][currencyCode] = fee;
         const networkId = this.safeString(fee, 'blockchain');
         const withdrawFee = this.safeNumber(fee, 'withdrawalFee');
         const withdrawResult = {

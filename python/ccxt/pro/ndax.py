@@ -172,7 +172,7 @@ class ndax(ccxt.async_support.ndax):
         for i in range(0, len(payload)):
             trade = self.parse_trade(payload[i])
             symbol = trade['symbol']
-            tradesArray = self.safe_value(self.trades, symbol)
+            tradesArray = None if (symbol is None) else self.safe_value(self.trades, symbol)
             if tradesArray is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 tradesArray = ArrayCache(limit)
@@ -319,7 +319,7 @@ class ndax(ccxt.async_support.ndax):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
@@ -470,7 +470,7 @@ class ndax(ccxt.async_support.ndax):
         #
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         id = self.safe_integer(message, 'i')
-        subscription = self.safe_value(subscriptionsById, id)
+        subscription = None if (id is None) else self.safe_value(subscriptionsById, id)
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:
@@ -514,6 +514,6 @@ class ndax(ccxt.async_support.ndax):
             'TickerDataUpdateEvent': self.handle_ohlcv,
         }
         event = self.safe_string(message, 'n')
-        method = self.safe_value(methods, event)
+        method = None if (event is None) else self.safe_value(methods, event)
         if method is not None:
             method(client, message)

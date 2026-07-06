@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported } from '../base/errors.js';
+import { NotSupported, ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
@@ -75,7 +75,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrdersWs (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.urls['api']['ws']['public'];
         const ordersRequest = this.createOrdersRequest (orders, params);
         const wrapped = this.wrapAsPostAction (ordersRequest);
@@ -109,7 +111,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs ([ order as any ], globalParams);
         const ordersLength = orders.length;
@@ -142,7 +146,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws']['public'];
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, (amount as number), price, params);
@@ -174,7 +180,9 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
         this.checkRequiredCredentials ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request = this.cancelOrdersRequest (ids, symbol, params);
         const url = this.urls['api']['ws']['public'];
         const wrapped = this.wrapAsPostAction (request);
@@ -220,10 +228,12 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -247,10 +257,12 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subMessageHash = 'orderbook:' + symbol;
@@ -324,7 +336,6 @@ export default class hyperliquid extends hyperliquidRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -346,22 +357,20 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
-        let channel = 'webData2';
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', channel);
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': channel, // webData2 or allMids
-                'user': '0x0000000000000000000000000000000000000000',
+                'type': 'allMids',
             },
         };
         let defaultDex = this.safeString (params, 'dex');
@@ -393,22 +402,20 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true);
         const subMessageHash = 'tickers';
-        let channel = 'webData2';
-        [ channel, params ] = this.handleOptionAndParams (params, 'unWatchTickers', 'channel', channel);
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': channel, // allMids
-                'user': '0x0000000000000000000000000000000000000000',
+                'type': 'allMids',
             },
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -431,7 +438,9 @@ export default class hyperliquid extends hyperliquidRest {
         const userAddressResult = this.handlePublicAddress ('watchMyTrades', params);
         userAddress = this.safeString (userAddressResult, 0);
         params = this.safeDict (userAddressResult, 1, params);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
@@ -464,7 +473,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
@@ -500,110 +511,28 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         // }
         //
-        //     {
-        //         "channel": "webData2",
-        //         "data": {
-        //             "meta": {
-        //                 "universe": [
-        //                     {
-        //                         "szDecimals": 5,
-        //                         "name": "BTC",
-        //                         "maxLeverage": 50,
-        //                         "onlyIsolated": false
-        //                     },
-        //                     ...
-        //                 ],
-        //             },
-        //             "assetCtxs": [
-        //                 {
-        //                     "funding": "0.00003005",
-        //                     "openInterest": "2311.50778",
-        //                     "prevDayPx": "63475.0",
-        //                     "dayNtlVlm": "468043329.64289033",
-        //                     "premium": "0.00094264",
-        //                     "oraclePx": "64712.0",
-        //                     "markPx": "64774.0",
-        //                     "midPx": "64773.5",
-        //                     "impactPxs": [
-        //                         "64773.0",
-        //                         "64774.0"
-        //                     ]
-        //                 },
-        //                 ...
-        //             ],
-        //             "spotAssetCtxs": [
-        //                 {
-        //                     "prevDayPx": "0.20937",
-        //                     "dayNtlVlm": "11188888.61984999",
-        //                     "markPx": "0.19722",
-        //                     "midPx": "0.197145",
-        //                     "circulatingSupply": "598760557.12072003",
-        //                     "coin": "PURR/USDC"
-        //                 },
-        //                 ...
-        //             ],
-        //         }
-        //     }
-        //
         // handle hip3 mids
-        const channel = this.safeString (message, 'channel');
-        if (channel === 'allMids') {
-            const data = this.safeDict (message, 'data', {});
-            const mids = this.safeDict (data, 'mids', {});
-            if (mids !== undefined) {
-                const keys = Object.keys (mids);
-                for (let i = 0; i < keys.length; i++) {
-                    const name = keys[i];
-                    const marketId = this.coinToMarketId (name);
-                    const market = this.safeMarket (marketId, undefined, undefined, 'swap');
-                    const symbol = market['symbol'];
-                    const ticker = this.parseWsTicker ({
-                        'price': this.safeNumber (mids, name),
-                    }, market);
-                    this.tickers[symbol] = ticker;
-                }
-                let messageHash = 'tickers';
-                const dexMessage = this.safeString (data, 'dex');
-                if (dexMessage !== undefined) {
-                    messageHash += ':' + dexMessage;
-                }
-                client.resolve (this.tickers, messageHash);
-                return true;
+        const data = this.safeDict (message, 'data', {});
+        const mids = this.safeDict (data, 'mids', {});
+        if (mids !== undefined) {
+            const keys = Object.keys (mids);
+            for (let i = 0; i < keys.length; i++) {
+                const name = keys[i];
+                const marketId = this.coinToMarketId (name);
+                const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const ticker = this.parseWsTicker ({
+                    'price': this.safeNumber (mids, name),
+                }, market);
+                this.tickers[symbol] = ticker;
             }
+            let messageHash = 'tickers';
+            const dexMessage = this.safeString (data, 'dex');
+            if (dexMessage !== undefined) {
+                messageHash += ':' + dexMessage;
+            }
+            client.resolve (this.tickers, messageHash);
         }
-        // spot
-        const rawData = this.safeDict (message, 'data', {});
-        const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
-        const parsedTickers: Ticker[] = [];
-        for (let i = 0; i < spotAssets.length; i++) {
-            const assetObject = spotAssets[i];
-            const coin = this.safeString (assetObject, 'coin');
-            const marketId = this.coinToMarketId (coin);
-            const market = this.safeMarket (marketId, undefined, undefined, 'spot');
-            const symbol = market['symbol'];
-            const ticker = this.parseWsTicker (assetObject, market);
-            parsedTickers.push (ticker);
-            this.tickers[symbol] = ticker;
-        }
-        // perpetuals
-        const meta = this.safeDict (rawData, 'meta', {});
-        const universe = this.safeList (meta, 'universe', []);
-        const assetCtxs = this.safeList (rawData, 'assetCtxs', []);
-        for (let i = 0; i < universe.length; i++) {
-            const data = this.extend (
-                this.safeDict (universe, i, {}),
-                this.safeDict (assetCtxs, i, {})
-            );
-            const coin = this.safeString (data, 'name');
-            const marketId = this.coinToMarketId (coin);
-            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
-            const symbol = market['symbol'];
-            const ticker = this.parseWsTicker (data, market);
-            this.tickers[symbol] = ticker;
-            parsedTickers.push (ticker);
-        }
-        const tickers = this.indexBy (parsedTickers, 'symbol');
-        client.resolve (tickers, 'tickers');
         return true;
     }
 
@@ -681,7 +610,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
@@ -711,7 +642,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subMessageHash = 'trade:' + symbol;
@@ -847,7 +780,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
@@ -879,7 +814,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
@@ -962,7 +899,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let userAddress: Str = undefined;
         const userAddressResult = this.handlePublicAddress ('watchBalance', params);
         userAddress = this.safeString (userAddressResult, 0);
@@ -1008,7 +947,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} status of the unwatch request
      */
     async unWatchBalance (params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.urls['api']['ws']['public'];
         let userAddress: Str = undefined;
         const userAddressResult = this.handlePublicAddress ('unWatchBalance', params);
@@ -1192,7 +1133,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let userAddress: Str = undefined;
         const userAddressResult = this.handlePublicAddress ('watchPositions', params);
         userAddress = this.safeString (userAddressResult, 0);
@@ -1277,7 +1220,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object} status of the unwatch request
      */
     async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             throw new NotSupported (this.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
         }
@@ -1311,7 +1256,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let userAddress: Str = undefined;
         const userAddressResult = this.handlePublicAddress ('watchOrders', params);
         userAddress = this.safeString (userAddressResult, 0);
@@ -1350,7 +1297,9 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
         }
@@ -1453,8 +1402,8 @@ export default class hyperliquid extends hyperliquidRest {
         const channel = this.safeString (message, 'channel', '');
         if (channel === 'error') {
             const ret_msg = this.safeString (message, 'data', '');
-            const errorMsg = this.id + ' ' + ret_msg;
-            client.reject (errorMsg);
+            const error = new ExchangeError (this.id + ' ' + ret_msg);
+            client.reject (error);
             return true;
         }
         const data = this.safeDict (message, 'data', {});
@@ -1466,13 +1415,13 @@ export default class hyperliquid extends hyperliquidRest {
         const payload = this.safeDict (response, 'payload', {});
         const status = this.safeString (payload, 'status');
         if (status !== undefined && status !== 'ok') {
-            const errorMsg = this.id + ' ' + this.json (payload);
-            client.reject (errorMsg, id);
+            const error = new ExchangeError (this.id + ' ' + this.json (payload));
+            client.reject (error, id);
             return true;
         }
         const type = this.safeString (payload, 'type');
         if (type === 'error') {
-            const error = this.id + ' ' + this.json (payload);
+            const error = new ExchangeError (this.id + ' ' + this.json (payload));
             client.reject (error, id);
             return true;
         }
@@ -1622,8 +1571,6 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handleOrderBookUnsubscription (client, subscription);
             } else if (type === 'trades') {
                 this.handleTradesUnsubscription (client, subscription);
-            } else if (type === 'webData2') {
-                this.handleTickersUnsubscription (client, subscription);
             } else if (type === 'candle') {
                 this.handleOHLCVUnsubscription (client, subscription);
             } else if (type === 'orderUpdates') {
@@ -1664,7 +1611,6 @@ export default class hyperliquid extends hyperliquidRest {
             'candle': this.handleOHLCV,
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
-            'webData2': this.handleWsTickers,
             'allMids': this.handleWsTickers,
             'post': this.handleWsPost,
             'subscriptionResponse': this.handleSubscriptionResponse,

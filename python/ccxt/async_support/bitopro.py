@@ -609,7 +609,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1004,7 +1004,7 @@ class bitopro(Exchange, ImplicitAPI):
             '4': 'canceled',
             '6': 'canceled',
         }
-        return self.safe_string(statuses, status)
+        return None if (status is None) else self.safe_string(statuses, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1701,7 +1701,7 @@ class bitopro(Exchange, ImplicitAPI):
             networks = self.safe_dict(self.options, 'networks', {})
             requestedNetwork = self.safe_string_upper(params, 'network')
             params = self.omit(params, ['network'])
-            networkId = self.safe_string(networks, requestedNetwork)
+            networkId = None if (requestedNetwork is None) else self.safe_string(networks, requestedNetwork)
             if networkId is None:
                 raise ExchangeError(self.id + ' invalid network ' + requestedNetwork)
             request['protocol'] = networkId

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitteam as Exchange;
 
 class bitteam extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
@@ -350,7 +349,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for bitteam
          *
@@ -359,7 +358,7 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetTradeApiCcxtPairs ($params);
+        $response = $this->publicGetTradeApiCcxtPairs($params);
         //
         //     {
         //         "ok" => true,
@@ -521,7 +520,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -530,7 +529,7 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetTradeApiCurrencies ($params);
+        $response = $this->publicGetTradeApiCurrencies($params);
         //
         //     {
         //         "ok" => true,
@@ -624,7 +623,7 @@ class bitteam extends Exchange {
         $responseResult = $this->safe_value($response, 'result', array());
         $currencies = $this->safe_value($responseResult, 'currencies', array());
         // usding another endpoint to fetch statuses of deposits and withdrawals
-        $statusesResponse = $this->publicGetTradeApiCmcAssets ();
+        $statusesResponse = $this->publicGetTradeApiCmcAssets();
         //
         //     {
         //         "ZNX" => array(
@@ -740,7 +739,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -757,7 +756,7 @@ class bitteam extends Exchange {
             'pairName' => $market['id'],
             'resolution' => $resolution,
         );
-        $response = $this->historyGetApiTwHistoryPairNameResolution ($this->extend($request, $params));
+        $response = $this->historyGetApiTwHistoryPairNameResolution($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -811,7 +810,7 @@ class bitteam extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -827,7 +826,7 @@ class bitteam extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiCmcOrderbookPair($this->extend($request, $params));
         //
         //     {
         //         "timestamp" => 1701166703284,
@@ -860,7 +859,7 @@ class bitteam extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -886,7 +885,7 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiCcxtOrdersOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtOrdersOfUser($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -974,7 +973,7 @@ class bitteam extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order
          *
@@ -993,7 +992,7 @@ class bitteam extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privateGetTradeApiCcxtOrderId ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtOrderId($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1035,7 +1034,7 @@ class bitteam extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1054,7 +1053,7 @@ class bitteam extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -1073,7 +1072,7 @@ class bitteam extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -1092,7 +1091,7 @@ class bitteam extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade $order
          *
@@ -1121,7 +1120,7 @@ class bitteam extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $response = $this->privatePostTradeApiCcxtOrdercreate ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtOrdercreate($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1149,7 +1148,7 @@ class bitteam extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1164,7 +1163,7 @@ class bitteam extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privatePostTradeApiCcxtCancelorder ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtCancelorder($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1177,7 +1176,7 @@ class bitteam extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel open $orders of $market
          *
@@ -1196,7 +1195,7 @@ class bitteam extends Exchange {
         } else {
             $request['pairId'] = '0'; // '0' for all markets
         }
-        $response = $this->privatePostTradeApiCcxtCancelAllOrder ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtCancelAllOrder($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1384,7 +1383,7 @@ class bitteam extends Exchange {
         return Precise::string_mul($valueRawString, $precisionString);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          *
@@ -1395,7 +1394,7 @@ class bitteam extends Exchange {
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
          */
         $this->load_markets();
-        $response = $this->publicGetTradeApiCmcSummary ();
+        $response = $this->publicGetTradeApiCmcSummary();
         //
         //     array(
         //         array(
@@ -1439,7 +1438,7 @@ class bitteam extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1454,7 +1453,7 @@ class bitteam extends Exchange {
         $request = array(
             'name' => $market['id'],
         );
-        $response = $this->publicGetTradeApiPairName ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiPairName($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1771,7 +1770,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1788,7 +1787,7 @@ class bitteam extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradeApiCmcTradesPair ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiCmcTradesPair($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1813,7 +1812,7 @@ class bitteam extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -1835,7 +1834,7 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiCcxtTradesOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtTradesOfUser($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -2081,7 +2080,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2091,7 +2090,7 @@ class bitteam extends Exchange {
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
-        $response = $this->privateGetTradeApiCcxtBalance ($params);
+        $response = $this->privateGetTradeApiCcxtBalance($params);
         return $this->parse_balance($response);
     }
 
@@ -2162,7 +2161,7 @@ class bitteam extends Exchange {
         return $this->safe_balance($balance);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
          *
@@ -2184,7 +2183,7 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiTransactionsOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiTransactionsOfUser($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -2385,7 +2384,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;

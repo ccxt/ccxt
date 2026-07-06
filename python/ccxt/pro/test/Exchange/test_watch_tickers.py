@@ -28,7 +28,7 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
     now = exchange.milliseconds()
     ends = now + 15000
     while now < ends:
-        response = None
+        response = {}
         success = True
         should_return = False
         try:

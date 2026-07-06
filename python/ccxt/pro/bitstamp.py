@@ -56,7 +56,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -306,7 +306,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        subscription = self.safe_value(client.subscriptions, channel)
+        subscription = None if (channel is None) else self.safe_value(client.subscriptions, channel)
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
         order['event'] = self.safe_string(message, 'event')

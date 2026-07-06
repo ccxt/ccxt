@@ -19,10 +19,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         apexItf := NewApexCore()
         apexItf.Init(exchangeArgs)
         return apexItf, true
-    case "ascendex":
-        ascendexItf := NewAscendexCore()
-        ascendexItf.Init(exchangeArgs)
-        return ascendexItf, true
     case "aster":
         asterItf := NewAsterCore()
         asterItf.Init(exchangeArgs)
@@ -179,6 +175,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         gateItf := NewGateCore()
         gateItf.Init(exchangeArgs)
         return gateItf, true
+    case "gateeu":
+        gateeuItf := NewGateeuCore()
+        gateeuItf.Init(exchangeArgs)
+        return gateeuItf, true
     case "gemini":
         geminiItf := NewGeminiCore()
         geminiItf.Init(exchangeArgs)
@@ -223,6 +223,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         kucoinItf := NewKucoinCore()
         kucoinItf.Init(exchangeArgs)
         return kucoinItf, true
+    case "kucoineu":
+        kucoineuItf := NewKucoineuCore()
+        kucoineuItf.Init(exchangeArgs)
+        return kucoineuItf, true
     case "kucoinfutures":
         kucoinfuturesItf := NewKucoinfuturesCore()
         kucoinfuturesItf.Init(exchangeArgs)
@@ -247,6 +251,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         modetradeItf := NewModetradeCore()
         modetradeItf.Init(exchangeArgs)
         return modetradeItf, true
+    case "mudrex":
+        mudrexItf := NewMudrexCore()
+        mudrexItf.Init(exchangeArgs)
+        return mudrexItf, true
     case "myokx":
         myokxItf := NewMyokxCore()
         myokxItf.Init(exchangeArgs)

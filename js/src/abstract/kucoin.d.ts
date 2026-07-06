@@ -315,6 +315,8 @@ interface Exchange {
     utaGetMarketOpenInterest(params?: {}): Promise<implicitReturnType>;
     utaGetServerStatus(params?: {}): Promise<implicitReturnType>;
     utaGetMarketBorrowableCurrency(params?: {}): Promise<implicitReturnType>;
+    utaGetUserMyIp(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketFiatPrice(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetMarketOrderbook(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountTransferQuota(params?: {}): Promise<implicitReturnType>;

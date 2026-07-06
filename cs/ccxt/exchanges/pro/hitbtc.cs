@@ -97,7 +97,9 @@ public partial class hitbtc : ccxt.hitbtc
         if (isTrue(isEqual(authenticated, null)))
         {
             object timestamp = this.milliseconds();
-            object signature = this.hmac(this.encode(this.numberToString(timestamp)), this.encode(this.secret), sha256, "hex");
+            object timestampString = this.numberToString(timestamp);
+            object timestampEncoded = ((bool) isTrue((isEqual(timestampString, null)))) ? "" : timestampString;
+            object signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
             object request = new Dictionary<string, object>() {
                 { "method", "login" },
                 { "params", new Dictionary<string, object>() {
@@ -161,7 +163,7 @@ public partial class hitbtc : ccxt.hitbtc
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object splitName = ((string)name).Split(new [] {((string)"_subscribe")}, StringSplitOptions.None).ToList<object>();
-        object messageHash = this.safeString(splitName, 0);
+        object messageHash = this.safeString(splitName, 0, "");
         if (isTrue(!isEqual(symbol, null)))
         {
             messageHash = add(add(messageHash, "::"), symbol);
@@ -210,7 +212,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -263,8 +265,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         object snapshot = this.safeDict(message, "snapshot");
-        object update = this.safeDict(message, "update");
-        object data = ((bool) isTrue(snapshot)) ? snapshot : update;
+        object data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         object type = ((bool) isTrue(snapshot)) ? "snapshot" : "update";
         object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
@@ -587,8 +588,9 @@ public partial class hitbtc : ccxt.hitbtc
     public virtual object parseWsBidAsk(object ticker, object market = null)
     {
         object timestamp = this.safeInteger(ticker, "t");
+        object bidAskSymbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "ask", this.safeString(ticker, "a") },
@@ -816,10 +818,14 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
         object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        object channel = this.safeString(message, "ch");
+        object channel = this.safeString(message, "ch", "");
         object splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object period = this.safeString(splitChannel, 1);
         object timeframe = this.findTimeframe(period);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return message;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -987,7 +993,7 @@ public partial class hitbtc : ccxt.hitbtc
     {
         object orders = this.orders;
         object marketId = this.safeStringLower2(order, "instrument", "symbol");
-        object method = this.safeString(message, "method");
+        object method = this.safeString(message, "method", "");
         object splitMethod = ((string)method).Split(new [] {((string)"_order")}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitMethod, 0);
         object symbol = this.safeSymbol(marketId);
@@ -1180,7 +1186,7 @@ public partial class hitbtc : ccxt.hitbtc
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = null;
+        object request = new Dictionary<string, object>() {};
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
@@ -1452,7 +1458,7 @@ public partial class hitbtc : ccxt.hitbtc
                 { "spot_balance", this.handleBalance },
                 { "futures_balance", this.handleBalance },
             };
-            object method = this.safeValue(methods, channel);
+            object method = ((bool) isTrue((isEqual(channel, null)))) ? null : this.safeValue(methods, channel);
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

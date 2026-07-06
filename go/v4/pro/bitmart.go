@@ -166,6 +166,9 @@ func  (this *BitmartCore) SubscribeMultiple(unifiedName any, channel any, typeVa
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
             symbols = this.MarketSymbols(symbols, typeVar, false, true)
+            if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+                symbols = []any{}
+            }
             var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "public"))
             var channelType any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))), "spot", "futures")
             var actionType any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))), "op", "action")
@@ -198,9 +201,9 @@ func  (this *BitmartCore) SubscribeMultiple(unifiedName any, channel any, typeVa
             }
             ccxt.AddElementToObject(request, actionType, requestOp)
         
-                retRes17815 :=  (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes17815)
-                ch <- retRes17815
+                retRes18115 :=  (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes18115)
+                ch <- retRes18115
                 return nil
         
             }()
@@ -222,16 +225,18 @@ func  (this *BitmartCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1918)
+                retRes19512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes19512)
+            }
             var typeVar any = "spot"
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes1948 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes1948)
+            retRes1998 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes1998)
             var request any = map[string]any {}
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 request = map[string]any {
@@ -258,13 +263,13 @@ func  (this *BitmartCore) WatchBalance(optionalArgs ...any) <- chan any {
             params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable,1)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes21612 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-                ccxt.PanicOnError(retRes21612)
+                retRes22112 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+                ccxt.PanicOnError(retRes22112)
             }
         
-                retRes21815 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-                ccxt.PanicOnError(retRes21815)
-                ch <- retRes21815
+                retRes22315 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+                ccxt.PanicOnError(retRes22315)
+                ch <- retRes22315
                 return nil
         
             }()
@@ -402,9 +407,9 @@ func  (this *BitmartCore) WatchTrades(symbol any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes33515 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes33515)
-                ch <- retRes33515
+                retRes34015 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes34015)
+                ch <- retRes34015
                 return nil
         
             }()
@@ -433,9 +438,11 @@ func  (this *BitmartCore) WatchTradesForSymbols(symbols any, optionalArgs ...any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3518 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3518)
+                retRes35712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes35712)
+            }
             var marketType any = nil
             symbolsmarketTypeparamsVariable := this.GetParamsForMultipleSub("watchTradesForSymbols", symbols, limit, params)
             symbols = ccxt.GetValue(symbolsmarketTypeparamsVariable,0)
@@ -483,9 +490,9 @@ func  (this *BitmartCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes38115 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
-                ccxt.PanicOnError(retRes38115)
-                ch <- retRes38115
+                retRes38815 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+                ccxt.PanicOnError(retRes38815)
+                ch <- retRes38815
                 return nil
         
             }()
@@ -508,9 +515,11 @@ func  (this *BitmartCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...a
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3958 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3958)
+                retRes40312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes40312)
+            }
             var marketType any = nil
             symbolsmarketTypeparamsVariable := this.GetParamsForMultipleSub("unWatchTradesForSymbols", symbols, nil, params)
             symbols = ccxt.GetValue(symbolsmarketTypeparamsVariable,0)
@@ -521,9 +530,9 @@ func  (this *BitmartCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...a
                 "unsubscribe": true,
             })
         
-                retRes40015 :=  (<-this.SubscribeMultiple("trade", channelName, marketType, symbols, params))
-                ccxt.PanicOnError(retRes40015)
-                ch <- retRes40015
+                retRes40915 :=  (<-this.SubscribeMultiple("trade", channelName, marketType, symbols, params))
+                ccxt.PanicOnError(retRes40915)
+                ch <- retRes40915
                 return nil
         
             }()
@@ -563,9 +572,11 @@ func  (this *BitmartCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4268 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4268)
+                retRes43612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes43612)
+            }
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.WatchTickers([]any{symbol}, params))
@@ -596,9 +607,11 @@ func  (this *BitmartCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4438 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4438)
+                retRes45512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes45512)
+            }
             var market any = this.GetMarketFromSymbols(symbols)
             var marketType any = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchTickers", market, params)
@@ -639,9 +652,9 @@ func  (this *BitmartCore) UnWatchTicker(symbol any, optionalArgs ...any) <- chan
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes46715 :=  (<-this.UnWatchTickers([]any{symbol}, params))
-                ccxt.PanicOnError(retRes46715)
-                ch <- retRes46715
+                retRes48015 :=  (<-this.UnWatchTickers([]any{symbol}, params))
+                ccxt.PanicOnError(retRes48015)
+                ch <- retRes48015
                 return nil
         
             }()
@@ -666,9 +679,11 @@ func  (this *BitmartCore) UnWatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4818)
+                retRes49512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes49512)
+            }
             var market any = this.GetMarketFromSymbols(symbols)
             var marketType any = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchTickers", market, params)
@@ -678,9 +693,9 @@ func  (this *BitmartCore) UnWatchTickers(optionalArgs ...any) <- chan any {
                 "unsubscribe": true,
             })
         
-                retRes48615 :=  (<-this.SubscribeMultiple("ticker", "ticker", marketType, symbols, params))
-                ccxt.PanicOnError(retRes48615)
-                ch <- retRes48615
+                retRes50115 :=  (<-this.SubscribeMultiple("ticker", "ticker", marketType, symbols, params))
+                ccxt.PanicOnError(retRes50115)
+                ch <- retRes50115
                 return nil
         
             }()
@@ -705,10 +720,15 @@ func  (this *BitmartCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5008 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5008)
+                retRes51612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes51612)
+            }
             symbols = this.MarketSymbols(symbols, nil, false)
+            if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+                symbols = []any{}
+            }
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var marketType any = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
@@ -767,7 +787,9 @@ func  (this *BitmartCore) HandleBidAsk(client any, message any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawTickers)); i++ {
         var ticker any = this.ParseWsBidAsk(ccxt.GetValue(rawTickers, i))
         var symbol any = ccxt.GetValue(ticker, "symbol")
-        ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
+        if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+            ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
+        }
         var messageHash any = ccxt.Add("bidask::", symbol)
         client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
     }
@@ -815,9 +837,11 @@ func  (this *BitmartCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5868 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5868)
+                retRes60912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes60912)
+            }
             var market any = nil
             var messageHash any = "orders"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -830,12 +854,12 @@ func  (this *BitmartCore) WatchOrders(optionalArgs ...any) <- chan any {
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes5968 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes5968)
+            retRes6208 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes6208)
             var request any = nil
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 var argsRequest any = "spot/user/order:"
-                if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+                if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((!ccxt.IsEqual(market, nil)))) {
                     argsRequest = ccxt.Add(argsRequest, ccxt.GetValue(market, "id"))
                 } else {
                     argsRequest = "spot/user/orders:ALL_SYMBOLS"
@@ -885,9 +909,11 @@ func  (this *BitmartCore) UnWatchOrders(optionalArgs ...any) <- chan any {
             _ = symbol
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6348 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6348)
+                retRes65912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes65912)
+            }
             var market any = nil
             var messageHash any = "unsubscribe::orders"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -903,12 +929,12 @@ func  (this *BitmartCore) UnWatchOrders(optionalArgs ...any) <- chan any {
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes6478 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes6478)
+            retRes6738 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes6738)
             var request any = nil
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 var argsRequest any = "spot/user/order:"
-                if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+                if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((!ccxt.IsEqual(market, nil)))) {
                     argsRequest = ccxt.Add(argsRequest, ccxt.GetValue(market, "id"))
                 } else {
                     argsRequest = "spot/user/orders:ALL_SYMBOLS"
@@ -925,9 +951,9 @@ func  (this *BitmartCore) UnWatchOrders(optionalArgs ...any) <- chan any {
             }
             var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "private"))
         
-                retRes66715 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-                ccxt.PanicOnError(retRes66715)
-                ch <- retRes66715
+                retRes69315 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+                ccxt.PanicOnError(retRes69315)
+                ch <- retRes69315
                 return nil
         
             }()
@@ -1005,7 +1031,9 @@ func  (this *BitmartCore) HandleOrders(client any, message any)  {
             stored.(ccxt.Appender).Append(order)
             ccxt.AppendToArray(&newOrders, order)
             var symbol any = ccxt.GetValue(order, "symbol")
-            ccxt.AddElementToObject(symbols, symbol, true)
+            if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+                ccxt.AddElementToObject(symbols, symbol, true)
+            }
         }
     }
     var messageHash any = "orders"
@@ -1113,7 +1141,7 @@ func  (this *BitmartCore) ParseWsOrder(order any, optionalArgs ...any) any  {
         var lastTrade any = this.SafeDict(orderInfo, "last_trade")
         var cachedOrders any = this.Orders
         var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any {})
-        var cachedOrder any = this.SafeValue(orders, orderId)
+        var cachedOrder any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(orderId, nil))), nil, this.SafeValue(orders, orderId))
         var trades any = nil
         if ccxt.IsTrue(!ccxt.IsEqual(cachedOrder, nil)) {
             trades = this.SafeValue(order, "trades")
@@ -1197,13 +1225,15 @@ func  (this *BitmartCore) WatchPositions(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes9248 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9248)
+                retRes95312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes95312)
+            }
             var typeVar any = "swap"
         
-            retRes9268 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes9268)
+            retRes9568 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes9568)
             symbols = this.MarketSymbols(symbols, "swap", true, true, false)
             var messageHash any = "positions"
             if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
@@ -1254,9 +1284,11 @@ func  (this *BitmartCore) UnWatchPositions(optionalArgs ...any) <- chan any {
                     panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchPositions() does not support a list of symbols, unWatch from all markets only")))
                 }
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes9618 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9618)
+                retRes99212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes99212)
+            }
             var request any = map[string]any {
                 "action": "unsubscribe",
                 "args": []any{"futures/position"},
@@ -1264,9 +1296,9 @@ func  (this *BitmartCore) UnWatchPositions(optionalArgs ...any) <- chan any {
             var messageHash any = "unsubscribe::positions"
             var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"), "private"))
         
-                retRes96815 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-                ccxt.PanicOnError(retRes96815)
-                ch <- retRes96815
+                retRes100015 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+                ccxt.PanicOnError(retRes100015)
+                ch <- retRes100015
                 return nil
         
             }()
@@ -1441,11 +1473,16 @@ func  (this *BitmartCore) HandleTrade(client any, message any)  {
             symbol = this.HandleTradeLoop(ccxt.GetValue(data, i))
         }
     }
-    client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), ccxt.Add("trade::", symbol))
+    if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+        client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), ccxt.Add("trade::", symbol))
+    }
 }
 func  (this *BitmartCore) HandleTradeLoop(entry any) any  {
     var trade any = this.ParseWsTrade(entry)
     var symbol any = ccxt.GetValue(trade, "symbol")
+    if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+        return symbol
+    }
     var tradesLimit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
     if ccxt.IsTrue(ccxt.IsEqual(this.SafeValue(this.Trades, symbol), nil)) {
         ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(tradesLimit))
@@ -1566,7 +1603,9 @@ func  (this *BitmartCore) HandleTicker(client any, message any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawTickers)); i++ {
         var ticker any = ccxt.Ternary(ccxt.IsTrue(isSpot), this.ParseTicker(ccxt.GetValue(rawTickers, i)), this.ParseWsSwapTicker(ccxt.GetValue(rawTickers, i)))
         var symbol any = ccxt.GetValue(ticker, "symbol")
-        ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+        if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+            ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+        }
         var messageHash any = ccxt.Add("ticker::", symbol)
         client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
     }
@@ -1640,9 +1679,11 @@ func  (this *BitmartCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan an
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes13288 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13288)
+                retRes136812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes136812)
+            }
             symbol = this.Symbol(symbol)
             var market any = this.Market(symbol)
             var typeVar any = "spot"
@@ -1690,9 +1731,11 @@ func  (this *BitmartCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan 
             _ = timeframe
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes13608 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13608)
+                retRes140212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes140212)
+            }
             symbol = this.Symbol(symbol)
             var market any = this.Market(symbol)
             var typeVar any = "spot"
@@ -1711,9 +1754,9 @@ func  (this *BitmartCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan 
                 "unsubscribe": true,
             })
         
-                retRes137415 :=  (<-this.Subscribe("ohlcv", name, symbol, typeVar, params))
-                ccxt.PanicOnError(retRes137415)
-                ch <- retRes137415
+                retRes141715 :=  (<-this.Subscribe("ohlcv", name, symbol, typeVar, params))
+                ccxt.PanicOnError(retRes141715)
+                ch <- retRes141715
                 return nil
         
             }()
@@ -1755,7 +1798,7 @@ func  (this *BitmartCore) HandleOHLCV(client any, message any)  {
     //        }
     //    }
     //
-    var channel any = this.SafeString2(message, "table", "group")
+    var channel any = this.SafeString2(message, "table", "group", "")
     var isSpot any =     (ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "spot"), 0))
     var data any = this.SafeValue(message, "data")
     if ccxt.IsTrue(ccxt.IsEqual(data, nil)) {
@@ -1766,10 +1809,13 @@ func  (this *BitmartCore) HandleOHLCV(client any, message any)  {
     var interval any = ccxt.Replace(part1, "kline", "")
     interval = ccxt.Replace(interval, "Bin", "")
     var intervalParts any = ccxt.Split(interval, ":")
-    interval = this.SafeString(intervalParts, 0)
+    interval = this.SafeString(intervalParts, 0, "")
     // use a reverse lookup in a static map instead
     var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any {})
     var timeframe any = this.FindTimeframe(interval, timeframes)
+    if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
+        return
+    }
     var duration any = this.ParseTimeframe(timeframe)
     var durationInMs any = ccxt.Multiply(duration, 1000)
     if ccxt.IsTrue(isSpot) {
@@ -1822,7 +1868,7 @@ func  (this *BitmartCore) HandleOHLCV(client any, message any)  {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.speed] *futures only* '100ms' or '200ms'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BitmartCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1833,9 +1879,11 @@ func  (this *BitmartCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes14848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14848)
+                retRes153112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes153112)
+            }
             var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any {})
             var depth any = this.SafeString(options, "depth", "depth/increase100")
             symbol = this.Symbol(symbol)
@@ -1866,7 +1914,7 @@ func  (this *BitmartCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BitmartCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1875,9 +1923,11 @@ func  (this *BitmartCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- c
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes15108 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15108)
+                retRes155912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes155912)
+            }
             var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any {})
             var depth any = this.SafeString(options, "depth", "depth/increase100")
             symbol = this.Symbol(symbol)
@@ -1893,9 +1943,9 @@ func  (this *BitmartCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- c
                 "unsubscribe": true,
             })
         
-                retRes152115 :=  (<-this.Subscribe("orderbook", depth, symbol, typeVar, params))
-                ccxt.PanicOnError(retRes152115)
-                ch <- retRes152115
+                retRes157115 :=  (<-this.Subscribe("orderbook", depth, symbol, typeVar, params))
+                ccxt.PanicOnError(retRes157115)
+                ch <- retRes157115
                 return nil
         
             }()
@@ -2026,7 +2076,7 @@ func  (this *BitmartCore) HandleOrderBook(client any, message any)  {
     if ccxt.IsTrue(ccxt.IsLessThanOrEqual(length, 0)) {
         return
     }
-    var channelName any = this.SafeString2(message, "table", "group")
+    var channelName any = this.SafeString2(message, "table", "group", "")
     // find limit subscribed to
     var limitsToCheck any = []any{"100", "50", "20", "10", "5"}
     var limit any = 0
@@ -2107,7 +2157,7 @@ func  (this *BitmartCore) HandleOrderBook(client any, message any)  {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BitmartCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -2118,9 +2168,11 @@ func  (this *BitmartCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes17378 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes17378)
+                retRes178812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes178812)
+            }
             var typeVar any = nil
             symbolstypeVarparamsVariable := this.GetParamsForMultipleSub("watchOrderBookForSymbols", symbols, limit, params)
             symbols = ccxt.GetValue(symbolstypeVarparamsVariable,0)
@@ -2151,7 +2203,7 @@ func  (this *BitmartCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BitmartCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -2160,9 +2212,11 @@ func  (this *BitmartCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs .
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes17608 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes17608)
+                retRes181312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes181312)
+            }
             var typeVar any = nil
             symbolstypeVarparamsVariable := this.GetParamsForMultipleSub("unWatchOrderBookForSymbols", symbols, nil, params)
             symbols = ccxt.GetValue(symbolstypeVarparamsVariable,0)
@@ -2179,9 +2233,9 @@ func  (this *BitmartCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs .
                 "unsubscribe": true,
             })
         
-                retRes176915 :=  (<-this.SubscribeMultiple("orderbook", channel, typeVar, symbols, params))
-                ccxt.PanicOnError(retRes176915)
-                ch <- retRes176915
+                retRes182315 :=  (<-this.SubscribeMultiple("orderbook", channel, typeVar, symbols, params))
+                ccxt.PanicOnError(retRes182315)
+                ch <- retRes182315
                 return nil
         
             }()
@@ -2203,9 +2257,11 @@ func  (this *BitmartCore) WatchFundingRate(symbol any, optionalArgs ...any) <- c
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes17828 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes17828)
+                retRes183712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes183712)
+            }
             symbol = this.Symbol(symbol)
         
             fundingRate:= (<-this.WatchFundingRates([]any{symbol}, params))
@@ -2238,9 +2294,11 @@ func  (this *BitmartCore) WatchFundingRates(optionalArgs ...any) <- chan any {
             if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchFundingRates() requires an array of symbols")))
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes18018 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes18018)
+                retRes185812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes185812)
+            }
             var market any = this.GetMarketFromSymbols(symbols)
             var marketType any = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchFundingRates", market, params)
@@ -2282,7 +2340,9 @@ func  (this *BitmartCore) HandleFundingRate(client any, message any)  {
     var data any = this.SafeDict(message, "data", map[string]any {})
     var fundingRate any = this.ParseFundingRate(data)
     var symbol any = ccxt.GetValue(fundingRate, "symbol")
-    ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+    if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+        ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+    }
     var messageHash any = ccxt.Add("fundingRate::", symbol)
     client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
@@ -2321,9 +2381,9 @@ func  (this *BitmartCore) Authenticate(typeVar any, optionalArgs ...any) <- chan
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes187515 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes187515)
-                ch <- retRes187515
+                retRes193515 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes193515)
+                ch <- retRes193515
                 return nil
         
             }()
@@ -2436,7 +2496,7 @@ func  (this *BitmartCore) HandleUnSubscription(client any, message any)  {
     //         }
     //     }
     //
-    var messageTopic any = this.SafeString2(message, "topic", "group")
+    var messageTopic any = this.SafeString2(message, "topic", "group", "")
     var unSubMessageTopic any = ccxt.Add("unsubscribe::", messageTopic)
     // one message includes info about one unsubscription only even if we requested multiple
     // so we can not just create subscription object in unWatch method and use it here
@@ -2452,11 +2512,11 @@ func  (this *BitmartCore) HandleUnSubscription(client any, message any)  {
 }
 func  (this *BitmartCore) GetUnSubParams(messageTopic any) any  {
     var parts any = ccxt.Split(messageTopic, ":")
-    var channel any = this.SafeString(parts, 0)
+    var channel any = this.SafeString(parts, 0, "")
     var marketTypeAndTopic any = ccxt.Split(channel, "/")
     var rawMarketType any = this.SafeStringLower(marketTypeAndTopic, 0)
     var marketType any = this.ParseMarketType(rawMarketType)
-    var topic any = this.SafeString(marketTypeAndTopic, 1)
+    var topic any = this.SafeString(marketTypeAndTopic, 1, "")
     var thirdPart any = this.SafeString(marketTypeAndTopic, 2)
     if ccxt.IsTrue(!ccxt.IsEqual(thirdPart, nil)) {
         topic = ccxt.Add(topic, ccxt.Add("/", thirdPart))
@@ -2597,7 +2657,7 @@ func  (this *BitmartCore) HandleMessage(client any, message any)  {
             }
         }
     } else {
-        var channel any = this.SafeString2(message, "table", "group")
+        var channel any = this.SafeString2(message, "table", "group", "")
         var methods any = map[string]any {
             "depth": this.HandleOrderBook,
             "bookTicker": this.HandleBidAsk,

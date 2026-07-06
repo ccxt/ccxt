@@ -1728,7 +1728,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2920,7 +2920,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "amount": 13.456
         #     }
         #
-        timestamp = self.safe_timestamp(transfer, 'created_timestamp')
+        timestamp = self.safe_integer(transfer, 'created_timestamp')
         status = self.safe_string(transfer, 'state')
         account = self.safe_string(transfer, 'other_side')
         direction = self.safe_string(transfer, 'direction')

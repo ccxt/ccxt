@@ -1578,7 +1578,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -3216,12 +3216,16 @@ public partial class bingx : Exchange
                 positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            object amountReq = amount;
-            if (!isTrue(getValue(market, "inverse")))
+            object closePosition = this.safeBool(parameters, "closePosition", false);
+            if (!isTrue(closePosition))
             {
-                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                object amountReq = amount;
+                if (!isTrue(getValue(market, "inverse")))
+                {
+                    amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
+                ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
             }
-            ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
         }
         parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
@@ -3258,6 +3262,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -3374,6 +3379,17 @@ public partial class bingx : Exchange
         } else
         {
             result = data;
+        }
+        // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        object stopLoss = this.safeString(result, "stopLoss");
+        if (isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
+        {
+            ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
+        }
+        object takeProfit = this.safeString(result, "takeProfit");
+        if (isTrue(isTrue((!isEqual(takeProfit, null))) && isTrue((isEqual(getIndexOf(takeProfit, "{"), 0)))))
+        {
+            ((IDictionary<string,object>)result)["takeProfit"] = this.parseJson(takeProfit);
         }
         return this.parseOrder(result, market);
     }
@@ -6196,7 +6212,6 @@ public partial class bingx : Exchange
         };
         object response = null;
         object commission = new Dictionary<string, object>() {};
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         if (isTrue(getValue(market, "spot")))
         {
             response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, parameters));
@@ -6211,7 +6226,7 @@ public partial class bingx : Exchange
             //         }
             //     }
             //
-            commission = data;
+            commission = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else
         {
             if (isTrue(getValue(market, "inverse")))
@@ -6228,7 +6243,7 @@ public partial class bingx : Exchange
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = this.safeDict(response, "data", new Dictionary<string, object>() {});
             } else
             {
                 response = await this.swapV2PrivateGetUserCommissionRate(parameters);
@@ -6244,6 +6259,7 @@ public partial class bingx : Exchange
                 //         }
                 //     }
                 //
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 commission = this.safeDict(data, "commission", new Dictionary<string, object>() {});
             }
         }

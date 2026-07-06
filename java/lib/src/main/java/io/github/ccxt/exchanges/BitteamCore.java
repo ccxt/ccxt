@@ -467,7 +467,7 @@ public class BitteamCore extends BitteamApi
     {
         Object id = this.safeString(market, "name");
         Object numericId = this.safeInteger(market, "id");
-        Object parts = Helpers.split(id, "_");
+        Object parts = Helpers.split(((String)id), "_");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
         Object base = this.safeCurrencyCode(baseId);
@@ -1496,7 +1496,7 @@ public class BitteamCore extends BitteamApi
             put( "executing", "open" );
             put( "created", "open" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrderType(Object status)
@@ -2602,7 +2602,7 @@ public class BitteamCore extends BitteamApi
             put( "approving", "pending" );
             put( "success", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object sign(Object path, Object... optionalArgs)

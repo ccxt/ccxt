@@ -40,16 +40,12 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.59';
-
-(Exchange as any).ccxtVersion = version
+const version = '4.5.64';
 
 //-----------------------------------------------------------------------------
 
-import aftermath from  './src/aftermath.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
-import ascendex from  './src/ascendex.js'
 import aster from  './src/aster.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
@@ -91,7 +87,6 @@ import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinmate from  './src/coinmate.js'
-import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
@@ -108,6 +103,7 @@ import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
+import gateeu from  './src/gateeu.js'
 import gemini from  './src/gemini.js'
 import grvt from  './src/grvt.js'
 import hashkey from  './src/hashkey.js'
@@ -121,6 +117,7 @@ import indodax from  './src/indodax.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
+import kucoineu from  './src/kucoineu.js'
 import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
@@ -129,9 +126,9 @@ import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
+import mudrex from  './src/mudrex.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
-import novadax from  './src/novadax.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -154,10 +151,8 @@ import zebpay from  './src/zebpay.js'
 
 
 // pro exchanges
-import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
-import ascendexPro from  './src/pro/ascendex.js'
 import asterPro from  './src/pro/aster.js'
 import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
@@ -197,6 +192,7 @@ import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
 import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
+import gateeuPro from  './src/pro/gateeu.js'
 import geminiPro from  './src/pro/gemini.js'
 import grvtPro from  './src/pro/grvt.js'
 import hashkeyPro from  './src/pro/hashkey.js'
@@ -208,12 +204,14 @@ import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
+import kucoineuPro from  './src/pro/kucoineu.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
 import lighterPro from  './src/pro/lighter.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
+import mudrexPro from  './src/pro/mudrex.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okxPro from  './src/pro/okx.js'
@@ -233,10 +231,8 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
-    'aftermath':              aftermath,
     'alpaca':                 alpaca,
     'apex':                   apex,
-    'ascendex':               ascendex,
     'aster':                  aster,
     'backpack':               backpack,
     'bequant':                bequant,
@@ -278,7 +274,6 @@ const exchanges = {
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinmate':               coinmate,
-    'coinmetro':              coinmetro,
     'coinone':                coinone,
     'coinsph':                coinsph,
     'coinspot':               coinspot,
@@ -295,6 +290,7 @@ const exchanges = {
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
     'gate':                   gate,
+    'gateeu':                 gateeu,
     'gemini':                 gemini,
     'grvt':                   grvt,
     'hashkey':                hashkey,
@@ -308,6 +304,7 @@ const exchanges = {
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
+    'kucoineu':               kucoineu,
     'kucoinfutures':          kucoinfutures,
     'latoken':                latoken,
     'lbank':                  lbank,
@@ -316,9 +313,9 @@ const exchanges = {
     'mercado':                mercado,
     'mexc':                   mexc,
     'modetrade':              modetrade,
+    'mudrex':                 mudrex,
     'myokx':                  myokx,
     'ndax':                   ndax,
-    'novadax':                novadax,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -341,10 +338,8 @@ const exchanges = {
 }
 
 const pro = {
-    'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
-    'ascendex':               ascendexPro,
     'aster':                  asterPro,
     'backpack':               backpackPro,
     'bequant':                bequantPro,
@@ -384,6 +379,7 @@ const pro = {
     'exmo':                   exmoPro,
     'extended':               extendedPro,
     'gate':                   gatePro,
+    'gateeu':                 gateeuPro,
     'gemini':                 geminiPro,
     'grvt':                   grvtPro,
     'hashkey':                hashkeyPro,
@@ -395,12 +391,14 @@ const pro = {
     'kraken':                 krakenPro,
     'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
+    'kucoineu':               kucoineuPro,
     'kucoinfutures':          kucoinfuturesPro,
     'lbank':                  lbankPro,
     'lighter':                lighterPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'modetrade':              modetradePro,
+    'mudrex':                 mudrexPro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
     'okx':                    okxPro,
@@ -564,10 +562,8 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
-    aftermath,
     alpaca,
     apex,
-    ascendex,
     aster,
     backpack,
     bequant,
@@ -609,7 +605,6 @@ export {
     coincheck,
     coinex,
     coinmate,
-    coinmetro,
     coinone,
     coinsph,
     coinspot,
@@ -626,6 +621,7 @@ export {
     fmfwio,
     foxbit,
     gate,
+    gateeu,
     gemini,
     grvt,
     hashkey,
@@ -639,6 +635,7 @@ export {
     kraken,
     krakenfutures,
     kucoin,
+    kucoineu,
     kucoinfutures,
     latoken,
     lbank,
@@ -647,9 +644,9 @@ export {
     mercado,
     mexc,
     modetrade,
+    mudrex,
     myokx,
     ndax,
-    novadax,
     okx,
     okxus,
     onetrading,

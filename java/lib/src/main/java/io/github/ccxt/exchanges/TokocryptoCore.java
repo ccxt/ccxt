@@ -268,7 +268,7 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "BEP20", "BSC" );
                     put( "OMNI", "OMNI" );
                     put( "EOS", "EOS" );
-                    put( "SPL", "SOL" );
+                    put( "SOL", "SOL" );
                 }} );
                 put( "reverseNetworks", new java.util.HashMap<String, Object>() {{
                     put( "tronscan.org", "TRC20" );
@@ -936,7 +936,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

@@ -18,7 +18,6 @@ public class TestFetchTransfers extends BaseTest {
         Object method = "fetchTransfers";
         Object transfers = (exchange.fetchTransfers(code)).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code);
-        Object now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
         {
             TestTransfer.testTransfer(exchange, skippedProperties, method, Helpers.GetValue(transfers, i), code);

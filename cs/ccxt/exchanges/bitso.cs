@@ -123,7 +123,7 @@ public partial class bitso : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975" },
+                { "logo", "https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://bitso.com/api" },
                 } },
@@ -458,7 +458,7 @@ public partial class bitso : Exchange
         {
             object market = getValue(markets, i);
             object id = this.safeString(market, "book");
-            var baseIdquoteIdVariable = ((string)id).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            var baseIdquoteIdVariable = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
             var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
             object bs = ((string)baseId).ToUpper();
@@ -628,7 +628,7 @@ public partial class bitso : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1038,7 +1038,7 @@ public partial class bitso : Exchange
         limit ??= 25;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1217,7 +1217,7 @@ public partial class bitso : Exchange
             { "queued", "open" },
             { "completed", "closed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1286,7 +1286,7 @@ public partial class bitso : Exchange
         limit ??= 25;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1359,7 +1359,7 @@ public partial class bitso : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "oid", id },
         };
@@ -1480,9 +1480,9 @@ public partial class bitso : Exchange
         object response = await this.privateGetFundingDestination(this.extend(request, parameters));
         object address = this.safeString(getValue(response, "payload"), "account_identifier");
         object tag = null;
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(address, "?dt="), 0)))
+        if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)address), "?dt="), 0)))
         {
-            object parts = ((string)address).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)((string)address)).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -1888,7 +1888,7 @@ public partial class bitso : Exchange
             { "complete", "ok" },
             { "failed", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object nonce()

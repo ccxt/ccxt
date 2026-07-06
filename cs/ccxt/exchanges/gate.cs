@@ -16,7 +16,7 @@ public partial class gate : Exchange
             { "certified", true },
             { "pro", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85" },
+                { "logo", "https://github.com/user-attachments/assets/b4fd9d41-eaed-46fe-8a7b-b2677edface0" },
                 { "doc", "https://www.gate.com/docs/developers/apiv4/en" },
                 { "www", "https://gate.com" },
                 { "api", new Dictionary<string, object>() {
@@ -2770,7 +2770,7 @@ public partial class gate : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -6649,7 +6649,6 @@ public partial class gate : Exchange
                 side = "short";
             }
         }
-        object maintenanceRate = this.safeString(position, "maintenance_rate");
         object notional = this.safeString(position, "value");
         object leverage = this.safeString(position, "leverage");
         object marginMode = null;
@@ -6663,16 +6662,20 @@ public partial class gate : Exchange
                 marginMode = "isolated";
             }
         }
-        // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
-        // *The default leverage under the full position is the highest leverage in the market.
-        // *Trading fee is charged as Taker Fee Rate (0.075%).
-        object feePaid = this.safeString(position, "pnl_fee");
-        object initialMarginString = null;
-        if (isTrue(isEqual(feePaid, null)))
+        // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
+        object marginBalance = this.safeString(position, "margin");
+        object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
+        // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
+        // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
+        object maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        // the margin field is the position margin balance, which excludes the unrealized pnl,
+        // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
+        // so the unified collateral (the amount that can be lost, affected by pnl) includes it
+        object unrealisedPnl = this.safeString(position, "unrealised_pnl");
+        object collateral = marginBalance;
+        if (isTrue(isTrue((!isEqual(marginBalance, null))) && isTrue((!isEqual(unrealisedPnl, null)))))
         {
-            object takerFee = "0.00075";
-            feePaid = Precise.stringMul(takerFee, notional);
-            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
+            collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
         }
         object timestamp = this.safeTimestamp2(position, "open_time", "first_open_time");
         if (isTrue(isEqual(timestamp, 0)))
@@ -6688,12 +6691,12 @@ public partial class gate : Exchange
             { "lastUpdateTimestamp", this.safeTimestamp2(position, "update_time", "time") },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)) },
-            { "maintenanceMargin", this.parseNumber(Precise.stringMul(maintenanceRate, notional)) },
-            { "maintenanceMarginPercentage", this.parseNumber(maintenanceRate) },
+            { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
+            { "maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional)) },
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
-            { "unrealizedPnl", this.safeNumber(position, "unrealised_pnl") },
+            { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
             { "realizedPnl", this.safeNumber2(position, "realised_pnl", "pnl") },
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
             { "contractSize", this.safeNumber(market, "contractSize") },
@@ -6701,7 +6704,7 @@ public partial class gate : Exchange
             { "liquidationPrice", this.safeNumber(position, "liq_price") },
             { "markPrice", this.safeNumber(position, "mark_price") },
             { "lastPrice", null },
-            { "collateral", this.safeNumber(position, "margin") },
+            { "collateral", this.parseNumber(collateral) },
             { "marginMode", marginMode },
             { "side", side },
             { "percentage", null },

@@ -336,7 +336,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
         const response = await this[method](params);
         //
@@ -365,10 +367,12 @@ class coinspot extends coinspot$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'cointype': market['id'],
@@ -421,10 +425,12 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.publicGetLatest(params);
-        let id = market['id'];
+        let id = this.safeString(market, 'id', '');
         id = id.toLowerCase();
         const prices = this.safeDict(response, 'prices', {});
         //
@@ -439,7 +445,7 @@ class coinspot extends coinspot$1["default"] {
         //         }
         //     }
         //
-        const ticker = this.safeDict(prices, id);
+        const ticker = this.safeDict(prices, id, {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -452,7 +458,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetLatest(params);
         //
         //    {
@@ -497,7 +505,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'cointype': market['id'],
@@ -526,7 +536,9 @@ class coinspot extends coinspot$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -657,7 +669,12 @@ class coinspot extends coinspot$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');

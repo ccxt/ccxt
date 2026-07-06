@@ -116,12 +116,12 @@ class xt(ccxt.async_support.xt):
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
         firstDeltaNonce = self.safe_integer_2(firstDelta, 'i', 'u')
-        if nonce < firstDeltaNonce - 1:
+        if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
             deltaNonce = self.safe_integer_2(delta, 'i', 'u')
-            if deltaNonce >= nonce:
+            if (deltaNonce is not None) and (nonce is not None) and (deltaNonce >= nonce):
                 return i
         return len(cache)
 
@@ -144,7 +144,7 @@ class xt(ccxt.async_support.xt):
         # self.handleBidAsks(storedBids, bids)
         # self.handleBidAsks(storedAsks, asks)
 
-    async def subscribe(self, name: str, access: str, methodName: str, market: Market = None, symbols: List[str] = None, params={}):
+    async def subscribe(self, name: str, access: str, methodName: str, market: Market = None, symbols: Strings = None, params={}):
         """
  @ignore
         Connects to a websocket channel
@@ -193,7 +193,7 @@ class xt(ccxt.async_support.xt):
         url = self.urls['api']['ws'][tradeType] + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: List[str] = None, params={}, subscriptionParams={}) -> Any:
+    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> Any:
         """
  @ignore
         Connects to a websocket channel
@@ -578,7 +578,7 @@ class xt(ccxt.async_support.xt):
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if contracts > 0:
+            if (contracts is not None) and (contracts > 0):
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -702,7 +702,8 @@ class xt(ccxt.async_support.xt):
             isSpot = cv is not None
             ticker = self.parse_ticker(data)
             symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
+            if symbol is not None:
+                self.tickers[symbol] = ticker
             event = self.safe_string(message, 'event')
             messageHashTail = 'spot' if isSpot else 'contract'
             messageHash = event + '::' + messageHashTail
@@ -786,7 +787,8 @@ class xt(ccxt.async_support.xt):
             tickerData = data[i]
             ticker = self.parse_ticker(tickerData)
             symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
+            if symbol is not None:
+                self.tickers[symbol] = ticker
             newTickers.append(ticker)
         messageHashStart = self.safe_string(message, 'topic') + '::' + tradeType
         messageHashes = self.find_message_hashes(client, messageHashStart + '::')
@@ -844,7 +846,7 @@ class xt(ccxt.async_support.xt):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         if marketId is not None:
-            timeframe = self.safe_string(data, 'i')
+            timeframe = self.safe_string(data, 'i', '')
             tradeType = 'spot' if ('q' in data) else 'contract'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
@@ -974,10 +976,12 @@ class xt(ccxt.async_support.xt):
         data = self.safe_dict(message, 'data')
         marketId = self.safe_string(data, 's')
         if marketId is not None:
-            event = self.safe_string(message, 'event')
+            event = self.safe_string(message, 'event', '')
             splitEvent = event.split(',')
-            event = self.safe_string(splitEvent, 0)
-            tradeType = 'contract' if ('fu' in data) else 'spot'
+            event = self.safe_string(splitEvent, 0, '')
+            tradeType = 'spot'
+            if (data is not None) and ('fu' in data):
+                tradeType = 'contract'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
             obAsks = self.safe_list(data, 'a')
@@ -1297,7 +1301,10 @@ class xt(ccxt.async_support.xt):
             stored = ArrayCacheBySymbolById(limit)
             self.myTrades = stored
         parsedTrade = self.parse_trade(data)
-        market = self.market(parsedTrade['symbol'])
+        tradeSymbol = parsedTrade['symbol']
+        if tradeSymbol is None:
+            return
+        market = self.market(tradeSymbol)
         stored.append(parsedTrade)
         tradeType = 'contract' if market['contract'] else 'spot'
         client.resolve(stored, 'trade::' + tradeType)
@@ -1320,10 +1327,10 @@ class xt(ccxt.async_support.xt):
                 'order': self.handle_order,
                 'position': self.handle_position,
             }
-            method = self.safe_value(methods, topic)
+            method = None if (topic is None) else self.safe_value(methods, topic)
             if topic == 'trade':
                 data = self.safe_dict(message, 'data')
-                if ('oi' in data) or ('orderId' in data):
+                if (data is not None) and (('oi' in data) or ('orderId' in data)):
                     method = self.handle_my_trades
                 else:
                     method = self.handle_trade

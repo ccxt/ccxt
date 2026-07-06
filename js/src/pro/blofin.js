@@ -103,7 +103,9 @@ export default class blofin extends blofinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trades = await this.watchMultipleWrapper(true, 'trades', 'watchTradesForSymbols', symbols, params);
         if (this.newUpdates) {
             const firstMarket = this.safeDict(trades, 0);
@@ -158,7 +160,7 @@ export default class blofin extends blofinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrderBook';
@@ -173,10 +175,12 @@ export default class blofin extends blofinRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let callerMethodName = undefined;
         [callerMethodName, params] = this.handleParamString(params, 'callerMethodName', 'watchOrderBookForSymbols');
         let channelName = undefined;
@@ -310,7 +314,9 @@ export default class blofin extends blofinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const symbolsList = symbols;
         const firstMarket = this.market(symbolsList[0]);
@@ -395,7 +401,9 @@ export default class blofin extends blofinRest {
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [symbol, timeframe, candles] = await this.watchMultipleWrapper(true, 'candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params);
         if (this.newUpdates) {
             limit = candles.getLimit(symbol, limit);
@@ -450,7 +458,9 @@ export default class blofin extends blofinRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -518,7 +528,9 @@ export default class blofin extends blofinRest {
      */
     async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.authenticate();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const channel = trigger ? 'orders-algo' : 'orders';
@@ -573,7 +585,9 @@ export default class blofin extends blofinRest {
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticate();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const newPositions = await this.watchMultipleWrapper(false, 'positions', 'watchPositions', symbols, params);
         if (this.newUpdates) {
             return newPositions;
@@ -618,7 +632,9 @@ export default class blofin extends blofinRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchFundingRate', market, params);
@@ -657,7 +673,9 @@ export default class blofin extends blofinRest {
     }
     async watchMultipleWrapper(isPublic, channelName, callerMethodName, symbolsArray = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         [callerMethodName, params] = this.handleParamString(params, 'callerMethodName', callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');

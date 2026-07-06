@@ -7,11 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class bithumb extends \ccxt\async\bithumb {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -39,7 +38,7 @@ class bithumb extends \ccxt\async\bithumb {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -57,14 +56,14 @@ class bithumb extends \ccxt\async\bithumb {
             $messageHash = 'ticker:' . $market['symbol'];
             $request = array(
                 'type' => 'ticker',
-                'symbols' => [ $market['base'] . '_' . $market['quote'] ],
+                'symbols' => array( $market['base'] . '_' . $market['quote'] ),
                 'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -80,6 +79,9 @@ class bithumb extends \ccxt\async\bithumb {
             $marketIds = array();
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols, null, false, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
@@ -99,7 +101,7 @@ class bithumb extends \ccxt\async\bithumb {
                 return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -132,7 +134,7 @@ class bithumb extends \ccxt\async\bithumb {
         $ticker = $this->parse_ws_ticker($content);
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($this->tickers[$symbol], $messageHash);
+        $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
     public function parse_ws_ticker($ticker, ?array $market = null) {
@@ -184,7 +186,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
@@ -203,11 +205,11 @@ class bithumb extends \ccxt\async\bithumb {
             $messageHash = 'orderbook' . ':' . $symbol;
             $request = array(
                 'type' => 'orderbookdepth',
-                'symbols' => [ $market['base'] . '_' . $market['quote'] ],
+                'symbols' => array( $market['base'] . '_' . $market['quote'] ),
             );
             $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -251,7 +253,7 @@ class bithumb extends \ccxt\async\bithumb {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $messageHash = 'orderbook' . ':' . $symbol;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_delta($orderbook, $delta) {
@@ -268,7 +270,7 @@ class bithumb extends \ccxt\async\bithumb {
         $side = ($sideId === 'bid') ? 'bids' : 'asks';
         $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'quantity');
         $orderbookSide = $orderbook[$side];
-        $orderbookSide->storeArray ($bidAsk);
+        $orderbookSide->storeArray($bidAsk);
     }
 
     public function handle_deltas($orderbook, $deltas) {
@@ -277,7 +279,7 @@ class bithumb extends \ccxt\async\bithumb {
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -297,14 +299,14 @@ class bithumb extends \ccxt\async\bithumb {
             $messageHash = 'trade:' . $symbol;
             $request = array(
                 'type' => 'transaction',
-                'symbols' => [ $market['base'] . '_' . $market['quote'] ],
+                'symbols' => array( $market['base'] . '_' . $market['quote'] ),
             );
             $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trades($client, $message) {
@@ -334,14 +336,14 @@ class bithumb extends \ccxt\async\bithumb {
             $symbol = $this->safe_symbol($marketId, null, '_');
             if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $stored = new ArrayCache ($limit);
+                $stored = new ArrayCache($limit);
                 $this->trades[$symbol] = $stored;
             }
             $trades = $this->trades[$symbol];
             $parsed = $this->parse_ws_trade($rawTrade);
-            $trades->append ($parsed);
+            $trades->append($parsed);
             $messageHash = 'trade' . ':' . $symbol;
-            $client->resolve ($trades, $messageHash);
+            $client->resolve($trades, $messageHash);
         }
     }
 
@@ -397,12 +399,12 @@ class bithumb extends \ccxt\async\bithumb {
             }
             return true;
         } catch (Exception $e) {
-            $client->reject ($e);
+            $client->reject($e);
         }
         return true;
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch $balance and get the amount of funds available for trading or funds locked in orders
@@ -422,7 +424,7 @@ class bithumb extends \ccxt\async\bithumb {
             );
             $balance = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             return $balance;
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -460,10 +462,10 @@ class bithumb extends \ccxt\async\bithumb {
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
         $this->balance = $this->safe_balance($this->balance);
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         $this->check_required_credentials();
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $authenticated = $this->safe_string($wsOptions, 'token');
@@ -487,7 +489,7 @@ class bithumb extends \ccxt\async\bithumb {
         return $client;
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -517,10 +519,10 @@ class bithumb extends \ccxt\async\bithumb {
             }
             $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_orders(Client $client, $message) {
@@ -554,13 +556,13 @@ class bithumb extends \ccxt\async\bithumb {
         // $orderId = $this->safe_string($parsed, 'id');
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $cachedOrders = $this->orders;
-        $cachedOrders->append ($parsed);
-        $client->resolve ($cachedOrders, $messageHash);
+        $cachedOrders->append($parsed);
+        $client->resolve($cachedOrders, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
+        $client->resolve($cachedOrders, $symbolSpecificMessageHash);
     }
 
     public function parse_ws_order($order, ?array $market = null) {

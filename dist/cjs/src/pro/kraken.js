@@ -631,7 +631,7 @@ class kraken extends kraken$1["default"] {
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
             const candle = data[ohlcvsLength - i - 1];
-            const datetime = this.safeString(candle, 'timestamp');
+            const datetime = this.safeString(candle, 'interval_begin');
             const timestamp = this.parse8601(datetime);
             const parsed = [
                 timestamp,
@@ -751,7 +751,7 @@ class kraken extends kraken$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -764,7 +764,7 @@ class kraken extends kraken$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const requiredParams = {};

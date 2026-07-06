@@ -789,7 +789,7 @@ public partial class gemini : Exchange
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            object marketIdUpper = ((string)marketId).ToUpper();
+            object marketIdUpper = ((string)((string)marketId)).ToUpper();
             object isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
             object marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
             object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
@@ -896,7 +896,7 @@ public partial class gemini : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1082,8 +1082,8 @@ public partial class gemini : Exchange
         object last = this.safeString2(ticker, "last", "close", price);
         object percentage = this.safeString(ticker, "percentChange24h");
         object open = this.safeString(ticker, "open");
-        object baseVolume = this.safeString(volume, baseId);
-        object quoteVolume = this.safeString(volume, quoteId);
+        object baseVolume = this.safeString(volume, ((string)baseId));
+        object quoteVolume = this.safeString(volume, ((string)quoteId));
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1965,7 +1965,7 @@ public partial class gemini : Exchange
             { "Advanced", "ok" },
             { "Complete", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -2007,7 +2007,7 @@ public partial class gemini : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
+        object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, ((string)networkCode)), "currency");
         return this.safeValue(networkGroup, code);
     }
 

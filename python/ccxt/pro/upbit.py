@@ -42,6 +42,8 @@ class upbit(ccxt.async_support.upbit):
         if symbols is None:
             symbols = self.symbols
         symbols = self.market_symbols(symbols)
+        if symbols is None:
+            symbols = []
         marketIds = self.market_ids(symbols)
         url = self.implode_params(self.urls['api']['ws'], {
             'hostname': self.hostname,
@@ -144,7 +146,7 @@ class upbit(ccxt.async_support.upbit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbook = await self.watch_public_multiple([symbol], 'orderbook')
         return orderbook.limit()
@@ -207,7 +209,8 @@ class upbit(ccxt.async_support.upbit):
         #   "stream_type": "SNAPSHOT"}
         ticker = self.parse_ticker(message)
         symbol = ticker['symbol']
-        self.tickers[symbol] = ticker
+        if symbol is not None:
+            self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
 
@@ -280,6 +283,8 @@ class upbit(ccxt.async_support.upbit):
         #   "stream_type": "REALTIME"}
         trade = self.parse_trade(message)
         symbol = trade['symbol']
+        if symbol is None:
+            return
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -423,6 +428,8 @@ class upbit(ccxt.async_support.upbit):
             'watch': 'open',  # not sure what self status means
             'trade': 'open',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order(self, order, market: Market = None):
@@ -553,8 +560,8 @@ class upbit(ccxt.async_support.upbit):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         cachedOrders = self.orders
-        orders = self.safe_value(cachedOrders.hashmap, symbol, {})
-        order = self.safe_value(orders, orderId)
+        orders = {} if (symbol is None) else self.safe_value(cachedOrders.hashmap, symbol, {})
+        order = None if (orderId is None) else self.safe_value(orders, orderId)
         if order is not None:
             fee = self.safe_value(order, 'fee')
             if fee is not None:
@@ -630,6 +637,6 @@ class upbit(ccxt.async_support.upbit):
             'candle.1s': self.handle_ohlcv,
         }
         methodName = self.safe_string(message, 'type')
-        method = self.safe_value(methods, methodName)
+        method = None if (methodName is None) else self.safe_value(methods, methodName)
         if method is not None:
             method(client, message)

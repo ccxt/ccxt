@@ -169,9 +169,11 @@ func  (this *BlockchaincomCore) WatchOHLCV(symbol any, optionalArgs ...any) <- c
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1388 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1388)
+                retRes13912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes13912)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -258,9 +260,11 @@ func  (this *BlockchaincomCore) WatchTicker(symbol any, optionalArgs ...any) <- 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2148 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2148)
+                retRes21712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes21712)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -272,9 +276,9 @@ func  (this *BlockchaincomCore) WatchTicker(symbol any, optionalArgs ...any) <- 
             }
             request = this.DeepExtend(request, params)
         
-                retRes22515 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes22515)
-                ch <- retRes22515
+                retRes22915 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes22915)
+                ch <- retRes22915
                 return nil
         
             }()
@@ -388,9 +392,11 @@ func  (this *BlockchaincomCore) WatchTrades(symbol any, optionalArgs ...any) <- 
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3248 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3248)
+                retRes32912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes32912)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -510,12 +516,14 @@ func  (this *BlockchaincomCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4268 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4268)
+                retRes43312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes43312)
+            }
         
-            retRes4278 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes4278)
+            retRes4358 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes4358)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -733,7 +741,7 @@ func  (this *BlockchaincomCore) ParseWsOrderStatus(status any) any  {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *BlockchaincomCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -744,9 +752,11 @@ func  (this *BlockchaincomCore) WatchOrderBook(symbol any, optionalArgs ...any) 
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6418 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6418)
+                retRes65012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes65012)
+            }
             var market any = this.Market(symbol)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var typeVar any = this.SafeString(params, "type", "l2")
@@ -902,9 +912,9 @@ func  (this *BlockchaincomCore) Authenticate(optionalArgs ...any) <- chan any {
                 return nil
             }
         
-                retRes78715 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes78715)
-                ch <- retRes78715
+                retRes79715 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes79715)
+                ch <- retRes79715
                 return nil
         
             }()

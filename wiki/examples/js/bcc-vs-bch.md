@@ -7,6 +7,7 @@ import ololog from 'ololog';
 import config from '../../keys.json';
 import ansicolor from 'ansicolor';
 const log = ololog.configure({ locate: false });
+// @ts-expect-error
 ansicolor.nice;
 let sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 let proxies = [

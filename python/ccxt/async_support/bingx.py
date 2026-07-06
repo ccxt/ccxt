@@ -1517,7 +1517,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3088,10 +3088,12 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 positionSide = 'BOTH'
             request['positionSide'] = positionSide
-            amountReq = amount
-            if not market['inverse']:
-                amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
-            request['quantity'] = amountReq  # precision not available for inverse contracts
+            closePosition = self.safe_bool(params, 'closePosition', False)
+            if not closePosition:
+                amountReq = amount
+                if not market['inverse']:
+                    amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+                request['quantity'] = amountReq  # precision not available for inverse contracts
         params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
@@ -3127,6 +3129,7 @@ class bingx(Exchange, ImplicitAPI):
         :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
         :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
+        :param bool [params.closePosition]: *swap only* True to close the entire position with a TP/SL order, in which case the quantity is not sent
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
@@ -3225,6 +3228,13 @@ class bingx(Exchange, ImplicitAPI):
                 result = self.safe_dict(data, 'order', data)
         else:
             result = data
+        # when the response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        stopLoss = self.safe_string(result, 'stopLoss')
+        if (stopLoss is not None) and (stopLoss.find('{') == 0):
+            result['stopLoss'] = self.parse_json(stopLoss)
+        takeProfit = self.safe_string(result, 'takeProfit')
+        if (takeProfit is not None) and (takeProfit.find('{') == 0):
+            result['takeProfit'] = self.parse_json(takeProfit)
         return self.parse_order(result, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
@@ -6347,7 +6357,6 @@ class bingx(Exchange, ImplicitAPI):
         }
         response = None
         commission = {}
-        data = self.safe_dict(response, 'data', {})
         if market['spot']:
             response = await self.spotV1PrivateGetUserCommissionRate(self.extend(request, params))
             #
@@ -6361,7 +6370,7 @@ class bingx(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            commission = data
+            commission = self.safe_dict(response, 'data', {})
         else:
             if market['inverse']:
                 response = await self.cswapV1PrivateGetUserCommissionRate(params)
@@ -6376,7 +6385,7 @@ class bingx(Exchange, ImplicitAPI):
                 #         }
                 #     }
                 #
-                commission = data
+                commission = self.safe_dict(response, 'data', {})
             else:
                 response = await self.swapV2PrivateGetUserCommissionRate(params)
                 #
@@ -6391,6 +6400,7 @@ class bingx(Exchange, ImplicitAPI):
                 #         }
                 #     }
                 #
+                data = self.safe_dict(response, 'data', {})
                 commission = self.safe_dict(data, 'commission', {})
         return self.parse_trading_fee(commission, market)
 

@@ -248,10 +248,8 @@ class bullish(ccxt.async_support.bullish):
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        parsed = None
-        if (updateType == 'snapshot'):
-            parsed = self.parse_ticker(data, market)
-        elif updateType == 'update':
+        parsed = self.parse_ticker(data, market)
+        if updateType == 'update':
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
@@ -269,7 +267,7 @@ class bullish(ccxt.async_support.bullish):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -435,7 +433,8 @@ class bullish(ccxt.async_support.bullish):
                 parsedOrder = self.parse_order(rawOrder)
                 orders.append(parsedOrder)
                 symbol = self.safe_string(parsedOrder, 'symbol')
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             messageHash = 'orders'
             client.resolve(orders, messageHash)
             keys = list(symbols.keys())
@@ -531,7 +530,8 @@ class bullish(ccxt.async_support.bullish):
                 parsedTrade = self.parse_trade(rawTrade)
                 trades.append(parsedTrade)
                 symbol = self.safe_string(parsedTrade, 'symbol')
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             messageHash = 'myTrades'
             client.resolve(trades, messageHash)
             keys = list(symbols.keys())
@@ -605,6 +605,8 @@ class bullish(ccxt.async_support.bullish):
         #     }
         #
         tradingAccountId = self.safe_string(message, 'tradingAccountId')
+        if tradingAccountId is None:
+            return
         if not (tradingAccountId in self.balance):
             self.balance[tradingAccountId] = {}
         messageType = self.safe_string(message, 'type')
@@ -641,7 +643,7 @@ class bullish(ccxt.async_support.bullish):
         await self.load_markets()
         subscribeHash = 'positions'
         messageHash = subscribeHash
-        if not self.is_empty(symbols):
+        if (symbols is not None) and not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
             messageHash += '::' + ','.join(symbols)
         request = {

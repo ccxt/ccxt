@@ -155,7 +155,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -337,7 +337,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             put( "OrderBookSnapshot", "handleOrderBook");
             put( "OrderBookChange", "handleOrderBook");
         }};
-        Object handler = this.safeValue(handlers, eventVar);
+        Object handler = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(handlers, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
         {
             Helpers.callDynamically(this, handler, new Object[] {client, message});

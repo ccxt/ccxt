@@ -12,7 +12,6 @@ public partial class testMainClass : BaseTest
         object method = "fetchTransfers";
         object transfers = await exchange.fetchTransfers(code);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, transfers, code);
-        object now = exchange.milliseconds();
         for (object i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
         {
             testTransfer(exchange, skippedProperties, method, getValue(transfers, i), code);

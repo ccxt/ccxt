@@ -1460,7 +1460,7 @@ export default class okx extends Exchange {
         const expiry = this.safeString(optionParts, 2);
         const strike = this.safeString(optionParts, 3);
         const optionType = this.safeString(optionParts, 4);
-        const datetime = this.convertExpireDate(expiry);
+        const datetime = (expiry === undefined) ? undefined : this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
         return {
             'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1520,7 +1520,7 @@ export default class okx extends Exchange {
             // on the missing expiry.
             isOption = (partsLength > 3) && (marketId.endsWith('-C') || marketId.endsWith('-P'));
         }
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && (marketId !== undefined) && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -1763,7 +1763,7 @@ export default class okx extends Exchange {
         //         instType: "SWAP",
         //         state: "preopen",
         //
-        const id = this.safeString(market, 'instId');
+        const id = this.safeString(market, 'instId', '');
         let type = this.safeStringLower(market, 'instType');
         if (type === 'futures') {
             type = 'future';
@@ -1780,14 +1780,14 @@ export default class okx extends Exchange {
         const underlying = this.safeString(market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split('-');
-            baseId = this.safeString(parts, 0);
-            quoteId = this.safeString(parts, 1);
+            baseId = this.safeString(parts, 0, '');
+            quoteId = this.safeString(parts, 1, '');
         }
         if (((baseId === '') || (quoteId === '')) && spot) { // to fix weird preopen markets
             const instId = this.safeString(market, 'instId', '');
             const parts = instId.split('-');
-            baseId = this.safeString(parts, 0);
-            quoteId = this.safeString(parts, 1);
+            baseId = this.safeString(parts, 0, '');
+            quoteId = this.safeString(parts, 1, '');
         }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
@@ -1821,7 +1821,8 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const fees = this.safeDict2(this.fees, type, 'trading', {});
+        const feesType = (type === undefined) ? '' : type;
+        const fees = this.safeDict2(this.fees, feesType, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise.stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
@@ -2092,10 +2093,12 @@ export default class okx extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2231,7 +2234,9 @@ export default class okx extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2277,7 +2282,9 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -2335,7 +2342,9 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2368,7 +2377,9 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -2498,7 +2509,9 @@ export default class okx extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -2611,7 +2624,9 @@ export default class okx extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
@@ -2725,7 +2740,9 @@ export default class okx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -2866,7 +2883,9 @@ export default class okx extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instType': this.convertToInstrumentType(market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -2917,7 +2936,9 @@ export default class okx extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const request = {
         // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
@@ -3044,7 +3065,9 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
@@ -3066,7 +3089,9 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot markets only');
@@ -3434,7 +3459,9 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let method = this.safeString(this.options, 'createOrder', 'privatePostTradeBatchOrders');
@@ -3478,12 +3505,17 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            const type = this.safeString(rawOrder, 'type');
+            if (marketId === undefined) {
+                throw new ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
+            }
+            const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -3647,7 +3679,9 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         let isAlgoOrder = undefined;
@@ -3706,7 +3740,9 @@ export default class okx extends Exchange {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeDict(orderInner, 0);
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -3760,7 +3796,9 @@ export default class okx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = [];
         const options = this.safeValue(this.options, 'cancelOrders', {});
@@ -3866,7 +3904,9 @@ export default class okx extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersForSymbols(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = [];
         const options = this.safeDict(this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
@@ -3882,6 +3922,9 @@ export default class okx extends Exchange {
             const id = this.safeString(order, 'id');
             const clientOrderId = this.safeString2(order, 'clOrdId', 'clientOrderId');
             const symbol = this.safeString(order, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' cancelOrders() requires a symbol for each order');
+            }
             const market = this.market(symbol);
             let idKey = 'ordId';
             if (isStopOrTrailing) {
@@ -3950,9 +3993,15 @@ export default class okx extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        let timeOut = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            timeOut = this.parseToInt(timeout / 1000);
+        }
         const request = {
-            'timeOut': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
+            'timeOut': timeOut,
         };
         const response = await this.privatePostTradeCancelAllAfter(this.extend(request, params));
         //
@@ -3978,6 +4027,9 @@ export default class okx extends Exchange {
             'filled': 'closed',
             'effective': 'closed',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
@@ -4281,7 +4333,9 @@ export default class okx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -4437,7 +4491,9 @@ export default class okx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
@@ -4469,7 +4525,7 @@ export default class okx extends Exchange {
         const ordType = this.safeString(params, 'ordType');
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trailing || trigger || (ordType in algoOrderTypes)) {
+        if (trailing || trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
         if (trailing) {
@@ -4602,7 +4658,9 @@ export default class okx extends Exchange {
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
         // 'uly': currency['id'],
@@ -4638,7 +4696,7 @@ export default class okx extends Exchange {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
         }
-        else if (trigger || (ordType in algoOrderTypes)) {
+        else if (trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             const algoId = this.safeString(params, 'algoId');
             if (algoId !== undefined) {
@@ -4792,7 +4850,9 @@ export default class okx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
@@ -4829,7 +4889,7 @@ export default class okx extends Exchange {
         const ordType = this.safeString(params, 'ordType');
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trailing || trigger || (ordType in algoOrderTypes)) {
+        if (trailing || trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
         }
@@ -4975,7 +5035,9 @@ export default class okx extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -5072,7 +5134,9 @@ export default class okx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -5305,7 +5369,7 @@ export default class okx extends Exchange {
         const chain = this.safeString(depositAddress, 'chain');
         const networks = this.safeValue(currency, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
-        let networkData = this.safeValue(networksById, chain);
+        let networkData = (chain === undefined) ? undefined : this.safeValue(networksById, chain);
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -5371,7 +5435,9 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -5414,7 +5480,9 @@ export default class okx extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const rawNetwork = this.safeString(params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit(params, 'network');
         code = this.safeCurrencyCode(code);
@@ -5433,7 +5501,7 @@ export default class okx extends Exchange {
         }
         // if the network is not specified, return the first address
         const keys = Object.keys(response);
-        const first = this.safeString(keys, 0);
+        const first = this.safeString(keys, 0, '');
         return this.safeDict(response, first);
     }
     /**
@@ -5451,7 +5519,9 @@ export default class okx extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
@@ -5513,7 +5583,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -5591,7 +5663,9 @@ export default class okx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposit(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'depId': id,
         };
@@ -5619,7 +5693,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -5689,7 +5765,9 @@ export default class okx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawal(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'wdId': id,
         };
@@ -5767,6 +5845,9 @@ export default class okx extends Exchange {
             '15': 'pending',
             '16': 'pending',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -5816,7 +5897,7 @@ export default class okx extends Exchange {
         const addressTo = this.safeString(transaction, 'to');
         const address = addressTo;
         let tagTo = this.safeString2(transaction, 'tag', 'memo');
-        tagTo = this.safeString2(transaction, 'pmtId', tagTo);
+        tagTo = (tagTo === undefined) ? this.safeString(transaction, 'pmtId') : this.safeString2(transaction, 'pmtId', tagTo);
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
@@ -5887,7 +5968,9 @@ export default class okx extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params);
         if (marginMode === undefined) {
@@ -5959,7 +6042,9 @@ export default class okx extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [type, query] = this.handleMarketTypeAndParams('fetchPosition', market, params);
         const request = {
@@ -6036,7 +6121,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'instType': 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
         // 'instId': market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
@@ -6320,7 +6407,9 @@ export default class okx extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -6440,8 +6529,8 @@ export default class okx extends Exchange {
             'datetime': this.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': this.safeString(accountsById, fromAccountId),
-            'toAccount': this.safeString(accountsById, toAccountId),
+            'fromAccount': (fromAccountId === undefined) ? undefined : this.safeString(accountsById, fromAccountId),
+            'toAccount': (toAccountId === undefined) ? undefined : this.safeString(accountsById, toAccountId),
             'status': this.parseTransferStatus(this.safeString(transfer, 'state')),
         };
     }
@@ -6449,10 +6538,15 @@ export default class okx extends Exchange {
         const statuses = {
             'success': 'ok',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     async fetchTransfer(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -6494,7 +6588,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'type': '1', // https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
@@ -6702,7 +6798,9 @@ export default class okx extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
@@ -6741,7 +6839,9 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, 'swap', true);
         const request = { 'instId': 'ANY' };
         const response = await this.publicGetPublicFundingRate(this.extend(request, params));
@@ -6776,7 +6876,9 @@ export default class okx extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'ccy': currency['id'],
@@ -6953,7 +7055,9 @@ export default class okx extends Exchange {
         if ((leverage < 1) || (leverage > 125)) {
             throw new BadRequest(this.id + ' setLeverage() leverage should be between 1 and 125');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
@@ -7084,7 +7188,9 @@ export default class okx extends Exchange {
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest(this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const lever = this.safeInteger2(params, 'lever', 'leverage');
         if ((lever === undefined) || (lever < 1) || (lever > 125)) {
@@ -7122,7 +7228,9 @@ export default class okx extends Exchange {
      * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRates(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountInterestRate(params);
         //
         //    {
@@ -7153,7 +7261,9 @@ export default class okx extends Exchange {
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRate(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -7240,7 +7350,9 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
     async fetchBorrowRateHistories(codes = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'ccy': currency['id'],
         // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
@@ -7283,7 +7395,9 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -7316,7 +7430,9 @@ export default class okx extends Exchange {
         return this.parseBorrowRateHistory(data, code, since, limit);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const posSide = this.safeString(params, 'posSide', 'net');
         params = this.omit(params, ['posSide']);
@@ -7460,7 +7576,9 @@ export default class okx extends Exchange {
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType(market['type']);
         const uly = this.safeString(market['info'], 'uly');
@@ -7564,7 +7682,9 @@ export default class okx extends Exchange {
      * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBorrowInterest', params);
         if (marginMode === undefined) {
@@ -7641,7 +7761,9 @@ export default class okx extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
@@ -7680,7 +7802,9 @@ export default class okx extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const id = this.safeString2(params, 'id', 'ordId');
         params = this.omit(params, 'id');
         if (id === undefined) {
@@ -7746,7 +7870,9 @@ export default class okx extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
@@ -7790,7 +7916,9 @@ export default class okx extends Exchange {
      * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterests(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true);
         let market = undefined;
         if (symbols !== undefined) {
@@ -7857,7 +7985,9 @@ export default class okx extends Exchange {
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new BadRequest(this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // handle unified currency code or symbol
         let currencyId = undefined;
         let market = undefined;
@@ -7983,7 +8113,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (codes !== undefined) {
             const ids = this.currencyIds(codes);
@@ -8069,7 +8201,9 @@ export default class okx extends Exchange {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
-                depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                if (currencyId !== undefined) {
+                    depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                }
                 const chain = this.safeString(feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;
@@ -8115,7 +8249,9 @@ export default class okx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
@@ -8211,7 +8347,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
     async fetchUnderlyingAssets(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchUnderlyingAssets', undefined, params);
         if ((marketType === undefined) || (marketType === 'spot')) {
@@ -8249,9 +8387,11 @@ export default class okx extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const optionParts = marketId.split('-');
         const request = {
             'uly': market['info']['uly'],
@@ -8310,7 +8450,9 @@ export default class okx extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         let symbolsLength = undefined;
@@ -8334,7 +8476,7 @@ export default class okx extends Exchange {
         if (symbols !== undefined) {
             if (symbolsLength === 1) {
                 market = this.market(symbols[0]);
-                const marketId = market['id'];
+                const marketId = this.safeString(market, 'id', '');
                 const optionParts = marketId.split('-');
                 request['uly'] = market['info']['uly'];
                 request['instFamily'] = market['info']['instFamily'];
@@ -8442,7 +8584,9 @@ export default class okx extends Exchange {
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         const code = this.safeString(params, 'code');
@@ -8502,7 +8646,9 @@ export default class okx extends Exchange {
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOption(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -8549,7 +8695,9 @@ export default class okx extends Exchange {
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOptionChain(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'uly': currency['code'] + '-USD',
@@ -8641,7 +8789,9 @@ export default class okx extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'baseCcy': fromCode.toUpperCase(),
             'quoteCcy': toCode.toUpperCase(),
@@ -8694,7 +8844,9 @@ export default class okx extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'quoteId': id,
             'baseCcy': fromCode,
@@ -8745,7 +8897,9 @@ export default class okx extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTrade(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'clTReqId': id,
         };
@@ -8798,7 +8952,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         [request, params] = this.handleUntilOption('after', request, params);
         if (since !== undefined) {
@@ -8912,7 +9068,9 @@ export default class okx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchConvertCurrencies(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAssetConvertCurrencies(params);
         //
         //     {
@@ -9019,7 +9177,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const auto = this.safeBool(params, 'auto');
         if (type === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory () requires a type argument');
@@ -9104,7 +9264,7 @@ export default class okx extends Exchange {
         //        msg: ''
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const modifications = this.parseMarginModifications(data);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
@@ -9128,7 +9288,9 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const marginMode = this.safeString(params, 'marginMode');
         const instType = this.safeStringUpper(params, 'instType');
         params = this.omit(params, ['until', 'marginMode', 'instType']);
@@ -9185,7 +9347,7 @@ export default class okx extends Exchange {
         //        msg: ''
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const positions = this.parsePositions(data, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
     }
@@ -9203,7 +9365,12 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchLongShortRatioHistory() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],

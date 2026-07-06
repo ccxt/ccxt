@@ -156,8 +156,8 @@ class p2b(ccxt.async_support.p2b):
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
         messageHashes = []
         args = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len((symbols))):
+            market = self.market((symbols)[i])
             messageHashes.append(name + '::' + market['symbol'])
             args.append(market['id'])
         url = self.urls['api']['ws']
@@ -226,7 +226,7 @@ class p2b(ccxt.async_support.p2b):
         :param int [limit]: 1-100, default=100
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.interval]: 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -315,8 +315,8 @@ class p2b(ccxt.async_support.p2b):
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesArray = ArrayCache(tradesLimit)
             self.trades[symbol] = tradesArray
-        for i in range(0, len(trades)):
-            item = trades[i]
+        for i in range(0, len((trades))):
+            item = (trades)[i]
             trade = self.parse_trade(item, market)
             tradesArray.append(trade)
         messageHash = 'deals::' + symbol

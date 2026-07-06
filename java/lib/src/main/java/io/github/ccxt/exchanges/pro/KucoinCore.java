@@ -31,6 +31,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "cancelOrdersWs", false );
                 put( "cancelAllOrdersWs", false );
                 put( "watchBidsAsks", true );
+                put( "watchFundingRate", true );
+                put( "watchMarkPrice", true );
                 put( "watchOrderBook", true );
                 put( "watchOrders", true );
                 put( "watchPosition", true );
@@ -43,6 +45,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "watchOrderBookForSymbols", true );
                 put( "watchBalance", true );
                 put( "watchOHLCV", true );
+                put( "unWatchFundingRate", true );
+                put( "unWatchMarkPrice", true );
                 put( "unWatchTicker", true );
                 put( "unWatchOHLCV", true );
                 put( "unWatchOrderBook", true );
@@ -831,6 +835,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
     public void handleUtaTicker(Client client, Object message)
     {
         //
+        // watchTicker
         //     {
         //         "T": "ticker.SPOT",
         //         "P": "1774100940787520626",
@@ -848,6 +853,19 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         //         }
         //     }
         //
+        // watchMarkPrice
+        //     {
+        //         "T": "mark-price",
+        //         "P": "1782834987171570181",
+        //         "d": {
+        //             "s": "ETHUSDTM",
+        //             "mp": "1569.15",
+        //             "ip": "1569.87",
+        //             "oi": "50541824",
+        //             "ts": 1782834987000
+        //         }
+        //     }
+        //
         Object data = this.safeDict(message, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         Object market = this.safeMarket(marketId);
@@ -862,11 +880,16 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeString(market, "symbol");
         market = this.safeMarket(symbol, market);
-        Object timestamp = this.safeIntegerProduct(ticker, "M", 0.000001);
+        Object timestamp = this.safeInteger(ticker, "ts");
+        if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+        {
+            timestamp = this.safeIntegerProduct(ticker, "M", 0.000001);
+        }
+        final Object finalTimestamp = timestamp;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", KucoinCore.this.iso8601(finalTimestamp) );
             put( "high", null );
             put( "low", null );
             put( "bid", KucoinCore.this.safeString(ticker, "a") );
@@ -883,7 +906,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             put( "average", null );
             put( "baseVolume", null );
             put( "quoteVolume", null );
-            put( "markPrice", null );
+            put( "markPrice", KucoinCore.this.safeString(ticker, "mp") );
+            put( "indexPrice", KucoinCore.this.safeString(ticker, "ip") );
             put( "info", ticker );
         }}, market);
     }
@@ -1641,7 +1665,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -1714,7 +1738,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -1771,7 +1795,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
@@ -1854,7 +1878,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
@@ -2214,7 +2238,23 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 Object subHash = Helpers.GetValue(subMessageHashes, i);
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
-            this.cleanCache(subscription);
+            Object topic = this.safeString(subscription, "topic");
+            if (Helpers.isTrue(Helpers.isEqual(topic, "fundingRate")))
+            {
+                // todo: add fundingRate topic to cleanCache
+                Object symbols = this.safeList(subscription, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                {
+                    Object symbol = Helpers.GetValue(symbols, i);
+                    if (Helpers.isTrue(Helpers.inOp(this.fundingRates, symbol)))
+                    {
+                        ((java.util.Map<String,Object>)this.fundingRates).remove((String)symbol);
+                    }
+                }
+            } else
+            {
+                this.cleanCache(subscription);
+            }
         }
     }
 
@@ -3667,6 +3707,185 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         }});
     }
 
+    /**
+     * @method
+     * @name kucoin#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol2, Object... optionalArgs)
+    {
+        final Object symbol3 = symbol2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object symbol = symbol3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            symbol = this.safeSymbol(symbol);
+            Object channel = "funding-fee";
+            Object messageHash = Helpers.add("fundingRate:", symbol);
+            return (this.subscribePublicUta(messageHash, channel, symbol, parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name kucoin#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> unWatchFundingRate(Object symbol2, Object... optionalArgs)
+    {
+        final Object symbol3 = symbol2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object symbol = symbol3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            symbol = this.safeSymbol(symbol);
+            Object channel = "funding-fee";
+            Object subMessageHash = Helpers.add("fundingRate:", symbol);
+            Object unSubMessageHash = Helpers.add("unsubscribe:", subMessageHash);
+            final Object finalSymbol = symbol;
+            Object subscription = new java.util.HashMap<String, Object>() {{
+                put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol)) );
+                put( "topic", "fundingRate" );
+                put( "unsubscribe", true );
+                put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)) );
+                put( "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(unSubMessageHash)) );
+            }};
+            return (this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription)).join();
+        });
+
+    }
+
+    public void handleUtaFundingRate(Client client, Object message)
+    {
+        //
+        //     {
+        //         "T": "funding-fee",
+        //         "P": "1782831961172694254",
+        //         "d": {
+        //             "s": "ETHUSDTM",
+        //             "fr": "0.000035",
+        //             "ft": 1782806400000,
+        //             "nt": 1782835200000,
+        //             "gl": 28800000,
+        //             "fc": "0.00375",
+        //             "ff": "-0.00375"
+        //         }
+        //     }
+        //
+        Object data = this.safeDict(message, "d", new java.util.HashMap<String, Object>() {{}});
+        Object fundingRate = this.parseWsFundingRate(data);
+        Object symbol = Helpers.GetValue(fundingRate, "symbol");
+        Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
+        Object messageHash = Helpers.add("fundingRate:", symbol);
+        client.resolve(fundingRate, messageHash);
+    }
+
+    public Object parseWsFundingRate(Object data, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "s": "ETHUSDTM",
+        //         "fr": "0.000035",
+        //         "ft": 1782806400000,
+        //         "nt": 1782835200000,
+        //         "gl": 28800000,
+        //         "fc": "0.00375",
+        //         "ff": "-0.00375"
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object fundingTimestamp = this.safeInteger(data, "ft");
+        Object nextFundingTimestamp = this.safeInteger(data, "nt");
+        Object marketId = this.safeString(data, "s");
+        Object granularity = this.safeString(data, "gl");
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", data );
+            put( "symbol", KucoinCore.this.safeSymbol(marketId, market, null, "contract") );
+            put( "markPrice", null );
+            put( "indexPrice", null );
+            put( "interestRate", null );
+            put( "estimatedSettlePrice", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "fundingRate", KucoinCore.this.safeNumber(data, "fr") );
+            put( "fundingTimestamp", fundingTimestamp );
+            put( "fundingDatetime", KucoinCore.this.iso8601(fundingTimestamp) );
+            put( "nextFundingRate", null );
+            put( "nextFundingTimestamp", nextFundingTimestamp );
+            put( "nextFundingDatetime", KucoinCore.this.iso8601(nextFundingTimestamp) );
+            put( "previousFundingRate", null );
+            put( "previousFundingTimestamp", null );
+            put( "previousFundingDatetime", null );
+            put( "interval", KucoinCore.this.parseFundingInterval(granularity) );
+        }};
+    }
+
+    /**
+     * @method
+     * @name kucoin#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(Object symbol2, Object... optionalArgs)
+    {
+        final Object symbol3 = symbol2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object symbol = symbol3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            symbol = this.safeSymbol(symbol);
+            Object channel = "mark-price";
+            Object messageHash = Helpers.add("uta:ticker:", symbol);
+            return (this.subscribePublicUta(messageHash, channel, symbol, parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name kucoin#unWatchMarkPrice
+     * @description unWatches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> unWatchMarkPrice(Object symbol2, Object... optionalArgs)
+    {
+        final Object symbol3 = symbol2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object symbol = symbol3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            symbol = this.safeSymbol(symbol);
+            Object channel = "mark-price";
+            Object subMessageHash = Helpers.add("uta:ticker:", symbol);
+            Object unSubMessageHash = Helpers.add("unsubscribe:", subMessageHash);
+            final Object finalSymbol = symbol;
+            Object subscription = new java.util.HashMap<String, Object>() {{
+                put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol)) );
+                put( "topic", "ticker" );
+                put( "unsubscribe", true );
+                put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)) );
+                put( "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(unSubMessageHash)) );
+            }};
+            return (this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription)).join();
+        });
+
+    }
+
     public void handleSubject(Client client, Object message)
     {
         //
@@ -3748,6 +3967,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             put( "positionAll.UNIFIED", "handleUtaPosition");
             put( "positionAll.FUTURES", "handleUtaPosition");
             put( "balance.UNIFIED", "handleUtaBalance");
+            put( "funding-fee", "handleUtaFundingRate");
+            put( "mark-price", "handleUtaTicker");
         }};
         Object method = this.safeValue(methods, ((String)subject));
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))

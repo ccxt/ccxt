@@ -27,7 +27,7 @@ public partial class dydx
         return (Int64)res;
     }
     /// <summary>
-    /// retrieves data on all markets for hyperliquid
+    /// retrieves data on all markets for dydx
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets"/>  <br/>
@@ -50,7 +50,7 @@ public partial class dydx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/marketTrades"/>  <br/>
+    /// See <see href="https://docs.dydx.xyz/indexer-client/http#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -591,7 +591,7 @@ public partial class dydx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;

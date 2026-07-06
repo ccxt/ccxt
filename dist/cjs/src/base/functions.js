@@ -18,6 +18,7 @@ var io = require('./functions/io.js');
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
+exports.isBun = platform.isBun;
 exports.isDeno = platform.isDeno;
 exports.isElectron = platform.isElectron;
 exports.isNode = platform.isNode;
@@ -134,6 +135,7 @@ exports.ecdsa = crypto.ecdsa;
 exports.eddsa = crypto.eddsa;
 exports.hash = crypto.hash;
 exports.hmac = crypto.hmac;
+exports.pemToDer = crypto.pemToDer;
 exports.TimedOut = time.TimedOut;
 exports.iso8601 = time.iso8601;
 exports.mdy = time.mdy;

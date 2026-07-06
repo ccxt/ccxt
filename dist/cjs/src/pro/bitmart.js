@@ -143,6 +143,9 @@ class bitmart extends bitmart$1["default"] {
     }
     async subscribeMultiple(unifiedName, channel, type, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, type, false, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
@@ -186,7 +189,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         await this.authenticate(type, params);
@@ -343,7 +348,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketType = undefined;
         [symbols, marketType, params] = this.getParamsForMultipleSub('watchTradesForSymbols', symbols, limit, params);
         const channelName = 'trade';
@@ -385,7 +392,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketType = undefined;
         [symbols, marketType, params] = this.getParamsForMultipleSub('unWatchTradesForSymbols', symbols, undefined, params);
         const channelName = 'trade';
@@ -414,7 +423,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
@@ -430,7 +441,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
@@ -466,7 +479,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
@@ -484,8 +499,13 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
@@ -534,7 +554,9 @@ class bitmart extends bitmart$1["default"] {
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = this.parseWsBidAsk(rawTickers[i]);
             const symbol = ticker['symbol'];
-            this.bidsasks[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.bidsasks[symbol] = ticker;
+            }
             const messageHash = 'bidask::' + symbol;
             client.resolve(ticker, messageHash);
         }
@@ -568,7 +590,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let messageHash = 'orders';
         if (symbol !== undefined) {
@@ -582,7 +606,7 @@ class bitmart extends bitmart$1["default"] {
         let request;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
-            if (symbol !== undefined) {
+            if ((symbol !== undefined) && (market !== undefined)) {
                 argsRequest += market['id'];
             }
             else {
@@ -617,7 +641,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let messageHash = 'unsubscribe::orders';
         if (symbol !== undefined) {
@@ -634,7 +660,7 @@ class bitmart extends bitmart$1["default"] {
         let request;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
-            if (symbol !== undefined) {
+            if ((symbol !== undefined) && (market !== undefined)) {
                 argsRequest += market['id'];
             }
             else {
@@ -726,7 +752,9 @@ class bitmart extends bitmart$1["default"] {
                 stored.append(order);
                 newOrders.push(order);
                 const symbol = order['symbol'];
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
         }
         const messageHash = 'orders';
@@ -833,7 +861,7 @@ class bitmart extends bitmart$1["default"] {
             const lastTrade = this.safeDict(orderInfo, 'last_trade');
             const cachedOrders = this.orders;
             const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-            const cachedOrder = this.safeValue(orders, orderId);
+            const cachedOrder = (orderId === undefined) ? undefined : this.safeValue(orders, orderId);
             let trades = undefined;
             if (cachedOrder !== undefined) {
                 trades = this.safeValue(order, 'trades');
@@ -905,7 +933,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const type = 'swap';
         await this.authenticate(type, params);
         symbols = this.marketSymbols(symbols, 'swap', true, true, false);
@@ -941,7 +971,9 @@ class bitmart extends bitmart$1["default"] {
                 throw new errors.NotSupported(this.id + ' unWatchPositions() does not support a list of symbols, unWatch from all markets only');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'action': 'unsubscribe',
             'args': ['futures/position'],
@@ -1118,11 +1150,16 @@ class bitmart extends bitmart$1["default"] {
                 symbol = this.handleTradeLoop(data[i]);
             }
         }
-        client.resolve(this.trades[symbol], 'trade::' + symbol);
+        if (symbol !== undefined) {
+            client.resolve(this.trades[symbol], 'trade::' + symbol);
+        }
     }
     handleTradeLoop(entry) {
         const trade = this.parseWsTrade(entry);
         const symbol = trade['symbol'];
+        if (symbol === undefined) {
+            return symbol;
+        }
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         if (this.safeValue(this.trades, symbol) === undefined) {
             this.trades[symbol] = new Cache.ArrayCache(tradesLimit);
@@ -1244,7 +1281,9 @@ class bitmart extends bitmart$1["default"] {
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = isSpot ? this.parseTicker(rawTickers[i]) : this.parseWsSwapTicker(rawTickers[i]);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const messageHash = 'ticker::' + symbol;
             client.resolve(ticker, messageHash);
         }
@@ -1304,7 +1343,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const market = this.market(symbol);
         let type = 'spot';
@@ -1336,7 +1377,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const market = this.market(symbol);
         let type = 'spot';
@@ -1389,7 +1432,7 @@ class bitmart extends bitmart$1["default"] {
         //        }
         //    }
         //
-        const channel = this.safeString2(message, 'table', 'group');
+        const channel = this.safeString2(message, 'table', 'group', '');
         const isSpot = (channel.indexOf('spot') >= 0);
         const data = this.safeValue(message, 'data');
         if (data === undefined) {
@@ -1400,10 +1443,13 @@ class bitmart extends bitmart$1["default"] {
         let interval = part1.replace('kline', '');
         interval = interval.replace('Bin', '');
         const intervalParts = interval.split(':');
-        interval = this.safeString(intervalParts, 0);
+        interval = this.safeString(intervalParts, 0, '');
         // use a reverse lookup in a static map instead
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(interval, timeframes);
+        if (timeframe === undefined) {
+            return;
+        }
         const duration = this.parseTimeframe(timeframe);
         const durationInMs = duration * 1000;
         if (isSpot) {
@@ -1457,10 +1503,12 @@ class bitmart extends bitmart$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.speed] *futures only* '100ms' or '200ms'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         let depth = this.safeString(options, 'depth', 'depth/increase100');
         symbol = this.symbol(symbol);
@@ -1482,10 +1530,12 @@ class bitmart extends bitmart$1["default"] {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         let depth = this.safeString(options, 'depth', 'depth/increase100');
         symbol = this.symbol(symbol);
@@ -1624,7 +1674,7 @@ class bitmart extends bitmart$1["default"] {
         if (length <= 0) {
             return;
         }
-        const channelName = this.safeString2(message, 'table', 'group');
+        const channelName = this.safeString2(message, 'table', 'group', '');
         // find limit subscribed to
         const limitsToCheck = ['100', '50', '20', '10', '5'];
         let limit = 0;
@@ -1707,10 +1757,12 @@ class bitmart extends bitmart$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [symbols, type, params] = this.getParamsForMultipleSub('watchOrderBookForSymbols', symbols, limit, params);
         let channel = undefined;
@@ -1729,10 +1781,12 @@ class bitmart extends bitmart$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [symbols, type, params] = this.getParamsForMultipleSub('unWatchOrderBookForSymbols', symbols, undefined, params);
         let channel = undefined;
@@ -1753,7 +1807,9 @@ class bitmart extends bitmart$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const fundingRate = await this.watchFundingRates([symbol], params);
         return fundingRate[symbol];
@@ -1771,7 +1827,9 @@ class bitmart extends bitmart$1["default"] {
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchFundingRates() requires an array of symbols');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchFundingRates', market, params);
@@ -1802,7 +1860,9 @@ class bitmart extends bitmart$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const fundingRate = this.parseFundingRate(data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = 'fundingRate::' + symbol;
         client.resolve(fundingRate, messageHash);
     }
@@ -1934,7 +1994,7 @@ class bitmart extends bitmart$1["default"] {
         //         }
         //     }
         //
-        const messageTopic = this.safeString2(message, 'topic', 'group');
+        const messageTopic = this.safeString2(message, 'topic', 'group', '');
         const unSubMessageTopic = 'unsubscribe::' + messageTopic;
         // one message includes info about one unsubscription only even if we requested multiple
         // so we can not just create subscription object in unWatch method and use it here
@@ -1950,11 +2010,11 @@ class bitmart extends bitmart$1["default"] {
     }
     getUnSubParams(messageTopic) {
         const parts = messageTopic.split(':');
-        const channel = this.safeString(parts, 0);
+        const channel = this.safeString(parts, 0, '');
         const marketTypeAndTopic = channel.split('/');
         const rawMarketType = this.safeStringLower(marketTypeAndTopic, 0);
         const marketType = this.parseMarketType(rawMarketType);
-        let topic = this.safeString(marketTypeAndTopic, 1);
+        let topic = this.safeString(marketTypeAndTopic, 1, '');
         const thirdPart = this.safeString(marketTypeAndTopic, 2);
         if (thirdPart !== undefined) {
             topic += '/' + thirdPart;
@@ -2098,7 +2158,7 @@ class bitmart extends bitmart$1["default"] {
             }
         }
         else {
-            const channel = this.safeString2(message, 'table', 'group');
+            const channel = this.safeString2(message, 'table', 'group', '');
             const methods = {
                 'depth': this.handleOrderBook,
                 'bookTicker': this.handleBidAsk,

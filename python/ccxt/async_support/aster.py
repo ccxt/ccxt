@@ -49,12 +49,11 @@ class aster(Exchange, ImplicitAPI):
             # 150 req/s for subscribers: https://aster.markets/data
             # for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
-            'hostname': 'aster.markets',
             'certified': False,
             'pro': True,
             'dex': True,
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo': 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
                     'fapiPublic': 'https://fapi.asterdex.com/fapi',
@@ -71,9 +70,9 @@ class aster(Exchange, ImplicitAPI):
             },
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': True,
@@ -1297,7 +1296,7 @@ class aster(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3899,7 +3898,7 @@ class aster(Exchange, ImplicitAPI):
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
-        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+        url = self.urls['api'][api] + '/' + path
         if api == 'fapiPublic' or api == 'sapiPublic':
             if params:
                 url += '?' + self.rawencode(params)

@@ -277,7 +277,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 Object id = this.safeString(market, "product_code");
-                Object currencies = Helpers.split(id, "_");
+                Object currencies = Helpers.split(((String)id), "_");
                 Object marketType = this.safeString(market, "market_type");
                 Object swap = (Helpers.isEqual(marketType, "FX"));
                 Object future = (Helpers.isEqual(marketType, "Futures"));
@@ -304,18 +304,18 @@ public class BitflyerCore extends BitflyerApi
                         // no alias:
                         // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                         // TODO this will break if there are products with 4 chars
-                        baseId = Helpers.slice(id, 0, 3);
-                        quoteId = Helpers.slice(id, 3, 6);
+                        baseId = Helpers.slice(((String)id), 0, 3);
+                        quoteId = Helpers.slice(((String)id), 3, 6);
                         // last 9 chars are expiry date
-                        Object expiryDate = Helpers.slice(id, Helpers.opNeg(9), null);
+                        Object expiryDate = Helpers.slice(((String)id), Helpers.opNeg(9), null);
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
                         Object splitAlias = Helpers.split(alias, "_");
                         Object currencyIds = this.safeString(splitAlias, 0);
-                        baseId = Helpers.slice(currencyIds, 0, Helpers.opNeg(3));
-                        quoteId = Helpers.slice(currencyIds, Helpers.opNeg(3), null);
-                        Object splitId = Helpers.split(id, currencyIds);
+                        baseId = Helpers.slice(((String)currencyIds), 0, Helpers.opNeg(3));
+                        quoteId = Helpers.slice(((String)currencyIds), Helpers.opNeg(3), null);
+                        Object splitId = Helpers.split(((String)id), ((String)currencyIds));
                         Object expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);
                     }
@@ -471,7 +471,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -732,7 +732,7 @@ public class BitflyerCore extends BitflyerApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_code", BitflyerCore.this.marketId(symbol) );
                 put( "child_order_type", ((String)type).toUpperCase() );
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)((String)side)).toUpperCase() );
                 put( "price", price );
                 put( "size", amount );
             }};
@@ -794,7 +794,7 @@ public class BitflyerCore extends BitflyerApi
             put( "EXPIRED", "canceled" );
             put( "REJECTED", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)

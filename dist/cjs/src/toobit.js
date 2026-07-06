@@ -83,7 +83,7 @@ class toobit extends toobit$1["default"] {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
+                'logo': 'https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
@@ -599,8 +599,10 @@ class toobit extends toobit$1["default"] {
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const parsed = this.parseCurrency(coin);
-            const code = parsed['code'];
-            result[code] = parsed;
+            if (parsed !== undefined) {
+                const code = parsed['code'];
+                result[code] = parsed;
+            }
         }
         return result;
     }
@@ -811,13 +813,15 @@ class toobit extends toobit$1["default"] {
         for (let i = 0; i < all.length; i++) {
             const market = all[i];
             const parsed = this.parseMarket(market);
-            result.push(parsed);
+            if (parsed !== undefined) {
+                result.push(parsed);
+            }
         }
         return result;
     }
     parseMarket(market) {
         const id = this.safeString(market, 'symbol');
-        const baseId = this.safeString(market, 'baseAsset');
+        const baseId = this.safeString(market, 'baseAsset', '');
         const quoteId = this.safeString(market, 'quoteAsset');
         const baseParts = baseId.split('-');
         const baseIdClean = baseParts[0];
@@ -897,10 +901,12 @@ class toobit extends toobit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -952,7 +958,9 @@ class toobit extends toobit$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1089,7 +1097,9 @@ class toobit extends toobit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1106,7 +1116,7 @@ class toobit extends toobit$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response = [];
         let endpoint = undefined;
         [endpoint, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
@@ -1202,16 +1212,20 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let type = undefined;
         let market = undefined;
         const request = {};
         if (symbols !== undefined) {
             const symbol = this.safeString(symbols, 0);
-            market = this.market(symbol);
+            if (symbol !== undefined) {
+                market = this.market(symbol);
+            }
             const length = symbols.length;
-            if (length === 1) {
+            if ((length === 1) && (market !== undefined)) {
                 request['symbol'] = market['id'];
             }
         }
@@ -1280,7 +1294,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         if (symbols !== undefined) {
@@ -1324,7 +1340,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         if (symbols !== undefined) {
@@ -1379,7 +1397,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         if (symbols !== undefined) {
@@ -1440,11 +1460,16 @@ class toobit extends toobit$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market(symbol);
         const request = {
@@ -1486,7 +1511,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let response = undefined;
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
@@ -1558,10 +1585,12 @@ class toobit extends toobit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {};
-        let response = undefined;
+        let response = {};
         if (market['spot']) {
             [request, params] = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder(this.extend(request, params));
@@ -1597,6 +1626,9 @@ class toobit extends toobit$1["default"] {
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const id = market['id'];
         const request = {
             'symbol': id,
@@ -1811,6 +1843,9 @@ class toobit extends toobit$1["default"] {
             'CANCELED': 'canceled',
             'REJECTED': 'canceled',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrderType(status) {
@@ -1819,6 +1854,9 @@ class toobit extends toobit$1["default"] {
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     /**
@@ -1847,7 +1885,7 @@ class toobit extends toobit$1["default"] {
         if (marketType === 'none') {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        let response = undefined;
+        let response = {};
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder(this.extend(request, params));
         }
@@ -1872,7 +1910,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1915,7 +1955,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const idsString = ids.join(',');
         const request = {
             'ids': idsString,
@@ -1973,12 +2015,14 @@ class toobit extends toobit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': id,
         };
         const market = this.market(symbol);
-        let response = undefined;
+        let response = {};
         if (market['spot']) {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, params));
         }
@@ -2028,7 +2072,9 @@ class toobit extends toobit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2040,7 +2086,7 @@ class toobit extends toobit$1["default"] {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
-        let response = undefined;
+        let response = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, params));
             //
@@ -2088,7 +2134,9 @@ class toobit extends toobit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2104,7 +2152,7 @@ class toobit extends toobit$1["default"] {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
-        let response = undefined;
+        let response = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotTradeOrders(request);
             //
@@ -2153,7 +2201,9 @@ class toobit extends toobit$1["default"] {
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // returns the most recent closed or canceled orders up to circa two weeks ago
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2166,7 +2216,7 @@ class toobit extends toobit$1["default"] {
         [request, params] = this.handleUntilOption('endTime', request, params);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
-        let response = undefined;
+        let response = [];
         if (marketType === 'spot') {
             throw new errors.NotSupported(this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
         }
@@ -2222,7 +2272,9 @@ class toobit extends toobit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2235,7 +2287,7 @@ class toobit extends toobit$1["default"] {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         [request, params] = this.handleUntilOption('endTime', request, params);
-        let response = undefined;
+        let response = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountTrades(this.extend(request, params));
             //
@@ -2302,7 +2354,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2355,7 +2409,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         let request = {};
         if (code !== undefined) {
@@ -2403,7 +2459,7 @@ class toobit extends toobit$1["default"] {
         currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'created');
         const after = this.safeNumber(item, 'total');
-        const amountRaw = this.safeString(item, 'change');
+        const amountRaw = this.safeString(item, 'change', '');
         const amount = this.parseNumber(Precise["default"].stringAbs(amountRaw));
         let direction = 'in';
         if (amountRaw.startsWith('-')) {
@@ -2443,7 +2499,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let response = undefined;
         let marketType = undefined;
         let market = undefined;
@@ -2519,7 +2577,9 @@ class toobit extends toobit$1["default"] {
         return await this.fetchDepositsOrWithdrawalsHelper('withdrawals', code, since, limit, params);
     }
     async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         let request = {};
         if (code !== undefined) {
@@ -2533,7 +2593,7 @@ class toobit extends toobit$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response = [];
         if (type === 'deposits') {
             response = await this.privateGetApiV1AccountDepositOrders(this.extend(request, params));
             //
@@ -2679,6 +2739,9 @@ class toobit extends toobit$1["default"] {
             '11': 'failed',
             '3': 'ok',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     /**
@@ -2691,7 +2754,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2745,7 +2810,9 @@ class toobit extends toobit$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' withdraw() : param["network"] is required');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2783,7 +2850,9 @@ class toobit extends toobit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['type'] !== 'swap') {
             throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap contracts only');
@@ -2813,7 +2882,9 @@ class toobit extends toobit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2835,7 +2906,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2876,7 +2949,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {

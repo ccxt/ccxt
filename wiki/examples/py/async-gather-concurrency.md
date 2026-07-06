@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -70,6 +74,6 @@ async def main():
     await asyncio.wait(tasks)
 
 
-asyncio.run(main())
+run(main())
 
 ```

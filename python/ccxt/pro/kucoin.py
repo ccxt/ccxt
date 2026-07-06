@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -27,6 +27,8 @@ class kucoin(ccxt.async_support.kucoin):
                 'cancelOrdersWs': False,
                 'cancelAllOrdersWs': False,
                 'watchBidsAsks': True,
+                'watchFundingRate': True,
+                'watchMarkPrice': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchPosition': True,
@@ -39,6 +41,8 @@ class kucoin(ccxt.async_support.kucoin):
                 'watchOrderBookForSymbols': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
+                'unWatchFundingRate': True,
+                'unWatchMarkPrice': True,
                 'unWatchTicker': True,
                 'unWatchOHLCV': True,
                 'unWatchOrderBook': True,
@@ -602,6 +606,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_uta_ticker(self, client: Client, message):
         #
+        # watchTicker
         #     {
         #         "T": "ticker.SPOT",
         #         "P": "1774100940787520626",
@@ -619,6 +624,19 @@ class kucoin(ccxt.async_support.kucoin):
         #         }
         #     }
         #
+        # watchMarkPrice
+        #     {
+        #         "T": "mark-price",
+        #         "P": "1782834987171570181",
+        #         "d": {
+        #             "s": "ETHUSDTM",
+        #             "mp": "1569.15",
+        #             "ip": "1569.87",
+        #             "oi": "50541824",
+        #             "ts": 1782834987000
+        #         }
+        #     }
+        #
         data = self.safe_dict(message, 'd', {})
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId)
@@ -630,7 +648,9 @@ class kucoin(ccxt.async_support.kucoin):
     def parse_ws_uta_ticker(self, ticker, market: Market = None):
         symbol = self.safe_string(market, 'symbol')
         market = self.safe_market(symbol, market)
-        timestamp = self.safe_integer_product(ticker, 'M', 0.000001)
+        timestamp = self.safe_integer(ticker, 'ts')
+        if timestamp is None:
+            timestamp = self.safe_integer_product(ticker, 'M', 0.000001)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -651,7 +671,8 @@ class kucoin(ccxt.async_support.kucoin):
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
-            'markPrice': None,
+            'markPrice': self.safe_string(ticker, 'mp'),
+            'indexPrice': self.safe_string(ticker, 'ip'),
             'info': ticker,
         }, market)
 
@@ -1267,7 +1288,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         #
         # https://docs.kucoin.com/#level-2-market-data
@@ -1321,7 +1342,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         uta = False
         uta, params = self.handle_option_and_params(params, 'unWatchOrderBook', 'uta', uta)
@@ -1362,7 +1383,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -1416,7 +1437,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         limit = self.safe_integer(params, 'limit')
         params = self.omit(params, 'limit')
@@ -1691,7 +1712,16 @@ class kucoin(ccxt.async_support.kucoin):
                 messageHash = messageHashes[i]
                 subHash = subMessageHashes[i]
                 self.clean_unsubscription(client, subHash, messageHash)
-            self.clean_cache(subscription)
+            topic = self.safe_string(subscription, 'topic')
+            if topic == 'fundingRate':
+                # todo: add fundingRate topic to cleanCache
+                symbols = self.safe_list(subscription, 'symbols', [])
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
+                    if symbol in self.fundingRates:
+                        del self.fundingRates[symbol]
+            else:
+                self.clean_cache(subscription)
 
     def handle_system_status(self, client: Client, message):
         #
@@ -2871,6 +2901,146 @@ class kucoin(ccxt.async_support.kucoin):
             'takeProfitPrice': None,
         })
 
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        watch the current funding rate
+
+        https://www.kucoin.com/docs-new/3470270w0
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'funding-fee'
+        messageHash = 'fundingRate:' + symbol
+        return await self.subscribe_public_uta(messageHash, channel, symbol, params)
+
+    async def un_watch_funding_rate(self, symbol: str, params={}) -> Any:
+        """
+        unWatches the current funding rate for a symbol
+
+        https://www.kucoin.com/docs-new/3470270w0
+
+        :param str symbol: unified symbol of the market
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'funding-fee'
+        subMessageHash = 'fundingRate:' + symbol
+        unSubMessageHash = 'unsubscribe:' + subMessageHash
+        subscription = {
+            'symbols': [symbol],
+            'topic': 'fundingRate',
+            'unsubscribe': True,
+            'subMessageHashes': [subMessageHash],
+            'messageHashes': [unSubMessageHash],
+        }
+        return await self.subscribe_public_uta(unSubMessageHash, channel, symbol, params, subscription)
+
+    def handle_uta_funding_rate(self, client: Client, message):
+        #
+        #     {
+        #         "T": "funding-fee",
+        #         "P": "1782831961172694254",
+        #         "d": {
+        #             "s": "ETHUSDTM",
+        #             "fr": "0.000035",
+        #             "ft": 1782806400000,
+        #             "nt": 1782835200000,
+        #             "gl": 28800000,
+        #             "fc": "0.00375",
+        #             "ff": "-0.00375"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(message, 'd', {})
+        fundingRate = self.parse_ws_funding_rate(data)
+        symbol = fundingRate['symbol']
+        self.fundingRates[symbol] = fundingRate
+        messageHash = 'fundingRate:' + symbol
+        client.resolve(fundingRate, messageHash)
+
+    def parse_ws_funding_rate(self, data, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "s": "ETHUSDTM",
+        #         "fr": "0.000035",
+        #         "ft": 1782806400000,
+        #         "nt": 1782835200000,
+        #         "gl": 28800000,
+        #         "fc": "0.00375",
+        #         "ff": "-0.00375"
+        #     }
+        #
+        fundingTimestamp = self.safe_integer(data, 'ft')
+        nextFundingTimestamp = self.safe_integer(data, 'nt')
+        marketId = self.safe_string(data, 's')
+        granularity = self.safe_string(data, 'gl')
+        return {
+            'info': data,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(data, 'fr'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': self.parseFundingInterval(granularity),
+        }
+
+    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        watches a mark price for a specific market
+
+        https://www.kucoin.com/docs-new/3470272w0
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'mark-price'
+        messageHash = 'uta:ticker:' + symbol
+        return await self.subscribe_public_uta(messageHash, channel, symbol, params)
+
+    async def un_watch_mark_price(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a mark price for a specific market
+
+        https://www.kucoin.com/docs-new/3470272w0
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'mark-price'
+        subMessageHash = 'uta:ticker:' + symbol
+        unSubMessageHash = 'unsubscribe:' + subMessageHash
+        subscription = {
+            'symbols': [symbol],
+            'topic': 'ticker',
+            'unsubscribe': True,
+            'subMessageHashes': [subMessageHash],
+            'messageHashes': [unSubMessageHash],
+        }
+        return await self.subscribe_public_uta(unSubMessageHash, channel, symbol, params, subscription)
+
     def handle_subject(self, client: Client, message):
         #
         #     {
@@ -2951,6 +3121,8 @@ class kucoin(ccxt.async_support.kucoin):
             'positionAll.UNIFIED': self.handle_uta_position,
             'positionAll.FUTURES': self.handle_uta_position,
             'balance.UNIFIED': self.handle_uta_balance,
+            'funding-fee': self.handle_uta_funding_rate,
+            'mark-price': self.handle_uta_ticker,
         }
         method = self.safe_value(methods, subject)
         if method is not None:

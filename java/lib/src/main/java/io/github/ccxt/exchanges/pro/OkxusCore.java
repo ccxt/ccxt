@@ -41,7 +41,7 @@ public class OkxusCore extends io.github.ccxt.exchanges.Okxus
                 }} );
             }} );
             put( "has", new java.util.HashMap<String, Object>() {{
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
             }} );

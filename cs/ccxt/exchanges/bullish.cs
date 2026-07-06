@@ -18,7 +18,7 @@ public partial class bullish : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
@@ -906,7 +906,7 @@ public partial class bullish : Exchange
             { "DATED_FUTURE", "future" },
             { "OPTION", "option" },
         };
-        return this.safeString(types, type, defaultType);
+        return this.safeString(types, ((string)type), defaultType);
     }
 
     /**
@@ -917,7 +917,7 @@ public partial class bullish : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1568,7 +1568,7 @@ public partial class bullish : Exchange
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(isEqual(method, "privateGetV2Orders")))
         {
             //
@@ -1852,7 +1852,7 @@ public partial class bullish : Exchange
         object request = new Dictionary<string, object>() {
             { "commandType", "V3CreateOrder" },
             { "symbol", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "tradingAccountId", tradingAccountId },
         };
@@ -2149,7 +2149,7 @@ public partial class bullish : Exchange
             { "CANCELLED", "canceled" },
             { "REJECTED", "rejected" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseOrderType(object type)
@@ -2160,7 +2160,7 @@ public partial class bullish : Exchange
             { "POST_ONLY", "limit" },
             { "STOP_LIMIT", "limit" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -2383,7 +2383,7 @@ public partial class bullish : Exchange
             { "PENDING", "pending" },
             { "CANCELLED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public async virtual Task<object> loadAccount(object parameters = null)
@@ -2658,7 +2658,7 @@ public partial class bullish : Exchange
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "availableQuantity");
         ((IDictionary<string,object>)account)["used"] = this.safeString(response, "lockedQuantity");
-        ((IDictionary<string,object>)result)[(string)code] = account;
+        ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         return this.safeBalance(result);
     }
 
@@ -2788,7 +2788,7 @@ public partial class bullish : Exchange
             { "BUY", "long" },
             { "SELL", "short" },
         };
-        return this.safeString(sides, side, side);
+        return this.safeString(sides, ((string)side), side);
     }
 
     /**
@@ -3252,9 +3252,9 @@ public partial class bullish : Exchange
         object token = this.safeString(response, "token");
         object authorizer = this.safeString(response, "authorizer");
         ((IDictionary<string,object>)this.options)["authorizer"] = authorizer;
-        this.token = token;
+        this.token = ((string)token);
         ((IDictionary<string,object>)this.options)["tokenExpires"] = this.sum(this.milliseconds(), multiply(multiply(multiply(1000, 60), 60), 24)); // token expires in 24 hours
-        return token;
+        return ((string)token);
     }
 
     public async virtual Task<object> handleToken(object parameters = null)
@@ -3302,7 +3302,7 @@ public partial class bullish : Exchange
                 message = errorCodeName;
             } else
             {
-                message = type;
+                message = ((string)type);
             }
             object feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

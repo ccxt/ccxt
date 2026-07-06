@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -58,7 +58,7 @@ class extended(ccxt.async_support.extended):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.depth]: set to '1' to receive best bid and ask snapshots only
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -134,7 +134,7 @@ class extended(ccxt.async_support.extended):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_private(self, messageHash: str, subscription=None):
+    async def watch_private(self, messageHash: str, subscription: dict = None):
         self.check_required_credentials()
         url = self.urls['api']['ws'] + '/account'
         if (self.clients is None) or not (url in self.clients):
@@ -449,8 +449,8 @@ class extended(ccxt.async_support.extended):
         first = self.safe_dict(rawOrders, 0)
         if first is None:
             return
-        for i in range(0, len(rawOrders)):
-            order = self.parse_order(rawOrders[i])
+        for i in range(0, len((rawOrders))):
+            order = self.parse_order((rawOrders)[i])
             symbol = self.safe_string(order, 'symbol')
             symbols[symbol] = True
             orders.append(order)
@@ -507,7 +507,7 @@ class extended(ccxt.async_support.extended):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_ws_funding_rate(self, fundingRate, market=None, message=None) -> FundingRate:
+    def parse_ws_funding_rate(self, fundingRate, market: Market = None, message=None) -> FundingRate:
         marketId = self.safe_string(fundingRate, 'm')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(message, 'ts')

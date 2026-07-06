@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
         {
             object success = true;
             object shouldReturn = false;
-            object response = null;
+            object response = new Dictionary<string, object>() {};
             try
             {
                 response = await exchange.watchBidsAsks(argSymbols, argParams);

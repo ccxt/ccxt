@@ -22,7 +22,7 @@ public partial class kucoin : Exchange
                 { "spot", true },
                 { "margin", true },
                 { "swap", true },
-                { "future", false },
+                { "future", true },
                 { "option", false },
                 { "addMargin", true },
                 { "borrowCrossMargin", true },
@@ -67,7 +67,7 @@ public partial class kucoin : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
-                { "fetchIndexOHLCV", false },
+                { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchL3OrderBook", true },
@@ -78,7 +78,7 @@ public partial class kucoin : Exchange
                 { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
-                { "fetchMarkOHLCV", false },
+                { "fetchMarkOHLCV", true },
                 { "fetchMarkPrice", true },
                 { "fetchMarkPrices", true },
                 { "fetchMyTrades", true },
@@ -99,7 +99,7 @@ public partial class kucoin : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsADLRank", true },
                 { "fetchPositionsHistory", true },
-                { "fetchPremiumIndexOHLCV", false },
+                { "fetchPremiumIndexOHLCV", true },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -506,6 +506,8 @@ public partial class kucoin : Exchange
                         { "market/open-interest", 20 },
                         { "server/status", 6 },
                         { "market/borrowable-currency", 30 },
+                        { "user/my-ip", 20 },
+                        { "market/fiat-price", 6 },
                     } },
                 } },
                 { "utaPrivate", new Dictionary<string, object>() {
@@ -1466,7 +1468,7 @@ public partial class kucoin : Exchange
             ((IList<object>)promises).Add(this.loadMigrationStatus());
         }
         object responses = await promiseAll(promises);
-        object symbolsData = ((bool) isTrue(fetchSpotMarkets)) ? this.safeList(getValue(responses, 0), "data") : new List<object>() {};
+        object symbolsData = ((bool) isTrue(fetchSpotMarkets)) ? this.safeList(getValue(responses, 0), "data", new List<object>() {}) : new List<object>() {};
         object crossIndex = 0;
         object isolatedIndex = 0;
         object tickersIndex = 0;
@@ -1505,6 +1507,10 @@ public partial class kucoin : Exchange
         {
             object market = getValue(symbolsData, i);
             object id = this.safeString(market, "symbol");
+            if (isTrue(isEqual(id, null)))
+            {
+                continue;
+            }
             var baseIdquoteIdVariable = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
             var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
@@ -2374,7 +2380,7 @@ public partial class kucoin : Exchange
         //
         object defaultType = this.safeString2(this.options, methodName, "defaultType", "trade");
         object requestedType = this.safeString(parameters, "type", defaultType);
-        object accountsByType = this.safeDict(this.options, "accountsByType");
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object type = this.safeString(accountsByType, requestedType);
         if (isTrue(isEqual(type, null)))
         {
@@ -2442,28 +2448,53 @@ public partial class kucoin : Exchange
         //         "time": 1634641777363
         //     }
         //
-        // uta
+        // uta spot
+        //     {
+        //         "symbol": "ETH-USDT",
+        //         "name": "ETH-USDT",
+        //         "bestBidSize": "2.8893176",
+        //         "bestBidPrice": "1566.24",
+        //         "bestAskSize": "2.4373857",
+        //         "bestAskPrice": "1566.25",
+        //         "lastPrice": "1565.87",
+        //         "size": "0.0384399",
+        //         "open": "1572.96",
+        //         "high": "1637.4",
+        //         "low": "1550.41",
+        //         "baseVolume": "101560.01156957747448132256",
+        //         "quoteVolume": "161467045.65271628672329459176",
+        //         "priceChange": "-7.09",
+        //         "priceChangePercent": "-0.0045"
+        //     }
+        //
+        // uta swap
         //
         //     {
-        //         "symbol": "BTC-USDT",
-        //         "name": "BTC-USDT",
-        //         "bestBidSize": "0.69207954",
-        //         "bestBidPrice": "110417.5",
-        //         "bestAskSize": "0.08836606",
-        //         "bestAskPrice": "110417.6",
-        //         "lastPrice": "110417.5",
-        //         "size": "0.00016",
-        //         "open": "110105.1",
-        //         "high": "110838.9",
-        //         "low": "109705.5",
-        //         "baseVolume": "1882.10069442",
-        //         "quoteVolume": "207325626.822922498"
+        //         "symbol": "ETHUSDTM",
+        //         "bestBidSize": "4",
+        //         "bestBidPrice": "1573.45",
+        //         "bestAskSize": "43",
+        //         "bestAskPrice": "1573.46",
+        //         "lastPrice": "1573.63",
+        //         "size": "1",
+        //         "open": "1570.09",
+        //         "high": "1637.08",
+        //         "low": "1549.63",
+        //         "baseVolume": "282920.90",
+        //         "quoteVolume": "449940743.674",
+        //         "priceChange": "3.54",
+        //         "priceChangePercent": "0.2255",
+        //         "indexPrice": "1572.67",
+        //         "markPrice": "1572.68"
         //     }
         //
         object percentage = this.safeString(ticker, "changeRate");
         if (isTrue(!isEqual(percentage, null)))
         {
             percentage = Precise.stringMul(percentage, "100");
+        } else
+        {
+            percentage = this.safeString(ticker, "priceChangePercent");
         }
         object last = this.safeStringN(ticker, new List<object>() {"last", "lastTradedPrice", "lastPrice"});
         last = this.safeString(ticker, "price", last);
@@ -2488,12 +2519,13 @@ public partial class kucoin : Exchange
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(ticker, "changePrice") },
+            { "change", this.safeString2(ticker, "changePrice", "priceChange") },
             { "percentage", percentage },
             { "average", this.safeString(ticker, "averagePrice") },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
-            { "markPrice", this.safeString(ticker, "value") },
+            { "markPrice", this.safeString2(ticker, "markPrice", "value") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
@@ -2630,6 +2662,10 @@ public partial class kucoin : Exchange
             { "margin", "MARGIN" },
             { "swap", "FUTURES" },
         };
+        if (isTrue(isEqual(type, null)))
+        {
+            return null;
+        }
         return this.safeString(tradeTypes, type, type);
     }
 
@@ -2662,7 +2698,10 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object firstSymbol = this.safeString(symbols, 0);
-            firstMarket = this.market(firstSymbol);
+            if (isTrue(!isEqual(firstSymbol, null)))
+            {
+                firstMarket = this.market(firstSymbol);
+            }
         }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", firstMarket, parameters);
@@ -2839,23 +2878,26 @@ public partial class kucoin : Exchange
             //     {
             //         "code": "200000",
             //         "data": {
-            //             "tradeType": "SPOT",
-            //             "ts": 1762061290067,
+            //             "tradeType": "FUTURES",
+            //             "ts": 1782828116206000000,
             //             "list": [
             //                 {
-            //                     "symbol": "BTC-USDT",
-            //                     "name": "BTC-USDT",
-            //                     "bestBidSize": "0.69207954",
-            //                     "bestBidPrice": "110417.5",
-            //                     "bestAskSize": "0.08836606",
-            //                     "bestAskPrice": "110417.6",
-            //                     "lastPrice": "110417.5",
-            //                     "size": "0.00016",
-            //                     "open": "110105.1",
-            //                     "high": "110838.9",
-            //                     "low": "109705.5",
-            //                     "baseVolume": "1882.10069442",
-            //                     "quoteVolume": "207325626.822922498"
+            //                     "symbol": "ETHUSDTM",
+            //                     "bestBidSize": "4",
+            //                     "bestBidPrice": "1573.45",
+            //                     "bestAskSize": "43",
+            //                     "bestAskPrice": "1573.46",
+            //                     "lastPrice": "1573.63",
+            //                     "size": "1",
+            //                     "open": "1570.09",
+            //                     "high": "1637.08",
+            //                     "low": "1549.63",
+            //                     "baseVolume": "282920.90",
+            //                     "quoteVolume": "449940743.674",
+            //                     "priceChange": "3.54",
+            //                     "priceChangePercent": "0.2255",
+            //                     "indexPrice": "1572.67",
+            //                     "markPrice": "1572.68"
             //                 }
             //             ]
             //         }
@@ -3001,6 +3043,11 @@ public partial class kucoin : Exchange
         var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
+        object priceType = this.safeString(parameters, "price");
+        if (isTrue(isTrue((!isEqual(priceType, null))) && isTrue((!isTrue(uta)))))
+        {
+            uta = true; // mark, index, premiumIndex price types are only available for UTA
+        }
         if (isTrue(uta))
         {
             return await this.fetchUTAOHLCV(symbol, timeframe, since, limit, parameters);
@@ -3074,6 +3121,24 @@ public partial class kucoin : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
+        }
+        object priceType = null;
+        var priceTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "price", priceType);
+        priceType = ((IList<object>)priceTypeparametersVariable)[0];
+        parameters = ((IList<object>)priceTypeparametersVariable)[1];
+        if (isTrue(!isEqual(priceType, null)))
+        {
+            object priceTypes = new Dictionary<string, object>() {
+                { "mark", "mark-price" },
+                { "index", "index-price" },
+                { "premiumIndex", "premium-index" },
+            };
+            object suffix = this.safeString(priceTypes, priceType);
+            if (isTrue(isEqual(suffix, null)))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
+            }
+            ((IDictionary<string,object>)request)["symbol"] = add(add(getValue(market, "id"), "-"), suffix);
         }
         object response = await this.utaGetMarketKline(this.extend(request, parameters));
         //
@@ -3509,7 +3574,7 @@ public partial class kucoin : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -4047,7 +4112,11 @@ public partial class kucoin : Exchange
             {
                 throw new InvalidOrder ((string)add(this.id, " createOrder() minimum contract order amount is 1")) ;
             }
-            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+            object sizeString = this.amountToPrecision(symbol, amount);
+            if (isTrue(!isEqual(sizeString, null)))
+            {
+                ((IDictionary<string,object>)request)["size"] = parseInt(sizeString);
+            }
         }
         var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
@@ -4228,6 +4297,10 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object isSpot = getValue(market, "spot");
         object isContract = getValue(market, "contract");
         object accountMode = "unified";
@@ -4239,7 +4312,6 @@ public partial class kucoin : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object marginModeDefined = (!isEqual(marginMode, null));
         object tradeType = this.handleTradeType(isContract, marginMode, isUnified, parameters);
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
         parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
@@ -4303,7 +4375,7 @@ public partial class kucoin : Exchange
         {
             if (!isTrue(isUnified))
             {
-                if (isTrue(marginModeDefined))
+                if (isTrue(!isEqual(marginMode, null)))
                 {
                     ((IDictionary<string,object>)request)["marginMode"] = ((string)marginMode).ToUpper();
                     if (isTrue(isEqual(marginMode, "isolated")))
@@ -4479,6 +4551,10 @@ public partial class kucoin : Exchange
         {
             object order = this.safeDict(orders, i);
             object symbol = this.safeString(order, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires a symbol for each order")) ;
+            }
             object market = this.market(symbol);
             if (isTrue(getValue(market, "spot")))
             {
@@ -4526,6 +4602,10 @@ public partial class kucoin : Exchange
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
+            if (isTrue(isEqual(marketId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires a symbol for each order")) ;
+            }
             if (isTrue(isEqual(symbol, null)))
             {
                 symbol = marketId;
@@ -4547,6 +4627,10 @@ public partial class kucoin : Exchange
             object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
             object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires at least one order with a symbol")) ;
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -4625,13 +4709,16 @@ public partial class kucoin : Exchange
         {
             object rawOrder = getValue(orders, i);
             object symbol = this.safeString(rawOrder, "symbol");
-            object market = this.market(symbol);
-            object type = this.safeString(rawOrder, "type");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires a symbol for each order")) ;
+            }
+            object type = this.safeString(rawOrder, "type", "");
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createContractOrderRequest(getValue(market, "id"), type, side, amount, price, orderParams);
+            object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object response = await this.futuresPrivatePostOrdersMulti(ordersRequests);
@@ -4904,7 +4991,7 @@ public partial class kucoin : Exchange
                 //        }
                 //    }
                 //
-                response = this.safeDict(response, "data");
+                response = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 return this.parseOrder(response);
             } else
             {
@@ -5835,6 +5922,10 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires an id argument")) ;
+        }
         object uta = await this.isUTAEnabled();
         var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -6059,7 +6150,7 @@ public partial class kucoin : Exchange
         //     }
         //
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object responseData = this.safeDict(response, "data");
+        object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(responseData, market);
     }
 
@@ -6655,6 +6746,10 @@ public partial class kucoin : Exchange
             { "FOK", "FOK" },
             { "GTT", "GTD" },
         };
+        if (isTrue(isEqual(timeInForce, null)))
+        {
+            return null;
+        }
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
@@ -6669,6 +6764,10 @@ public partial class kucoin : Exchange
             { "5", "canceled" },
             { "6", "closed" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -6788,7 +6887,7 @@ public partial class kucoin : Exchange
         if (isTrue(isMargin))
         {
             hf = true;
-            ((IDictionary<string,object>)request)["tradeType"] = this.safeString(getValue(this.options, "marginModes"), marginMode, marginMode);
+            ((IDictionary<string,object>)request)["tradeType"] = ((bool) isTrue((isEqual(marginMode, null)))) ? null : this.safeString(getValue(this.options, "marginModes"), marginMode, marginMode);
         }
         if (isTrue(isTrue(hf) && isTrue(isEqual(symbol, null))))
         {
@@ -7685,7 +7784,11 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, getValue(currency, "code"))).ToLower();
         }
-        ((IDictionary<string,object>)request)["amount"] = parseFloat(this.currencyToPrecision(code, amount, networkCode));
+        object amountString = this.currencyToPrecision(code, amount, networkCode);
+        if (isTrue(!isEqual(amountString, null)))
+        {
+            ((IDictionary<string,object>)request)["amount"] = parseFloat(amountString);
+        }
         object includeFee = null;
         var includeFeeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "includeFee", false);
         includeFee = ((IList<object>)includeFeeparametersVariable)[0];
@@ -7717,6 +7820,10 @@ public partial class kucoin : Exchange
             { "WALLET_PROCESSING", "pending" },
             { "FAILURE", "failed" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -8365,7 +8472,6 @@ public partial class kucoin : Exchange
         //        }
         //    }
         //
-        object data = null;
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -8373,7 +8479,7 @@ public partial class kucoin : Exchange
         };
         if (isTrue(isolated))
         {
-            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object assets = this.safeValue(data, "assets", data);
             for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
             {
@@ -8391,7 +8497,7 @@ public partial class kucoin : Exchange
             }
         } else if (isTrue(cross))
         {
-            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object accounts = this.safeList(data, "accounts", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
             {
@@ -8402,7 +8508,7 @@ public partial class kucoin : Exchange
             }
         } else
         {
-            data = this.safeList(response, "data", new List<object>() {});
+            object data = this.safeList(response, "data", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object balance = getValue(data, i);
@@ -8445,6 +8551,10 @@ public partial class kucoin : Exchange
         object fetchBalanceOptions = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
         defaultCode = this.safeString(fetchBalanceOptions, "code", defaultCode);
         object code = this.safeString(parameters, "code", defaultCode);
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchContractBalance() requires a code parameter")) ;
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -8725,8 +8835,9 @@ public partial class kucoin : Exchange
         ((IDictionary<string,object>)request)["clientOid"] = clientOid;
         object fromId = this.convertTypeToAccount(fromAccount);
         object toId = this.convertTypeToAccount(toAccount);
-        object fromIsolated = this.inArray(fromId, this.ids);
-        object toIsolated = this.inArray(toId, this.ids);
+        object exchangeIds = ((bool) isTrue((isEqual(this.ids, null)))) ? new List<object>() {} : this.ids;
+        object fromIsolated = this.inArray(fromId, exchangeIds);
+        object toIsolated = this.inArray(toId, exchangeIds);
         if (isTrue(fromIsolated))
         {
             ((IDictionary<string,object>)request)["fromAccountSymbol"] = fromId;
@@ -8814,8 +8925,9 @@ public partial class kucoin : Exchange
         }
         object fromId = this.convertTypeToAccount(fromAccount);
         object toId = this.convertTypeToAccount(toAccount);
-        object fromIsolated = this.inArray(fromId, this.ids);
-        object toIsolated = this.inArray(toId, this.ids);
+        object exchangeIds = ((bool) isTrue((isEqual(this.ids, null)))) ? new List<object>() {} : this.ids;
+        object fromIsolated = this.inArray(fromId, exchangeIds);
+        object toIsolated = this.inArray(toId, exchangeIds);
         if (isTrue(fromIsolated))
         {
             ((IDictionary<string,object>)request)["fromAccountTag"] = fromId;
@@ -8958,8 +9070,8 @@ public partial class kucoin : Exchange
             accountToRaw = this.safeStringLower(transfer, "recAccountType");
         }
         object accountsByType = this.safeDict(this.options, "accountsByType");
-        object accountFrom = this.safeString(accountsByType, accountFromRaw, accountFromRaw);
-        object accountTo = this.safeString(accountsByType, accountToRaw, accountToRaw);
+        object accountFrom = ((bool) isTrue((isEqual(accountFromRaw, null)))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
+        object accountTo = ((bool) isTrue((isEqual(accountToRaw, null)))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
         return new Dictionary<string, object>() {
             { "id", this.safeStringN(transfer, new List<object>() {"id", "applyId", "orderId"}) },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
@@ -8978,6 +9090,10 @@ public partial class kucoin : Exchange
         object statuses = new Dictionary<string, object>() {
             { "PROCESSING", "pending" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -9154,7 +9270,8 @@ public partial class kucoin : Exchange
             }
         }
         object fee = null;
-        object feeCost = this.omitZero(this.safeString(item, "fee"));
+        object feeCostString = this.safeString(item, "fee");
+        object feeCost = ((bool) isTrue((isEqual(feeCostString, null)))) ? null : this.omitZero(feeCostString);
         object feeCurrency = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -10152,7 +10269,7 @@ public partial class kucoin : Exchange
         var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(uta))
         {
             if (isTrue(isEqual(marginMode, "isolated")))
@@ -10205,6 +10322,10 @@ public partial class kucoin : Exchange
     public async virtual Task<object> setContractLeverage(object leverage, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
+        }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams(symbol, parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -10774,7 +10895,7 @@ public partial class kucoin : Exchange
         {
             response = await this.futuresPrivateGetPositions(parameters);
         }
-        object data = this.safeList(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePositions(data, symbols);
     }
 
@@ -11633,7 +11754,7 @@ public partial class kucoin : Exchange
         object tiers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
-            object tier = this.safeDict(info, i);
+            object tier = this.safeDict(info, i, new Dictionary<string, object>() {});
             object marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
@@ -11883,7 +12004,7 @@ public partial class kucoin : Exchange
             uta = (isEqual(accountMode, "UNIFIED"));
             ((IDictionary<string,object>)this.options)["uta"] = uta;
         }
-        return this.safeBool(this.options, "uta", false);
+        return uta;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

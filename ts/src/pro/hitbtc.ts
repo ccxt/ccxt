@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market, List } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
@@ -98,7 +98,9 @@ export default class hitbtc extends hitbtcRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
-            const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'hex');
+            const timestampString = this.numberToString (timestamp);
+            const timestampEncoded = (timestampString === undefined) ? '' : timestampString;
+            const signature = this.hmac (this.encode (timestampEncoded), this.encode (this.secret), sha256, 'hex');
             const request: Dict = {
                 'method': 'login',
                 'params': {
@@ -139,11 +141,13 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     async subscribePublic (name: string, messageHashPrefix: string, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const isBatch = name.indexOf ('batch') >= 0;
         const url = this.urls['api']['ws']['public'];
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined && !isBatch) {
             for (let i = 0; i < symbols.length; i++) {
                 messageHashes.push (messageHashPrefix + '::' + symbols[i]);
@@ -168,11 +172,13 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const splitName = name.split ('_subscribe');
-        let messageHash = this.safeString (splitName, 0);
+        let messageHash = this.safeString (splitName, 0, '');
         if (symbol !== undefined) {
             messageHash = messageHash + '::' + symbol;
         }
@@ -191,7 +197,9 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     async tradeRequest (name: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
@@ -218,7 +226,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const options = this.safeValue (this.options, 'watchOrderBook');
@@ -266,8 +274,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const snapshot = this.safeDict (message, 'snapshot');
-        const update = this.safeDict (message, 'update');
-        const data = snapshot ? snapshot : update;
+        const data = this.safeDict2 (message, 'snapshot', 'update', {});
         const type = snapshot ? 'snapshot' : 'update';
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
@@ -344,7 +351,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
@@ -352,7 +361,7 @@ export default class hitbtc extends hitbtcRest {
         const speed = this.safeString (params, 'speed', '1s');
         const name = this.implodeParams (method, { 'speed': speed });
         params = this.omit (params, [ 'method', 'speed' ]);
-        const marketIds = [];
+        const marketIds: string[] = [];
         if (symbols === undefined) {
             marketIds.push ('*');
         } else {
@@ -418,7 +427,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue (message, 'data', {});
         const marketIds = Object.keys (data);
-        const result = [];
+        const result: Ticker[] = [];
         const topic = 'tickers';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -433,7 +442,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds
@@ -501,7 +510,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const options = this.safeValue (this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
@@ -543,7 +554,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeDict (message, 'data', {});
         const marketIds = Object.keys (data);
-        const result = [];
+        const result: Ticker[] = [];
         const topic = 'bidask';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -558,10 +569,11 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const timestamp = this.safeInteger (ticker, 't');
+        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': bidAskSymbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'ask': this.safeString (ticker, 'a'),
@@ -584,7 +596,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'params': {
@@ -664,9 +678,9 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseWsTrades (trades, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         trades = this.toArray (trades);
-        let result = [];
+        let result: Dict[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = this.extend (this.parseWsTrade (trades[i], market), params);
             result.push (trade);
@@ -676,7 +690,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "t": 1626861123552,       // Timestamp in milliseconds
@@ -771,10 +785,13 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue2 (message, 'snapshot', 'update', {});
         const marketIds = Object.keys (data);
-        const channel = this.safeString (message, 'ch');
+        const channel = this.safeString (message, 'ch', '');
         const splitChannel = channel.split ('/');
         const period = this.safeString (splitChannel, 1);
         const timeframe = this.findTimeframe (period);
+        if (timeframe === undefined) {
+            return message;
+        }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -832,7 +849,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let marketType: Str = undefined;
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -933,7 +952,7 @@ export default class hitbtc extends hitbtcRest {
     handleOrderHelper (client: Client, message, order) {
         const orders = this.orders;
         const marketId = this.safeStringLower2 (order, 'instrument', 'symbol');
-        const method = this.safeString (message, 'method');
+        const method = this.safeString (message, 'method', '');
         const splitMethod = method.split ('_order');
         const messageHash = this.safeString (splitMethod, 0);
         const symbol = this.safeSymbol (marketId);
@@ -943,7 +962,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (orders, messageHash + '::' + symbol);
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "id": 584244931496,
@@ -993,7 +1012,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "id": 584244931496,
@@ -1024,7 +1043,7 @@ export default class hitbtc extends hitbtcRest {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
-        let trades: List = undefined;
+        let trades: NullableList = undefined;
         if (tradeId !== undefined) {
             const trade = this.parseWsOrderTrade (order, market);
             trades = [ trade ];
@@ -1076,7 +1095,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const name = this.getSupportedMapping (type, {
@@ -1113,9 +1134,11 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let request: Dict = undefined;
+        let request: Dict = {};
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let marginMode: Str = undefined;
@@ -1146,7 +1169,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         let request = {
             'client_order_id': id,
@@ -1180,7 +1205,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1214,7 +1241,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -1295,7 +1324,7 @@ export default class hitbtc extends hitbtcRest {
         const messageHash = this.safeString (message, 'id');
         const result = this.safeValue (message, 'result', {});
         if (Array.isArray (result)) {
-            const parsedOrders = [];
+            const parsedOrders: Order[] = [];
             for (let i = 0; i < result.length; i++) {
                 const parsedOrder = this.parseWsOrder (result[i]);
                 parsedOrders.push (parsedOrder);
@@ -1337,7 +1366,7 @@ export default class hitbtc extends hitbtcRest {
                 'spot_balance': this.handleBalance,
                 'futures_balance': this.handleBalance,
             };
-            const method = this.safeValue (methods, channel);
+            const method = (channel === undefined) ? undefined : this.safeValue (methods, channel);
             if (method !== undefined) {
                 method.call (this, client, message);
             }
