@@ -21,6 +21,7 @@ class testMainClass {
         this.requestTests = false;
         this.wsTests = false;
         this.responseTests = false;
+        this.predictionTests = false;
         this.info = false;
         this.verbose = false;
         this.debug = false;
@@ -50,6 +51,8 @@ class testMainClass {
         this.sandbox = getCliArgValue('--sandbox');
         this.loadKeys = getCliArgValue('--loadKeys');
         this.wsTests = getCliArgValue('--ws');
+        // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
+        this.predictionTests = getCliArgValue('--prediction');
         this.lang = getLang();
         this.ext = getExt();
     }
@@ -1253,6 +1256,15 @@ class testMainClass {
         const content = ioFileRead(filename);
         return content;
     }
+    loadEventsFromFile(id) {
+        // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
+        // static/events/<id>.json; returns undefined when the exchange has no events fixture
+        const filename = getRootDir() + './ts/src/test/static/events/' + id + '.json';
+        if (!ioFileExists(filename)) {
+            return undefined;
+        }
+        return ioFileRead(filename);
+    }
     loadCurrenciesFromFile(id) {
         const filename = getRootDir() + './ts/src/test/static/currencies/' + id + '.json';
         const content = ioFileRead(filename);
@@ -1273,6 +1285,10 @@ class testMainClass {
         const files = ioDirRead(folder);
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
+            // skip subdirectories (e.g. the prediction/ folder) and any non-json entries
+            if (file.indexOf('.json') < 0) {
+                continue;
+            }
             const exchangeName = file.replace('.json', '');
             const content = ioFileRead(folder + file);
             result[exchangeName] = content;
@@ -1606,8 +1622,22 @@ class testMainClass {
         return true;
     }
     initOfflineExchange(exchangeName) {
-        const markets = this.loadMarketsFromFile(exchangeName);
-        const currencies = this.loadCurrenciesFromFile(exchangeName);
+        // prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
+        // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        // setMarkets rebuilds cleanly from the outcome markets
+        let predictionEvents = undefined;
+        if (this.predictionTests) {
+            predictionEvents = this.loadEventsFromFile(exchangeName);
+        }
+        let markets = undefined;
+        let currencies = undefined;
+        if (predictionEvents === undefined) {
+            markets = this.loadMarketsFromFile(exchangeName);
+            currencies = this.loadCurrenciesFromFile(exchangeName);
+        }
         let wasmExecPath = undefined;
         let libraryPath = undefined;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
@@ -1685,8 +1715,20 @@ class testMainClass {
         }
         const exchange = initExchange(exchangeName, options);
         exchange.currencies = currencies;
-        // prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
-        // populateOutcomes) the first time a method is called, so no explicit setMarkets here
+        // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
+        // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
+        if (predictionEvents !== undefined) {
+            const eventMarkets = [];
+            for (let i = 0; i < predictionEvents.length; i++) {
+                const evMarkets = exchange.safeList(predictionEvents[i], 'markets', []);
+                for (let j = 0; j < evMarkets.length; j++) {
+                    eventMarkets.push(evMarkets[j]);
+                }
+            }
+            if (eventMarkets.length > 0) {
+                exchange.setMarkets(eventMarkets);
+            }
+        }
         // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1898,7 +1940,12 @@ class testMainClass {
         return true;
     }
     async runStaticTests(type, targetExchange = undefined, testName = undefined) {
-        const folder = getRootDir() + './ts/src/test/static/' + type + '/';
+        // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
+        // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
+        let folder = getRootDir() + './ts/src/test/static/' + type + '/';
+        if (this.predictionTests) {
+            folder = folder + 'prediction/';
+        }
         const staticData = this.loadStaticData(folder, targetExchange);
         if (staticData === undefined) {
             return true;

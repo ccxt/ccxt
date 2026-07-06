@@ -7,6 +7,7 @@ declare class testMainClass {
     requestTests: boolean;
     wsTests: boolean;
     responseTests: boolean;
+    predictionTests: boolean;
     info: boolean;
     verbose: boolean;
     debug: boolean;
@@ -55,6 +56,7 @@ declare class testMainClass {
     testHasProps(exchange: Exchange): void;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: Str): void;
     loadMarketsFromFile(id: string): any;
+    loadEventsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;
     loadStaticData(folder: string, targetExchange?: Str): {};
     removeHostnamefromUrl(url: string): string;

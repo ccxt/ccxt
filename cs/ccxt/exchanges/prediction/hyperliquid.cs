@@ -2156,15 +2156,8 @@ public partial class hyperliquid : PredictionExchange
             });
             ((IList<object>)events).Add(eventVar);
         }
-        if (!isTrue(this.events))
-        {
-            this.events = new Dictionary<string, object>() {};
-        }
-        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
-        {
-            object ev = getValue(events, i);
-            ((IDictionary<string,object>)this.events)[(string)getValue(ev, "event")] = ev;
-        }
+        // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
+        // so getEvent() resolves these events by any of the three keys
         return this.applyEventFetchParams(events, parameters, queries);
     }
 
