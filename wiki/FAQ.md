@@ -82,7 +82,7 @@
 
   ## How to create an order with takeProfit+stopLoss?
   Some exchanges support `createOrder` with the additional "attached" `stopLoss` & `takeProfit` sub-orders - view [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position). 
-  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#Conditional Orders).
+  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#conditional-orders).
   You can also check them by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`, however they are not as precise as `.features` property.
 
   ## What is the difference between `takeProfit/stopLoss` and `takeProfitPrice/stopLossPrice` orders
@@ -430,4 +430,21 @@ CCXT is also a builder on Extended meaning that by default users will pay 1bps (
 
 ```
 exchange.options['builderFee'] = False
+```
+
+### How to use the Apex Exchange in CCXT?
+
+An example on how to instantiate the Apex exchange:
+
+```
+exchange = ccxt.apex({
+    'apiKey': 'your api Key',
+    'secret': 'your api secret',
+    'walletAddress': 'your eth address',
+    'options': {
+        'accountId': 'your account id',
+        'passphrase': 'your api passphrase',
+        'seeds': 'your zklink omni seed',
+    },
+})
 ```

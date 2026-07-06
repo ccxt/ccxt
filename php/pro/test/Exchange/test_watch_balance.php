@@ -17,7 +17,7 @@ function test_watch_balance($exchange, $skipped_properties, $code) {
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
         while ($now < $ends) {
-            $response = null;
+            $response = array();
             $success = true;
             try {
                 $response = \React\Async\await($exchange->watch_balance());

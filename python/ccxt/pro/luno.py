@@ -52,14 +52,15 @@ class luno(ccxt.async_support.luno):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription: dict = {'symbol': symbol}
+        subscription = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'trades:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }
@@ -140,17 +141,18 @@ class luno(ccxt.async_support.luno):
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription: dict = {'symbol': symbol}
+        subscription = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'orderbook:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }

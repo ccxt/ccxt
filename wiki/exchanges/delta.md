@@ -38,6 +38,7 @@
 * [fetchGreeks](#fetchgreeks)
 * [closeAllPositions](#closeallpositions)
 * [fetchMarginMode](#fetchmarginmode)
+* [setMarginMode](#setmarginmode)
 * [fetchOption](#fetchoption)
 * [fetchPositionsADLRank](#fetchpositionsadlrank)
 
@@ -56,7 +57,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-delta.fetchTime ([params])
+delta.fetchTime (params?)
 ```
 
 
@@ -75,7 +76,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-delta.fetchStatus ([params])
+delta.fetchStatus (params?)
 ```
 
 
@@ -95,7 +96,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-delta.fetchCurrencies ([params])
+delta.fetchCurrencies (params?)
 ```
 
 
@@ -115,7 +116,7 @@ retrieves data on all markets for delta
 
 
 ```javascript
-delta.fetchMarkets ([params])
+delta.fetchMarkets (params?)
 ```
 
 
@@ -136,7 +137,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-delta.fetchTicker (symbol[, params])
+delta.fetchTicker (symbol, params?)
 ```
 
 
@@ -157,7 +158,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-delta.fetchTickers (symbols[, params])
+delta.fetchTickers (symbols, params?)
 ```
 
 
@@ -167,7 +168,7 @@ delta.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.delta.exchange/#get-l2-orderbook  
 
@@ -179,7 +180,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-delta.fetchOrderBook (symbol[, limit, params])
+delta.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -202,7 +203,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-delta.fetchTrades (symbol[, since, limit, params])
+delta.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -227,7 +228,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-delta.fetchOHLCV (symbol, timeframe[, since, limit, params])
+delta.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -247,7 +248,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-delta.fetchBalance ([params])
+delta.fetchBalance (params?)
 ```
 
 
@@ -268,7 +269,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-delta.fetchPosition (symbol[, params])
+delta.fetchPosition (symbol, params?)
 ```
 
 
@@ -289,7 +290,7 @@ fetch all open positions
 
 
 ```javascript
-delta.fetchPositions (symbols[, params])
+delta.fetchPositions (symbols, params?)
 ```
 
 
@@ -315,7 +316,7 @@ create a trade order
 
 
 ```javascript
-delta.createOrder (symbol, type, side, amount[, price, params])
+delta.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -341,7 +342,7 @@ edit a trade order
 
 
 ```javascript
-delta.editOrder (id, symbol, type, side, amount[, price, params])
+delta.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -363,7 +364,7 @@ cancels an open order
 
 
 ```javascript
-delta.cancelOrder (id, symbol[, params])
+delta.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -384,7 +385,7 @@ cancel all open orders in a market
 
 
 ```javascript
-delta.cancelAllOrders (symbol[, params])
+delta.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -411,7 +412,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-delta.fetchOrder (id[, symbol, params])
+delta.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -434,7 +435,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-delta.fetchOpenOrders (symbol[, since, limit, params])
+delta.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -457,7 +458,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-delta.fetchClosedOrders (symbol[, since, limit, params])
+delta.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -480,7 +481,7 @@ fetch all trades made by the user
 
 
 ```javascript
-delta.fetchMyTrades (symbol[, since, limit, params])
+delta.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -503,7 +504,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-delta.fetchLedger ([code, since, limit, params])
+delta.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -524,7 +525,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-delta.fetchDepositAddress (code[, params])
+delta.fetchDepositAddress (code, params?)
 ```
 
 
@@ -545,7 +546,7 @@ fetch the current funding rate
 
 
 ```javascript
-delta.fetchFundingRate (symbol[, params])
+delta.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -566,7 +567,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-delta.fetchFundingRates (symbols[, params])
+delta.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -588,7 +589,7 @@ add margin
 
 
 ```javascript
-delta.addMargin (symbol, amount[, params])
+delta.addMargin (symbol, amount, params?)
 ```
 
 
@@ -610,7 +611,7 @@ remove margin from a position
 
 
 ```javascript
-delta.reduceMargin (symbol, amount[, params])
+delta.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -631,7 +632,7 @@ retrieves the open interest of a derivative market
 
 
 ```javascript
-delta.fetchOpenInterest (symbol[, params])
+delta.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -652,7 +653,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-delta.fetchLeverage (symbol[, params])
+delta.fetchLeverage (symbol, params?)
 ```
 
 
@@ -674,7 +675,7 @@ set the level of leverage for a market
 
 
 ```javascript
-delta.setLeverage (leverage, symbol[, params])
+delta.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -697,7 +698,7 @@ fetches historical settlement records
 
 
 ```javascript
-delta.fetchSettlementHistory (symbol[, since, limit, params])
+delta.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -718,7 +719,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-delta.fetchGreeks (symbol[, params])
+delta.fetchGreeks (symbol, params?)
 ```
 
 
@@ -739,7 +740,7 @@ closes all open positions for a market type
 
 
 ```javascript
-delta.closeAllPositions ([params])
+delta.closeAllPositions (params?)
 ```
 
 
@@ -760,7 +761,30 @@ fetches the margin mode of a trading pair
 
 
 ```javascript
-delta.fetchMarginMode (symbol[, params])
+delta.fetchMarginMode (symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'isolated' or 'portfolio'
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://docs.delta.exchange/#change-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'isolated' or 'portfolio' |
+| symbol | <code>string</code> | No | not used by delta.setMarginMode |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subaccount_user_id | <code>string</code> | Yes | the user id of the subaccount |
+
+
+```javascript
+delta.setMarginMode (marginMode, symbol?, params?)
 ```
 
 
@@ -781,7 +805,7 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-delta.fetchOption (symbol[, params])
+delta.fetchOption (symbol, params?)
 ```
 
 
@@ -802,6 +826,6 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 
 ```javascript
-delta.fetchPositionsADLRank ([symbols, params])
+delta.fetchPositionsADLRank (symbols?, params?)
 ```
 

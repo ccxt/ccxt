@@ -130,7 +130,7 @@ export const setPaginationParams = (options, pagination) => {
 };
 ;
 export function toTimestamp(date) {
-    const seconds = numberToLong(date.getTime() / 1000);
+    const seconds = numberToLong(date.getTime() / 1_000);
     const nanos = date.getTime() % 1000 * 1000000;
     return {
         seconds,

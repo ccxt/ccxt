@@ -209,7 +209,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         // }
         //
         Object data = this.safeDict(message, "order_book", new java.util.HashMap<String, Object>() {{}});
-        Object channel = this.safeString(message, "channel", "");
+        Object channel = ((String)this.safeString(message, "channel", ""));
         Object parts = Helpers.split(channel, ":");
         Object marketId = Helpers.GetValue(parts, 1);
         Object market = this.safeMarket(marketId);
@@ -242,7 +242,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -270,7 +270,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -678,7 +678,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             this.handleLiquidation(client, message);
         }
         Object data = this.safeList(message, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object channel = this.safeString(message, "channel", "");
+        Object channel = ((String)this.safeString(message, "channel", ""));
         Object parts = Helpers.split(channel, ":");
         Object marketId = Helpers.GetValue(parts, 1);
         Object market = this.safeMarket(marketId);
@@ -795,21 +795,31 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object amountString = this.safeString(trade, "size");
         Object costString = this.safeString(trade, "usd_amount");
         Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        Object side = ((Helpers.isTrue(isMakerAsk))) ? "buy" : "sell";
         Object accountIndex = this.safeInteger(trade, "accountIndex");
+        Object bidAccountId = this.safeInteger(trade, "bid_account_id");
+        Object askAccountId = this.safeInteger(trade, "ask_account_id");
+        Object side = null;
         Object order = null;
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(accountIndex, null)))
         {
-            if (Helpers.isTrue(Helpers.isEqual(this.safeInteger(trade, "bid_account_id"), accountIndex)))
+            if (Helpers.isTrue(Helpers.isEqual(bidAccountId, accountIndex)))
             {
+                // Own trades should use the account's order side
+                side = "buy";
                 order = this.safeString(trade, "bid_id");
                 takerOrMaker = ((Helpers.isTrue(isMakerAsk))) ? "taker" : "maker";
-            } else if (Helpers.isTrue(Helpers.isEqual(this.safeInteger(trade, "ask_account_id"), accountIndex)))
+            } else if (Helpers.isTrue(Helpers.isEqual(askAccountId, accountIndex)))
             {
+                side = "sell";
                 order = this.safeString(trade, "ask_id");
                 takerOrMaker = ((Helpers.isTrue(isMakerAsk))) ? "maker" : "taker";
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            side = ((Helpers.isTrue(isMakerAsk))) ? "buy" : "sell";
         }
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(takerOrMaker, null)))
@@ -824,6 +834,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             }};
         }
         final Object finalOrder = order;
+        final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -834,7 +845,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             put( "datetime", LighterCore.this.iso8601(timestamp) );
             put( "symbol", LighterCore.this.safeSymbol(null, market) );
             put( "type", null );
-            put( "side", side );
+            put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "price", priceString );
             put( "amount", amountString );
@@ -879,7 +890,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //         "type": "update/account_all_trades"
         //     }
         //
-        Object channel = this.safeString(message, "channel", "");
+        Object channel = ((String)this.safeString(message, "channel", ""));
         Object parts = Helpers.split(channel, ":");
         Object accountIndex = Helpers.GetValue(parts, 1);
         Object data = this.safeDict(message, "trades", new java.util.HashMap<String, Object>() {{}});
@@ -1096,7 +1107,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Object data = this.safeList(message, "liquidation_trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object channel = this.safeString(message, "channel", "");
+        Object channel = ((String)this.safeString(message, "channel", ""));
         Object parts = Helpers.split(channel, ":");
         Object marketId = Helpers.GetValue(parts, 1);
         Object market = this.safeMarket(marketId);
@@ -1245,7 +1256,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //        "type": "update/user_stats"
         //    }
         //
-        Object channel = this.safeString(message, "channel", "");
+        Object channel = ((String)this.safeString(message, "channel", ""));
         Object type = "spot";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "user_stats:"), 0)))
         {
@@ -1466,7 +1477,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             this.handlePing(client, message);
             return;
         }
-        Object channel = this.safeString(message, "channel", "");
+        Object channel = ((String)this.safeString(message, "channel", ""));
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "order_book:"), 0)))
         {
             this.handleOrderBook(client, message);

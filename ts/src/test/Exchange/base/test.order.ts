@@ -1,4 +1,4 @@
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 import testTrade from './test.trade.js';
 
@@ -42,8 +42,8 @@ function testOrder (exchange: Exchange, skippedProperties: object, method: strin
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'filled', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'remaining', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'filled'));
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'remaining') as string);
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'filled') as string);
     if (!('trades' in skippedProperties)) {
         const skippedNew = exchange.deepExtend (skippedProperties, { 'timestamp': true, 'datetime': true, 'side': true });
         if (entry['trades'] !== undefined) {

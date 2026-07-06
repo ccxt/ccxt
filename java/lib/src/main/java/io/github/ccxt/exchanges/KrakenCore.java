@@ -232,6 +232,7 @@ public class KrakenCore extends KrakenApi
                 put( "ZUSD", "USD" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
                 put( "marketsByAltname", new java.util.HashMap<String, Object>() {{}} );
@@ -1021,7 +1022,7 @@ public class KrakenCore extends KrakenApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1884,7 +1885,7 @@ public class KrakenCore extends KrakenApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(result, "usingCost", isUsingCost);
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1949,7 +1950,7 @@ public class KrakenCore extends KrakenApi
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
-                put( "pair", Helpers.GetValue(finalMarket, "id") );
+                put( "pair", KrakenCore.this.safeString(finalMarket, "id") );
             }};
             request = this.extend(request, parameters);
             response = (this.privatePostAddOrderBatch(request)).join();
@@ -2351,6 +2352,7 @@ final Object finalId = id;
             put( "timestamp", timestamp );
             put( "datetime", KrakenCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
+            put( "lastUpdateTimestamp", KrakenCore.this.safeTimestamp(finalOrder, "closetm") );
             put( "status", status );
             put( "symbol", finalSymbol_2 );
             put( "type", finalTypeParsed );
@@ -2493,6 +2495,7 @@ final Object finalId = id;
         if (Helpers.isTrue(!Helpers.isEqual(close, null)))
         {
             close = this.extend(new java.util.HashMap<String, Object>() {{}}, close);
+            close = ((Helpers.isTrue((Helpers.isEqual(close, null))))) ? new java.util.HashMap<String, Object>() {{}} : close;
             Object closePrice = this.safeValue(close, "price");
             if (Helpers.isTrue(!Helpers.isEqual(closePrice, null)))
             {

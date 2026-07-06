@@ -306,11 +306,8 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         Object marketId = this.safeString(data, "symbol");
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object parsed = null;
-        if (Helpers.isTrue((Helpers.isEqual(updateType, "snapshot"))))
-        {
-            parsed = this.parseTicker(data, market);
-        } else if (Helpers.isTrue(Helpers.isEqual(updateType, "update")))
+        Object parsed = this.parseTicker(data, market);
+        if (Helpers.isTrue(Helpers.isEqual(updateType, "update")))
         {
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
@@ -330,7 +327,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -543,7 +540,10 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 Object parsedOrder = this.parseOrder(rawOrder);
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                 Object symbol = this.safeString(parsedOrder, "symbol");
-                Helpers.addElementToObject(symbols, symbol, true);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(symbols, symbol, true);
+                }
             }
             Object messageHash = "orders";
             client.resolve(orders, messageHash);
@@ -669,7 +669,10 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 Object parsedTrade = this.parseTrade(rawTrade);
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
                 Object symbol = this.safeString(parsedTrade, "symbol");
-                Helpers.addElementToObject(symbols, symbol, true);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(symbols, symbol, true);
+                }
             }
             Object messageHash = "myTrades";
             client.resolve(trades, messageHash);
@@ -759,6 +762,10 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         Object tradingAccountId = this.safeString(message, "tradingAccountId");
+        if (Helpers.isTrue(Helpers.isEqual(tradingAccountId, null)))
+        {
+            return;
+        }
         if (!Helpers.isTrue((Helpers.inOp(this.balance, tradingAccountId))))
         {
             Helpers.addElementToObject(this.balance, tradingAccountId, new java.util.HashMap<String, Object>() {{}});
@@ -809,7 +816,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             (this.loadMarkets()).join();
             Object subscribeHash = "positions";
             Object messageHash = subscribeHash;
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
                 symbols = this.marketSymbols(symbols);
                 messageHash = Helpers.add(messageHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));

@@ -17,7 +17,7 @@ public class TestFetchLastPrices extends BaseTest {
 
         Object method = "fetchLastprices";
         // log ('fetching all tickers at once...')
-        Object response = null;
+        Object response = new java.util.HashMap<String, Object>() {{}};
         Object checkedSymbol = null;
         try
         {
@@ -27,14 +27,14 @@ public class TestFetchLastPrices extends BaseTest {
             response = (exchange.fetchLastPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
             checkedSymbol = symbol;
         }
-        Assert(((true)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return an object. "), exchange.json(response)));
+        Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));
         Object values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Object atLeastOnePassed = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
         {
             // todo: symbol check here
-            TestLastPrice.testLastPrice(exchange, skippedProperties, method, Helpers.GetValue(values, i), checkedSymbol);
+            TestLastPrice.testLastPrice(exchange, skippedProperties, method, Helpers.GetValue(values, i), ((String)checkedSymbol));
             atLeastOnePassed = Helpers.isTrue(atLeastOnePassed) || Helpers.isTrue((Helpers.isGreaterThan(exchange.safeNumber(Helpers.GetValue(values, i), "price"), 0)));
         }
         Assert(atLeastOnePassed, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));

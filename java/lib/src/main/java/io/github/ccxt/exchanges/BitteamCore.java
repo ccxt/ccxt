@@ -467,7 +467,7 @@ public class BitteamCore extends BitteamApi
     {
         Object id = this.safeString(market, "name");
         Object numericId = this.safeInteger(market, "id");
-        Object parts = Helpers.split(id, "_");
+        Object parts = Helpers.split(((String)id), "_");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
         Object base = this.safeCurrencyCode(baseId);
@@ -1093,7 +1093,7 @@ public class BitteamCore extends BitteamApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         });
 
@@ -1210,7 +1210,7 @@ public class BitteamCore extends BitteamApi
             Object market = this.market(symbol);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "pairId", String.valueOf(Helpers.GetValue(market, "numericId")) );
+                put( "pairId", BitteamCore.this.safeString(market, "numericId") );
                 put( "type", finalType );
                 put( "side", side );
                 put( "amount", BitteamCore.this.amountToPrecision(symbol, amount) );
@@ -1313,7 +1313,7 @@ public class BitteamCore extends BitteamApi
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "pairId", String.valueOf(Helpers.GetValue(market, "numericId")));
+                Helpers.addElementToObject(request, "pairId", this.safeString(market, "numericId"));
             } else
             {
                 Helpers.addElementToObject(request, "pairId", "0"); // '0' for all markets
@@ -1496,7 +1496,7 @@ public class BitteamCore extends BitteamApi
             put( "executing", "open" );
             put( "created", "open" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrderType(Object status)
@@ -2602,7 +2602,7 @@ public class BitteamCore extends BitteamApi
             put( "approving", "pending" );
             put( "success", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object sign(Object path, Object... optionalArgs)

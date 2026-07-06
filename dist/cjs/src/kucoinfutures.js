@@ -7,6 +7,10 @@ var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 class kucoinfutures extends kucoin["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -62,7 +66,9 @@ class kucoinfutures extends kucoin["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
         const request = {

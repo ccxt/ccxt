@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var Precise = require('./base/Precise.js');
 var foxbit$1 = require('./abstract/foxbit.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -99,33 +99,33 @@ class foxbit extends foxbit$1["default"] {
             'exceptions': {
                 'exact': {
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
-                    '400': errors.BadRequest,
-                    '429': errors.RateLimitExceeded,
-                    '404': errors.BadRequest,
-                    '500': errors.ExchangeError,
-                    '2001': errors.AuthenticationError,
-                    '2002': errors.AuthenticationError,
-                    '2003': errors.AuthenticationError,
-                    '2004': errors.BadRequest,
-                    '2005': errors.PermissionDenied,
-                    '3001': errors.PermissionDenied,
-                    '3002': errors.PermissionDenied,
-                    '3003': errors.AccountSuspended,
-                    '4001': errors.BadRequest,
-                    '4002': errors.InsufficientFunds,
-                    '4003': errors.InvalidOrder,
-                    '4004': errors.BadSymbol,
-                    '4005': errors.BadRequest,
-                    '4007': errors.ExchangeError,
-                    '4008': errors.InvalidOrder,
-                    '4009': errors.PermissionDenied,
-                    '4011': errors.RateLimitExceeded,
-                    '4012': errors.ExchangeError,
-                    '5001': errors.ExchangeNotAvailable,
-                    '5002': errors.OnMaintenance,
-                    '5003': errors.OnMaintenance,
-                    '5004': errors.InvalidOrder,
-                    '5005': errors.InvalidOrder,
+                    '400': errors.BadRequest, // Bad request. An unknown error occurred while processing request parameters.
+                    '429': errors.RateLimitExceeded, // Too many requests. Request limit exceeded. Try again later.
+                    '404': errors.BadRequest, // Resource not found. A resource was not found while processing the request.
+                    '500': errors.ExchangeError, // Internal server error. An unknown error occurred while processing the request.
+                    '2001': errors.AuthenticationError, // Authentication error. Error authenticating request.
+                    '2002': errors.AuthenticationError, // Invalid signature. The signature for this request is not valid.
+                    '2003': errors.AuthenticationError, // Invalid access key. Access key missing, invalid or not found.
+                    '2004': errors.BadRequest, // Invalid timestamp. Invalid or missing timestamp.
+                    '2005': errors.PermissionDenied, // IP not allowed. The IP address {IP_ADDR} isn't on the trusted list for this API key.
+                    '3001': errors.PermissionDenied, // Permission denied. Permission denied for this request.
+                    '3002': errors.PermissionDenied, // KYC required. A greater level of KYC verification is required to proceed with this request.
+                    '3003': errors.AccountSuspended, // Member disabled. This member is disabled. Please get in touch with our support for more information.
+                    '4001': errors.BadRequest, // Validation error. A validation error occurred.
+                    '4002': errors.InsufficientFunds, // Insufficient funds. Insufficient funds to proceed with this request.
+                    '4003': errors.InvalidOrder, // Quantity below the minimum allowed. Quantity below the minimum allowed to proceed with this request.
+                    '4004': errors.BadSymbol, // Invalid symbol. The market or asset symbol is invalid or was not found.
+                    '4005': errors.BadRequest, // Invalid idempotent. Characters allowed are "a-z", "0-9", "_" or "-", and 36 at max. We recommend UUID v4 in lowercase.
+                    '4007': errors.ExchangeError, // Locked error. There was an error in your allocated balance, please contact us.
+                    '4008': errors.InvalidOrder, // Cannot submit order. The order cannot be created.
+                    '4009': errors.PermissionDenied, // Invalid level. The sub-member does not have the required level to create the transaction.
+                    '4011': errors.RateLimitExceeded, // Too many open orders. You have reached the limit of open orders per market/side.
+                    '4012': errors.ExchangeError, // Too many simultaneous account operations. We are currently unable to process your balance change due to simultaneous operations on your account. Please retry shortly.
+                    '5001': errors.ExchangeNotAvailable, // Service unavailable. The requested resource is currently unavailable. Try again later.
+                    '5002': errors.OnMaintenance, // Service under maintenance. The requested resource is currently under maintenance. Try again later.
+                    '5003': errors.OnMaintenance, // Market under maintenance. The market is under maintenance. Try again later.
+                    '5004': errors.InvalidOrder, // Market is not deep enough. The market is not deep enough to complete your request.
+                    '5005': errors.InvalidOrder, // Price out of range from market. The order price is out of range from market to complete your request.
                     '5006': errors.InvalidOrder, // Significant price deviation detected, exceeding acceptable limits. The order price is exceeding acceptable limits from market to complete your request.
                 },
                 'broad': {
@@ -140,31 +140,31 @@ class foxbit extends foxbit$1["default"] {
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': 5,
-                            'markets': 5,
-                            'markets/ticker/24hr': 60,
-                            'markets/{market}/orderbook': 6,
-                            'markets/{market}/candlesticks': 12,
-                            'markets/{market}/trades/history': 12,
+                            'currencies': 5, // 6 requests per second
+                            'markets': 5, // 6 requests per second
+                            'markets/ticker/24hr': 60, // 1 request per 2 seconds
+                            'markets/{market}/orderbook': 6, // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': 12, // 5 requests per 2 seconds
+                            'markets/{market}/trades/history': 12, // 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr': 15, // 4 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 2,
-                            'accounts/{symbol}/transactions': 60,
-                            'orders': 2,
-                            'orders/by-order-id/{id}': 2,
-                            'trades': 6,
-                            'deposits/address': 10,
-                            'deposits': 10,
-                            'withdrawals': 10,
+                            'accounts': 2, // 15 requests per second
+                            'accounts/{symbol}/transactions': 60, // 1 requests per 2 seconds
+                            'orders': 2, // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': 2, // 30 requests per 2 seconds
+                            'trades': 6, // 5 orders per second
+                            'deposits/address': 10, // 3 requests per second
+                            'deposits': 10, // 3 requests per second
+                            'withdrawals': 10, // 3 requests per second
                             'me/fees/trading': 60, // 1 requests per 2 seconds
                         },
                         'post': {
-                            'orders': 2,
-                            'orders/batch': 7.5,
-                            'orders/cancel-replace': 3,
+                            'orders': 2, // 30 requests per 2 seconds
+                            'orders/batch': 7.5, // 8 requests per 2 seconds
+                            'orders/cancel-replace': 3, // 20 requests per 2 seconds
                             'withdrawals': 10, // 3 requests per second
                         },
                         'put': {
@@ -247,7 +247,7 @@ class foxbit extends foxbit$1["default"] {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
-                            'last': true,
+                            'last': true, // foxbit default trigger price type is last, no params will change it
                             'mark': false,
                             'index': false,
                         },
@@ -267,9 +267,9 @@ class foxbit extends foxbit$1["default"] {
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': {
-                            'expire_maker': true,
-                            'expire_taker': true,
-                            'expire_both': true,
+                            'expire_maker': true, // foxbit prevents self trading by default, no params can change this
+                            'expire_taker': true, // foxbit prevents self trading by default, no params can change this
+                            'expire_both': true, // foxbit prevents self trading by default, no params can change this
                             'none': true, // foxbit prevents self trading by default, no params can change this
                         },
                         'trailing': false,
@@ -282,7 +282,7 @@ class foxbit extends foxbit$1["default"] {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 90,
-                        'untilDays': 10000,
+                        'untilDays': 10000, // high value just to keep clear that there is no range limit, just the limit of the page size
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -305,7 +305,7 @@ class foxbit extends foxbit$1["default"] {
                         'marginMode': true,
                         'limit': 100,
                         'daysBack': 90,
-                        'untilDays': 10000,
+                        'untilDays': 10000, // high value just to keep clear that there is no range limit, just the limit of the page size
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -315,7 +315,7 @@ class foxbit extends foxbit$1["default"] {
                         'limit': 100,
                         'daysBack': 90,
                         'daysBackCanceled': 90,
-                        'untilDays': 10000,
+                        'untilDays': 10000, // high value just to keep clear that there is no range limit, just the limit of the page size
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -558,7 +558,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -609,7 +611,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.v3PublicGetMarketsTicker24hr(params);
         //  {
@@ -645,7 +649,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetMeFeesTrading(params);
         // [
         //     {
@@ -673,10 +679,12 @@ class foxbit extends foxbit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const defaultLimit = 20;
         const request = {
@@ -723,7 +731,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -760,7 +770,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -803,7 +815,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetAccounts(params);
         // {
         //     "data": [
@@ -867,7 +881,9 @@ class foxbit extends foxbit$1["default"] {
         return await this.fetchOrdersByStatus('CANCELED', symbol, since, limit, params);
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
             'state': status,
@@ -907,7 +923,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         type = type.toUpperCase();
         if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
@@ -972,7 +990,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict(orders, i);
@@ -1055,7 +1075,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': this.parseNumber(id),
             'type': 'ID',
@@ -1083,7 +1105,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': 'ALL',
         };
@@ -1116,7 +1140,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1156,7 +1182,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1214,7 +1242,9 @@ class foxbit extends foxbit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market_symbol': market['id'],
@@ -1257,7 +1287,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency_symbol': currency['id'],
@@ -1291,7 +1323,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -1338,7 +1372,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -1468,7 +1504,9 @@ class foxbit extends foxbit$1["default"] {
         if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'INSTANT') {
             throw new errors.InvalidOrder('Invalid order type: ' + type + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'mode': 'ALLOW_FAILURE',
@@ -1521,7 +1559,9 @@ class foxbit extends foxbit$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency_symbol': currency['id'],
@@ -1558,7 +1598,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLedger() requires a code argument');
@@ -1646,7 +1688,7 @@ class foxbit extends foxbit$1["default"] {
     parseTradingFee(entry, market = undefined) {
         return {
             'info': entry,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'maker': this.safeNumber(entry, 'maker'),
             'taker': this.safeNumber(entry, 'taker'),
             'percentage': true,
@@ -1712,7 +1754,7 @@ class foxbit extends foxbit$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'order': undefined,
             'type': undefined,
             'side': side,
@@ -1978,7 +2020,7 @@ class foxbit extends foxbit$1["default"] {
         if (urlPath === 'private') {
             this.checkRequiredCredentials();
             const preHash = this.numberToString(timestamp) + method + fullPath + signatureQuery + bodyToSignature;
-            const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256.sha256, 'hex');
+            const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha2_js.sha256, 'hex');
             headers['X-FB-ACCESS-KEY'] = this.apiKey;
             headers['X-FB-ACCESS-TIMESTAMP'] = this.numberToString(timestamp);
             headers['X-FB-ACCESS-SIGNATURE'] = signature;

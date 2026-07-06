@@ -1,8 +1,5 @@
-- [Fetch Open Orders](./examples/py/)
-
-
- ```python
- import ccxt
+```python
+import ccxt
 from pprint import pprint
 
 
@@ -37,5 +34,5 @@ try:
     pprint(orders)
 except Exception as e:
     print(type(e).__name__, str(e))
- 
+
 ```

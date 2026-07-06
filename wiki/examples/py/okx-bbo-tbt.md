@@ -1,9 +1,9 @@
-- [Okx Bbo Tbt](./examples/py/)
+```python
+import ccxt.pro
+from importlib import import_module
+from importlib.util import find_spec
 
-
- ```python
- import ccxt.pro
-from asyncio import run
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 
 print('CCXT Pro version', ccxt.pro.__version__)
@@ -38,5 +38,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

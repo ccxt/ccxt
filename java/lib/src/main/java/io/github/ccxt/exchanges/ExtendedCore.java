@@ -31,7 +31,7 @@ public class ExtendedCore extends ExtendedApi
             put( "dex", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
@@ -167,16 +167,16 @@ public class ExtendedCore extends ExtendedApi
             }} );
             put( "hostname", "extended.exchange" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299" );
+                put( "logo", "https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://api.starknet.{hostname}" );
                 }} );
                 put( "test", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://api.starknet.sepolia.{hostname}" );
                 }} );
-                put( "www", "https://app.{hostname}" );
-                put( "doc", "https://api.docs.{hostname}" );
-                put( "fees", "https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates" );
+                put( "www", "https://app.extended.exchange" );
+                put( "doc", "https://api.docs.extended.exchange" );
+                put( "fees", "https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates" );
                 put( "referral", "" );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
@@ -487,7 +487,7 @@ public class ExtendedCore extends ExtendedApi
         //
         Object tradingConfig = this.safeDict(market, "tradingConfig", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(market, "name");
-        Object baseId = this.safeString(market, "assetName");
+        Object baseId = this.safeString(market, "assetName", "");
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(baseId, "SPOT"), 0)))
         {
             baseId = Helpers.replace((String)baseId, (String)"SPOT", (String)"");
@@ -674,7 +674,7 @@ public class ExtendedCore extends ExtendedApi
             code = "USDC";
         }
         Object name = this.safeString(currency, "name");
-        Object precision = this.safeInteger(currency, "precision");
+        Object precision = this.safeInteger(currency, "precision", 0);
         Object isActive = this.safeBool(currency, "isActive");
         final Object finalCurrencyId = currencyId;
         final Object finalCode = code;
@@ -701,7 +701,7 @@ public class ExtendedCore extends ExtendedApi
      * @see https://api.docs.extended.exchange/#get-market-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
     {
@@ -764,7 +764,7 @@ public class ExtendedCore extends ExtendedApi
      * @see https://api.docs.extended.exchange/#get-markets
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
     {
@@ -814,7 +814,10 @@ public class ExtendedCore extends ExtendedApi
                 Object stats = this.safeDict(marketData, "marketStats", new java.util.HashMap<String, Object>() {{}});
                 Object ticker = this.parseTicker(stats, market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(tickers, symbol, ticker);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(tickers, symbol, ticker);
+                }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
         });
@@ -895,7 +898,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -952,7 +955,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
@@ -1000,7 +1003,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
     {
@@ -1090,7 +1093,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchFundingHistory(Object... optionalArgs)
     {
@@ -1398,7 +1401,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
      * @param {int} [params.cursor] offset of the result set
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchFundingRateHistory(Object... optionalArgs)
     {
@@ -1518,7 +1521,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum amount of open interest structures to retrieve
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
-     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(Object symbol, Object... optionalArgs)
     {
@@ -1588,7 +1591,7 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(interest, "t");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", ExtendedCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", ExtendedCore.this.safeNumber(interest, "I") );
             put( "openInterestValue", ExtendedCore.this.safeNumber(interest, "i") );
             put( "baseVolume", ExtendedCore.this.safeNumber(interest, "I") );
@@ -1674,7 +1677,7 @@ public class ExtendedCore extends ExtendedApi
      * @description fetch the current authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-account-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchAccount(Object... optionalArgs)
     {
@@ -1713,7 +1716,7 @@ public class ExtendedCore extends ExtendedApi
      * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-sub-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchAccounts(Object... optionalArgs)
     {
@@ -1779,7 +1782,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchLedger(Object... optionalArgs)
     {
@@ -1900,7 +1903,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of transaction structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTransactions(Object... optionalArgs)
     {
@@ -1985,7 +1988,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of deposit structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
     {
@@ -2013,7 +2016,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
     {
@@ -2067,7 +2070,7 @@ public class ExtendedCore extends ExtendedApi
             Object account = (this.fetchExtendedAccount()).join();
             Object amountString = this.currencyToPrecision(code, amount);
             Object accountId = this.safeString(account, "accountId");
-            Object settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, parameters);
+            Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), currency, account, parameters);
             final Object finalChainId = chainId;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "accountId", accountId );
@@ -2121,7 +2124,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTransfers(Object... optionalArgs)
     {
@@ -2189,7 +2192,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {string} params.toVault destination account L2 vault
      * @param {string} params.toL2Key destination account L2 public key
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
@@ -2203,7 +2206,7 @@ public class ExtendedCore extends ExtendedApi
             (this.loadMarkets()).join();
             Object currency = this.currency(code);
             Object account = (this.fetchExtendedAccount()).join();
-            Object currentAccountId = this.safeString(account, "accountId");
+            Object currentAccountId = this.safeString(account, "accountId", "");
             if (Helpers.isTrue(Helpers.isEqual(fromAccount, null)))
             {
                 fromAccount = currentAccountId;
@@ -2218,7 +2221,7 @@ public class ExtendedCore extends ExtendedApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }
             Object amountString = this.currencyToPrecision(code, amount);
-            Object settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, parameters);
+            Object settlement = this.createTransferSettlementData(((String)amountString), currency, account, toVault, toL2Key, parameters);
             final Object finalFromAccount = fromAccount;
             final Object finalToAccount = toAccount;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2338,7 +2341,7 @@ public class ExtendedCore extends ExtendedApi
             put( "COMPLETED", "ok" );
             put( "REJECTED", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransactionType(Object type)
@@ -2349,7 +2352,7 @@ public class ExtendedCore extends ExtendedApi
             put( "TRANSFER", "transfer" );
             put( "CLAIM", "claim" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
@@ -2491,7 +2494,10 @@ public class ExtendedCore extends ExtendedApi
                 Object fee = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
                 Object parsed = this.parseTradingFee(fee);
                 Object symbol = this.safeString(parsed, "symbol");
-                Helpers.addElementToObject(result, symbol, parsed);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, parsed);
+                }
             }
             return result;
         });
@@ -2529,7 +2535,7 @@ public class ExtendedCore extends ExtendedApi
      * @see https://api.docs.extended.exchange/#get-leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
     {
@@ -2629,7 +2635,7 @@ public class ExtendedCore extends ExtendedApi
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
     {
@@ -2689,7 +2695,7 @@ public class ExtendedCore extends ExtendedApi
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
     {
@@ -2713,7 +2719,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of position structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
     {
@@ -2867,10 +2873,10 @@ public class ExtendedCore extends ExtendedApi
         Object roundUp = Helpers.getArg(optionalArgs, 0, false);
         Object resolutionString = this.numberToString(resolution);
         Object precise = Precise.stringMul(amount, resolutionString);
-        Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        Object result = this.decimalToPrecision(((String)precise), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (Helpers.isTrue(Helpers.isTrue(roundUp) && Helpers.isTrue(Precise.stringGt(precise, result))))
         {
-            result = Precise.stringAdd(result, "1");
+            result = ((String)Precise.stringAdd(result, "1"));
         }
         return result;
     }
@@ -2910,15 +2916,15 @@ public class ExtendedCore extends ExtendedApi
         Object baseRoundUp = isBuy;
         Object quoteRoundUp = isBuy;
         Object baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-        Object collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
+        Object collateralAmount = this.getExtendedStarkAmount(((String)quoteAmount), collateralResolution, quoteRoundUp);
         if (Helpers.isTrue(isBuy))
         {
-            collateralAmount = Precise.stringNeg(collateralAmount);
+            collateralAmount = ((String)Precise.stringNeg(collateralAmount));
         } else
         {
-            baseAmount = Precise.stringNeg(baseAmount);
+            baseAmount = ((String)Precise.stringNeg(baseAmount));
         }
-        Object feeAmount = this.getExtendedStarkAmount(Precise.stringMul(totalFee, quoteAmount), collateralResolution, true);
+        Object feeAmount = this.getExtendedStarkAmount(((String)Precise.stringMul(totalFee, quoteAmount)), collateralResolution, true);
         final Object finalBaseAmount = baseAmount;
         final Object finalCollateralAmount = collateralAmount;
         Object settlement = new java.util.HashMap<String, Object>() {{
@@ -3028,7 +3034,7 @@ public class ExtendedCore extends ExtendedApi
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
-            Object uppercaseSide = ((String)side).toUpperCase();
+            Object uppercaseSide = ((String)((String)side)).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue(!Helpers.isEqual(uppercaseType, "LIMIT"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder() supports limit orders for spot markets only")) ;
@@ -3070,7 +3076,7 @@ public class ExtendedCore extends ExtendedApi
             Object totalFee = fee;
             if (Helpers.isTrue(!Helpers.isEqual(builderFeeRate, null)))
             {
-                totalFee = Precise.stringAdd(fee, builderFeeRate);
+                totalFee = ((String)Precise.stringAdd(fee, builderFeeRate));
             }
             Object now = this.milliseconds();
             Object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", Helpers.add(now, 3600000));
@@ -3139,7 +3145,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "cancelId", cancelId);
             }
-            Object settlement = this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
+            Object settlement = this.createOrderSettlementData(isBuy, ((String)amountString), ((String)priceString), settlementParams);
             Helpers.addElementToObject(request, "settlement", new java.util.HashMap<String, Object>() {{
         put( "signature", new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.GetValue(settlement, "r") );
@@ -3166,7 +3172,7 @@ public class ExtendedCore extends ExtendedApi
                     Object stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                     Object stopLossExecutionPrice = this.safeString(stopLoss, "price");
                     Object stopLossType = this.safeString(stopLoss, "type");
-                    Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), amountString, stopLossExecutionPrice, settlementParams);
+                    Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), ((String)stopLossExecutionPrice), settlementParams);
                     Object requestStopLoss = new java.util.HashMap<String, Object>() {{
                         put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, stopLossTrigger) );
                         put( "price", ExtendedCore.this.priceToPrecision(symbol, stopLossExecutionPrice) );
@@ -3195,7 +3201,7 @@ public class ExtendedCore extends ExtendedApi
                     Object takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                     Object takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                     Object takeProfitType = this.safeString(takeProfit, "type");
-                    Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), amountString, takeProfitExecutionPrice, settlementParams);
+                    Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), ((String)takeProfitExecutionPrice), settlementParams);
                     Object requestTakeProfit = new java.util.HashMap<String, Object>() {{
                         put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, takeProfitTrigger) );
                         put( "price", ExtendedCore.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
@@ -3296,7 +3302,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
      * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
      * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
@@ -3340,7 +3346,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> editOrder(Object id2, Object symbol, Object type, Object side, Object... optionalArgs)
     {
@@ -3539,7 +3545,7 @@ public class ExtendedCore extends ExtendedApi
                 clientOrderIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(clientOrderId));
             }
             Object hasClientOrderIds = !Helpers.isEqual(clientOrderIds, null);
-            if (Helpers.isTrue(hasClientOrderIds))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
                 Object clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderIdsLength, 0)))
@@ -3617,9 +3623,8 @@ public class ExtendedCore extends ExtendedApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ExtendedCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)) : 0 );
+                put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ExtendedCore.this.parseToInt(Helpers.divide(timeout, 1000)) : 0 );
             }};
             return (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
         });
@@ -3636,7 +3641,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id2, Object... optionalArgs)
     {
@@ -3691,7 +3696,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
     {
@@ -3755,7 +3760,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
     {
@@ -3851,7 +3856,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
     {
@@ -3879,7 +3884,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
     {
@@ -3909,7 +3914,7 @@ public class ExtendedCore extends ExtendedApi
             put( "REJECTED", "rejected" );
             put( "EXPIRED", "expired" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -4027,7 +4032,7 @@ public class ExtendedCore extends ExtendedApi
             decimalString = value;
         } else
         {
-            decimalString = this.numberToString(value);
+            decimalString = ((String)this.numberToString(value));
         }
         Object hexChars = new java.util.ArrayList<Object>(java.util.Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
         Object result = "";
@@ -4035,7 +4040,7 @@ public class ExtendedCore extends ExtendedApi
         {
             Object remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));
             result = Helpers.add(Helpers.GetValue(hexChars, remainder), result);
-            decimalString = Precise.stringDiv(decimalString, "16", 0);
+            decimalString = ((String)Precise.stringDiv(decimalString, "16", 0));
         }
         if (Helpers.isTrue(Helpers.isEqual(result, "")))
         {
@@ -4054,7 +4059,7 @@ public class ExtendedCore extends ExtendedApi
             }
             return Helpers.add("0x", this.getExtendedDecimalToBase16(signature));
         }
-        Object signatureString = this.numberToString(signature);
+        Object signatureString = ((String)this.numberToString(signature));
         if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(signatureString, "0x"), 0)))
         {
             return signatureString;
@@ -4076,16 +4081,16 @@ public class ExtendedCore extends ExtendedApi
         Object orderTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
         // Order fields
-        Object positionId = this.convertToBigInt(this.safeString(settlement, "collateralPosition"));
-        Object baseAssetId = this.safeString(settlement, "baseAssetId");
-        Object baseAmount = this.convertToBigInt(this.safeString(settlement, "baseAmount"));
-        Object quoteAssetId = this.safeString(settlement, "quoteAssetId");
-        Object quoteAmount = this.convertToBigInt(this.safeString(settlement, "quoteAmount"));
-        Object feeAssetId = this.safeString(settlement, "feeAssetId");
-        Object feeAmount = this.convertToBigInt(this.safeString(settlement, "feeAmount"));
-        Object expiration = this.convertToBigInt(this.safeString2(settlement, "expiration", "expirationTimestamp"));
-        Object salt = this.convertToBigInt(this.safeString2(settlement, "salt", "nonce"));
-        Object starkKey = this.convertToBigInt(this.safeString(settlement, "starkKey"));
+        Object positionId = this.convertToBigInt(this.safeString(settlement, "collateralPosition", "0"));
+        Object baseAssetId = this.safeString(settlement, "baseAssetId", "0");
+        Object baseAmount = this.convertToBigInt(this.safeString(settlement, "baseAmount", "0"));
+        Object quoteAssetId = this.safeString(settlement, "quoteAssetId", "0");
+        Object quoteAmount = this.convertToBigInt(this.safeString(settlement, "quoteAmount", "0"));
+        Object feeAssetId = this.safeString(settlement, "feeAssetId", "0");
+        Object feeAmount = this.convertToBigInt(this.safeString(settlement, "feeAmount", "0"));
+        Object expiration = this.convertToBigInt(this.safeString2(settlement, "expiration", "expirationTimestamp", "0"));
+        Object salt = this.convertToBigInt(this.safeString2(settlement, "salt", "nonce", "0"));
+        Object starkKey = this.convertToBigInt(this.safeString(settlement, "starkKey", "0"));
         // Order struct hash
         Object orderHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new java.util.ArrayList<Object>(java.util.Arrays.asList(orderTypeHash, positionId, this.convertToBigInt(baseAssetId), this.getExtendedEncodeI64(baseAmount), this.convertToBigInt(quoteAssetId), this.getExtendedEncodeI64(quoteAmount), this.convertToBigInt(feeAssetId), feeAmount, expiration, salt))));
         // SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
@@ -4097,7 +4102,7 @@ public class ExtendedCore extends ExtendedApi
         Object withdrawalTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
         Object expiration = this.safeDict(settlement, "expiration", new java.util.HashMap<String, Object>() {{}});
-        Object withdrawalHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new java.util.ArrayList<Object>(java.util.Arrays.asList(withdrawalTypeHash, this.convertToBigInt(this.safeString(settlement, "recipient")), this.convertToBigInt(this.safeString(settlement, "positionId")), this.convertToBigInt(this.safeString(settlement, "collateralId")), this.convertToBigInt(this.safeString(settlement, "amount")), this.convertToBigInt(this.safeString(expiration, "seconds")), this.convertToBigInt(this.safeString(settlement, "salt"))))));
+        Object withdrawalHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new java.util.ArrayList<Object>(java.util.Arrays.asList(withdrawalTypeHash, this.convertToBigInt(this.safeString(settlement, "recipient", "0")), this.convertToBigInt(this.safeString(settlement, "positionId", "0")), this.convertToBigInt(this.safeString(settlement, "collateralId", "0")), this.convertToBigInt(this.safeString(settlement, "amount", "0")), this.convertToBigInt(this.safeString(expiration, "seconds", "0")), this.convertToBigInt(this.safeString(settlement, "salt", "0"))))));
         return this.extendedStarknetComputePoseidonHashOnElements(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, this.convertToBigInt(starkKey), withdrawalHash)));
     }
 
@@ -4105,8 +4110,8 @@ public class ExtendedCore extends ExtendedApi
     {
         Object transferTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
-        Object senderPublicKey = this.convertToBigInt(this.safeString(settlement, "senderPublicKey"));
-        Object transferHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new java.util.ArrayList<Object>(java.util.Arrays.asList(transferTypeHash, this.convertToBigInt(this.safeString(settlement, "senderPositionId")), this.convertToBigInt(this.safeString(settlement, "receiverPositionId")), this.convertToBigInt(this.safeString(settlement, "assetId")), this.convertToBigInt(this.safeString(settlement, "amount")), this.convertToBigInt(this.safeString(settlement, "expirationTimestamp")), this.convertToBigInt(this.safeString(settlement, "nonce"))))));
+        Object senderPublicKey = this.convertToBigInt(this.safeString(settlement, "senderPublicKey", "0"));
+        Object transferHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new java.util.ArrayList<Object>(java.util.Arrays.asList(transferTypeHash, this.convertToBigInt(this.safeString(settlement, "senderPositionId", "0")), this.convertToBigInt(this.safeString(settlement, "receiverPositionId", "0")), this.convertToBigInt(this.safeString(settlement, "assetId", "0")), this.convertToBigInt(this.safeString(settlement, "amount", "0")), this.convertToBigInt(this.safeString(settlement, "expirationTimestamp", "0")), this.convertToBigInt(this.safeString(settlement, "nonce", "0"))))));
         return this.extendedStarknetComputePoseidonHashOnElements(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash)));
     }
 

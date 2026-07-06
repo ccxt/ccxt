@@ -37,7 +37,7 @@ class extended(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -173,16 +173,16 @@ class extended(Exchange, ImplicitAPI):
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo': 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
                 'test': {
                     'rest': 'https://api.starknet.sepolia.{hostname}',
                 },
-                'www': 'https://app.{hostname}',
-                'doc': 'https://api.docs.{hostname}',
-                'fees': 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www': 'https://app.extended.exchange',
+                'doc': 'https://api.docs.extended.exchange',
+                'fees': 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral': '',
             },
             'api': {
@@ -350,7 +350,7 @@ class extended(Exchange, ImplicitAPI):
         return markets
 
     def index_by_stringified_numeric_id(self, input):
-        result: dict = {}
+        result = {}
         if input is None:
             return None
         keys = list(input.keys())
@@ -522,7 +522,7 @@ class extended(Exchange, ImplicitAPI):
         #
         tradingConfig = self.safe_dict(market, 'tradingConfig', {})
         marketId = self.safe_string(market, 'name')
-        baseId = self.safe_string(market, 'assetName')
+        baseId = self.safe_string(market, 'assetName', '')
         if baseId.find('SPOT') >= 0:
             baseId = baseId.replace('SPOT', '')
         quoteId = self.safe_string(market, 'collateralAssetName')
@@ -537,7 +537,7 @@ class extended(Exchange, ImplicitAPI):
         maxLeverage = self.safe_number(tradingConfig, 'maxLeverage')
         minAmount = self.safe_number(tradingConfig, 'minOrderSize')
         maxCost = self.safe_number(tradingConfig, 'maxLimitOrderValue')
-        created: Int = self.safe_integer(market, 'createdAt')
+        created = self.safe_integer(market, 'createdAt')
         settleId = None
         settle = None
         symbol = base + '/' + quote
@@ -676,7 +676,7 @@ class extended(Exchange, ImplicitAPI):
         if currencyId == 'USD':
             code = 'USDC'
         name = self.safe_string(currency, 'name')
-        precision = self.safe_integer(currency, 'precision')
+        precision = self.safe_integer(currency, 'precision', 0)
         isActive = self.safe_bool(currency, 'isActive')
         return self.safe_currency_structure({
             'id': currencyId,
@@ -700,11 +700,11 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PublicGetInfoMarketsMarketStats(self.extend(request, params))
@@ -755,11 +755,11 @@ class extended(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             marketIds = []
             for i in range(0, len(symbols)):
@@ -785,7 +785,7 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        tickers: dict = {}
+        tickers = {}
         for i in range(0, len(data)):
             marketData = data[i]
             marketId = self.safe_string(marketData, 'name')
@@ -793,10 +793,11 @@ class extended(Exchange, ImplicitAPI):
             stats = self.safe_dict(marketData, 'marketStats', {})
             ticker = self.parse_ticker(stats, market)
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            if symbol is not None:
+                tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #       "dailyVolume": "231216165.666600",
@@ -868,11 +869,11 @@ class extended(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PublicGetInfoMarketsMarketOrderbook(self.extend(request, params))
@@ -914,11 +915,11 @@ class extended(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PublicGetInfoMarketsMarketTrades(self.extend(request, params))
@@ -952,7 +953,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         paginate = False
@@ -960,7 +961,7 @@ class extended(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1016,7 +1017,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns FundingHistory[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns FundingHistory[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1024,7 +1025,7 @@ class extended(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1106,7 +1107,7 @@ class extended(Exchange, ImplicitAPI):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -1199,7 +1200,7 @@ class extended(Exchange, ImplicitAPI):
                 candleType = 'trades'
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['candleType', 'price', 'until'])
-        request: dict = {
+        request = {
             'market': market['id'],
             'candleType': candleType,
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1226,7 +1227,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #       "o": "75657.5",
@@ -1260,7 +1261,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [params.endTime]: exchange-specific end timestamp in ms of the latest funding rate to fetch
         :param int [params.cursor]: offset of the result set
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -1278,7 +1279,7 @@ class extended(Exchange, ImplicitAPI):
         params = self.omit(params, ['endTime', 'until'])
         if since is None:
             since = endTime - (limit * 60 * 60 * 1000)
-        request: dict = {
+        request = {
             'market': market['id'],
             'startTime': since,
             'endTime': endTime,
@@ -1345,7 +1346,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of open interest structures to retrieve
         :param dict [params]: exchange specific parameters
         :param int [params.until]: timestamp in ms of the latest open interest record to fetch
-        :returns dict[]: an array of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns dict[]: an array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1359,7 +1360,7 @@ class extended(Exchange, ImplicitAPI):
         params = self.omit(params, ['endTime', 'until'])
         if since is None:
             since = endTime - (limit * self.parse_timeframe(timeframe) * 1000)
-        request: dict = {
+        request = {
             'market': market['id'],
             'interval': interval,
             'startTime': since,
@@ -1392,7 +1393,7 @@ class extended(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 't')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': self.safe_number(interest, 'I'),
             'openInterestValue': self.safe_number(interest, 'i'),
             'baseVolume': self.safe_number(interest, 'I'),
@@ -1446,7 +1447,7 @@ class extended(Exchange, ImplicitAPI):
         return self.parse_balance(data)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})
             currencyId = self.safe_string(balance, 'asset')
@@ -1464,7 +1465,7 @@ class extended(Exchange, ImplicitAPI):
         https://api.docs.extended.exchange/#get-account-details
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `account structure <https://docs.ccxt.com/#/?id=account-structure>`
+        :returns dict: an `account structure <https://docs.ccxt.com/?id=account-structure>`
         """
         response = self.v1PrivateGetUserAccountInfo(params)
         #
@@ -1495,7 +1496,7 @@ class extended(Exchange, ImplicitAPI):
         https://api.docs.extended.exchange/#get-sub-accounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `account structures <https://docs.ccxt.com/#/?id=account-structure>`
+        :returns dict[]: a list of `account structures <https://docs.ccxt.com/?id=account-structure>`
         """
         response = self.v1PrivateGetUserAccounts(params)
         #
@@ -1548,7 +1549,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
         """
         self.load_markets()
         paginate = False
@@ -1558,7 +1559,7 @@ class extended(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.v1PrivateGetUserAssetOperations(self.extend(request, params))
@@ -1593,7 +1594,7 @@ class extended(Exchange, ImplicitAPI):
         code = self.get_extended_currency_code_by_id(assetId, currency)
         ledgerCurrency = self.safe_currency(code, currency)
         amountString = self.safe_string(item, 'amount')
-        direction: Str = None
+        direction = None
         if amountString is not None:
             direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
         fee = None
@@ -1632,7 +1633,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transaction structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1642,7 +1643,7 @@ class extended(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.v1PrivateGetUserAssetOperations(self.extend(request, params))
@@ -1691,7 +1692,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposit structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         return self.fetch_transactions(code, since, limit, self.extend({'type': 'DEPOSIT'}, params))
 
@@ -1706,7 +1707,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of withdrawal structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         return self.fetch_transactions(code, since, limit, self.extend({'type': 'WITHDRAWAL'}, params))
 
@@ -1737,7 +1738,7 @@ class extended(Exchange, ImplicitAPI):
         amountString = self.currency_to_precision(code, amount)
         accountId = self.safe_string(account, 'accountId')
         settlement = self.create_withdrawal_settlement_data(address, amountString, currency, account, params)
-        request: dict = {
+        request = {
             'accountId': accountId,
             'amount': amountString,
             'chainId': chainId,
@@ -1787,7 +1788,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfer structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns TransferEntry[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns TransferEntry[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1797,7 +1798,7 @@ class extended(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {
+        request = {
             'type': 'TRANSFER',
         }
         if limit is not None:
@@ -1829,13 +1830,13 @@ class extended(Exchange, ImplicitAPI):
         :param str params['toVault']: destination account L2 vault
         :param str params['toL2Key']: destination account L2 public key
         :param int [params.settlementExpiration]: settlement expiration timestamp in seconds, defaults to now + 21 days
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.check_required_credentials()
         self.load_markets()
         currency = self.currency(code)
         account = self.fetch_extended_account()
-        currentAccountId = self.safe_string(account, 'accountId')
+        currentAccountId = self.safe_string(account, 'accountId', '')
         if fromAccount is None:
             fromAccount = currentAccountId
         elif fromAccount != currentAccountId:
@@ -1846,7 +1847,7 @@ class extended(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]')
         amountString = self.currency_to_precision(code, amount)
         settlement = self.create_transfer_settlement_data(amountString, currency, account, toVault, toL2Key, params)
-        request: dict = {
+        request = {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'amount': amountString,
@@ -1896,7 +1897,7 @@ class extended(Exchange, ImplicitAPI):
             fromAccount = counterpartyAccountId
             toAccount = accountId
         validSignature = self.safe_bool(transfer, 'validSignature')
-        status: Str = None
+        status = None
         if validSignature is not None:
             status = 'ok' if validSignature else 'failed'
         else:
@@ -1928,7 +1929,7 @@ class extended(Exchange, ImplicitAPI):
         return code
 
     def parse_transaction_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'CREATED': 'pending',
             'IN_PROGRESS': 'pending',
             'COMPLETED': 'ok',
@@ -1937,7 +1938,7 @@ class extended(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type: Str) -> Str:
-        types: dict = {
+        types = {
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdrawal',
             'TRANSFER': 'transfer',
@@ -2009,7 +2010,7 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PrivateGetUserFees(self.extend(request, params))
@@ -2057,15 +2058,16 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             fee = self.safe_dict(data, i, {})
             parsed = self.parse_trading_fee(fee)
             symbol = self.safe_string(parsed, 'symbol')
-            result[symbol] = parsed
+            if symbol is not None:
+                result[symbol] = parsed
         return result
 
-    def parse_trading_fee(self, fee, market=None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "market": "BTC-USD",
@@ -2093,11 +2095,11 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PrivateGetUserLeverage(self.extend(request, params))
@@ -2130,7 +2132,7 @@ class extended(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'leverage': self.number_to_string(leverage),
         }
@@ -2144,7 +2146,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage, market: Market = None) -> Leverage:
         #
         #     {
         #         "market": "BTC-USD",
@@ -2170,10 +2172,10 @@ class extended(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Position[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns Position[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['market'] = marketIds
@@ -2219,7 +2221,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         positions = self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0)
@@ -2235,7 +2237,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of position structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Position[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns Position[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         if isinstance(symbols, str):
@@ -2244,7 +2246,7 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchPositionsHistory', symbols, since, limit, params, 'cursor', 'cursor', None, 10000)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['market'] = marketIds
@@ -2288,7 +2290,7 @@ class extended(Exchange, ImplicitAPI):
         positions = self.parse_positions(result, symbols)
         return self.filter_by_since_limit(positions, since, limit, 'timestamp')
 
-    def parse_position(self, position, market=None) -> Position:
+    def parse_position(self, position, market: Market = None) -> Position:
         #
         #     {
         #         "id": 1,
@@ -2422,7 +2424,7 @@ class extended(Exchange, ImplicitAPI):
         if (positionId is None) or (collateralId is None) or (resolution is None) or (starkKey is None):
             raise BadRequest(self.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key')
         amount = self.get_extended_stark_amount(amountString, resolution)
-        settlement: dict = {
+        settlement = {
             'recipient': recipient,
             'positionId': positionId,
             'collateralId': collateralId,
@@ -2452,7 +2454,7 @@ class extended(Exchange, ImplicitAPI):
         if (fromVault is None) or (fromL2Key is None) or (collateralId is None) or (resolution is None):
             raise BadRequest(self.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key')
         transferAmount = self.get_extended_stark_amount(amountString, resolution)
-        settlement: dict = {
+        settlement = {
             'amount': transferAmount,
             'assetId': collateralId,
             'expirationTimestamp': settlementExpiration,
@@ -2529,7 +2531,7 @@ class extended(Exchange, ImplicitAPI):
         }
         isBuy = (uppercaseSide == 'BUY')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id', self.uuid())
-        request: dict = {
+        request = {
             'id': clientOrderId,
             'market': market['id'],
             'type': uppercaseType,
@@ -2670,7 +2672,7 @@ class extended(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: *swap only* stop loss trigger price
         :param float [params.stopLoss.price]: *swap only* the execution price for a stop loss attached to a trigger order
         :param str [params.stopLoss.type]: *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
         extendedOrderRequest = self.create_extended_order_request(symbol, type, side, amount, price, params)
@@ -2705,7 +2707,7 @@ class extended(Exchange, ImplicitAPI):
         :param float [amount]: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if id is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an id argument')
@@ -2780,14 +2782,14 @@ class extended(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         if clientOrderId is not None:
-            request: dict = {
+            request = {
                 'externalId': clientOrderId,
             }
             response = self.v1PrivateDeleteUserOrder(self.extend(request, params))
         else:
             if id is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument')
-            request: dict = {
+            request = {
                 'id': id,
             }
             response = self.v1PrivateDeleteUserOrderId(self.extend(request, params))
@@ -2825,7 +2827,7 @@ class extended(Exchange, ImplicitAPI):
         clientOrderIds = self.safe_list_n(params, ['clientOrderIds', 'client_order_ids', 'externalOrderIds', 'external_order_ids'])
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all'])
-        request: dict = {}
+        request = {}
         hasOrderIds = ids is not None
         if hasOrderIds:
             idsLength = len(ids)
@@ -2834,7 +2836,7 @@ class extended(Exchange, ImplicitAPI):
         if clientOrderIds is None and clientOrderId is not None:
             clientOrderIds = [clientOrderId]
         hasClientOrderIds = clientOrderIds is not None
-        if hasClientOrderIds:
+        if clientOrderIds is not None:
             clientOrderIdsLength = len(clientOrderIds)
             if clientOrderIdsLength > 0:
                 request['externalOrderIds'] = clientOrderIds
@@ -2860,7 +2862,7 @@ class extended(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'cancelAll': True,
         }
         market = None
@@ -2887,7 +2889,7 @@ class extended(Exchange, ImplicitAPI):
         :returns dict: the api result
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'countdownTime': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
         return self.v1PrivatePostUserDeadmanswitch(self.extend(request, params))
@@ -2903,7 +2905,7 @@ class extended(Exchange, ImplicitAPI):
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: user-defined order id, fetches by external id
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -2914,7 +2916,7 @@ class extended(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         if clientOrderId is not None:
-            request: dict = {
+            request = {
                 'externalId': clientOrderId,
             }
             response = self.v1PrivateGetUserOrdersExternalExternalId(self.extend(request, params))
@@ -2923,7 +2925,7 @@ class extended(Exchange, ImplicitAPI):
         else:
             if id is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument')
-            request: dict = {
+            request = {
                 'id': id,
             }
             response = self.v1PrivateGetUserOrdersId(self.extend(request, params))
@@ -2940,11 +2942,11 @@ class extended(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2991,7 +2993,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         paginate = False
@@ -2999,7 +3001,7 @@ class extended(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -3061,7 +3063,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = self.fetch_orders(symbol, since, None, params)
         closedOrders = self.filter_by(orders, 'status', 'closed')
@@ -3078,14 +3080,14 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = self.fetch_orders(symbol, since, None, params)
         canceledOrders = self.filter_by(orders, 'status', 'canceled')
         return self.filter_by_symbol_since_limit(canceledOrders, symbol, since, limit)
 
     def parse_order_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'UNTRIGGERED': 'open',
@@ -3097,7 +3099,7 @@ class extended(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         "id": 1784963886257016832,
@@ -3241,16 +3243,16 @@ class extended(Exchange, ImplicitAPI):
         ))
         domainHash = self.get_extended_domain_hash()
         # Order fields
-        positionId = self.convert_to_big_int(self.safe_string(settlement, 'collateralPosition'))
-        baseAssetId = self.safe_string(settlement, 'baseAssetId')
-        baseAmount = self.convert_to_big_int(self.safe_string(settlement, 'baseAmount'))
-        quoteAssetId = self.safe_string(settlement, 'quoteAssetId')
-        quoteAmount = self.convert_to_big_int(self.safe_string(settlement, 'quoteAmount'))
-        feeAssetId = self.safe_string(settlement, 'feeAssetId')
-        feeAmount = self.convert_to_big_int(self.safe_string(settlement, 'feeAmount'))
-        expiration = self.convert_to_big_int(self.safe_string_2(settlement, 'expiration', 'expirationTimestamp'))
-        salt = self.convert_to_big_int(self.safe_string_2(settlement, 'salt', 'nonce'))
-        starkKey = self.convert_to_big_int(self.safe_string(settlement, 'starkKey'))
+        positionId = self.convert_to_big_int(self.safe_string(settlement, 'collateralPosition', '0'))
+        baseAssetId = self.safe_string(settlement, 'baseAssetId', '0')
+        baseAmount = self.convert_to_big_int(self.safe_string(settlement, 'baseAmount', '0'))
+        quoteAssetId = self.safe_string(settlement, 'quoteAssetId', '0')
+        quoteAmount = self.convert_to_big_int(self.safe_string(settlement, 'quoteAmount', '0'))
+        feeAssetId = self.safe_string(settlement, 'feeAssetId', '0')
+        feeAmount = self.convert_to_big_int(self.safe_string(settlement, 'feeAmount', '0'))
+        expiration = self.convert_to_big_int(self.safe_string_2(settlement, 'expiration', 'expirationTimestamp', '0'))
+        salt = self.convert_to_big_int(self.safe_string_2(settlement, 'salt', 'nonce', '0'))
+        starkKey = self.convert_to_big_int(self.safe_string(settlement, 'starkKey', '0'))
         # Order struct hash
         orderHash = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements([
             orderTypeHash,
@@ -3280,12 +3282,12 @@ class extended(Exchange, ImplicitAPI):
         expiration = self.safe_dict(settlement, 'expiration', {})
         withdrawalHash = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements([
             withdrawalTypeHash,
-            self.convert_to_big_int(self.safe_string(settlement, 'recipient')),
-            self.convert_to_big_int(self.safe_string(settlement, 'positionId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'collateralId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'amount')),
-            self.convert_to_big_int(self.safe_string(expiration, 'seconds')),
-            self.convert_to_big_int(self.safe_string(settlement, 'salt')),
+            self.convert_to_big_int(self.safe_string(settlement, 'recipient', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'positionId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'collateralId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'amount', '0')),
+            self.convert_to_big_int(self.safe_string(expiration, 'seconds', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'salt', '0')),
         ]))
         return self.extended_starknet_compute_poseidon_hash_on_elements([
             self.get_extended_string_to_felt('StarkNet Message'),
@@ -3299,15 +3301,15 @@ class extended(Exchange, ImplicitAPI):
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ))
         domainHash = self.get_extended_domain_hash()
-        senderPublicKey = self.convert_to_big_int(self.safe_string(settlement, 'senderPublicKey'))
+        senderPublicKey = self.convert_to_big_int(self.safe_string(settlement, 'senderPublicKey', '0'))
         transferHash = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements([
             transferTypeHash,
-            self.convert_to_big_int(self.safe_string(settlement, 'senderPositionId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'receiverPositionId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'assetId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'amount')),
-            self.convert_to_big_int(self.safe_string(settlement, 'expirationTimestamp')),
-            self.convert_to_big_int(self.safe_string(settlement, 'nonce')),
+            self.convert_to_big_int(self.safe_string(settlement, 'senderPositionId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'receiverPositionId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'assetId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'amount', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'expirationTimestamp', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'nonce', '0')),
         ]))
         return self.extended_starknet_compute_poseidon_hash_on_elements([
             self.get_extended_string_to_felt('StarkNet Message'),
@@ -3332,7 +3334,7 @@ class extended(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = self.safe_string(api, 0)
         accessibility = self.safe_string(api, 1)
         endpoint = '/' + self.implode_params(path, params)

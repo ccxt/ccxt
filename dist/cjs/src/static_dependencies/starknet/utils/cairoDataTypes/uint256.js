@@ -14,6 +14,7 @@ const UINT_256_HIGH_MAX = 340282366920938463463374607431768211455n;
 const UINT_256_LOW_MIN = 0n;
 const UINT_256_HIGH_MIN = 0n;
 class CairoUint256 {
+    static { this.abiSelector = 'core::integer::u256'; }
     constructor(...arr) {
         if (typeof arr[0] === 'object' && arr.length === 1 && 'low' in arr[0] && 'high' in arr[0]) {
             const props = CairoUint256.validateProps(arr[0].low, arr[0].high);
@@ -110,7 +111,6 @@ class CairoUint256 {
         return [felt.CairoFelt(this.low), felt.CairoFelt(this.high)];
     }
 }
-CairoUint256.abiSelector = 'core::integer::u256';
 
 exports.CairoUint256 = CairoUint256;
 exports.UINT_128_MAX = UINT_128_MAX;

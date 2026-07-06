@@ -1,10 +1,11 @@
-- [Binance Watch Orders Being Placed](./examples/py/)
-
-
- ```python
- # Python
+```python
+# Python
 import ccxt.pro
-from asyncio import run, gather
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 from pprint import pprint
 
 
@@ -61,5 +62,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

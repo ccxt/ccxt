@@ -264,7 +264,7 @@ public class ExmoCore extends ExmoApi
                 put( "position_id", Helpers.GetValue(market, "id") );
                 put( "quantity", amount );
             }};
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(type, "add")))
             {
                 response = (this.privatePostMarginUserPositionMarginAdd(this.extend(request, parameters))).join();
@@ -835,7 +835,7 @@ public class ExmoCore extends ExmoApi
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "withdraw"), "min", minValue);
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "withdraw"), "max", maxValue);
                 }
-                Object info = this.safeList(networkEntry, "info");
+                Object info = this.safeList(networkEntry, "info", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 ((java.util.List<Object>)info).add(provider);
                 Helpers.addElementToObject(networkEntry, "info", info);
                 Helpers.addElementToObject(networks, networkCode, networkEntry);
@@ -1179,7 +1179,7 @@ public class ExmoCore extends ExmoApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1227,17 +1227,20 @@ public class ExmoCore extends ExmoApi
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 Object allIds = this.ids;
-                ids = String.join((String)",", (java.util.List<String>)allIds);
-                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(ids), 2048)))
+                if (Helpers.isTrue(!Helpers.isEqual(allIds, null)))
                 {
-                    Object numIds = Helpers.getArrayLength(this.ids);
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrderBooks() has "), String.valueOf(numIds)), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
+                    ids = String.join((String)",", (java.util.List<String>)allIds);
+                    // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                    if (Helpers.isTrue(Helpers.isGreaterThan(((String)ids).length(), 2048)))
+                    {
+                        Object numIds = Helpers.getArrayLength(allIds);
+                        throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrderBooks() has "), String.valueOf(numIds)), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
+                    }
                 }
             } else
             {
-                ids = this.marketIds(symbols);
-                ids = String.join((String)",", (java.util.List<String>)ids);
+                Object requestedIds = this.marketIds(symbols);
+                ids = String.join((String)",", (java.util.List<String>)requestedIds);
             }
             final Object finalIds = ids;
             Object request = new java.util.HashMap<String, Object>() {{

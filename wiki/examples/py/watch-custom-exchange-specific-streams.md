@@ -1,8 +1,8 @@
-- [Watch Custom Exchange Specific Streams](./examples/py/)
+```python
+from importlib import import_module
+from importlib.util import find_spec
 
-
- ```python
- import asyncio
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import ccxt.pro
 
 
@@ -46,6 +46,6 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
- 
+    run(main())
+
 ```

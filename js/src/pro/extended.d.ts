@@ -1,5 +1,5 @@
 import extendedRest from '../extended.js';
-import type { Balances, Bool, FundingRate, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class extended extends extendedRest {
     describe(): any;
@@ -12,13 +12,13 @@ export default class extended extends extendedRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    watchPrivate(messageHash: string, subscription?: any): Promise<any>;
+    watchPrivate(messageHash: string, subscription?: NullableDict): Promise<any>;
     /**
      * @method
      * @name extended#watchOrders
@@ -50,7 +50,7 @@ export default class extended extends extendedRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
@@ -63,7 +63,7 @@ export default class extended extends extendedRest {
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum number of position structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: Client, message: any): void;
@@ -79,7 +79,7 @@ export default class extended extends extendedRest {
      */
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     handleFundingRate(client: Client, message: any): void;
-    parseWsFundingRate(fundingRate: any, market?: any, message?: any): FundingRate;
+    parseWsFundingRate(fundingRate: any, market?: Market, message?: any): FundingRate;
     /**
      * @method
      * @name extended#watchMarkPrice

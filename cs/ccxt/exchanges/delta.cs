@@ -80,7 +80,7 @@ public partial class delta : Exchange
                 { "reduceMargin", true },
                 { "setLeverage", true },
                 { "setMargin", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "transfer", false },
                 { "withdraw", false },
@@ -121,9 +121,9 @@ public partial class delta : Exchange
                     { "get", new List<object>() {"assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "heartbeat", "deposits/address"} },
+                    { "get", new List<object>() {"orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "rate_limits/quota", "heartbeat", "deposits/address"} },
                     { "post", new List<object>() {"orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage"} },
-                    { "put", new List<object>() {"orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp"} },
+                    { "put", new List<object>() {"orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp", "users/margin_mode"} },
                     { "delete", new List<object>() {"orders", "orders/all", "orders/batch"} },
                 } },
             } },
@@ -876,7 +876,7 @@ public partial class delta : Exchange
                 { "settleId", settleId },
                 { "type", type },
                 { "spot", spot },
-                { "margin", ((bool) isTrue(spot)) ? null : false },
+                { "margin", false },
                 { "swap", swap },
                 { "future", future },
                 { "option", option },
@@ -1378,7 +1378,7 @@ public partial class delta : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -3286,7 +3286,7 @@ public partial class delta : Exchange
         object result = this.safeList(response, "result", new List<object>() {});
         object settlements = this.parseSettlements(result, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
     }
 
     public virtual object parseSettlement(object settlement, object market)
@@ -3512,7 +3512,7 @@ public partial class delta : Exchange
             { "bidPrice", this.safeNumber(quotes, "best_bid") },
             { "askPrice", this.safeNumber(quotes, "best_ask") },
             { "markPrice", this.safeNumber(greeks, "mark_price") },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(greeks, "last_price") },
             { "underlyingPrice", this.safeNumber(greeks, "spot_price") },
             { "info", greeks },
         };
@@ -3641,6 +3641,29 @@ public partial class delta : Exchange
             { "symbol", symbol },
             { "marginMode", this.safeString(marginMode, "margin_mode") },
         };
+    }
+
+    /**
+     * @method
+     * @name delta#setMarginMode
+     * @description set margin mode to 'isolated' or 'portfolio'
+     * @see https://docs.delta.exchange/#change-margin-mode
+     * @param {string} marginMode 'isolated' or 'portfolio'
+     * @param {string} [symbol] not used by delta.setMarginMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.subaccount_user_id the user id of the subaccount
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"isolated", "portfolio"});
+        object subaccountUserId = this.safeString(parameters, "subaccount_user_id");
+        this.checkRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]");
+        object request = new Dictionary<string, object>() {
+            { "margin_mode", marginMode },
+        };
+        return await this.privatePutUsersMarginMode(this.extend(request, parameters));
     }
 
     /**
@@ -3774,7 +3797,7 @@ public partial class delta : Exchange
         object timestamp = this.safeIntegerProduct(chain, "timestamp", 0.001);
         return new Dictionary<string, object>() {
             { "info", chain },
-            { "currency", null },
+            { "currency", this.safeString(chain, "currency") },
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -3784,12 +3807,12 @@ public partial class delta : Exchange
             { "askPrice", this.safeNumber(quotes, "best_ask") },
             { "midPrice", this.safeNumber(quotes, "impact_mid_price") },
             { "markPrice", this.safeNumber(chain, "mark_price") },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(chain, "last_price") },
             { "underlyingPrice", this.safeNumber(chain, "spot_price") },
-            { "change", null },
-            { "percentage", null },
+            { "change", this.safeNumber(chain, "change") },
+            { "percentage", this.safeNumber(chain, "percentage") },
             { "baseVolume", this.safeNumber(chain, "volume") },
-            { "quoteVolume", null },
+            { "quoteVolume", this.safeNumber(chain, "quote_volume") },
         };
     }
 
@@ -4168,6 +4191,7 @@ public partial class delta : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        headers ??= new Dictionary<string, object>();
         object requestPath = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), requestPath);
         object query = this.omit(parameters, this.extractParams(path));

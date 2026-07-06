@@ -26,7 +26,7 @@ func (this *ExtendedCore) Describe() any {
 		"dex":           true,
 		"has": map[string]any{
 			"CORS":                                 nil,
-			"spot":                                 false,
+			"spot":                                 true,
 			"margin":                               false,
 			"swap":                                 true,
 			"future":                               false,
@@ -162,16 +162,16 @@ func (this *ExtendedCore) Describe() any {
 		},
 		"hostname": "extended.exchange",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299",
+			"logo": "https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079",
 			"api": map[string]any{
 				"rest": "https://api.starknet.{hostname}",
 			},
 			"test": map[string]any{
 				"rest": "https://api.starknet.sepolia.{hostname}",
 			},
-			"www":      "https://app.{hostname}",
-			"doc":      "https://api.docs.{hostname}",
-			"fees":     "https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates",
+			"www":      "https://app.extended.exchange",
+			"doc":      "https://api.docs.extended.exchange",
+			"fees":     "https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates",
 			"referral": "",
 		},
 		"api": map[string]any{
@@ -486,7 +486,7 @@ func (this *ExtendedCore) ParseMarket(market any) any {
 	//
 	var tradingConfig any = this.SafeDict(market, "tradingConfig", map[string]any{})
 	var marketId any = this.SafeString(market, "name")
-	var baseId any = this.SafeString(market, "assetName")
+	var baseId any = this.SafeString(market, "assetName", "")
 	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(baseId, "SPOT"), 0)) {
 		baseId = Replace(baseId, "SPOT", "")
 	}
@@ -659,7 +659,7 @@ func (this *ExtendedCore) ParseCurrency(currency any) any {
 		code = "USDC"
 	}
 	var name any = this.SafeString(currency, "name")
-	var precision any = this.SafeInteger(currency, "precision")
+	var precision any = this.SafeInteger(currency, "precision", 0)
 	var isActive any = this.SafeBool(currency, "isActive")
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
@@ -683,7 +683,7 @@ func (this *ExtendedCore) ParseCurrency(currency any) any {
  * @see https://api.docs.extended.exchange/#get-market-statistics
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ExtendedCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -754,7 +754,7 @@ func (this *ExtendedCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
  * @see https://api.docs.extended.exchange/#get-markets
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ExtendedCore) FetchTickers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -807,7 +807,9 @@ func (this *ExtendedCore) FetchTickers(optionalArgs ...any) <-chan any {
 			var stats any = this.SafeDict(marketData, "marketStats", map[string]any{})
 			var ticker any = this.ParseTicker(stats, market)
 			var symbol any = GetValue(ticker, "symbol")
-			AddElementToObject(tickers, symbol, ticker)
+			if IsTrue(!IsEqual(symbol, nil)) {
+				AddElementToObject(tickers, symbol, ticker)
+			}
 		}
 
 		ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
@@ -890,7 +892,7 @@ func (this *ExtendedCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ExtendedCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -902,8 +904,8 @@ func (this *ExtendedCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes8848 := (<-this.LoadMarkets())
-		PanicOnError(retRes8848)
+		retRes8868 := (<-this.LoadMarkets())
+		PanicOnError(retRes8868)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -955,7 +957,7 @@ func (this *ExtendedCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *ExtendedCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -969,8 +971,8 @@ func (this *ExtendedCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes9328 := (<-this.LoadMarkets())
-		PanicOnError(retRes9328)
+		retRes9348 := (<-this.LoadMarkets())
+		PanicOnError(retRes9348)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -1013,7 +1015,7 @@ func (this *ExtendedCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *ExtendedCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1029,17 +1031,17 @@ func (this *ExtendedCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes9718 := (<-this.LoadMarkets())
-		PanicOnError(retRes9718)
+		retRes9738 := (<-this.LoadMarkets())
+		PanicOnError(retRes9738)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes97519 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nil, 100))
-			PanicOnError(retRes97519)
-			ch <- retRes97519
+			retRes97719 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			PanicOnError(retRes97719)
+			ch <- retRes97719
 			return nil
 		}
 		var market any = nil
@@ -1112,7 +1114,7 @@ func (this *ExtendedCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *ExtendedCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1128,17 +1130,17 @@ func (this *ExtendedCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10418 := (<-this.LoadMarkets())
-		PanicOnError(retRes10418)
+		retRes10438 := (<-this.LoadMarkets())
+		PanicOnError(retRes10438)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes104519 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor", nil, 100))
-			PanicOnError(retRes104519)
-			ch <- retRes104519
+			retRes104719 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			PanicOnError(retRes104719)
+			ch <- retRes104719
 			return nil
 		}
 		var market any = nil
@@ -1344,8 +1346,8 @@ func (this *ExtendedCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes12218 := (<-this.LoadMarkets())
-		PanicOnError(retRes12218)
+		retRes12238 := (<-this.LoadMarkets())
+		PanicOnError(retRes12238)
 		var market any = this.Market(symbol)
 		var price any = this.SafeString(params, "price")
 		var candleType any = this.SafeString(params, "candleType")
@@ -1424,7 +1426,7 @@ func (this *ExtendedCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
  * @param {int} [params.cursor] offset of the result set
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *ExtendedCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1443,17 +1445,17 @@ func (this *ExtendedCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes13058 := (<-this.LoadMarkets())
-		PanicOnError(retRes13058)
+		retRes13078 := (<-this.LoadMarkets())
+		PanicOnError(retRes13078)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes130919 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "cursor", "cursor", nil, 10000))
-			PanicOnError(retRes130919)
-			ch <- retRes130919
+			retRes131119 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "cursor", "cursor", nil, 10000))
+			PanicOnError(retRes131119)
+			ch <- retRes131119
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1547,7 +1549,7 @@ func (this *ExtendedCore) ParseFundingRateHistory(info any, optionalArgs ...any)
  * @param {int} [limit] the maximum amount of open interest structures to retrieve
  * @param {object} [params] exchange specific parameters
  * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
- * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *ExtendedCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1563,8 +1565,8 @@ func (this *ExtendedCore) FetchOpenInterestHistory(symbol any, optionalArgs ...a
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes13958 := (<-this.LoadMarkets())
-		PanicOnError(retRes13958)
+		retRes13978 := (<-this.LoadMarkets())
+		PanicOnError(retRes13978)
 		var market any = this.Market(symbol)
 		var interval any = this.SafeString(this.Timeframes, timeframe)
 		if !IsTrue(this.InArray(interval, []any{"PT1H", "P1D"})) {
@@ -1621,7 +1623,7 @@ func (this *ExtendedCore) ParseOpenInterest(interest any, optionalArgs ...any) a
 	_ = market
 	var timestamp any = this.SafeInteger(interest, "t")
 	return this.SafeOpenInterest(map[string]any{
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             this.SafeString(market, "symbol"),
 		"openInterestAmount": this.SafeNumber(interest, "I"),
 		"openInterestValue":  this.SafeNumber(interest, "i"),
 		"baseVolume":         this.SafeNumber(interest, "I"),
@@ -1648,8 +1650,8 @@ func (this *ExtendedCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes14648 := (<-this.LoadMarkets())
-		PanicOnError(retRes14648)
+		retRes14668 := (<-this.LoadMarkets())
+		PanicOnError(retRes14668)
 
 		response := (<-this.V1PrivateGetUserSpotBalances(params))
 		PanicOnError(response)
@@ -1712,7 +1714,7 @@ func (this *ExtendedCore) ParseBalance(response any) any {
  * @description fetch the current authenticated sub-account
  * @see https://api.docs.extended.exchange/#get-account-details
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+ * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
  */
 func (this *ExtendedCore) FetchAccount(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1757,7 +1759,7 @@ func (this *ExtendedCore) FetchAccount(optionalArgs ...any) <-chan any {
  * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
  * @see https://api.docs.extended.exchange/#get-sub-accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
  */
 func (this *ExtendedCore) FetchAccounts(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1825,7 +1827,7 @@ func (this *ExtendedCore) ParseAccount(account any) any {
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *ExtendedCore) FetchLedger(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1841,17 +1843,17 @@ func (this *ExtendedCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes16108 := (<-this.LoadMarkets())
-		PanicOnError(retRes16108)
+		retRes16128 := (<-this.LoadMarkets())
+		PanicOnError(retRes16128)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes161419 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes161419)
-			ch <- retRes161419
+			retRes161619 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes161619)
+			ch <- retRes161619
 			return nil
 		}
 		var currency any = nil
@@ -1948,7 +1950,7 @@ func (this *ExtendedCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum number of transaction structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ExtendedCore) FetchTransactions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1964,17 +1966,17 @@ func (this *ExtendedCore) FetchTransactions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17038 := (<-this.LoadMarkets())
-		PanicOnError(retRes17038)
+		retRes17058 := (<-this.LoadMarkets())
+		PanicOnError(retRes17058)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransactions", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes170719 := (<-this.FetchPaginatedCallCursor("fetchTransactions", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes170719)
-			ch <- retRes170719
+			retRes170919 := (<-this.FetchPaginatedCallCursor("fetchTransactions", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes170919)
+			ch <- retRes170919
 			return nil
 		}
 		var currency any = nil
@@ -2042,7 +2044,7 @@ func (this *ExtendedCore) FetchTransactions(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of deposit structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ExtendedCore) FetchDeposits(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2058,11 +2060,11 @@ func (this *ExtendedCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes176815 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
+		retRes177015 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
 			"type": "DEPOSIT",
 		}, params)))
-		PanicOnError(retRes176815)
-		ch <- retRes176815
+		PanicOnError(retRes177015)
+		ch <- retRes177015
 		return nil
 
 	}()
@@ -2079,7 +2081,7 @@ func (this *ExtendedCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of withdrawal structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ExtendedCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2095,11 +2097,11 @@ func (this *ExtendedCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes178415 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
+		retRes178615 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
 			"type": "WITHDRAWAL",
 		}, params)))
-		PanicOnError(retRes178415)
-		ch <- retRes178415
+		PanicOnError(retRes178615)
+		ch <- retRes178615
 		return nil
 
 	}()
@@ -2131,8 +2133,8 @@ func (this *ExtendedCore) Withdraw(code any, amount any, address any, optionalAr
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes18038 := (<-this.LoadMarkets())
-		PanicOnError(retRes18038)
+		retRes18058 := (<-this.LoadMarkets())
+		PanicOnError(retRes18058)
 		var currency any = this.Currency(code)
 		var chainId any = this.SafeStringUpper2(params, "chainId", "network", "STRK")
 		if IsTrue(!IsEqual(chainId, "STRK")) {
@@ -2204,7 +2206,7 @@ func (this *ExtendedCore) Withdraw(code any, amount any, address any, optionalAr
  * @param {int} [limit] the maximum number of transfer structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *ExtendedCore) FetchTransfers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2220,17 +2222,17 @@ func (this *ExtendedCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18698 := (<-this.LoadMarkets())
-		PanicOnError(retRes18698)
+		retRes18718 := (<-this.LoadMarkets())
+		PanicOnError(retRes18718)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes187319 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes187319)
-			ch <- retRes187319
+			retRes187519 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes187519)
+			ch <- retRes187519
 			return nil
 		}
 		var currency any = nil
@@ -2281,7 +2283,7 @@ func (this *ExtendedCore) FetchTransfers(optionalArgs ...any) <-chan any {
  * @param {string} params.toVault destination account L2 vault
  * @param {string} params.toL2Key destination account L2 public key
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *ExtendedCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2292,13 +2294,13 @@ func (this *ExtendedCore) Transfer(code any, amount any, fromAccount any, toAcco
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes19188 := (<-this.LoadMarkets())
-		PanicOnError(retRes19188)
+		retRes19208 := (<-this.LoadMarkets())
+		PanicOnError(retRes19208)
 		var currency any = this.Currency(code)
 
 		account := (<-this.FetchExtendedAccount())
 		PanicOnError(account)
-		var currentAccountId any = this.SafeString(account, "accountId")
+		var currentAccountId any = this.SafeString(account, "accountId", "")
 		if IsTrue(IsEqual(fromAccount, nil)) {
 			fromAccount = currentAccountId
 		} else if IsTrue(!IsEqual(fromAccount, currentAccountId)) {
@@ -2501,8 +2503,8 @@ func (this *ExtendedCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes21098 := (<-this.LoadMarkets())
-		PanicOnError(retRes21098)
+		retRes21118 := (<-this.LoadMarkets())
+		PanicOnError(retRes21118)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -2551,8 +2553,8 @@ func (this *ExtendedCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes21448 := (<-this.LoadMarkets())
-		PanicOnError(retRes21448)
+		retRes21468 := (<-this.LoadMarkets())
+		PanicOnError(retRes21468)
 
 		response := (<-this.V1PrivateGetUserFees(params))
 		PanicOnError(response)
@@ -2575,7 +2577,9 @@ func (this *ExtendedCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 			var fee any = this.SafeDict(data, i, map[string]any{})
 			var parsed any = this.ParseTradingFee(fee)
 			var symbol any = this.SafeString(parsed, "symbol")
-			AddElementToObject(result, symbol, parsed)
+			if IsTrue(!IsEqual(symbol, nil)) {
+				AddElementToObject(result, symbol, parsed)
+			}
 		}
 
 		ch <- result
@@ -2614,7 +2618,7 @@ func (this *ExtendedCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @see https://api.docs.extended.exchange/#get-leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *ExtendedCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2624,8 +2628,8 @@ func (this *ExtendedCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22018 := (<-this.LoadMarkets())
-		PanicOnError(retRes22018)
+		retRes22058 := (<-this.LoadMarkets())
+		PanicOnError(retRes22058)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -2676,8 +2680,8 @@ func (this *ExtendedCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes22368 := (<-this.LoadMarkets())
-		PanicOnError(retRes22368)
+		retRes22408 := (<-this.LoadMarkets())
+		PanicOnError(retRes22408)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market":   GetValue(market, "id"),
@@ -2728,7 +2732,7 @@ func (this *ExtendedCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @see https://api.docs.extended.exchange/#get-positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ExtendedCore) FetchPositions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2740,8 +2744,8 @@ func (this *ExtendedCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes22828 := (<-this.LoadMarkets())
-		PanicOnError(retRes22828)
+		retRes22868 := (<-this.LoadMarkets())
+		PanicOnError(retRes22868)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var marketIds any = this.MarketIds(symbols)
@@ -2796,7 +2800,7 @@ func (this *ExtendedCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @see https://api.docs.extended.exchange/#get-positions
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ExtendedCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2826,7 +2830,7 @@ func (this *ExtendedCore) FetchPosition(symbol any, optionalArgs ...any) <-chan 
  * @param {int} [limit] the maximum number of position structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ExtendedCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2842,8 +2846,8 @@ func (this *ExtendedCore) FetchPositionsHistory(optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes23508 := (<-this.LoadMarkets())
-		PanicOnError(retRes23508)
+		retRes23548 := (<-this.LoadMarkets())
+		PanicOnError(retRes23548)
 		if IsTrue(IsString(symbols)) {
 			symbols = []any{symbols}
 		}
@@ -2853,9 +2857,9 @@ func (this *ExtendedCore) FetchPositionsHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes235719 := (<-this.FetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, params, "cursor", "cursor", nil, 10000))
-			PanicOnError(retRes235719)
-			ch <- retRes235719
+			retRes236119 := (<-this.FetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, params, "cursor", "cursor", nil, 10000))
+			PanicOnError(retRes236119)
+			ch <- retRes236119
 			return nil
 		}
 		var request any = map[string]any{}
@@ -3136,8 +3140,8 @@ func (this *ExtendedCore) CreateExtendedOrderRequest(symbol any, typeVar any, si
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes26018 := (<-this.LoadMarkets())
-		PanicOnError(retRes26018)
+		retRes26058 := (<-this.LoadMarkets())
+		PanicOnError(retRes26058)
 		var market any = this.Market(symbol)
 		var uppercaseType any = ToUpper(typeVar)
 		var uppercaseSide any = ToUpper(side)
@@ -3376,7 +3380,7 @@ func (this *ExtendedCore) CreateExtendedOrderRequest(symbol any, typeVar any, si
  * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
  * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
  * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3429,7 +3433,7 @@ func (this *ExtendedCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @param {float} [amount] how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3540,8 +3544,8 @@ func (this *ExtendedCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes29358 := (<-this.LoadMarkets())
-		PanicOnError(retRes29358)
+		retRes29398 := (<-this.LoadMarkets())
+		PanicOnError(retRes29398)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3612,8 +3616,8 @@ func (this *ExtendedCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes29888 := (<-this.LoadMarkets())
-		PanicOnError(retRes29888)
+		retRes29928 := (<-this.LoadMarkets())
+		PanicOnError(retRes29928)
 		var clientOrderIds any = this.SafeListN(params, []any{"clientOrderIds", "client_order_ids", "externalOrderIds", "external_order_ids"})
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
 		params = this.Omit(params, []any{"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"})
@@ -3629,7 +3633,7 @@ func (this *ExtendedCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 			clientOrderIds = []any{clientOrderId}
 		}
 		var hasClientOrderIds any = !IsEqual(clientOrderIds, nil)
-		if IsTrue(hasClientOrderIds) {
+		if IsTrue(!IsEqual(clientOrderIds, nil)) {
 			var clientOrderIdsLength any = GetArrayLength(clientOrderIds)
 			if IsTrue(IsGreaterThan(clientOrderIdsLength, 0)) {
 				AddElementToObject(request, "externalOrderIds", clientOrderIds)
@@ -3639,8 +3643,8 @@ func (this *ExtendedCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires an ids argument or clientOrderIds parameter")))
 		}
 
-		retRes30138 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
-		PanicOnError(retRes30138)
+		retRes30178 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
+		PanicOnError(retRes30178)
 
 		//
 		//     {
@@ -3674,8 +3678,8 @@ func (this *ExtendedCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30338 := (<-this.LoadMarkets())
-		PanicOnError(retRes30338)
+		retRes30378 := (<-this.LoadMarkets())
+		PanicOnError(retRes30378)
 		var request any = map[string]any{
 			"cancelAll": true,
 		}
@@ -3685,8 +3689,8 @@ func (this *ExtendedCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "markets", []any{GetValue(market, "id")})
 		}
 
-		retRes30428 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
-		PanicOnError(retRes30428)
+		retRes30468 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
+		PanicOnError(retRes30468)
 
 		//
 		//     {
@@ -3718,15 +3722,15 @@ func (this *ExtendedCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes30628 := (<-this.LoadMarkets())
-		PanicOnError(retRes30628)
+		retRes30668 := (<-this.LoadMarkets())
+		PanicOnError(retRes30668)
 		var request any = map[string]any{
 			"countdownTime": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
 
-		retRes306615 := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
-		PanicOnError(retRes306615)
-		ch <- retRes306615
+		retRes307015 := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
+		PanicOnError(retRes307015)
+		ch <- retRes307015
 		return nil
 
 	}()
@@ -3743,7 +3747,7 @@ func (this *ExtendedCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any)
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3755,8 +3759,8 @@ func (this *ExtendedCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30828 := (<-this.LoadMarkets())
-		PanicOnError(retRes30828)
+		retRes30868 := (<-this.LoadMarkets())
+		PanicOnError(retRes30868)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3803,7 +3807,7 @@ func (this *ExtendedCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3819,8 +3823,8 @@ func (this *ExtendedCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31238 := (<-this.LoadMarkets())
-		PanicOnError(retRes31238)
+		retRes31278 := (<-this.LoadMarkets())
+		PanicOnError(retRes31278)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3877,7 +3881,7 @@ func (this *ExtendedCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3893,17 +3897,17 @@ func (this *ExtendedCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31768 := (<-this.LoadMarkets())
-		PanicOnError(retRes31768)
+		retRes31808 := (<-this.LoadMarkets())
+		PanicOnError(retRes31808)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes318019 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
-			PanicOnError(retRes318019)
-			ch <- retRes318019
+			retRes318419 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			PanicOnError(retRes318419)
+			ch <- retRes318419
 			return nil
 		}
 		var market any = nil
@@ -3982,7 +3986,7 @@ func (this *ExtendedCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -4019,7 +4023,7 @@ func (this *ExtendedCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -4201,16 +4205,16 @@ func (this *ExtendedCore) GetExtendedOrderMsgHash(settlement any) any {
 	var orderTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	// Order fields
-	var positionId any = this.ConvertToBigInt(this.SafeString(settlement, "collateralPosition"))
-	var baseAssetId any = this.SafeString(settlement, "baseAssetId")
-	var baseAmount any = this.ConvertToBigInt(this.SafeString(settlement, "baseAmount"))
-	var quoteAssetId any = this.SafeString(settlement, "quoteAssetId")
-	var quoteAmount any = this.ConvertToBigInt(this.SafeString(settlement, "quoteAmount"))
-	var feeAssetId any = this.SafeString(settlement, "feeAssetId")
-	var feeAmount any = this.ConvertToBigInt(this.SafeString(settlement, "feeAmount"))
-	var expiration any = this.ConvertToBigInt(this.SafeString2(settlement, "expiration", "expirationTimestamp"))
-	var salt any = this.ConvertToBigInt(this.SafeString2(settlement, "salt", "nonce"))
-	var starkKey any = this.ConvertToBigInt(this.SafeString(settlement, "starkKey"))
+	var positionId any = this.ConvertToBigInt(this.SafeString(settlement, "collateralPosition", "0"))
+	var baseAssetId any = this.SafeString(settlement, "baseAssetId", "0")
+	var baseAmount any = this.ConvertToBigInt(this.SafeString(settlement, "baseAmount", "0"))
+	var quoteAssetId any = this.SafeString(settlement, "quoteAssetId", "0")
+	var quoteAmount any = this.ConvertToBigInt(this.SafeString(settlement, "quoteAmount", "0"))
+	var feeAssetId any = this.SafeString(settlement, "feeAssetId", "0")
+	var feeAmount any = this.ConvertToBigInt(this.SafeString(settlement, "feeAmount", "0"))
+	var expiration any = this.ConvertToBigInt(this.SafeString2(settlement, "expiration", "expirationTimestamp", "0"))
+	var salt any = this.ConvertToBigInt(this.SafeString2(settlement, "salt", "nonce", "0"))
+	var starkKey any = this.ConvertToBigInt(this.SafeString(settlement, "starkKey", "0"))
 	// Order struct hash
 	var orderHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{orderTypeHash, positionId, this.ConvertToBigInt(baseAssetId), this.GetExtendedEncodeI64(baseAmount), this.ConvertToBigInt(quoteAssetId), this.GetExtendedEncodeI64(quoteAmount), this.ConvertToBigInt(feeAssetId), feeAmount, expiration, salt}))
 	// SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
@@ -4220,14 +4224,14 @@ func (this *ExtendedCore) GetExtendedWithdrawalMsgHash(settlement any, starkKey 
 	var withdrawalTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	var expiration any = this.SafeDict(settlement, "expiration", map[string]any{})
-	var withdrawalHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{withdrawalTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "recipient")), this.ConvertToBigInt(this.SafeString(settlement, "positionId")), this.ConvertToBigInt(this.SafeString(settlement, "collateralId")), this.ConvertToBigInt(this.SafeString(settlement, "amount")), this.ConvertToBigInt(this.SafeString(expiration, "seconds")), this.ConvertToBigInt(this.SafeString(settlement, "salt"))}))
+	var withdrawalHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{withdrawalTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "recipient", "0")), this.ConvertToBigInt(this.SafeString(settlement, "positionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "collateralId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(expiration, "seconds", "0")), this.ConvertToBigInt(this.SafeString(settlement, "salt", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, this.ConvertToBigInt(starkKey), withdrawalHash})
 }
 func (this *ExtendedCore) GetExtendedTransferMsgHash(settlement any) any {
 	var transferTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
-	var senderPublicKey any = this.ConvertToBigInt(this.SafeString(settlement, "senderPublicKey"))
-	var transferHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{transferTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "senderPositionId")), this.ConvertToBigInt(this.SafeString(settlement, "receiverPositionId")), this.ConvertToBigInt(this.SafeString(settlement, "assetId")), this.ConvertToBigInt(this.SafeString(settlement, "amount")), this.ConvertToBigInt(this.SafeString(settlement, "expirationTimestamp")), this.ConvertToBigInt(this.SafeString(settlement, "nonce"))}))
+	var senderPublicKey any = this.ConvertToBigInt(this.SafeString(settlement, "senderPublicKey", "0"))
+	var transferHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{transferTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "senderPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "receiverPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "assetId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(settlement, "expirationTimestamp", "0")), this.ConvertToBigInt(this.SafeString(settlement, "nonce", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash})
 }
 func (this *ExtendedCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

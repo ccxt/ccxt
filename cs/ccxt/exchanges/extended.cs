@@ -19,7 +19,7 @@ public partial class extended : Exchange
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
                 { "swap", true },
                 { "future", false },
@@ -155,16 +155,16 @@ public partial class extended : Exchange
             } },
             { "hostname", "extended.exchange" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299" },
+                { "logo", "https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://api.starknet.{hostname}" },
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "rest", "https://api.starknet.sepolia.{hostname}" },
                 } },
-                { "www", "https://app.{hostname}" },
-                { "doc", "https://api.docs.{hostname}" },
-                { "fees", "https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates" },
+                { "www", "https://app.extended.exchange" },
+                { "doc", "https://api.docs.extended.exchange" },
+                { "fees", "https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates" },
                 { "referral", "" },
             } },
             { "api", new Dictionary<string, object>() {
@@ -465,7 +465,7 @@ public partial class extended : Exchange
         //
         object tradingConfig = this.safeDict(market, "tradingConfig", new Dictionary<string, object>() {});
         object marketId = this.safeString(market, "name");
-        object baseId = this.safeString(market, "assetName");
+        object baseId = this.safeString(market, "assetName", "");
         if (isTrue(isGreaterThanOrEqual(getIndexOf(baseId, "SPOT"), 0)))
         {
             baseId = ((string)baseId).Replace((string)"SPOT", (string)"");
@@ -635,7 +635,7 @@ public partial class extended : Exchange
             code = "USDC";
         }
         object name = this.safeString(currency, "name");
-        object precision = this.safeInteger(currency, "precision");
+        object precision = this.safeInteger(currency, "precision", 0);
         object isActive = this.safeBool(currency, "isActive");
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -659,7 +659,7 @@ public partial class extended : Exchange
      * @see https://api.docs.extended.exchange/#get-market-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -717,7 +717,7 @@ public partial class extended : Exchange
      * @see https://api.docs.extended.exchange/#get-markets
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -763,7 +763,10 @@ public partial class extended : Exchange
             object stats = this.safeDict(marketData, "marketStats", new Dictionary<string, object>() {});
             object ticker = this.parseTicker(stats, market);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(tickers, "symbol", symbols);
     }
@@ -841,7 +844,7 @@ public partial class extended : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -892,7 +895,7 @@ public partial class extended : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -933,7 +936,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1014,7 +1017,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1294,7 +1297,7 @@ public partial class extended : Exchange
      * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
      * @param {int} [params.cursor] offset of the result set
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1400,7 +1403,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum amount of open interest structures to retrieve
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
-     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1459,7 +1462,7 @@ public partial class extended : Exchange
         //
         object timestamp = this.safeInteger(interest, "t");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", this.safeNumber(interest, "I") },
             { "openInterestValue", this.safeNumber(interest, "i") },
             { "baseVolume", this.safeNumber(interest, "I") },
@@ -1540,7 +1543,7 @@ public partial class extended : Exchange
      * @description fetch the current authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-account-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
      */
     public async virtual Task<object> fetchAccount(object parameters = null)
     {
@@ -1574,7 +1577,7 @@ public partial class extended : Exchange
      * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-sub-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
@@ -1634,7 +1637,7 @@ public partial class extended : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1741,7 +1744,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of transaction structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1817,7 +1820,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of deposit structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1837,7 +1840,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1879,7 +1882,7 @@ public partial class extended : Exchange
         object account = await this.fetchExtendedAccount();
         object amountString = this.currencyToPrecision(code, amount);
         object accountId = this.safeString(account, "accountId");
-        object settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, parameters);
+        object settlement = this.createWithdrawalSettlementData(address, ((string)amountString), currency, account, parameters);
         object request = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "amount", amountString },
@@ -1930,7 +1933,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1989,7 +1992,7 @@ public partial class extended : Exchange
      * @param {string} params.toVault destination account L2 vault
      * @param {string} params.toL2Key destination account L2 public key
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -1998,7 +2001,7 @@ public partial class extended : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object account = await this.fetchExtendedAccount();
-        object currentAccountId = this.safeString(account, "accountId");
+        object currentAccountId = this.safeString(account, "accountId", "");
         if (isTrue(isEqual(fromAccount, null)))
         {
             fromAccount = currentAccountId;
@@ -2013,7 +2016,7 @@ public partial class extended : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
         }
         object amountString = this.currencyToPrecision(code, amount);
-        object settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, parameters);
+        object settlement = this.createTransferSettlementData(((string)amountString), currency, account, toVault, toL2Key, parameters);
         object request = new Dictionary<string, object>() {
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
@@ -2123,7 +2126,7 @@ public partial class extended : Exchange
             { "COMPLETED", "ok" },
             { "REJECTED", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseTransactionType(object type)
@@ -2134,7 +2137,7 @@ public partial class extended : Exchange
             { "TRANSFER", "transfer" },
             { "CLAIM", "claim" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -2264,7 +2267,10 @@ public partial class extended : Exchange
             object fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseTradingFee(fee);
             object symbol = this.safeString(parsed, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = parsed;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = parsed;
+            }
         }
         return result;
     }
@@ -2298,7 +2304,7 @@ public partial class extended : Exchange
      * @see https://api.docs.extended.exchange/#get-leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
@@ -2385,7 +2391,7 @@ public partial class extended : Exchange
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -2439,7 +2445,7 @@ public partial class extended : Exchange
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -2458,7 +2464,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of position structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2600,10 +2606,10 @@ public partial class extended : Exchange
         roundUp ??= false;
         object resolutionString = this.numberToString(resolution);
         object precise = Precise.stringMul(amount, resolutionString);
-        object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        object result = this.decimalToPrecision(((string)precise), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (isTrue(isTrue(roundUp) && isTrue(Precise.stringGt(precise, result))))
         {
-            result = Precise.stringAdd(result, "1");
+            result = ((string)Precise.stringAdd(result, "1"));
         }
         return result;
     }
@@ -2638,15 +2644,15 @@ public partial class extended : Exchange
         object baseRoundUp = isBuy;
         object quoteRoundUp = isBuy;
         object baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-        object collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
+        object collateralAmount = this.getExtendedStarkAmount(((string)quoteAmount), collateralResolution, quoteRoundUp);
         if (isTrue(isBuy))
         {
-            collateralAmount = Precise.stringNeg(collateralAmount);
+            collateralAmount = ((string)Precise.stringNeg(collateralAmount));
         } else
         {
-            baseAmount = Precise.stringNeg(baseAmount);
+            baseAmount = ((string)Precise.stringNeg(baseAmount));
         }
-        object feeAmount = this.getExtendedStarkAmount(Precise.stringMul(totalFee, quoteAmount), collateralResolution, true);
+        object feeAmount = this.getExtendedStarkAmount(((string)Precise.stringMul(totalFee, quoteAmount)), collateralResolution, true);
         object settlement = new Dictionary<string, object>() {
             { "starkKey", starkKey },
             { "collateralPosition", collateralPosition },
@@ -2745,7 +2751,7 @@ public partial class extended : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();
-        object uppercaseSide = ((string)side).ToUpper();
+        object uppercaseSide = ((string)((string)side)).ToUpper();
         if (isTrue(isTrue(getValue(market, "spot")) && isTrue(!isEqual(uppercaseType, "LIMIT"))))
         {
             throw new BadRequest ((string)add(this.id, " createOrder() supports limit orders for spot markets only")) ;
@@ -2787,7 +2793,7 @@ public partial class extended : Exchange
         object totalFee = fee;
         if (isTrue(!isEqual(builderFeeRate, null)))
         {
-            totalFee = Precise.stringAdd(fee, builderFeeRate);
+            totalFee = ((string)Precise.stringAdd(fee, builderFeeRate));
         }
         object now = this.milliseconds();
         object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", add(now, 3600000));
@@ -2847,7 +2853,7 @@ public partial class extended : Exchange
         {
             ((IDictionary<string,object>)request)["cancelId"] = cancelId;
         }
-        object settlement = this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
+        object settlement = this.createOrderSettlementData(isBuy, ((string)amountString), ((string)priceString), settlementParams);
         ((IDictionary<string,object>)request)["settlement"] = new Dictionary<string, object>() {
             { "signature", new Dictionary<string, object>() {
                 { "r", getValue(settlement, "r") },
@@ -2874,7 +2880,7 @@ public partial class extended : Exchange
                 object stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                 object stopLossExecutionPrice = this.safeString(stopLoss, "price");
                 object stopLossType = this.safeString(stopLoss, "type");
-                object stopLossSettlement = this.createOrderSettlementData(!isTrue(isBuy), amountString, stopLossExecutionPrice, settlementParams);
+                object stopLossSettlement = this.createOrderSettlementData(!isTrue(isBuy), ((string)amountString), ((string)stopLossExecutionPrice), settlementParams);
                 object requestStopLoss = new Dictionary<string, object>() {
                     { "triggerPrice", this.priceToPrecision(symbol, stopLossTrigger) },
                     { "price", this.priceToPrecision(symbol, stopLossExecutionPrice) },
@@ -2903,7 +2909,7 @@ public partial class extended : Exchange
                 object takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                 object takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                 object takeProfitType = this.safeString(takeProfit, "type");
-                object takeProfitSettlement = this.createOrderSettlementData(!isTrue(isBuy), amountString, takeProfitExecutionPrice, settlementParams);
+                object takeProfitSettlement = this.createOrderSettlementData(!isTrue(isBuy), ((string)amountString), ((string)takeProfitExecutionPrice), settlementParams);
                 object requestTakeProfit = new Dictionary<string, object>() {
                     { "triggerPrice", this.priceToPrecision(symbol, takeProfitTrigger) },
                     { "price", this.priceToPrecision(symbol, takeProfitExecutionPrice) },
@@ -2998,7 +3004,7 @@ public partial class extended : Exchange
      * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
      * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
      * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -3036,7 +3042,7 @@ public partial class extended : Exchange
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -3209,7 +3215,7 @@ public partial class extended : Exchange
             clientOrderIds = new List<object>() {clientOrderId};
         }
         object hasClientOrderIds = !isEqual(clientOrderIds, null);
-        if (isTrue(hasClientOrderIds))
+        if (isTrue(!isEqual(clientOrderIds, null)))
         {
             object clientOrderIdsLength = getArrayLength(clientOrderIds);
             if (isTrue(isGreaterThan(clientOrderIdsLength, 0)))
@@ -3292,7 +3298,7 @@ public partial class extended : Exchange
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -3339,7 +3345,7 @@ public partial class extended : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3395,7 +3401,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3482,7 +3488,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3502,7 +3508,7 @@ public partial class extended : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3524,7 +3530,7 @@ public partial class extended : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -3640,7 +3646,7 @@ public partial class extended : Exchange
             decimalString = value;
         } else
         {
-            decimalString = this.numberToString(value);
+            decimalString = ((string)this.numberToString(value));
         }
         object hexChars = new List<object>() {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
         object result = "";
@@ -3648,7 +3654,7 @@ public partial class extended : Exchange
         {
             object remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));
             result = add(getValue(hexChars, remainder), result);
-            decimalString = Precise.stringDiv(decimalString, "16", 0);
+            decimalString = ((string)Precise.stringDiv(decimalString, "16", 0));
         }
         if (isTrue(isEqual(result, "")))
         {
@@ -3667,7 +3673,7 @@ public partial class extended : Exchange
             }
             return add("0x", this.getExtendedDecimalToBase16(signature));
         }
-        object signatureString = this.numberToString(signature);
+        object signatureString = ((string)this.numberToString(signature));
         if (isTrue(isEqual(getIndexOf(signatureString, "0x"), 0)))
         {
             return signatureString;
@@ -3689,16 +3695,16 @@ public partial class extended : Exchange
         object orderTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         object domainHash = this.getExtendedDomainHash();
         // Order fields
-        object positionId = this.convertToBigInt(this.safeString(settlement, "collateralPosition"));
-        object baseAssetId = this.safeString(settlement, "baseAssetId");
-        object baseAmount = this.convertToBigInt(this.safeString(settlement, "baseAmount"));
-        object quoteAssetId = this.safeString(settlement, "quoteAssetId");
-        object quoteAmount = this.convertToBigInt(this.safeString(settlement, "quoteAmount"));
-        object feeAssetId = this.safeString(settlement, "feeAssetId");
-        object feeAmount = this.convertToBigInt(this.safeString(settlement, "feeAmount"));
-        object expiration = this.convertToBigInt(this.safeString2(settlement, "expiration", "expirationTimestamp"));
-        object salt = this.convertToBigInt(this.safeString2(settlement, "salt", "nonce"));
-        object starkKey = this.convertToBigInt(this.safeString(settlement, "starkKey"));
+        object positionId = this.convertToBigInt(this.safeString(settlement, "collateralPosition", "0"));
+        object baseAssetId = this.safeString(settlement, "baseAssetId", "0");
+        object baseAmount = this.convertToBigInt(this.safeString(settlement, "baseAmount", "0"));
+        object quoteAssetId = this.safeString(settlement, "quoteAssetId", "0");
+        object quoteAmount = this.convertToBigInt(this.safeString(settlement, "quoteAmount", "0"));
+        object feeAssetId = this.safeString(settlement, "feeAssetId", "0");
+        object feeAmount = this.convertToBigInt(this.safeString(settlement, "feeAmount", "0"));
+        object expiration = this.convertToBigInt(this.safeString2(settlement, "expiration", "expirationTimestamp", "0"));
+        object salt = this.convertToBigInt(this.safeString2(settlement, "salt", "nonce", "0"));
+        object starkKey = this.convertToBigInt(this.safeString(settlement, "starkKey", "0"));
         // Order struct hash
         object orderHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {orderTypeHash, positionId, this.convertToBigInt(baseAssetId), this.getExtendedEncodeI64(baseAmount), this.convertToBigInt(quoteAssetId), this.getExtendedEncodeI64(quoteAmount), this.convertToBigInt(feeAssetId), feeAmount, expiration, salt}));
         // SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
@@ -3710,7 +3716,7 @@ public partial class extended : Exchange
         object withdrawalTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         object domainHash = this.getExtendedDomainHash();
         object expiration = this.safeDict(settlement, "expiration", new Dictionary<string, object>() {});
-        object withdrawalHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {withdrawalTypeHash, this.convertToBigInt(this.safeString(settlement, "recipient")), this.convertToBigInt(this.safeString(settlement, "positionId")), this.convertToBigInt(this.safeString(settlement, "collateralId")), this.convertToBigInt(this.safeString(settlement, "amount")), this.convertToBigInt(this.safeString(expiration, "seconds")), this.convertToBigInt(this.safeString(settlement, "salt"))}));
+        object withdrawalHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {withdrawalTypeHash, this.convertToBigInt(this.safeString(settlement, "recipient", "0")), this.convertToBigInt(this.safeString(settlement, "positionId", "0")), this.convertToBigInt(this.safeString(settlement, "collateralId", "0")), this.convertToBigInt(this.safeString(settlement, "amount", "0")), this.convertToBigInt(this.safeString(expiration, "seconds", "0")), this.convertToBigInt(this.safeString(settlement, "salt", "0"))}));
         return this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, this.convertToBigInt(starkKey), withdrawalHash});
     }
 
@@ -3718,8 +3724,8 @@ public partial class extended : Exchange
     {
         object transferTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         object domainHash = this.getExtendedDomainHash();
-        object senderPublicKey = this.convertToBigInt(this.safeString(settlement, "senderPublicKey"));
-        object transferHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {transferTypeHash, this.convertToBigInt(this.safeString(settlement, "senderPositionId")), this.convertToBigInt(this.safeString(settlement, "receiverPositionId")), this.convertToBigInt(this.safeString(settlement, "assetId")), this.convertToBigInt(this.safeString(settlement, "amount")), this.convertToBigInt(this.safeString(settlement, "expirationTimestamp")), this.convertToBigInt(this.safeString(settlement, "nonce"))}));
+        object senderPublicKey = this.convertToBigInt(this.safeString(settlement, "senderPublicKey", "0"));
+        object transferHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {transferTypeHash, this.convertToBigInt(this.safeString(settlement, "senderPositionId", "0")), this.convertToBigInt(this.safeString(settlement, "receiverPositionId", "0")), this.convertToBigInt(this.safeString(settlement, "assetId", "0")), this.convertToBigInt(this.safeString(settlement, "amount", "0")), this.convertToBigInt(this.safeString(settlement, "expirationTimestamp", "0")), this.convertToBigInt(this.safeString(settlement, "nonce", "0"))}));
         return this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash});
     }
 

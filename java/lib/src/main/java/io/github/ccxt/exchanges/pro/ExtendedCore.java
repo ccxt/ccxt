@@ -63,7 +63,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -338,7 +338,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
     {
@@ -418,7 +418,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         {
             Object trade = this.parseTrade(Helpers.GetValue(rawTrades, i));
             Object symbol = this.safeString(trade, "symbol");
-            Helpers.addElementToObject(symbols, symbol, true);
+            Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         Object keys = Helpers.objectKeys(symbols);
@@ -448,7 +448,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum number of position structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
     {
@@ -592,11 +592,11 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         {
             return;
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<Object>)(rawOrders))); i++)
         {
-            Object order = this.parseOrder(Helpers.GetValue(rawOrders, i));
+            Object order = this.parseOrder(Helpers.GetValue((java.util.List<Object>)(rawOrders), i));
             Object symbol = this.safeString(order, "symbol");
-            Helpers.addElementToObject(symbols, symbol, true);
+            Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
         Object keys = Helpers.objectKeys(symbols);
@@ -667,7 +667,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object fundingRate = this.parseWsFundingRate(data, null, message);
         Object symbol = this.safeString(fundingRate, "symbol");
-        Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
+        Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         Object messageHash = Helpers.add("fundingRate:", symbol);
         client.resolve(fundingRate, messageHash);
     }
@@ -967,14 +967,14 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object candleType = this.safeString(subscription, "candleType");
         Object cacheKey = ((Helpers.isTrue((Helpers.isEqual(candleType, "trades"))))) ? timeframe : Helpers.add(Helpers.add(timeframe, ":"), candleType);
         Object messageHash = this.safeString(subscription, "messageHash");
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), cacheKey);
+        Helpers.addElementToObject(this.ohlcvs, ((String)symbol), this.safeValue(this.ohlcvs, ((String)symbol), new java.util.HashMap<String, Object>() {{}}));
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, ((String)symbol)), ((String)cacheKey));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Object limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), cacheKey, stored);
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, ((String)symbol)), ((String)cacheKey), stored);
         }
         Object previousNonce = this.safeInteger(subscription, "nonce");
         Object nonce = this.safeInteger(message, "seq");

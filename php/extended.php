@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\extended as Exchange;
 
 class extended extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'extended',
@@ -23,7 +22,7 @@ class extended extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -159,16 +158,16 @@ class extended extends Exchange {
             ),
             'hostname' => 'extended.exchange',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo' => 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api' => array(
                     'rest' => 'https://api.starknet.{hostname}',
                 ),
                 'test' => array(
                     'rest' => 'https://api.starknet.sepolia.{hostname}',
                 ),
-                'www' => 'https://app.{hostname}',
-                'doc' => 'https://api.docs.{hostname}',
-                'fees' => 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www' => 'https://app.extended.exchange',
+                'doc' => 'https://api.docs.extended.exchange',
+                'fees' => 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral' => '',
             ),
             'api' => array(
@@ -329,7 +328,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function load_markets($reload = false, $params = array ()) {
+    public function load_markets($reload = false, $params = array()) {
         $markets = parent::load_markets($reload, $params);
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
         if (($currenciesByNumericId === null) || $reload) {
@@ -356,7 +355,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for extended
          *
@@ -365,7 +364,7 @@ class extended extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        $response = $this->v1PublicGetInfoMarkets ($params);
+        $response = $this->v1PublicGetInfoMarkets($params);
         //
         //     {
         //       "status" => "OK",
@@ -516,7 +515,7 @@ class extended extends Exchange {
         //
         $tradingConfig = $this->safe_dict($market, 'tradingConfig', array());
         $marketId = $this->safe_string($market, 'name');
-        $baseId = $this->safe_string($market, 'assetName');
+        $baseId = $this->safe_string($market, 'assetName', '');
         if (mb_strpos($baseId, 'SPOT') !== false) {
             $baseId = str_replace('SPOT', '', $baseId);
         }
@@ -606,7 +605,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -615,7 +614,7 @@ class extended extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->v1PublicGetInfoAssets ($params);
+        $response = $this->v1PublicGetInfoAssets($params);
         //
         //     {
         //       "status" => "OK",
@@ -677,7 +676,7 @@ class extended extends Exchange {
             $code = 'USDC';
         }
         $name = $this->safe_string($currency, 'name');
-        $precision = $this->safe_integer($currency, 'precision');
+        $precision = $this->safe_integer($currency, 'precision', 0);
         $isActive = $this->safe_bool($currency, 'isActive');
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -694,7 +693,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -702,14 +701,14 @@ class extended extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetInfoMarketsMarketStats ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketsMarketStats($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -750,7 +749,7 @@ class extended extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for all markets
          *
@@ -758,7 +757,7 @@ class extended extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -771,7 +770,7 @@ class extended extends Exchange {
             }
             $request['market'] = $marketIds;
         }
-        $response = $this->v1PublicGetInfoMarkets ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarkets($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -798,12 +797,14 @@ class extended extends Exchange {
             $stats = $this->safe_dict($marketData, 'marketStats', array());
             $ticker = $this->parse_ticker($stats, $market);
             $symbol = $ticker['symbol'];
-            $tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $tickers[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //       "dailyVolume" => "231216165.666600",
@@ -867,7 +868,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -876,14 +877,14 @@ class extended extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetInfoMarketsMarketOrderbook ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketsMarketOrderbook($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -914,7 +915,7 @@ class extended extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -924,14 +925,14 @@ class extended extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetInfoMarketsMarketTrades ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketsMarketTrades($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -952,7 +953,7 @@ class extended extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -963,7 +964,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of trade structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -980,7 +981,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserTrades ($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserTrades($this->extend($params, $request));
         //
         //     {
         //         "status" => "OK",
@@ -1022,7 +1023,7 @@ class extended extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the funding payments history
          *
@@ -1033,7 +1034,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {FundingHistory[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {FundingHistory[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -1053,7 +1054,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserFundingHistory ($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserFundingHistory($this->extend($params, $request));
         //
         //     {
         //         "status" => "OK",
@@ -1133,7 +1134,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -1199,7 +1200,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -1239,7 +1240,7 @@ class extended extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->v1PublicGetInfoCandlesMarketCandleType ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoCandlesMarketCandleType($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -1259,7 +1260,7 @@ class extended extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //       "o" => "75657.5",
@@ -1280,7 +1281,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1294,7 +1295,7 @@ class extended extends Exchange {
          * @param {int} [$params->endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
          * @param {int} [$params->cursor] offset of the $result set
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -1322,7 +1323,7 @@ class extended extends Exchange {
             'endTime' => $endTime,
             'limit' => $limit,
         );
-        $response = $this->v1PublicGetInfoMarketFunding ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketFunding($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -1375,7 +1376,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_open_interest_history(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * Retrieves the open interest history of a currency
          *
@@ -1387,7 +1388,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum amount of open interest structures to retrieve
          * @param {array} [$params] exchange specific parameters
          * @param {int} [$params->until] timestamp in ms of the latest open interest record to fetch
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1411,7 +1412,7 @@ class extended extends Exchange {
             'endTime' => $endTime,
             'limit' => $limit,
         );
-        $response = $this->v1PublicGetInfoMarketOpenInterests ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketOpenInterests($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -1438,7 +1439,7 @@ class extended extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 't');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => $this->safe_number($interest, 'I'),
             'openInterestValue' => $this->safe_number($interest, 'i'),
             'baseVolume' => $this->safe_number($interest, 'I'),
@@ -1449,7 +1450,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1459,7 +1460,7 @@ class extended extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->v1PrivateGetUserSpotBalances ($params);
+        $response = $this->v1PrivateGetUserSpotBalances($params);
         //
         //     {
         //         "status" => "OK",
@@ -1507,16 +1508,16 @@ class extended extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_account($params = array ()): array {
+    public function fetch_account($params = array()): array {
         /**
          * fetch the current authenticated sub-account
          *
          * @see https://api.docs.extended.exchange/#get-account-details
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=account-structure account structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=account-structure account structure~
          */
-        $response = $this->v1PrivateGetUserAccountInfo ($params);
+        $response = $this->v1PrivateGetUserAccountInfo($params);
         //
         //     {
         //         "status" => "OK",
@@ -1539,16 +1540,16 @@ class extended extends Exchange {
         return $this->parse_account($data);
     }
 
-    public function fetch_accounts($params = array ()): array {
+    public function fetch_accounts($params = array()): array {
         /**
          * fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
          *
          * @see https://api.docs.extended.exchange/#get-sub-accounts
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
          */
-        $response = $this->v1PrivateGetUserAccounts ($params);
+        $response = $this->v1PrivateGetUserAccounts($params);
         //
         // {
         //     "status" => "OK",
@@ -1591,7 +1592,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -1602,7 +1603,7 @@ class extended extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=ledger ledger structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -1618,7 +1619,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'cursor');
@@ -1684,7 +1685,7 @@ class extended extends Exchange {
         ), $ledgerCurrency);
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits, withdrawals, and transfers
          *
@@ -1695,7 +1696,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -1711,7 +1712,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -1749,7 +1750,7 @@ class extended extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -1760,12 +1761,12 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of deposit structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         return $this->fetch_transactions($code, $since, $limit, $this->extend(array( 'type' => 'DEPOSIT' ), $params));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -1776,12 +1777,12 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         return $this->fetch_transactions($code, $since, $limit, $this->extend(array( 'type' => 'WITHDRAWAL' ), $params));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a Starknet withdrawal
          *
@@ -1818,7 +1819,7 @@ class extended extends Exchange {
             'settlement' => $settlement,
         );
         $params = $this->omit($params, array( 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ));
-        $response = $this->v1PrivatePostUserWithdrawal ($this->extend($request, $params));
+        $response = $this->v1PrivatePostUserWithdrawal($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -1850,7 +1851,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account
          *
@@ -1861,7 +1862,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of transfer structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {TransferEntry[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {TransferEntry[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -1879,7 +1880,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'cursor');
@@ -1895,7 +1896,7 @@ class extended extends Exchange {
         return $this->parse_transfers($result, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer collateral between sub-accounts associated with the same wallet
          *
@@ -1909,13 +1910,13 @@ class extended extends Exchange {
          * @param {string} $params->toVault destination $account L2 vault
          * @param {string} $params->toL2Key destination $account L2 public key
          * @param {int} [$params->settlementExpiration] $settlement expiration timestamp in seconds, defaults to $now + 21 days
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->check_required_credentials();
         $this->load_markets();
         $currency = $this->currency($code);
         $account = $this->fetch_extended_account();
-        $currentAccountId = $this->safe_string($account, 'accountId');
+        $currentAccountId = $this->safe_string($account, 'accountId', '');
         if ($fromAccount === null) {
             $fromAccount = $currentAccountId;
         } elseif ($fromAccount !== $currentAccountId) {
@@ -1936,7 +1937,7 @@ class extended extends Exchange {
             'settlement' => $settlement,
         );
         $params = $this->omit($params, array( 'fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution' ));
-        $response = $this->v1PrivatePostUserTransfer ($this->extend($request, $params));
+        $response = $this->v1PrivatePostUserTransfer($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2092,7 +2093,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -2108,7 +2109,7 @@ class extended extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PrivateGetUserFees ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserFees($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2127,7 +2128,7 @@ class extended extends Exchange {
         return $this->parse_trading_fee($first, $market);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -2139,7 +2140,7 @@ class extended extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
         $this->load_markets();
-        $response = $this->v1PrivateGetUserFees ($params);
+        $response = $this->v1PrivateGetUserFees($params);
         //
         //     {
         //         "status" => "OK",
@@ -2159,12 +2160,14 @@ class extended extends Exchange {
             $fee = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_trading_fee($fee);
             $symbol = $this->safe_string($parsed, 'symbol');
-            $result[$symbol] = $parsed;
+            if ($symbol !== null) {
+                $result[$symbol] = $parsed;
+            }
         }
         return $result;
     }
 
-    public function parse_trading_fee($fee, $market = null): array {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2185,7 +2188,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
@@ -2193,14 +2196,14 @@ class extended extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PrivateGetUserLeverage ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserLeverage($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2216,7 +2219,7 @@ class extended extends Exchange {
         return $this->parse_leverage($this->safe_dict($data, 0), $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()): array {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *
@@ -2236,7 +2239,7 @@ class extended extends Exchange {
             'market' => $market['id'],
             'leverage' => $this->number_to_string($leverage),
         );
-        $response = $this->v1PrivatePatchUserLeverage ($this->extend($request, $params));
+        $response = $this->v1PrivatePatchUserLeverage($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2247,7 +2250,7 @@ class extended extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage($leverage, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2266,7 +2269,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -2274,7 +2277,7 @@ class extended extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Position[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {Position[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         $this->load_markets();
         $request = array();
@@ -2282,7 +2285,7 @@ class extended extends Exchange {
             $marketIds = $this->market_ids($symbols);
             $request['market'] = $marketIds;
         }
-        $response = $this->v1PrivateGetUserPositions ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserPositions($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2317,7 +2320,7 @@ class extended extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array ()): array {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -2325,13 +2328,13 @@ class extended extends Exchange {
          *
          * @param {string} $symbol unified market $symbol of the market the position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $positions = $this->fetch_positions(array( $symbol ), $params);
         return $this->safe_dict($positions, 0);
     }
 
-    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch historical $positions
          *
@@ -2342,7 +2345,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of position structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {Position[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {Position[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         $this->load_markets();
         if (gettype($symbols) === 'string') {
@@ -2358,7 +2361,7 @@ class extended extends Exchange {
             $marketIds = $this->market_ids($symbols);
             $request['market'] = $marketIds;
         }
-        $response = $this->v1PrivateGetUserPositionsHistory ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserPositionsHistory($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2401,7 +2404,7 @@ class extended extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit, 'timestamp');
     }
 
-    public function parse_position($position, $market = null): array {
+    public function parse_position($position, ?array $market = null): array {
         //
         //     {
         //         "id" => 1,
@@ -2476,7 +2479,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function fetch_extended_account($params = array ()): mixed {
+    public function fetch_extended_account($params = array()): mixed {
         $account = $this->safe_dict($this->options, 'account');
         if ($account !== null) {
             return $account;
@@ -2487,7 +2490,7 @@ class extended extends Exchange {
         return $account;
     }
 
-    public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array ()) {
+    public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array()) {
         $totalFee = $this->safe_string($params, 'totalFee');
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration');
         $nonce = $this->safe_integer($params, 'nonce');
@@ -2529,7 +2532,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_withdrawal_settlement_data(string $address, string $amountString, array $currency, array $account, $params = array ()) {
+    public function create_withdrawal_settlement_data(string $address, string $amountString, array $currency, array $account, $params = array()) {
         $now = $this->milliseconds();
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration', $this->parse_to_int(($now + 999) / 1000) + 1209600 + 60);
         $nonce = $this->safe_integer($params, 'nonce', $this->nonce());
@@ -2562,7 +2565,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_transfer_settlement_data(string $amountString, array $currency, array $account, string $toVault, string $toL2Key, $params = array ()) {
+    public function create_transfer_settlement_data(string $amountString, array $currency, array $account, string $toVault, string $toL2Key, $params = array()) {
         $now = $this->milliseconds();
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration', $this->parse_to_int(($now + 999) / 1000) + 1814400);
         $nonce = $this->safe_integer($params, 'nonce', $this->nonce());
@@ -2594,7 +2597,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_extended_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array ()): array {
+    public function create_extended_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
@@ -2785,7 +2788,7 @@ class extended extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -2815,12 +2818,12 @@ class extended extends Exchange {
          * @param {float} [$params->stopLoss.triggerPrice] *swap only* stop loss trigger $price
          * @param {float} [$params->stopLoss.price] *swap only* the execution $price for a stop loss attached to a trigger order
          * @param {string} [$params->stopLoss.type] *swap only* the $type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->check_required_credentials();
         $extendedOrderRequest = $this->create_extended_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->safe_dict($extendedOrderRequest, 'request', array());
-        $response = $this->v1PrivatePostUserOrder ($request);
+        $response = $this->v1PrivatePostUserOrder($request);
         //
         //     {
         //         "status" => "OK",
@@ -2838,7 +2841,7 @@ class extended extends Exchange {
         return $this->parse_order($this->extend($request, $data), $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade $order
          *
@@ -2851,7 +2854,7 @@ class extended extends Exchange {
          * @param {float} [$amount] how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument');
@@ -2861,7 +2864,7 @@ class extended extends Exchange {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $cancelId = $this->safe_string_2($params, 'cancelId', 'previousOrderId');
         if (($amount === null) || ($price === null) || ($expiryEpochMillis === null) || ($postOnly === null) || ($reduceOnly === null) || ($cancelId === null)) {
-            $response = $this->v1PrivateGetUserOrdersId (array( 'id' => $id ));
+            $response = $this->v1PrivateGetUserOrdersId(array( 'id' => $id ));
             $order = $this->safe_dict($response, 'data', array());
             if ($amount === null) {
                 $amount = $this->safe_number($order, 'qty');
@@ -2898,7 +2901,7 @@ class extended extends Exchange {
         ));
         $extendedOrderRequest = $this->create_extended_order_request($symbol, $type, $side, $amount, $price, $requestParams);
         $request = $this->safe_dict($extendedOrderRequest, 'request', array());
-        $editResponse = $this->v1PrivatePostUserOrder ($request);
+        $editResponse = $this->v1PrivatePostUserOrder($request);
         //
         //     {
         //         "status" => "OK",
@@ -2916,7 +2919,7 @@ class extended extends Exchange {
         return $this->parse_order($this->extend($request, $responseData), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2941,7 +2944,7 @@ class extended extends Exchange {
             $request = array(
                 'externalId' => $clientOrderId,
             );
-            $response = $this->v1PrivateDeleteUserOrder ($this->extend($request, $params));
+            $response = $this->v1PrivateDeleteUserOrder($this->extend($request, $params));
         } else {
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument');
@@ -2949,7 +2952,7 @@ class extended extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = $this->v1PrivateDeleteUserOrderId ($this->extend($request, $params));
+            $response = $this->v1PrivateDeleteUserOrderId($this->extend($request, $params));
         }
         //
         //     {
@@ -2969,7 +2972,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders by order $ids or client order $ids
          *
@@ -2998,7 +3001,7 @@ class extended extends Exchange {
             $clientOrderIds = array( $clientOrderId );
         }
         $hasClientOrderIds = $clientOrderIds !== null;
-        if ($hasClientOrderIds) {
+        if ($clientOrderIds !== null) {
             $clientOrderIdsLength = count($clientOrderIds);
             if ($clientOrderIdsLength > 0) {
                 $request['externalOrderIds'] = $clientOrderIds;
@@ -3007,7 +3010,7 @@ class extended extends Exchange {
         if (!$hasOrderIds && !$hasClientOrderIds) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $ids argument or $clientOrderIds parameter');
         }
-        $this->v1PrivatePostUserOrderMassCancel ($this->extend($request, $params));
+        $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -3017,7 +3020,7 @@ class extended extends Exchange {
         return array();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancels all open orders, optionally filtered by $symbol
          *
@@ -3034,9 +3037,9 @@ class extended extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['markets'] = [ $market['id'] ];
+            $request['markets'] = array( $market['id'] );
         }
-        $this->v1PrivatePostUserOrderMassCancel ($this->extend($request, $params));
+        $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -3046,7 +3049,7 @@ class extended extends Exchange {
         return array();
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()) {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
@@ -3060,10 +3063,10 @@ class extended extends Exchange {
         $request = array(
             'countdownTime' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
         );
-        return $this->v1PrivatePostUserDeadmanswitch ($this->extend($request, $params));
+        return $this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -3074,7 +3077,7 @@ class extended extends Exchange {
          * @param {string} [$symbol] unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] user-defined $order $id, fetches by external $id
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = null;
@@ -3089,7 +3092,7 @@ class extended extends Exchange {
             $request = array(
                 'externalId' => $clientOrderId,
             );
-            $response = $this->v1PrivateGetUserOrdersExternalExternalId ($this->extend($request, $params));
+            $response = $this->v1PrivateGetUserOrdersExternalExternalId($this->extend($request, $params));
             $data = $this->safe_list($response, 'data', array());
             $order = $this->safe_dict($data, 0, array());
         } else {
@@ -3099,13 +3102,13 @@ class extended extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = $this->v1PrivateGetUserOrdersId ($this->extend($request, $params));
+            $response = $this->v1PrivateGetUserOrdersId($this->extend($request, $params));
             $order = $this->safe_dict($response, 'data', array());
         }
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open $orders
          *
@@ -3115,7 +3118,7 @@ class extended extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -3124,7 +3127,7 @@ class extended extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->v1PrivateGetUserOrders ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserOrders($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -3157,7 +3160,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -3168,7 +3171,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -3185,7 +3188,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserOrdersHistory ($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserOrdersHistory($this->extend($params, $request));
         //
         //     {
         //       "status" => "OK",
@@ -3233,7 +3236,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -3244,14 +3247,14 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $closedOrders = $this->filter_by($orders, 'status', 'closed');
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
@@ -3262,7 +3265,7 @@ class extended extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $canceledOrders = $this->filter_by($orders, 'status', 'canceled');
@@ -3283,7 +3286,7 @@ class extended extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "id" => 1784963886257016832,
@@ -3440,16 +3443,16 @@ class extended extends Exchange {
         ));
         $domainHash = $this->get_extended_domain_hash();
         // Order fields
-        $positionId = $this->convert_to_big_int($this->safe_string($settlement, 'collateralPosition'));
-        $baseAssetId = $this->safe_string($settlement, 'baseAssetId');
-        $baseAmount = $this->convert_to_big_int($this->safe_string($settlement, 'baseAmount'));
-        $quoteAssetId = $this->safe_string($settlement, 'quoteAssetId');
-        $quoteAmount = $this->convert_to_big_int($this->safe_string($settlement, 'quoteAmount'));
-        $feeAssetId = $this->safe_string($settlement, 'feeAssetId');
-        $feeAmount = $this->convert_to_big_int($this->safe_string($settlement, 'feeAmount'));
-        $expiration = $this->convert_to_big_int($this->safe_string_2($settlement, 'expiration', 'expirationTimestamp'));
-        $salt = $this->convert_to_big_int($this->safe_string_2($settlement, 'salt', 'nonce'));
-        $starkKey = $this->convert_to_big_int($this->safe_string($settlement, 'starkKey'));
+        $positionId = $this->convert_to_big_int($this->safe_string($settlement, 'collateralPosition', '0'));
+        $baseAssetId = $this->safe_string($settlement, 'baseAssetId', '0');
+        $baseAmount = $this->convert_to_big_int($this->safe_string($settlement, 'baseAmount', '0'));
+        $quoteAssetId = $this->safe_string($settlement, 'quoteAssetId', '0');
+        $quoteAmount = $this->convert_to_big_int($this->safe_string($settlement, 'quoteAmount', '0'));
+        $feeAssetId = $this->safe_string($settlement, 'feeAssetId', '0');
+        $feeAmount = $this->convert_to_big_int($this->safe_string($settlement, 'feeAmount', '0'));
+        $expiration = $this->convert_to_big_int($this->safe_string_2($settlement, 'expiration', 'expirationTimestamp', '0'));
+        $salt = $this->convert_to_big_int($this->safe_string_2($settlement, 'salt', 'nonce', '0'));
+        $starkKey = $this->convert_to_big_int($this->safe_string($settlement, 'starkKey', '0'));
         // Order struct hash
         $orderHash = $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $orderTypeHash,
@@ -3480,12 +3483,12 @@ class extended extends Exchange {
         $expiration = $this->safe_dict($settlement, 'expiration', array());
         $withdrawalHash = $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $withdrawalTypeHash,
-            $this->convert_to_big_int($this->safe_string($settlement, 'recipient')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'positionId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'collateralId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'amount')),
-            $this->convert_to_big_int($this->safe_string($expiration, 'seconds')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'salt')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'recipient', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'positionId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'collateralId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'amount', '0')),
+            $this->convert_to_big_int($this->safe_string($expiration, 'seconds', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'salt', '0')),
         )));
         return $this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $this->get_extended_string_to_felt('StarkNet Message'),
@@ -3500,15 +3503,15 @@ class extended extends Exchange {
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         $domainHash = $this->get_extended_domain_hash();
-        $senderPublicKey = $this->convert_to_big_int($this->safe_string($settlement, 'senderPublicKey'));
+        $senderPublicKey = $this->convert_to_big_int($this->safe_string($settlement, 'senderPublicKey', '0'));
         $transferHash = $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $transferTypeHash,
-            $this->convert_to_big_int($this->safe_string($settlement, 'senderPositionId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'receiverPositionId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'assetId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'amount')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'expirationTimestamp')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'nonce')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'senderPositionId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'receiverPositionId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'assetId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'amount', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'expirationTimestamp', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'nonce', '0')),
         )));
         return $this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $this->get_extended_string_to_felt('StarkNet Message'),
@@ -3537,7 +3540,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

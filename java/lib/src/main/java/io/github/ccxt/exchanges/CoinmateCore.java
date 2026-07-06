@@ -393,7 +393,7 @@ public class CoinmateCore extends CoinmateApi
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(result, code, account);
+            Helpers.addElementToObject(result, ((String)code), account);
         }
         return this.safeBalance(result);
     }
@@ -427,7 +427,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -565,7 +565,7 @@ public class CoinmateCore extends CoinmateApi
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         Object last = this.safeNumber(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", CoinmateCore.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", CoinmateCore.this.iso8601(timestamp) );
             put( "high", CoinmateCore.this.safeNumber(ticker, "high") );
@@ -643,7 +643,7 @@ public class CoinmateCore extends CoinmateApi
             put( "NEW", "pending" );
             put( "CANCELED", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
@@ -1080,7 +1080,7 @@ public class CoinmateCore extends CoinmateApi
             put( "PARTIALLY_FILLED", "open" );
             put( "OPEN", "open" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrderType(Object type)
@@ -1089,7 +1089,7 @@ public class CoinmateCore extends CoinmateApi
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1207,7 +1207,7 @@ public class CoinmateCore extends CoinmateApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object method = Helpers.add("privatePost", this.capitalize(side));
+            Object method = Helpers.add("privatePost", this.capitalize(((String)side)));
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );

@@ -12,11 +12,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class modetrade extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'modetrade',
@@ -27,7 +26,6 @@ class modetrade extends Exchange {
             'certified' => false,
             'pro' => true,
             'dex' => true,
-            'hostname' => 'trade.mode.network',
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -127,7 +125,7 @@ class modetrade extends Exchange {
                 '1y' => '1y',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
+                'logo' => 'https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24',
                 'api' => array(
                     'public' => 'https://api-evm.orderly.org',
                     'private' => 'https://api-evm.orderly.org',
@@ -425,7 +423,7 @@ class modetrade extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -435,7 +433,7 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
-            $response = Async\await($this->v1PublicGetPublicSystemInfo ($params));
+            $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
             //
             //     {
             //         "success" => true,
@@ -462,10 +460,10 @@ class modetrade extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -475,7 +473,7 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->v1PublicGetPublicSystemInfo ($params));
+            $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
             //
             //     {
             //         "success" => true,
@@ -487,7 +485,7 @@ class modetrade extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'timestamp');
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -518,7 +516,7 @@ class modetrade extends Exchange {
         //     "liquidation_tier" => "1"
         //   }
         //
-        $marketId = $this->safe_string($market, 'symbol');
+        $marketId = $this->safe_string($market, 'symbol', '');
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
@@ -579,7 +577,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for modetrade
@@ -589,7 +587,7 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->v1PublicGetPublicInfo ($params));
+            $response = Async\await($this->v1PublicGetPublicInfo($params));
             //
             //   {
             //     "success" => true,
@@ -628,10 +626,10 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_markets($rows);
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -641,7 +639,7 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->v1PublicGetPublicToken ($params));
+            $response = Async\await($this->v1PublicGetPublicToken($params));
             //
             // {
             //     "success" => true,
@@ -667,19 +665,19 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $tokenRows = $this->safe_list($data, 'rows', array());
             return $this->parse_currencies($tokenRows);
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
         $currencyId = $this->safe_string($rawCurrency, 'token');
-        $networks = $this->safe_list($rawCurrency, 'chain_details');
+        $networks = $this->safe_list($rawCurrency, 'chain_details', array());
         $code = $this->safe_currency_code($currencyId);
         $minPrecision = null;
         $resultingNetworks = array();
         for ($j = 0; $j < count($networks); $j++) {
             $network = $networks[$j];
             // TODO => transform chain id to human readable name
-            $networkId = $this->safe_string($network, 'chain_id');
+            $networkId = $this->safe_string($network, 'chain_id', '');
             $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
             if ($precision !== null) {
                 $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
@@ -781,7 +779,7 @@ class modetrade extends Exchange {
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
         $feeCost = $this->safe_string($fee, 'cost');
-        if ($feeCost !== null) {
+        if (($feeCost !== null) && ($fee !== null)) {
             $fee['cost'] = $feeCost;
         }
         $cost = Precise::string_mul($price, $amount);
@@ -809,7 +807,7 @@ class modetrade extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -822,7 +820,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -830,7 +830,7 @@ class modetrade extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->v1PublicGetPublicMarketTrades ($this->extend($request, $params)));
+            $response = Async\await($this->v1PublicGetPublicMarketTrades($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -849,7 +849,7 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_trades($rows, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($fundingRate, ?array $market = null): array {
@@ -865,16 +865,17 @@ class modetrade extends Exchange {
         //         }
         //
         $symbol = $this->safe_string($fundingRate, 'symbol');
-        $market = $this->market($symbol);
+        $market = ($symbol === null) ? $market : $this->market($symbol);
         $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
         $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'est_funding_rate_timestamp');
         $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'last_funding_rate_timestamp');
         $fundingTimeString = $this->safe_string($fundingRate, 'last_funding_rate_timestamp');
         $nextFundingTimeString = $this->safe_string($fundingRate, 'next_funding_time');
         $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
+        $fundingSymbol = ($market !== null) ? $market['symbol'] : null;
         return array(
             'info' => $fundingRate,
-            'symbol' => $market['symbol'],
+            'symbol' => $fundingSymbol,
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => $this->parse_number('0'),
@@ -905,7 +906,7 @@ class modetrade extends Exchange {
         return $this->safe_string($intervals, $interval, $interval);
     }
 
-    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_interval(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate interval
@@ -917,10 +918,10 @@ class modetrade extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             return Async\await($this->fetch_funding_rate($symbol, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -931,12 +932,14 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PublicGetPublicFundingRateSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->v1PublicGetPublicFundingRateSymbol($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -954,10 +957,10 @@ class modetrade extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_funding_rate($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the current funding rate for multiple markets
@@ -968,9 +971,11 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->v1PublicGetPublicFundingRates ($params));
+            $response = Async\await($this->v1PublicGetPublicFundingRates($params));
             //
             // {
             //     "success" => true,
@@ -991,10 +996,10 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_funding_rates($rows, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -1009,7 +1014,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -1025,7 +1032,7 @@ class modetrade extends Exchange {
                 $request['start_t'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
-            $response = Async\await($this->v1PublicGetPublicFundingRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->v1PublicGetPublicFundingRateHistory($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1062,7 +1069,7 @@ class modetrade extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_income($income, ?array $market = null) {
@@ -1098,7 +1105,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
@@ -1112,7 +1119,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
             if ($paginate) {
@@ -1133,9 +1142,9 @@ class modetrade extends Exchange {
                 $request['end_t'] = $until;
             }
             if ($limit !== null) {
-                $request['size'] = min ($limit, 500);
+                $request['size'] = min($limit, 500);
             }
-            $response = Async\await($this->v1PrivateGetFundingFeeHistory ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetFundingFeeHistory($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1162,10 +1171,10 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_incomes($rows, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -1173,10 +1182,12 @@ class modetrade extends Exchange {
              * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetClientInfo ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->v1PrivateGetClientInfo($params));
             //
             // {
             //     "success" => true,
@@ -1208,22 +1219,25 @@ class modetrade extends Exchange {
             $maker = $this->safe_string($data, 'futures_maker_fee_rate');
             $taker = $this->safe_string($data, 'futures_taker_fee_rate');
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $result[$symbol] = array(
-                    'info' => $response,
-                    'symbol' => $symbol,
-                    'maker' => $this->parse_number(Precise::string_div($maker, '10000')),
-                    'taker' => $this->parse_number(Precise::string_div($taker, '10000')),
-                    'percentage' => true,
-                    'tierBased' => true,
-                );
+            $symbols = $this->symbols;
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $result[$symbol] = array(
+                        'info' => $response,
+                        'symbol' => $symbol,
+                        'maker' => $this->parse_number(Precise::string_div($maker, '10000')),
+                        'taker' => $this->parse_number(Precise::string_div($taker, '10000')),
+                        'percentage' => true,
+                        'tierBased' => true,
+                    );
+                }
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -1233,18 +1247,20 @@ class modetrade extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $limit = min ($limit, 1000);
+                $limit = min($limit, 1000);
                 $request['max_level'] = $limit;
             }
-            $response = Async\await($this->v1PrivateGetOrderbookSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetOrderbookSymbol($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1265,7 +1281,7 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'timestamp');
             return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1279,7 +1295,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1293,16 +1309,18 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
                 'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000);
+                $request['limit'] = min($limit, 1000);
             }
-            $response = Async\await($this->v1PrivateGetKline ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetKline($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             //
             // {
@@ -1326,7 +1344,7 @@ class modetrade extends Exchange {
             //
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1451,6 +1469,9 @@ class modetrade extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
+        if ($timeInForce === null) {
+            return null;
+        }
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
@@ -1467,6 +1488,9 @@ class modetrade extends Exchange {
                 'INCOMPLETE' => 'open',
                 'COMPLETED' => 'closed',
             );
+            if ($status === null) {
+                return null;
+            }
             return $this->safe_string($statuses, $status, $status);
         }
         return $status;
@@ -1478,10 +1502,13 @@ class modetrade extends Exchange {
             'MARKET' => 'market',
             'POST_ONLY' => 'limit',
         );
+        if ($type === null) {
+            return null;
+        }
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build the $request
@@ -1496,6 +1523,9 @@ class modetrade extends Exchange {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $orderSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
@@ -1580,7 +1610,7 @@ class modetrade extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1604,7 +1634,9 @@ class modetrade extends Exchange {
              * @param {string} [$params->clientOrderId] a unique id for the $order
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
@@ -1613,7 +1645,7 @@ class modetrade extends Exchange {
             $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
             $response = null;
             if ($isConditional) {
-                $response = Async\await($this->v1PrivatePostAlgoOrder ($request));
+                $response = Async\await($this->v1PrivatePostAlgoOrder($request));
                 //
                 // {
                 //     "success" => true,
@@ -1627,7 +1659,7 @@ class modetrade extends Exchange {
                 // }
                 //
             } else {
-                $response = Async\await($this->v1PrivatePostOrder ($request));
+                $response = Async\await($this->v1PrivatePostOrder($request));
                 //
                 // {
                 //     "success" => true,
@@ -1644,15 +1676,15 @@ class modetrade extends Exchange {
                 // }
                 //
             }
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $data['timestamp'] = $this->safe_integer($response, 'timestamp');
             $order = $this->parse_order($data, $market);
             $order['type'] = $type;
             return $order;
-        }) ();
+        })();
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         return Async\async(function () use ($orders, $params) {
             /**
              * *contract only* create a list of trade $orders
@@ -1663,12 +1695,17 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $ordersRequests = array();
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
                 $marketId = $this->safe_string($rawOrder, 'symbol');
-                $type = $this->safe_string($rawOrder, 'type');
+                if ($marketId === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
+                }
+                $type = $this->safe_string($rawOrder, 'type', '');
                 $side = $this->safe_string($rawOrder, 'side');
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
@@ -1686,7 +1723,7 @@ class modetrade extends Exchange {
             $request = array(
                 'orders' => $ordersRequests,
             );
-            $response = Async\await($this->v1PrivatePostBatchOrder ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePostBatchOrder($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -1707,10 +1744,10 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_orders($rows);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1730,7 +1767,9 @@ class modetrade extends Exchange {
              * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_id' => $id,
@@ -1751,10 +1790,12 @@ class modetrade extends Exchange {
             $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
             $response = null;
             if ($isConditional) {
-                $response = Async\await($this->v1PrivatePutAlgoOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
-                $request['side'] = strtoupper($side);
+                if ($side !== null) {
+                    $request['side'] = strtoupper($side);
+                }
                 $orderType = strtoupper($type);
                 $timeInForce = $this->safe_string_lower($params, 'timeInForce');
                 $isMarket = $orderType === 'MARKET';
@@ -1775,7 +1816,7 @@ class modetrade extends Exchange {
                 }
                 // $request['side'] = strtoupper($side);
                 // $request['symbol'] = $market['id'];
-                $response = Async\await($this->v1PrivatePutOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivatePutOrder($this->extend($request, $params)));
             }
             //
             // {
@@ -1789,10 +1830,10 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $data['timestamp'] = $this->safe_integer($response, 'timestamp');
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
@@ -1814,35 +1855,36 @@ class modetrade extends Exchange {
             if (!$trigger && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
             $request = array(
-                'symbol' => $market['id'],
+                'symbol' => $this->safe_string($market, 'id'),
             );
             $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
             $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
             $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-            $response = null;
             if ($trigger) {
                 if ($isByClientOrder) {
                     $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                     $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                    $response = Async\await($this->v1PrivateDeleteAlgoClientOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $params)));
                 } else {
                     $request['order_id'] = $id;
-                    $response = Async\await($this->v1PrivateDeleteAlgoOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteAlgoOrder($this->extend($request, $params)));
                 }
             } else {
                 if ($isByClientOrder) {
                     $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                     $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                    $response = Async\await($this->v1PrivateDeleteClientOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteClientOrder($this->extend($request, $params)));
                 } else {
                     $request['order_id'] = $id;
-                    $response = Async\await($this->v1PrivateDeleteOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteOrder($this->extend($request, $params)));
                 }
             }
             //
@@ -1871,10 +1913,10 @@ class modetrade extends Exchange {
             }
             $data = $this->safe_dict($response, 'data', array());
             return $this->extend($this->parse_order($data), $extendParams);
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1888,17 +1930,19 @@ class modetrade extends Exchange {
              * @param {string[]} [$params->client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
             $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
             $request = array();
             $response = null;
             if ($clientOrderIds) {
                 $request['client_order_ids'] = implode(',', $clientOrderIds);
-                $response = Async\await($this->v1PrivateDeleteClientBatchOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteClientBatchOrder($this->extend($request, $params)));
             } else {
                 $request['order_ids'] = implode(',', $ids);
-                $response = Async\await($this->v1PrivateDeleteBatchOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteBatchOrder($this->extend($request, $params)));
             }
             //
             // {
@@ -1912,10 +1956,10 @@ class modetrade extends Exchange {
             return array( $this->safe_order(array(
                 'info' => $response,
             )) );
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -1928,7 +1972,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->trigger] whether the order is a stop/algo order
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $request = array();
@@ -1938,9 +1984,9 @@ class modetrade extends Exchange {
             }
             $response = null;
             if ($trigger) {
-                $response = Async\await($this->v1PrivateDeleteAlgoOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteAlgoOrders($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->v1PrivateDeleteOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteOrders($this->extend($request, $params)));
             }
             // $trigger
             // {
@@ -1962,10 +2008,10 @@ class modetrade extends Exchange {
                     'info' => $response,
                 )),
             );
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
@@ -1982,7 +2028,9 @@ class modetrade extends Exchange {
              * @param {string} [$params->clientOrderId] a unique $id for the order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1995,18 +2043,18 @@ class modetrade extends Exchange {
             if ($trigger) {
                 if ($clientOrderId) {
                     $request['client_order_id'] = $clientOrderId;
-                    $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $params)));
                 } else {
                     $request['oid'] = $id;
-                    $response = Async\await($this->v1PrivateGetAlgoOrderOid ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetAlgoOrderOid($this->extend($request, $params)));
                 }
             } else {
                 if ($clientOrderId) {
                     $request['client_order_id'] = $clientOrderId;
-                    $response = Async\await($this->v1PrivateGetClientOrderClientOrderId ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $params)));
                 } else {
                     $request['oid'] = $id;
-                    $response = Async\await($this->v1PrivateGetOrderOid ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetOrderOid($this->extend($request, $params)));
                 }
             }
             //
@@ -2038,10 +2086,10 @@ class modetrade extends Exchange {
             //
             $orders = $this->safe_dict($response, 'data', $response);
             return $this->parse_order($orders, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -2060,7 +2108,9 @@ class modetrade extends Exchange {
              * @param {int} $params->until timestamp in ms of the latest order to fetch
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $maxLimit = ($isTrigger) ? 100 : 500;
@@ -2089,9 +2139,9 @@ class modetrade extends Exchange {
             list($request, $params) = $this->handle_until_option('end_t', $request, $params);
             $response = null;
             if ($isTrigger) {
-                $response = Async\await($this->v1PrivateGetAlgoOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetAlgoOrders($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->v1PrivateGetOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrders($this->extend($request, $params)));
             }
             //
             //     {
@@ -2128,12 +2178,12 @@ class modetrade extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', $response);
-            $orders = $this->safe_list($data, 'rows');
+            $orders = $this->safe_list($data, 'rows', array());
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -2152,13 +2202,15 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -2177,13 +2229,15 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -2197,7 +2251,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2205,7 +2261,7 @@ class modetrade extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            $response = Async\await($this->v1PrivateGetOrderOidTrades ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetOrderOidTrades($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2230,10 +2286,10 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $trades = $this->safe_list($data, 'rows', array());
             return $this->parse_trades($trades, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -2248,7 +2304,9 @@ class modetrade extends Exchange {
              * @param {int} $params->until timestamp in ms of the latest trade to fetch
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -2269,7 +2327,7 @@ class modetrade extends Exchange {
                 $request['size'] = 500;
             }
             list($request, $params) = $this->handle_until_option('end_t', $request, $params);
-            $response = Async\await($this->v1PrivateGetTrades ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetTrades($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2299,7 +2357,7 @@ class modetrade extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $trades = $this->safe_list($data, 'rows', array());
             return $this->parse_trades($trades, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -2318,7 +2376,7 @@ class modetrade extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2328,8 +2386,10 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetClientHolding ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->v1PrivateGetClientHolding($params));
             //
             // {
             //     "success" => true,
@@ -2347,12 +2407,14 @@ class modetrade extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_balance($data);
-        }) ();
+        })();
     }
 
-    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array( );
             $currency = null;
             if ($code !== null) {
@@ -2370,7 +2432,7 @@ class modetrade extends Exchange {
             if ($transactionType !== null) {
                 $request['type'] = $transactionType;
             }
-            $response = Async\await($this->v1PrivateGetAssetHistory ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetAssetHistory($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2398,7 +2460,7 @@ class modetrade extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return array( $currency, $this->safe_list($data, 'rows', array()) );
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -2437,7 +2499,7 @@ class modetrade extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -2454,7 +2516,7 @@ class modetrade extends Exchange {
             $currency = $this->safe_value($currencyRows, 0);
             $rows = $this->safe_list($currencyRows, 1);
             return $this->parse_ledger($rows, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2500,10 +2562,13 @@ class modetrade extends Exchange {
             'COMPLETED' => 'ok',
             'CANCELED' => 'canceled',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2520,10 +2585,10 @@ class modetrade extends Exchange {
                 'side' => 'DEPOSIT',
             );
             return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2540,10 +2605,10 @@ class modetrade extends Exchange {
                 'side' => 'WITHDRAW',
             );
             return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -2559,7 +2624,7 @@ class modetrade extends Exchange {
             $request = array();
             $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
             $currency = $this->safe_value($currencyRows, 0);
-            $rows = $this->safe_list($currencyRows, 1);
+            $rows = $this->safe_list($currencyRows, 1, array());
             //
             //     {
             //         "rows":array(),
@@ -2572,12 +2637,12 @@ class modetrade extends Exchange {
             //     }
             //
             return $this->parse_transactions($rows, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function get_withdraw_nonce($params = array ()) {
+    public function get_withdraw_nonce($params = array()) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->v1PrivateGetWithdrawNonce ($params));
+            $response = Async\await($this->v1PrivateGetWithdrawNonce($params));
             //
             //     {
             //         "success" => true,
@@ -2589,7 +2654,7 @@ class modetrade extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->safe_number($data, 'withdraw_nonce');
-        }) ();
+        })();
     }
 
     public function hash_message($message) {
@@ -2608,7 +2673,7 @@ class modetrade extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2622,7 +2687,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_address($address);
             if ($code !== null) {
                 $code = strtoupper($code);
@@ -2634,7 +2701,7 @@ class modetrade extends Exchange {
             $verifyingContractAddress = $this->safe_string($this->options, 'verifyingContractAddress');
             $chainId = $this->safe_string($params, 'chainId');
             $currencyNetworks = $this->safe_dict($currency, 'networks', array());
-            $coinNetwork = $this->safe_dict($currencyNetworks, $chainId, array());
+            $coinNetwork = ($chainId === null) ? array() : $this->safe_dict($currencyNetworks, $chainId, array());
             $coinNetworkId = $this->safe_number($coinNetwork, 'id');
             if ($coinNetworkId === null) {
                 throw new BadRequest($this->id . ' withdraw() require $chainId parameter');
@@ -2676,7 +2743,7 @@ class modetrade extends Exchange {
                 'message' => $withdrawRequest,
             );
             $params = $this->omit($params, 'chainId');
-            $response = Async\await($this->v1PrivatePostWithdrawRequest ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePostWithdrawRequest($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -2688,21 +2755,21 @@ class modetrade extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
-        }) ();
+        })();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage($leverage, ?array $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'max_leverage');
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => null,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -2713,9 +2780,11 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
-            $response = Async\await($this->v1PrivateGetClientInfo ($params));
+            $response = Async\await($this->v1PrivateGetClientInfo($params));
             //
             // {
             //     "success" => true,
@@ -2745,10 +2814,10 @@ class modetrade extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_leverage($data, $market);
-        }) ();
+        })();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a market
@@ -2760,7 +2829,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $isMinLeverage = $leverage < 1;
             $isMaxLeverage = $leverage > 50;
             if ($isMinLeverage || $isMaxLeverage) {
@@ -2769,8 +2840,8 @@ class modetrade extends Exchange {
             $request = array(
                 'leverage' => $leverage,
             );
-            return Async\await($this->v1PrivatePostClientLeverage ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->v1PrivatePostClientLeverage($this->extend($request, $params)));
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2844,7 +2915,7 @@ class modetrade extends Exchange {
         ));
     }
 
-    public function fetch_position(?string $symbol, $params = array ()) {
+    public function fetch_position(?string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -2855,12 +2926,17 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a $symbol argument');
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PrivateGetPositionSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetPositionSymbol($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2887,12 +2963,12 @@ class modetrade extends Exchange {
             //     }
             // }
             //
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_position($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
@@ -2903,8 +2979,10 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetPositions ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->v1PrivateGetPositions($params));
             //
             // {
             //     "success" => true,
@@ -2946,19 +3024,18 @@ class modetrade extends Exchange {
             $result = $this->safe_dict($response, 'data', array());
             $positions = $this->safe_list($result, 'rows', array());
             return $this->parse_positions($positions, $symbols);
-        }) ();
+        })();
     }
 
     public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$access]);
-        $url .= '/' . $version . '/';
+        $url = $this->urls['api'][$access] . '/' . $version . '/';
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {

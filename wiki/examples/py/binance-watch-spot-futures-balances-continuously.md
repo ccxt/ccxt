@@ -1,10 +1,11 @@
-- [Binance Watch Spot Futures Balances Continuously](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-from asyncio import run, gather
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -48,5 +49,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

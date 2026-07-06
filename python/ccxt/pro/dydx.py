@@ -49,11 +49,12 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': 'v4_trades',
             'id': market['id'],
@@ -73,11 +74,12 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
             'channel': 'v4_trades',
             'id': market['id'],
@@ -162,13 +164,14 @@ class dydx(ccxt.async_support.dydx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': 'v4_orderbook',
             'id': market['id'],
@@ -184,13 +187,14 @@ class dydx(ccxt.async_support.dydx):
 
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
             'channel': 'v4_orderbook',
             'id': market['id'],
@@ -260,12 +264,13 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'ohlcv:' + market['symbol']
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': 'v4_candles',
             'id': market['id'] + '/' + resolution,
@@ -287,12 +292,13 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'ohlcv:' + market['symbol']
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
             'id': market['id'] + '/' + resolution,
@@ -395,7 +401,7 @@ class dydx(ccxt.async_support.dydx):
             return
         if type is not None:
             topic = self.safe_string(message, 'channel')
-            methods: dict = {
+            methods = {
                 'v4_trades': self.handle_trades,
                 'v4_orderbook': self.handle_order_book,
                 'v4_candles': self.handle_ohlcv,

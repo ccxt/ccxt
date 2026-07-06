@@ -1,5 +1,5 @@
 import { Exchange } from '../../ccxt.js';
-import { Str } from '../base/types.js';
+import type { List, Str, Strings } from '../base/types.js';
 declare class testMainClass {
     idTests: boolean;
     requestTestsFailed: boolean;
@@ -32,13 +32,13 @@ declare class testMainClass {
     expandSettings(exchange: Exchange): void;
     addPadding(message: string, size: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
-    getSkips(exchange: Exchange, methodName: string): any;
-    testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
+    getSkips(exchange: Exchange, methodName: string): {};
+    testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
     loadExchange(exchange: any): Promise<boolean>;
     getTestSymbol(exchange: any, isSpot: any, symbols: any): any;
-    getExchangeCode(exchange: any, codes?: any): any;
+    getExchangeCode(exchange: any, codes?: Strings): string;
     getMarketsFromExchange(exchange: any, spot?: boolean): {};
     getValidSymbol(exchange: any, spot?: boolean): any;
     testExchange(exchange: any, providedSymbol?: any): Promise<boolean>;
@@ -47,18 +47,19 @@ declare class testMainClass {
     checkConstructor(exchange: Exchange): void;
     testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
     startTest(exchange: any, symbolArgv: any): Promise<boolean>;
-    assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
+    testHasProps(exchange: Exchange): void;
+    assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: Str): void;
     loadMarketsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;
     loadStaticData(folder: string, targetExchange?: Str): {};
     removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
-    assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): boolean;
-    assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): boolean;
-    varToString(obj?: any): any;
+    assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
+    assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
+    varToString(obj?: any): string;
     assertStaticRequestOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): boolean;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
-    sanitizeDataInput(input: any): any[];
+    sanitizeDataInput(input: any): List;
     testRequestStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: object): Promise<boolean>;
     initOfflineExchange(exchangeName: string): Exchange;

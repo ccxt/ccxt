@@ -148,7 +148,7 @@ public class BackpackCore extends BackpackApi
                 put( "1M", "1month" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f" );
+                put( "logo", "https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.backpack.exchange" );
                     put( "private", "https://api.backpack.exchange" );
@@ -1186,7 +1186,7 @@ public class BackpackCore extends BackpackApi
         Object timestamp = this.safeInteger(interest, "timestamp");
         Object openInterest = this.safeNumber(interest, "openInterest");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BackpackCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", null );
             put( "openInterestValue", openInterest );
             put( "timestamp", timestamp );
@@ -1392,10 +1392,19 @@ public class BackpackCore extends BackpackApi
         market = this.safeMarket(marketId, market);
         Object price = this.safeString(trade, "price");
         Object amount = this.safeString(trade, "quantity");
-        Object isMaker = this.safeBool(trade, "isMaker");
-        Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
-        Object orderId = this.safeString(trade, "orderId");
+        Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         Object side = this.parseOrderSide(this.safeString(trade, "side"));
+        Object isMaker = this.safeBool(trade, "isMaker");
+        Object takerOrMaker = null;
+        if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
+        {
+            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+        } else if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+        }
+        Object orderId = this.safeString(trade, "orderId");
         Object fee = null;
         Object feeAmount = this.safeString(trade, "fee");
         Object timestamp = this.safeInteger(trade, "timestamp");
@@ -1417,6 +1426,8 @@ public class BackpackCore extends BackpackApi
         }
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
+        final Object finalSide = side;
+        final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -1426,8 +1437,8 @@ public class BackpackCore extends BackpackApi
             put( "id", id );
             put( "order", orderId );
             put( "type", null );
-            put( "side", side );
-            put( "takerOrMaker", takerOrMaker );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", price );
             put( "amount", amount );
             put( "cost", null );

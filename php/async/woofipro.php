@@ -12,12 +12,11 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class woofipro extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woofipro',
@@ -28,7 +27,6 @@ class woofipro extends Exchange {
             'certified' => true,
             'pro' => true,
             'dex' => true,
-            'hostname' => 'dex.woo.org',
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -452,7 +450,7 @@ class woofipro extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -462,7 +460,7 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
-            $response = Async\await($this->v1PublicGetPublicSystemInfo ($params));
+            $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
             //
             //     {
             //         "success" => true,
@@ -489,10 +487,10 @@ class woofipro extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -502,7 +500,7 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->v1PublicGetPublicSystemInfo ($params));
+            $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
             //
             //     {
             //         "success" => true,
@@ -514,7 +512,7 @@ class woofipro extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'timestamp');
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -606,7 +604,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for woofipro
@@ -616,7 +614,7 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->v1PublicGetPublicInfo ($params));
+            $response = Async\await($this->v1PublicGetPublicInfo($params));
             //
             //   {
             //     "success" => true,
@@ -655,10 +653,10 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_markets($rows);
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -670,7 +668,7 @@ class woofipro extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             $result = array();
-            $tokenPromise = $this->v1PublicGetPublicToken ($params);
+            $tokenPromise = $this->v1PublicGetPublicToken($params);
             //
             // {
             //     "success" => true,
@@ -693,7 +691,7 @@ class woofipro extends Exchange {
             //     }
             // }
             //
-            $chainPromise = $this->v1PublicGetPublicChainInfo ($params);
+            $chainPromise = $this->v1PublicGetPublicChainInfo($params);
             list($tokenResponse, $chainResponse) = Async\await(Promise\all(array( $tokenPromise, $chainPromise )));
             $tokenData = $this->safe_dict($tokenResponse, 'data', array());
             $tokenRows = $this->safe_list($tokenData, 'rows', array());
@@ -706,13 +704,13 @@ class woofipro extends Exchange {
                 $result[$parsed['code']] = $parsed;
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
         $token = $this->safe_dict($rawCurrency, '_token', array());
         $currencyId = $this->safe_string($token, 'token');
-        $networks = $this->safe_list($token, 'chain_details');
+        $networks = $this->safe_list($token, 'chain_details', array());
         $code = $this->safe_currency_code($currencyId);
         $indexedChains = $this->safe_dict($rawCurrency, '_indexedChains', array());
         $resultingNetworks = array();
@@ -847,7 +845,7 @@ class woofipro extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -860,7 +858,9 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -868,7 +868,7 @@ class woofipro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->v1PublicGetPublicMarketTrades ($this->extend($request, $params)));
+            $response = Async\await($this->v1PublicGetPublicMarketTrades($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -887,7 +887,7 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_trades($rows, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($fundingRate, ?array $market = null): array {
@@ -943,7 +943,7 @@ class woofipro extends Exchange {
         return $this->safe_string($intervals, $interval, $interval);
     }
 
-    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_interval(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate interval
@@ -955,10 +955,10 @@ class woofipro extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             return Async\await($this->fetch_funding_rate($symbol, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -969,12 +969,14 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PublicGetPublicFundingRateSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->v1PublicGetPublicFundingRateSymbol($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -992,10 +994,10 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_funding_rate($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the current funding rate for multiple markets
@@ -1006,9 +1008,11 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->v1PublicGetPublicFundingRates ($params));
+            $response = Async\await($this->v1PublicGetPublicFundingRates($params));
             //
             // {
             //     "success" => true,
@@ -1029,10 +1033,10 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_funding_rates($rows, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -1047,7 +1051,9 @@ class woofipro extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -1063,7 +1069,7 @@ class woofipro extends Exchange {
                 $request['start_t'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
-            $response = Async\await($this->v1PublicGetPublicFundingRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->v1PublicGetPublicFundingRateHistory($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1100,7 +1106,7 @@ class woofipro extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_income($income, ?array $market = null) {
@@ -1136,7 +1142,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
@@ -1150,7 +1156,9 @@ class woofipro extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
             if ($paginate) {
@@ -1171,9 +1179,9 @@ class woofipro extends Exchange {
                 $request['end_t'] = $until;
             }
             if ($limit !== null) {
-                $request['size'] = min ($limit, 500);
+                $request['size'] = min($limit, 500);
             }
-            $response = Async\await($this->v1PrivateGetFundingFeeHistory ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetFundingFeeHistory($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1200,10 +1208,10 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_incomes($rows, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -1213,8 +1221,10 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetClientInfo ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->v1PrivateGetClientInfo($params));
             //
             // {
             //     "success" => true,
@@ -1258,10 +1268,10 @@ class woofipro extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -1271,18 +1281,20 @@ class woofipro extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $limit = min ($limit, 1000);
+                $limit = min($limit, 1000);
                 $request['max_level'] = $limit;
             }
-            $response = Async\await($this->v1PrivateGetOrderbookSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetOrderbookSymbol($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1303,7 +1315,7 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'timestamp');
             return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1317,7 +1329,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1331,16 +1343,18 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
                 'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000);
+                $request['limit'] = min($limit, 1000);
             }
-            $response = Async\await($this->v1PrivateGetKline ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetKline($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             //
             // {
@@ -1364,7 +1378,7 @@ class woofipro extends Exchange {
             //
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1519,7 +1533,7 @@ class woofipro extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build the $request
@@ -1618,7 +1632,7 @@ class woofipro extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1642,7 +1656,9 @@ class woofipro extends Exchange {
              * @param {string} [$params->clientOrderId] a unique id for the $order
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
@@ -1651,7 +1667,7 @@ class woofipro extends Exchange {
             $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
             $response = null;
             if ($isConditional) {
-                $response = Async\await($this->v1PrivatePostAlgoOrder ($request));
+                $response = Async\await($this->v1PrivatePostAlgoOrder($request));
                 //
                 // {
                 //     "success" => true,
@@ -1665,7 +1681,7 @@ class woofipro extends Exchange {
                 // }
                 //
             } else {
-                $response = Async\await($this->v1PrivatePostOrder ($request));
+                $response = Async\await($this->v1PrivatePostOrder($request));
                 //
                 // {
                 //     "success" => true,
@@ -1682,15 +1698,15 @@ class woofipro extends Exchange {
                 // }
                 //
             }
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $data['timestamp'] = $this->safe_integer($response, 'timestamp');
             $order = $this->parse_order($data, $market);
             $order['type'] = $type;
             return $order;
-        }) ();
+        })();
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         return Async\async(function () use ($orders, $params) {
             /**
              * *contract only* create a list of trade $orders
@@ -1701,7 +1717,9 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $ordersRequests = array();
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
@@ -1724,7 +1742,7 @@ class woofipro extends Exchange {
             $request = array(
                 'orders' => $ordersRequests,
             );
-            $response = Async\await($this->v1PrivatePostBatchOrder ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePostBatchOrder($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -1745,10 +1763,10 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_orders($rows);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1768,7 +1786,9 @@ class woofipro extends Exchange {
              * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_id' => $id,
@@ -1789,7 +1809,7 @@ class woofipro extends Exchange {
             $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
             $response = null;
             if ($isConditional) {
-                $response = Async\await($this->v1PrivatePutAlgoOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
                 $request['side'] = strtoupper($side);
@@ -1813,7 +1833,7 @@ class woofipro extends Exchange {
                 }
                 // $request['side'] = strtoupper($side);
                 // $request['symbol'] = $market['id'];
-                $response = Async\await($this->v1PrivatePutOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivatePutOrder($this->extend($request, $params)));
             }
             //
             // {
@@ -1827,10 +1847,10 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $data['timestamp'] = $this->safe_integer($response, 'timestamp');
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
@@ -1852,13 +1872,15 @@ class woofipro extends Exchange {
             if (!$trigger && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
             $request = array(
-                'symbol' => $market['id'],
+                'symbol' => $this->safe_string($market, 'id'),
             );
             $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
             $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
@@ -1868,19 +1890,19 @@ class woofipro extends Exchange {
                 if ($isByClientOrder) {
                     $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                     $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                    $response = Async\await($this->v1PrivateDeleteAlgoClientOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $params)));
                 } else {
                     $request['order_id'] = $id;
-                    $response = Async\await($this->v1PrivateDeleteAlgoOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteAlgoOrder($this->extend($request, $params)));
                 }
             } else {
                 if ($isByClientOrder) {
                     $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                     $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                    $response = Async\await($this->v1PrivateDeleteClientOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteClientOrder($this->extend($request, $params)));
                 } else {
                     $request['order_id'] = $id;
-                    $response = Async\await($this->v1PrivateDeleteOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteOrder($this->extend($request, $params)));
                 }
             }
             //
@@ -1909,10 +1931,10 @@ class woofipro extends Exchange {
             }
             $data = $this->safe_dict($response, 'data', array());
             return $this->extend($this->parse_order($data), $extendParams);
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1926,17 +1948,19 @@ class woofipro extends Exchange {
              * @param {string[]} [$params->client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
             $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
             $request = array();
             $response = null;
             if ($clientOrderIds) {
                 $request['client_order_ids'] = implode(',', $clientOrderIds);
-                $response = Async\await($this->v1PrivateDeleteClientBatchOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteClientBatchOrder($this->extend($request, $params)));
             } else {
                 $request['order_ids'] = implode(',', $ids);
-                $response = Async\await($this->v1PrivateDeleteBatchOrder ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteBatchOrder($this->extend($request, $params)));
             }
             //
             // {
@@ -1950,10 +1974,10 @@ class woofipro extends Exchange {
             return array( $this->safe_order(array(
                 'info' => $response,
             )) );
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -1966,7 +1990,9 @@ class woofipro extends Exchange {
              * @param {boolean} [$params->trigger] whether the order is a stop/algo order
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $request = array();
@@ -1976,9 +2002,9 @@ class woofipro extends Exchange {
             }
             $response = null;
             if ($trigger) {
-                $response = Async\await($this->v1PrivateDeleteAlgoOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteAlgoOrders($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->v1PrivateDeleteOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteOrders($this->extend($request, $params)));
             }
             // $trigger
             // {
@@ -2000,10 +2026,10 @@ class woofipro extends Exchange {
                     'info' => $response,
                 )),
             );
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
@@ -2020,7 +2046,9 @@ class woofipro extends Exchange {
              * @param {string} [$params->clientOrderId] a unique $id for the order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2033,18 +2061,18 @@ class woofipro extends Exchange {
             if ($trigger) {
                 if ($clientOrderId) {
                     $request['client_order_id'] = $clientOrderId;
-                    $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $params)));
                 } else {
                     $request['oid'] = $id;
-                    $response = Async\await($this->v1PrivateGetAlgoOrderOid ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetAlgoOrderOid($this->extend($request, $params)));
                 }
             } else {
                 if ($clientOrderId) {
                     $request['client_order_id'] = $clientOrderId;
-                    $response = Async\await($this->v1PrivateGetClientOrderClientOrderId ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $params)));
                 } else {
                     $request['oid'] = $id;
-                    $response = Async\await($this->v1PrivateGetOrderOid ($this->extend($request, $params)));
+                    $response = Async\await($this->v1PrivateGetOrderOid($this->extend($request, $params)));
                 }
             }
             //
@@ -2076,10 +2104,10 @@ class woofipro extends Exchange {
             //
             $orders = $this->safe_dict($response, 'data', $response);
             return $this->parse_order($orders, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -2098,7 +2126,9 @@ class woofipro extends Exchange {
              * @param {int} $params->until timestamp in ms of the latest order to fetch
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $maxLimit = ($isTrigger) ? 100 : 500;
@@ -2127,9 +2157,9 @@ class woofipro extends Exchange {
             list($request, $params) = $this->handle_until_option('end_t', $request, $params);
             $response = null;
             if ($isTrigger) {
-                $response = Async\await($this->v1PrivateGetAlgoOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetAlgoOrders($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->v1PrivateGetOrders ($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrders($this->extend($request, $params)));
             }
             //
             //     {
@@ -2168,10 +2198,10 @@ class woofipro extends Exchange {
             $data = $this->safe_value($response, 'data', $response);
             $orders = $this->safe_list($data, 'rows');
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -2190,13 +2220,15 @@ class woofipro extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -2215,13 +2247,15 @@ class woofipro extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -2235,7 +2269,9 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2243,7 +2279,7 @@ class woofipro extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            $response = Async\await($this->v1PrivateGetOrderOidTrades ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetOrderOidTrades($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2268,10 +2304,10 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $trades = $this->safe_list($data, 'rows', array());
             return $this->parse_trades($trades, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -2286,7 +2322,9 @@ class woofipro extends Exchange {
              * @param {int} $params->until timestamp in ms of the latest trade to fetch
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -2307,7 +2345,7 @@ class woofipro extends Exchange {
                 $request['size'] = 500;
             }
             list($request, $params) = $this->handle_until_option('end_t', $request, $params);
-            $response = Async\await($this->v1PrivateGetTrades ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetTrades($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2337,7 +2375,7 @@ class woofipro extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $trades = $this->safe_list($data, 'rows', array());
             return $this->parse_trades($trades, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -2356,7 +2394,7 @@ class woofipro extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2366,8 +2404,10 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetClientHolding ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->v1PrivateGetClientHolding($params));
             //
             // {
             //     "success" => true,
@@ -2385,12 +2425,14 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_balance($data);
-        }) ();
+        })();
     }
 
-    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array( );
             $currency = null;
             if ($code !== null) {
@@ -2408,7 +2450,7 @@ class woofipro extends Exchange {
             if ($transactionType !== null) {
                 $request['type'] = $transactionType;
             }
-            $response = Async\await($this->v1PrivateGetAssetHistory ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetAssetHistory($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2436,7 +2478,7 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return array( $currency, $this->safe_list($data, 'rows', array()) );
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -2475,7 +2517,7 @@ class woofipro extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -2492,7 +2534,7 @@ class woofipro extends Exchange {
             $currency = $this->safe_value($currencyRows, 0);
             $rows = $this->safe_list($currencyRows, 1);
             return $this->parse_ledger($rows, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2541,7 +2583,7 @@ class woofipro extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2558,10 +2600,10 @@ class woofipro extends Exchange {
                 'side' => 'DEPOSIT',
             );
             return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2578,10 +2620,10 @@ class woofipro extends Exchange {
                 'side' => 'WITHDRAW',
             );
             return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -2610,12 +2652,12 @@ class woofipro extends Exchange {
             //     }
             //
             return $this->parse_transactions($rows, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function get_withdraw_nonce($params = array ()) {
+    public function get_withdraw_nonce($params = array()) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->v1PrivateGetWithdrawNonce ($params));
+            $response = Async\await($this->v1PrivateGetWithdrawNonce($params));
             //
             //     {
             //         "success" => true,
@@ -2627,7 +2669,7 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->safe_number($data, 'withdraw_nonce');
-        }) ();
+        })();
     }
 
     public function hash_message($message) {
@@ -2646,7 +2688,7 @@ class woofipro extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2660,7 +2702,9 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_address($address);
             if ($code !== null) {
                 $code = strtoupper($code);
@@ -2714,7 +2758,7 @@ class woofipro extends Exchange {
                 'message' => $withdrawRequest,
             );
             $params = $this->omit($params, 'chainId');
-            $response = Async\await($this->v1PrivatePostWithdrawRequest ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePostWithdrawRequest($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -2726,21 +2770,21 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
-        }) ();
+        })();
     }
 
     public function parse_leverage($leverage, $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'max_leverage');
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => null,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -2751,9 +2795,11 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
-            $response = Async\await($this->v1PrivateGetClientInfo ($params));
+            $response = Async\await($this->v1PrivateGetClientInfo($params));
             //
             // {
             //     "success" => true,
@@ -2783,10 +2829,10 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_leverage($data, $market);
-        }) ();
+        })();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a market
@@ -2798,15 +2844,17 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if (($leverage < 1) || ($leverage > 50)) {
                 throw new BadRequest($this->id . ' $leverage should be between 1 and 50');
             }
             $request = array(
                 'leverage' => $leverage,
             );
-            return Async\await($this->v1PrivatePostClientLeverage ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->v1PrivatePostClientLeverage($this->extend($request, $params)));
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2880,7 +2928,7 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function fetch_position(?string $symbol, $params = array ()) {
+    public function fetch_position(?string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -2891,12 +2939,14 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PrivateGetPositionSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetPositionSymbol($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -2925,10 +2975,10 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_position($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
@@ -2939,8 +2989,10 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetPositions ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->v1PrivateGetPositions($params));
             //
             // {
             //     "success" => true,
@@ -2982,19 +3034,18 @@ class woofipro extends Exchange {
             $result = $this->safe_dict($response, 'data', array());
             $positions = $this->safe_list($result, 'rows', array());
             return $this->parse_positions($positions, $symbols);
-        }) ();
+        })();
     }
 
     public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$access]);
-        $url .= '/' . $version . '/';
+        $url = $this->urls['api'][$access] . '/' . $version . '/';
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {

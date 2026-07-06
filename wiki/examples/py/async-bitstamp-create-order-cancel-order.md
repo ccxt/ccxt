@@ -1,10 +1,10 @@
-- [Async Bitstamp Create Order Cancel Order](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-from asyncio import run
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import ccxt.async_support as ccxt
 from pprint import pprint
 
@@ -58,5 +58,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

@@ -30,7 +30,7 @@ public partial class okxus : okx
                 } },
             } },
             { "has", new Dictionary<string, object>() {
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
             } },

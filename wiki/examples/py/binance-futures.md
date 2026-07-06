@@ -1,9 +1,9 @@
-- [Binance Futures](./examples/py/)
+```python
+import ccxt.pro as ccxt
+from importlib import import_module
+from importlib.util import find_spec
 
-
- ```python
- import ccxt.pro as ccxt
-from asyncio import run
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 print('CCXT Version:', ccxt.__version__)
 
@@ -29,5 +29,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

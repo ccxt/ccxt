@@ -1,13 +1,13 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/ndax.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -643,8 +643,8 @@ export default class ndax extends Exchange {
         };
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
-        let nonce = undefined;
+    parseOrderBook (orderbook, symbol, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
+        let nonce: Int = undefined;
         const result: Dict = {
             'symbol': symbol,
             'bids': [],
@@ -659,13 +659,17 @@ export default class ndax extends Exchange {
                 timestamp = this.safeInteger (level, 2);
             } else {
                 const newTimestamp = this.safeInteger (level, 2);
-                timestamp = Math.max (timestamp, newTimestamp);
+                if (newTimestamp !== undefined) {
+                    timestamp = Math.max (timestamp, newTimestamp);
+                }
             }
             if (nonce === undefined) {
                 nonce = this.safeInteger (level, 0);
             } else {
                 const newNonce = this.safeInteger (level, 0);
-                nonce = Math.max (nonce, newNonce);
+                if (newNonce !== undefined) {
+                    nonce = Math.max (nonce, newNonce);
+                }
             }
             const bidask = this.parseOrderBookBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);
@@ -689,11 +693,13 @@ export default class ndax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         limit = (limit === undefined) ? 100 : limit; // default 100
         const request: Dict = {
@@ -805,7 +811,9 @@ export default class ndax extends Exchange {
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'omsId': omsId,
@@ -883,7 +891,9 @@ export default class ndax extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'omsId': omsId,
@@ -1025,17 +1035,17 @@ export default class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        let priceString = undefined;
-        let amountString = undefined;
-        let costString = undefined;
-        let timestamp = undefined;
-        let id = undefined;
-        let marketId = undefined;
-        let side = undefined;
-        let orderId = undefined;
-        let takerOrMaker = undefined;
-        let fee = undefined;
-        let type = undefined;
+        let priceString: Str = undefined;
+        let amountString: Str = undefined;
+        let costString: Str = undefined;
+        let timestamp: Int = undefined;
+        let id: Str = undefined;
+        let marketId: Str = undefined;
+        let side: Str = undefined;
+        let orderId: Str = undefined;
+        let takerOrMaker: Str = undefined;
+        let fee: Dict = {};
+        let type: Str = undefined;
         if (Array.isArray (trade)) {
             priceString = this.safeString (trade, 3);
             amountString = this.safeString (trade, 2);
@@ -1096,7 +1106,9 @@ export default class ndax extends Exchange {
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'omsId': omsId,
@@ -1139,7 +1151,7 @@ export default class ndax extends Exchange {
         //
         //     [ 449 ] // comma-separated list of account ids
         //
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const accountId = this.safeString (response, i);
             result.push ({
@@ -1149,7 +1161,7 @@ export default class ndax extends Exchange {
                 'info': accountId,
             });
         }
-        return result;
+        return result as Account[];
     }
 
     parseBalance (response): Balances {
@@ -1161,7 +1173,7 @@ export default class ndax extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'ProductId');
-            if (currencyId in this.currencies_by_id) {
+            if ((currencyId !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'Amount');
@@ -1182,12 +1194,14 @@ export default class ndax extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId');
         let accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         if (accountId === undefined) {
-            accountId = parseInt (this.accounts[0]['id']);
+            accountId = this.parseToInt (this.accounts[0]['id']);
         }
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
@@ -1269,8 +1283,8 @@ export default class ndax extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const credit = this.safeString (item, 'CR');
         const debit = this.safeString (item, 'DR');
-        let amount = undefined;
-        let direction = undefined;
+        let amount: Str = undefined;
+        let direction: Str = undefined;
         if (Precise.stringLt (credit, '0')) {
             amount = credit;
             direction = 'in';
@@ -1278,7 +1292,7 @@ export default class ndax extends Exchange {
             amount = debit;
             direction = 'out';
         }
-        let before = undefined;
+        let before: Str = undefined;
         const after = this.safeString (item, 'Balance');
         if (direction === 'out') {
             before = Precise.stringAdd (after, amount);
@@ -1318,9 +1332,11 @@ export default class ndax extends Exchange {
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
@@ -1349,7 +1365,7 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1365,6 +1381,9 @@ export default class ndax extends Exchange {
             'Expired': 'expired',
             'FullyExecuted': 'closed',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1480,9 +1499,11 @@ export default class ndax extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2 (params, 'ClientOrderId', 'clientOrderId');
         let orderType = this.safeInteger (this.options['orderTypes'], this.capitalize (type));
@@ -1497,8 +1518,9 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
+        const amountString = this.amountToPrecision (symbol, amount);
         const request: Dict = {
-            'InstrumentId': parseInt (market['id']),
+            'InstrumentId': this.parseToInt (market['id']),
             'omsId': omsId,
             'AccountId': accountId,
             'TimeInForce': 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1510,7 +1532,7 @@ export default class ndax extends Exchange {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': parseFloat (this.amountToPrecision (symbol, amount)),
+            'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1538,17 +1560,20 @@ export default class ndax extends Exchange {
 
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2 (params, 'ClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
+        const amountString = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'OrderIdToReplace': parseInt (id),
-            'InstrumentId': parseInt (market['id']),
+            'InstrumentId': this.parseToInt (market['id']),
             'omsId': omsId,
             'AccountId': accountId,
             'TimeInForce': 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1560,7 +1585,7 @@ export default class ndax extends Exchange {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': parseFloat (this.amountToPrecision (symbol, amount)),
+            'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
             'OrderType': this.safeInteger (this.options['orderTypes'], this.capitalize (type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1597,9 +1622,11 @@ export default class ndax extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
@@ -1615,7 +1642,7 @@ export default class ndax extends Exchange {
             // 'StartIndex': 0 // from the most recent trade 0 and moving backwards in time
             // 'ExecutionId': 123, // The ID of the individual buy or sell execution. If not specified, returns all.
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['InstrumentId'] = market['id'];
@@ -1684,9 +1711,11 @@ export default class ndax extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
@@ -1726,12 +1755,14 @@ export default class ndax extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1767,12 +1798,14 @@ export default class ndax extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1847,9 +1880,11 @@ export default class ndax extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
@@ -1865,7 +1900,7 @@ export default class ndax extends Exchange {
             // 'Depth': limit,
             // 'StartIndex': 0,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['InstrumentId'] = market['id'];
@@ -1942,12 +1977,14 @@ export default class ndax extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2022,12 +2059,14 @@ export default class ndax extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2102,9 +2141,11 @@ export default class ndax extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const currency = this.currency (code);
@@ -2145,14 +2186,14 @@ export default class ndax extends Exchange {
         //         "DepositInfo":"[\"r3e95RwVsLH7yCbnMfyh7SA8FdwUJCB4S2?memo=241452010\"]"
         //     }
         //
-        const depositInfoString = this.safeString (depositAddress, 'DepositInfo');
+        const depositInfoString = this.safeString (depositAddress, 'DepositInfo', '[]');
         const depositInfo = JSON.parse (depositInfoString);
         const depositInfoLength = depositInfo.length;
-        const lastString = this.safeString (depositInfo, depositInfoLength - 1);
+        const lastString = this.safeString (depositInfo, depositInfoLength - 1, '');
         const parts = lastString.split ('?memo=');
         const address = this.safeString (parts, 0);
         const tag = this.safeString (parts, 1);
-        let code = undefined;
+        let code: Str = undefined;
         if (currency !== undefined) {
             code = currency['code'];
         }
@@ -2194,12 +2235,14 @@ export default class ndax extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2255,12 +2298,14 @@ export default class ndax extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2296,7 +2341,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
+    parseTransactionStatusByType (status: Str = undefined, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 'New': 'pending', // new ticket awaiting operator review
@@ -2341,7 +2386,10 @@ export default class ndax extends Exchange {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, type, {});
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2396,10 +2444,10 @@ export default class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        let id = undefined;
+        let id: Str = undefined;
         const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let type = undefined;
+        let type: Str = undefined;
         if ('DepositId' in transaction) {
             id = this.safeString (transaction, 'DepositId');
             type = 'deposit';
@@ -2416,7 +2464,7 @@ export default class ndax extends Exchange {
         const timestamp = this.safeInteger (templateForm, 'TimeSubmitted');
         const feeCost = this.safeNumber (transaction, 'FeeAmount');
         const transactionStatus = this.safeString (transaction, 'TicketStatus');
-        let fee = undefined;
+        let fee: Dict = {};
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
@@ -2467,9 +2515,11 @@ export default class ndax extends Exchange {
         }
         this.checkAddress (address);
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const currency = this.currency (code);
@@ -2544,7 +2594,7 @@ export default class ndax extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

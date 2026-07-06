@@ -1,1 +1,1 @@
-declare const timeout: any;
+export {};

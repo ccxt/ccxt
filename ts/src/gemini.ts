@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha384 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type{ Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -454,7 +454,7 @@ export default class gemini extends Exchange {
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 9);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         if (networkId !== undefined) {
             networkCode = this.networkIdToCode (networkId, code);
             networks[networkCode] = {
@@ -514,7 +514,7 @@ export default class gemini extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
-            const promises = [];
+            const promises: List = [];
             promises.push (this.fetchMarketsFromWeb (params)); // get usd markets
             promises.push (this.fetchUSDTMarkets (params)); // get usdt markets
             const promisesResult = await Promise.all (promises);
@@ -536,7 +536,7 @@ export default class gemini extends Exchange {
         if (numRows < 2) {
             throw new NotSupported (error);
         }
-        const result = [];
+        const result: List = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
             const row = rows[i];
@@ -642,7 +642,7 @@ export default class gemini extends Exchange {
             return []; // sandbox does not have usdt markets
         }
         const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
             const request: Dict = {
@@ -664,17 +664,17 @@ export default class gemini extends Exchange {
         //         ...
         //     ]
         //
-        const result = [];
+        const result: List = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
-        const marketIds = [];
+        const marketIds: List = [];
         for (let i = 0; i < marketIdsRaw.length; i++) {
             if (!this.inArray (marketIdsRaw[i], brokenPairs)) {
                 marketIds.push (marketIdsRaw[i]);
             }
         }
         if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
-            const promises = [];
+            const promises: List = [];
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const request: Dict = {
@@ -754,18 +754,18 @@ export default class gemini extends Exchange {
         //         "contract_price_currency": "GUSD"
         //     }
         //
-        let marketId = undefined;
-        let baseId = undefined;
-        let quoteId = undefined;
-        let settleId = undefined;
-        let tickSize = undefined;
-        let amountPrecision = undefined;
-        let minSize = undefined;
-        let status = undefined;
+        let marketId: Str = undefined;
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let settleId: Str = undefined;
+        let tickSize: Num = undefined;
+        let amountPrecision: Num = undefined;
+        let minSize: Num = undefined;
+        let status: Bool = undefined;
         let swap = false;
-        let contractSize = undefined;
-        let linear = undefined;
-        let inverse = undefined;
+        let contractSize: Num = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         const isString = (typeof response === 'string');
         const isArray = (Array.isArray (response));
         if (!isString && !isArray) {
@@ -787,7 +787,7 @@ export default class gemini extends Exchange {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber (response, 3); // quantityMinimum
             }
-            const marketIdUpper = marketId.toUpperCase ();
+            const marketIdUpper = (marketId as string).toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
             const conflictingMarkets = this.safeDict (this.options, 'conflictingMarkets', {});
@@ -887,10 +887,12 @@ export default class gemini extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -904,7 +906,9 @@ export default class gemini extends Exchange {
     }
 
     async fetchTickerV1 (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -926,7 +930,9 @@ export default class gemini extends Exchange {
     }
 
     async fetchTickerV2 (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1024,13 +1030,13 @@ export default class gemini extends Exchange {
         //
         const volume = this.safeValue (ticker, 'volume', {});
         const timestamp = this.safeInteger (volume, 'timestamp');
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');
         market = this.safeMarket (marketId, market);
-        let baseId = undefined;
-        let quoteId = undefined;
-        let base = undefined;
-        let quote = undefined;
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
         if ((marketId !== undefined) && (market === undefined)) {
             const idLength = marketId.length - 0;
             if (idLength === 7) {
@@ -1053,8 +1059,8 @@ export default class gemini extends Exchange {
         const last = this.safeString2 (ticker, 'last', 'close', price);
         const percentage = this.safeString (ticker, 'percentChange24h');
         const open = this.safeString (ticker, 'open');
-        const baseVolume = this.safeString (volume, baseId);
-        const quoteVolume = this.safeString (volume, quoteId);
+        const baseVolume = this.safeString (volume, baseId as string);
+        const quoteVolume = this.safeString (volume, quoteId as string);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1089,7 +1095,9 @@ export default class gemini extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetV1Pricefeed (params);
         //
         //     [
@@ -1186,7 +1194,9 @@ export default class gemini extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1237,7 +1247,9 @@ export default class gemini extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostV1Notionalvolume (params);
         //
         //      {
@@ -1297,7 +1309,9 @@ export default class gemini extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostV1Balances (params);
         return this.parseBalance (response);
     }
@@ -1478,7 +1492,9 @@ export default class gemini extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'order_id': id,
         };
@@ -1521,7 +1537,9 @@ export default class gemini extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostV1Orders (params);
         //
         //      [
@@ -1548,7 +1566,7 @@ export default class gemini extends Exchange {
         //          }
         //      ]
         //
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol); // throws on non-existent symbol
         }
@@ -1569,7 +1587,9 @@ export default class gemini extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
@@ -1662,7 +1682,9 @@ export default class gemini extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'order_id': id,
         };
@@ -1709,7 +1731,9 @@ export default class gemini extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1739,7 +1763,9 @@ export default class gemini extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -1797,7 +1823,9 @@ export default class gemini extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit_transfers'] = limit;
@@ -1835,7 +1863,7 @@ export default class gemini extends Exchange {
         const type = this.safeStringLower (transaction, 'type');
         // if status field is available, then it's complete
         const statusRaw = this.safeString (transaction, 'status');
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeAmount = this.safeNumber (transaction, 'feeAmount');
         if (feeAmount !== undefined) {
             fee = {
@@ -1872,7 +1900,7 @@ export default class gemini extends Exchange {
             'Advanced': 'ok',
             'Complete': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
@@ -1905,11 +1933,13 @@ export default class gemini extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
+        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode as string), 'currency');
         return this.safeValue (networkGroup, code) as DepositAddress;
     }
 
@@ -1924,10 +1954,12 @@ export default class gemini extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         code = currency['code'];
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
@@ -1941,7 +1973,7 @@ export default class gemini extends Exchange {
         return this.groupBy (results, 'network') as DepositAddress[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
@@ -2015,7 +2047,9 @@ export default class gemini extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -2045,7 +2079,9 @@ export default class gemini extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
@@ -2073,7 +2109,9 @@ export default class gemini extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],

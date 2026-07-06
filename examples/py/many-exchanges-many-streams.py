@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import ccxt.pro
-from asyncio import gather, run
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 
 async def symbol_loop(exchange, symbol):
@@ -26,7 +30,7 @@ async def exchange_loop(exchange_id, symbols):
 
 async def main():
     exchanges = {
-        'okex': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
+        'okx': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
         'binance': ['BTC/USDT', 'ETH/BTC'],
     }
     loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]

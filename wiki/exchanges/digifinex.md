@@ -56,6 +56,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -63,7 +64,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-digifinex.fetchCurrencies ([params])
+digifinex.fetchCurrencies (params?)
 ```
 
 
@@ -75,6 +76,13 @@ retrieves data on all markets for digifinex
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
+**See**
+
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+- https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -82,7 +90,7 @@ retrieves data on all markets for digifinex
 
 
 ```javascript
-digifinex.fetchMarkets ([params])
+digifinex.fetchMarkets (params?)
 ```
 
 
@@ -107,7 +115,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-digifinex.fetchBalance ([params])
+digifinex.fetchBalance (params?)
 ```
 
 
@@ -117,7 +125,7 @@ digifinex.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -133,7 +141,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-digifinex.fetchOrderBook (symbol[, limit, params])
+digifinex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -158,7 +166,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-digifinex.fetchTickers (symbols[, params])
+digifinex.fetchTickers (symbols, params?)
 ```
 
 
@@ -183,7 +191,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-digifinex.fetchTicker (symbol[, params])
+digifinex.fetchTicker (symbol, params?)
 ```
 
 
@@ -195,6 +203,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -202,7 +211,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-digifinex.fetchTime ([params])
+digifinex.fetchTime (params?)
 ```
 
 
@@ -214,6 +223,7 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -221,7 +231,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-digifinex.fetchStatus ([params])
+digifinex.fetchStatus (params?)
 ```
 
 
@@ -248,7 +258,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-digifinex.fetchTrades (symbol[, since, limit, params])
+digifinex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -277,7 +287,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-digifinex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+digifinex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -311,7 +321,7 @@ create a trade order
 
 
 ```javascript
-digifinex.createOrder (symbol, type, side, amount[, price, params])
+digifinex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -336,7 +346,7 @@ create a list of trade orders (all orders should be of the same symbol)
 
 
 ```javascript
-digifinex.createOrders (orders[, params])
+digifinex.createOrders (orders, params?)
 ```
 
 
@@ -358,7 +368,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-digifinex.createMarketBuyOrderWithCost (symbol, cost[, params])
+digifinex.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -384,7 +394,7 @@ cancels an open order
 
 
 ```javascript
-digifinex.cancelOrder (id, symbol[, params])
+digifinex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -396,6 +406,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -405,7 +416,7 @@ cancel multiple orders
 
 
 ```javascript
-digifinex.cancelOrders (ids, symbol[, params])
+digifinex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -432,7 +443,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-digifinex.fetchOpenOrders (symbol[, since, limit, params])
+digifinex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -459,7 +470,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-digifinex.fetchOrders (symbol[, since, limit, params])
+digifinex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -485,7 +496,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-digifinex.fetchOrder (id, symbol[, params])
+digifinex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -512,7 +523,7 @@ fetch all trades made by the user
 
 
 ```javascript
-digifinex.fetchMyTrades (symbol[, since, limit, params])
+digifinex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -539,7 +550,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-digifinex.fetchLedger ([code, since, limit, params])
+digifinex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -551,6 +562,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -559,7 +571,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-digifinex.fetchDepositAddress (code[, params])
+digifinex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -571,6 +583,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -581,7 +594,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-digifinex.fetchDeposits (code[, since, limit, params])
+digifinex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -593,6 +606,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -603,7 +617,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-digifinex.fetchWithdrawals (code[, since, limit, params])
+digifinex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -631,7 +645,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-digifinex.transfer (code, amount, fromAccount, toAccount[, params])
+digifinex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -654,7 +668,7 @@ make a withdrawal
 
 
 ```javascript
-digifinex.withdraw (code, amount, address, tag[, params])
+digifinex.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -675,7 +689,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-digifinex.fetchCrossBorrowRate (code[, params])
+digifinex.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -695,7 +709,7 @@ fetch the borrow interest rates of all currencies
 
 
 ```javascript
-digifinex.fetchCrossBorrowRates ([params])
+digifinex.fetchCrossBorrowRates (params?)
 ```
 
 
@@ -716,7 +730,7 @@ fetch the current funding rate
 
 
 ```javascript
-digifinex.fetchFundingRate (symbol[, params])
+digifinex.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -737,7 +751,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-digifinex.fetchFundingInterval (symbol[, params])
+digifinex.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -749,6 +763,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
+**See**: https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -759,7 +774,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-digifinex.fetchFundingRateHistory (symbol[, since, limit, params])
+digifinex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -780,7 +795,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-digifinex.fetchTradingFee (symbol[, params])
+digifinex.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -805,7 +820,7 @@ fetch all open positions
 
 
 ```javascript
-digifinex.fetchPositions (symbols[, params])
+digifinex.fetchPositions (symbols, params?)
 ```
 
 
@@ -830,7 +845,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-digifinex.fetchPosition (symbol[, params])
+digifinex.fetchPosition (symbol, params?)
 ```
 
 
@@ -854,7 +869,7 @@ set the level of leverage for a market
 
 
 ```javascript
-digifinex.setLeverage (leverage, symbol[, params])
+digifinex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -877,7 +892,7 @@ fetch the transfer history, only transfers between spot and swap accounts are su
 
 
 ```javascript
-digifinex.fetchTransfers (code[, since, limit, params])
+digifinex.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -898,7 +913,7 @@ retrieve information on the maximum leverage, for different trade sizes
 
 
 ```javascript
-digifinex.fetchLeverageTiers (symbols[, params])
+digifinex.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -919,7 +934,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 
 
 ```javascript
-digifinex.fetchMarketLeverageTiers (symbol[, params])
+digifinex.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -940,7 +955,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-digifinex.fetchDepositWithdrawFees (codes[, params])
+digifinex.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -963,7 +978,7 @@ add margin to a position
 
 
 ```javascript
-digifinex.addMargin (symbol, amount[, params])
+digifinex.addMargin (symbol, amount, params?)
 ```
 
 
@@ -986,7 +1001,7 @@ remove margin from a position
 
 
 ```javascript
-digifinex.reduceMargin (symbol, amount[, params])
+digifinex.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -1010,7 +1025,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-digifinex.fetchFundingHistory ([symbol, since, limit, params])
+digifinex.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1032,6 +1047,6 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-digifinex.setMarginMode (marginMode, symbol[, params])
+digifinex.setMarginMode (marginMode, symbol, params?)
 ```
 

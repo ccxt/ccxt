@@ -1035,7 +1035,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -1673,7 +1673,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             //    [
             //        {
             //           "asset_id":"1",
-            //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+            //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
             //           "asset_name":"USDC",
             //           "status":"ACTIVE",
             //           "collateral_weight":1.0,

@@ -1,8 +1,9 @@
-- [Async Fetch Ohlcv Indicators Discord Webhook](./examples/py/)
+```python
+from asyncio import gather, ensure_future
+from importlib import import_module
+from importlib.util import find_spec
 
-
- ```python
- from asyncio import run, gather, ensure_future
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import pandas_ta as ta
 import pandas as pd
 import ccxt.async_support as ccxt  # noqa: E402
@@ -58,5 +59,5 @@ async def main():
     await exchange.close()
 
 
-run(main()) 
+run(main())
 ```

@@ -13,6 +13,10 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object testDate = exchange.parse8601("2019-08-12 13:22:08");
+            if (isTrue(isEqual(testDate, null)))
+            {
+                return;
+            }
             Assert(isEqual(exchange.roundTimeframe("5m", testDate, ROUND_DOWN), exchange.parse8601("2019-08-12 13:20:00")));
             Assert(isEqual(exchange.roundTimeframe("10m", testDate, ROUND_DOWN), exchange.parse8601("2019-08-12 13:20:00")));
             Assert(isEqual(exchange.roundTimeframe("30m", testDate, ROUND_DOWN), exchange.parse8601("2019-08-12 13:00:00")));

@@ -22,7 +22,8 @@ func  (this *BinancecoinmCore) Describe() any  {
     // eslint-disable-next-line new-cap
     restInstance := ccxt.NewBinancecoinm(nil)
     var restDescribe any = restInstance.Describe()
-    var extended any = this.DeepExtend(this.base.Describe(), restDescribe)
+    var parentWsDescribe any = this.base.DescribeData()
+    var extended any = this.DeepExtend(restDescribe, parentWsDescribe)
     return this.DeepExtend(extended, map[string]any {
         "id": "binancecoinm",
         "name": "Binance COIN-M",

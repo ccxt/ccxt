@@ -21,7 +21,7 @@ public class CoincheckCore extends CoincheckApi
     {
         return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
             put( "id", "coincheck" );
-            put( "name", "coincheck" );
+            put( "name", "Coincheck" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("JP", "ID")) );
             put( "rateLimit", 1500 );
             put( "has", new java.util.HashMap<String, Object>() {{
@@ -95,6 +95,7 @@ public class CoincheckCore extends CoincheckApi
                 put( "fetchPositionsRisk", false );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -122,10 +123,10 @@ public class CoincheckCore extends CoincheckApi
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("exchange/orders/rate", "order_books", "rate/{pair}", "ticker", "trades")) );
+                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("exchange/orders/rate", "exchange_status", "order_books", "rate/{pair}", "ticker", "trades")) );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/opens", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws")) );
+                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/{id}", "exchange/orders/opens", "exchange/orders/cancel_status", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws")) );
                     put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("bank_accounts", "deposit_money/{id}/fast", "exchange/orders", "exchange/transfers/to_leverage", "exchange/transfers/from_leverage", "lending/borrows", "lending/borrows/{id}/repay", "send_money", "withdraws")) );
                     put( "delete", new java.util.ArrayList<Object>(java.util.Arrays.asList("bank_accounts/{id}", "exchange/orders/{id}", "withdraws/{id}")) );
                 }} );
@@ -280,6 +281,66 @@ public class CoincheckCore extends CoincheckApi
 
     /**
      * @method
+     * @name coincheck#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coincheck.com/documents/exchange/api#status-retrieval
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchStatus(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object response = (this.publicGetExchangeStatus(parameters)).join();
+            //
+            //     {
+            //         "exchange_status": [
+            //             {
+            //                 "pair": "btc_jpy",
+            //                 "status": "available",
+            //                 "timestamp": 1782787596,
+            //                 "availability": {
+            //                     "order": true,
+            //                     "market_order": true,
+            //                     "cancel": true
+            //                 }
+            //             }
+            //         ]
+            //     }
+            //
+            Object exchangeStatuses = this.safeList(response, "exchange_status", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object status = "ok";
+            Object updated = null;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(exchangeStatuses)); i++)
+            {
+                Object exchangeStatus = Helpers.GetValue(exchangeStatuses, i);
+                Object rawStatus = this.safeString(exchangeStatus, "status");
+                if (Helpers.isTrue(Helpers.isEqual(updated, null)))
+                {
+                    updated = this.safeTimestamp(exchangeStatus, "timestamp");
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(rawStatus, "available")))
+                {
+                    status = "maintenance";
+                }
+            }
+            final Object finalStatus = status;
+            final Object finalUpdated = updated;
+            return new java.util.HashMap<String, Object>() {{
+                put( "status", finalStatus );
+                put( "updated", finalUpdated );
+                put( "eta", null );
+                put( "url", null );
+                put( "info", response );
+            }};
+        });
+
+    }
+
+    /**
+     * @method
      * @name coincheck#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
@@ -400,7 +461,7 @@ public class CoincheckCore extends CoincheckApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -559,8 +620,8 @@ public class CoincheckCore extends CoincheckApi
                 takerOrMaker = "maker";
             }
             Object funds = this.safeValue(trade, "funds", new java.util.HashMap<String, Object>() {{}});
-            amountString = this.safeString(funds, baseId);
-            costString = this.safeString(funds, quoteId);
+            amountString = this.safeString(funds, ((String)baseId));
+            costString = this.safeString(funds, ((String)quoteId));
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", CoincheckCore.this.safeString(trade, "fee_currency") );
                 put( "cost", CoincheckCore.this.safeString(trade, "fee") );
@@ -616,7 +677,7 @@ public class CoincheckCore extends CoincheckApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -733,11 +794,16 @@ public class CoincheckCore extends CoincheckApi
             //
             Object fees = this.safeValue(response, "exchange_fees", new java.util.HashMap<String, Object>() {{}});
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                return result;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            {
+                Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object fee = this.safeValue(fees, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
+                Object fee = this.safeValue(fees, ((String)Helpers.GetValue(market, "id")), new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
@@ -978,7 +1044,7 @@ public class CoincheckCore extends CoincheckApi
             put( "confirmed", "pending" );
             put( "received", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)

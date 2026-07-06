@@ -1,8 +1,6 @@
-- [Calculate Ohlcvs From Trades Warmup](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+// @NO_AUTO_TRANSPILE
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version);
 let ohlcvs = {};
@@ -79,5 +77,5 @@ async function main() {
     await exchange.close();
 }
 main();
- 
+
 ```

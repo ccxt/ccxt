@@ -60,7 +60,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-cex.fetchCurrencies ([params])
+cex.fetchCurrencies (params?)
 ```
 
 
@@ -80,7 +80,7 @@ retrieves data on all markets for ace
 
 
 ```javascript
-cex.fetchMarkets ([params])
+cex.fetchMarkets (params?)
 ```
 
 
@@ -92,6 +92,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>cex</code>](#cex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
+**See**: https://trade.cex.io/docs/#rest-public-api-calls-server-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -99,7 +100,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-cex.fetchTime ([params])
+cex.fetchTime (params?)
 ```
 
 
@@ -120,7 +121,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cex.fetchTicker (symbol[, params])
+cex.fetchTicker (symbol, params?)
 ```
 
 
@@ -141,7 +142,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cex.fetchTickers (symbols[, params])
+cex.fetchTickers (symbols, params?)
 ```
 
 
@@ -165,7 +166,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-cex.fetchTrades (symbol[, since, limit, params])
+cex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -175,7 +176,7 @@ cex.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://trade.cex.io/docs/#rest-public-api-calls-order-book  
 
@@ -187,7 +188,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cex.fetchOrderBook (symbol[, limit, params])
+cex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -212,7 +213,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-cex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+cex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -232,7 +233,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-cex.fetchTradingFees ([params])
+cex.fetchTradingFees (params?)
 ```
 
 
@@ -254,7 +255,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-cex.fetchBalance ([params])
+cex.fetchBalance (params?)
 ```
 
 
@@ -279,7 +280,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-cex.fetchOrders (status, symbol[, since, limit, params])
+cex.fetchOrders (status, symbol, since?, limit?, params?)
 ```
 
 
@@ -302,7 +303,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-cex.fetchClosedOrders (symbol[, since, limit, params])
+cex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -325,7 +326,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-cex.fetchOpenOrders (symbol[, since, limit, params])
+cex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -347,7 +348,7 @@ fetches information on an open order made by the user
 
 
 ```javascript
-cex.fetchOpenOrder (id[, symbol, params])
+cex.fetchOpenOrder (id, symbol?, params?)
 ```
 
 
@@ -369,7 +370,7 @@ fetches information on an closed order made by the user
 
 
 ```javascript
-cex.fetchClosedOrder (id[, symbol, params])
+cex.fetchClosedOrder (id, symbol?, params?)
 ```
 
 
@@ -396,7 +397,7 @@ create a trade order
 
 
 ```javascript
-cex.createOrder (symbol, type, side, amount[, price, params])
+cex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -418,7 +419,7 @@ cancels an open order
 
 
 ```javascript
-cex.cancelOrder (id, symbol[, params])
+cex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -439,7 +440,7 @@ cancel all open orders in a market
 
 
 ```javascript
-cex.cancelAllOrders (symbol[, params])
+cex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -463,7 +464,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-cex.fetchLedger ([code, since, limit, params])
+cex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -486,7 +487,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-cex.fetchDepositsWithdrawals ([code, since, limit, params])
+cex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -510,7 +511,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-cex.transfer (code, amount, fromAccount, toAccount[, params])
+cex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -532,7 +533,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-cex.fetchDepositAddress (code[, params])
+cex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -552,7 +553,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-cex.watchBalance ([params])
+cex.watchBalance (params?)
 ```
 
 
@@ -575,7 +576,7 @@ get the list of most recent trades for a particular symbol. Note: can only watch
 
 
 ```javascript
-cex.watchTrades (symbol[, since, limit, params])
+cex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -597,7 +598,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-cex.watchTicker (symbol[, params])
+cex.watchTicker (symbol, params?)
 ```
 
 
@@ -618,7 +619,7 @@ watches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cex.watchTickers (symbols[, params])
+cex.watchTickers (symbols, params?)
 ```
 
 
@@ -639,7 +640,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-cex.fetchTickerWs (symbol[, params])
+cex.fetchTickerWs (symbol, params?)
 ```
 
 
@@ -659,7 +660,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-cex.fetchBalanceWs ([params])
+cex.fetchBalanceWs (params?)
 ```
 
 
@@ -682,7 +683,7 @@ get the list of orders associated with the user. Note: In CEX.IO system, orders 
 
 
 ```javascript
-cex.watchOrders (symbol[, since, limit, params])
+cex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -705,7 +706,7 @@ get the list of trades associated with the user. Note: In CEX.IO system, orders 
 
 
 ```javascript
-cex.watchMyTrades (symbol[, since, limit, params])
+cex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -715,9 +716,9 @@ cex.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cex</code>](#cex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://cex.io/websocket-api#orderbook-subscribe  
+**See**: https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -727,7 +728,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cex.watchOrderBook (symbol[, limit, params])
+cex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -751,7 +752,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-cex.watchOHLCV (symbol, timeframe[, since, limit, params])
+cex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -773,7 +774,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-cex.fetchOrderWs (id, symbol[, params])
+cex.fetchOrderWs (id, symbol, params?)
 ```
 
 
@@ -796,7 +797,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-cex.fetchOpenOrdersWs (symbol[, since, limit, params])
+cex.fetchOpenOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -822,7 +823,7 @@ create a trade order
 
 
 ```javascript
-cex.createOrderWs (symbol, type, side, amount, price[, params])
+cex.createOrderWs (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -848,7 +849,7 @@ edit a trade order
 
 
 ```javascript
-cex.editOrderWs (id, symbol, type, side, amount[, price, params])
+cex.editOrderWs (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -870,7 +871,7 @@ cancels an open order
 
 
 ```javascript
-cex.cancelOrderWs (id, symbol[, params])
+cex.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -892,6 +893,6 @@ cancel multiple orders
 
 
 ```javascript
-cex.cancelOrdersWs (ids, symbol[, params])
+cex.cancelOrdersWs (ids, symbol, params?)
 ```
 

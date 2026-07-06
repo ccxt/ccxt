@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -58,9 +58,10 @@ class extended(ccxt.async_support.extended):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.depth]: set to '1' to receive best bid and ask snapshots only
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
@@ -134,7 +135,7 @@ class extended(ccxt.async_support.extended):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_private(self, messageHash: str, subscription=None):
+    async def watch_private(self, messageHash: str, subscription: dict = None):
         self.check_required_credentials()
         url = self.urls['api']['ws'] + '/account'
         if (self.clients is None) or not (url in self.clients):
@@ -171,7 +172,8 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders'
         if symbol is not None:
             market = self.market(symbol)
@@ -194,7 +196,8 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         return await self.watch_private('balance', params)
 
     def handle_balance(self, client: Client, message):
@@ -224,7 +227,7 @@ class extended(ccxt.async_support.extended):
         #     }
         #
         data = self.safe_dict(message, 'data', {})
-        result: dict = {
+        result = {
             'info': data,
         }
         balance = self.safe_dict(data, 'balance')
@@ -262,9 +265,10 @@ class extended(ccxt.async_support.extended):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrades'
         if symbol is not None:
             market = self.market(symbol)
@@ -311,7 +315,7 @@ class extended(ccxt.async_support.extended):
         stored = self.myTrades
         data = self.safe_dict(message, 'data', {})
         rawTrades = self.safe_list(data, 'trades', [])
-        symbols: dict = {}
+        symbols = {}
         first = self.safe_dict(rawTrades, 0)
         if first is None:
             return
@@ -341,9 +345,10 @@ class extended(ccxt.async_support.extended):
         :param int [since]: the earliest time in ms to fetch positions for
         :param int [limit]: the maximum number of position structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHash = 'positions'
         if symbols is not None:
@@ -445,12 +450,12 @@ class extended(ccxt.async_support.extended):
         orders = self.orders
         data = self.safe_dict(message, 'data', {})
         rawOrders = self.safe_list(data, 'orders')
-        symbols: dict = {}
+        symbols = {}
         first = self.safe_dict(rawOrders, 0)
         if first is None:
             return
-        for i in range(0, len(rawOrders)):
-            order = self.parse_order(rawOrders[i])
+        for i in range(0, len((rawOrders))):
+            order = self.parse_order((rawOrders)[i])
             symbol = self.safe_string(order, 'symbol')
             symbols[symbol] = True
             orders.append(order)
@@ -475,7 +480,8 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'fundingRate:' + symbol
@@ -507,7 +513,7 @@ class extended(ccxt.async_support.extended):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_ws_funding_rate(self, fundingRate, market=None, message=None) -> FundingRate:
+    def parse_ws_funding_rate(self, fundingRate, market: Market = None, message=None) -> FundingRate:
         marketId = self.safe_string(fundingRate, 'm')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(message, 'ts')
@@ -543,7 +549,8 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'markPrice:' + symbol
@@ -600,7 +607,8 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
@@ -674,7 +682,8 @@ class extended(ccxt.async_support.extended):
         :param str [params.price]: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         price = self.safe_string(params, 'price')

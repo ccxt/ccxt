@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -78,7 +78,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': None,
                 'fetchBorrowRateHistory': None,
-                'fetchCanceledOrders': None,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
@@ -142,7 +142,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchTransactionFee': None,
                 'fetchTransactionFees': None,
                 'fetchTransactions': None,
-                'fetchTransfers': None,
+                'fetchTransfers': True,
                 'fetchWithdrawAddresses': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
@@ -467,6 +467,8 @@ class htx(Exchange, ImplicitAPI):
                             'v1/cross-margin/loan-orders': 1,
                             'v1/cross-margin/accounts/balance': 1,
                             'v2/account/repayment': 5,
+                            # Universal Transfer
+                            'v5/account/universal_transfer_records': 4,  # 5 requests per 2 seconds
                             # Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
                             'v1/stable_coin/exchange_rate': 1,
@@ -595,12 +597,11 @@ class htx(Exchange, ImplicitAPI):
                             'swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
-                            # Swap Market Data interface
+                            # Linear Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info': 1,
                             'linear-swap-api/v1/swap_index': 1,
                             'linear-swap-api/v1/swap_query_elements': 1,
                             'linear-swap-api/v1/swap_price_limit': 1,
-                            'linear-swap-api/v1/swap_open_interest': 1,
                             'linear-swap-ex/market/depth': 1,
                             'linear-swap-ex/market/bbo': 1,
                             'linear-swap-ex/market/history/kline': 1,
@@ -610,7 +611,6 @@ class htx(Exchange, ImplicitAPI):
                             'v2/linear-swap-ex/market/detail/batch_merged': 1,
                             'linear-swap-ex/market/trade': 1,
                             'linear-swap-ex/market/history/trade': 1,
-                            'linear-swap-api/v1/swap_risk_info': 1,
                             'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': 1,
                             'linear-swap-api/v1/swap_adjustfactor': 1,
                             'linear-swap-api/v1/swap_cross_adjustfactor': 1,
@@ -618,20 +618,23 @@ class htx(Exchange, ImplicitAPI):
                             'linear-swap-api/v1/swap_ladder_margin': 1,
                             'linear-swap-api/v1/swap_cross_ladder_margin': 1,
                             'linear-swap-api/v1/swap_api_state': 1,
-                            'linear-swap-api/v1/swap_cross_transfer_state': 1,
-                            'linear-swap-api/v1/swap_cross_trade_state': 1,
                             'linear-swap-api/v1/swap_elite_account_ratio': 1,
                             'linear-swap-api/v1/swap_elite_position_ratio': 1,
-                            'linear-swap-api/v1/swap_liquidation_orders': 1,
                             'linear-swap-api/v1/swap_settlement_records': 1,
-                            'linear-swap-api/v1/swap_funding_rate': 1,
-                            'linear-swap-api/v1/swap_batch_funding_rate': 1,
-                            'linear-swap-api/v1/swap_historical_funding_rate': 1,
                             'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
                             'index/market/history/linear_swap_estimated_rate_kline': 1,
                             'index/market/history/linear_swap_basis': 1,
                             'linear-swap-api/v1/swap_estimated_settlement_price': 1,
+                            'v5/market/funding_rate': 0.125,  # 80 requests per second = 1000ms / ( 100 * 0.125)
+                            'v5/market/funding_rate_history': 0.125,
+                            'v5/market/open_interest': 0.125,
+                            'v5/market/liquidation_orders': 0.125,
+                            'v5/market/settlement_history': 0.125,
+                            'v5/market/elite_account_ratio': 0.125,
+                            'v5/market/elite_position_ratio': 0.125,
+                            'v5/market/estimated_settlement_price': 0.125,
+                            'v5/market/price_limit': 0.125,
                         },
                     },
                     'private': {
@@ -642,29 +645,26 @@ class htx(Exchange, ImplicitAPI):
                             # Swap Account Interface
                             'swap-api/v1/swap_sub_auth_list': 1,
                             'swap-api/v1/swap_api_trading_status': 1,
-                            # Swap Account Interface
-                            'linear-swap-api/v1/swap_sub_auth_list': 1,
-                            'linear-swap-api/v1/swap_api_trading_status': 1,
-                            'linear-swap-api/v1/swap_cross_position_side': 1,
-                            'linear-swap-api/v1/swap_position_side': 1,
-                            'linear-swap-api/v3/unified_account_info': 1,
-                            'linear-swap-api/v3/fix_position_margin_change_record': 1,
-                            'linear-swap-api/v3/swap_unified_account_type': 1,
-                            'linear-swap-api/v3/linear_swap_overview_account_info': 1,
-                            'v5/account/balance': 1,
-                            'v5/account/asset_mode': 1,
-                            'v5/trade/position/opens': 1,
-                            'v5/trade/order/opens': 1,
-                            'v5/trade/order/details': 1,
-                            'v5/trade/order/history': 1,
-                            'v5/trade/order': 1,
-                            'v5/position/lever': 1,
-                            'v5/position/mode': 1,
-                            'v5/position/risk/limit': 1,
-                            'v5/position/risk/limit_tier': 1,
-                            'v5/market/risk/limit': 1,
-                            'v5/market/assets_deduction_currency': 1,
-                            'v5/market/multi_assets_margin': 1,
+                            # Linear Swap Interface
+                            'v5/account/asset_mode': 0.20834,  # 48 requests per second = 1000ms / ( 100 * 0.20834)
+                            'v5/account/balance': 0.20834,
+                            'v5/account/bills': 0.20834,
+                            'v5/account/fee_deduction_currency': 0.20834,
+                            'v5/trade/position/opens': 0.41679,  # 24 requests per second = 1000ms / ( 100 * 0.41679)
+                            'v5/trade/order/opens': 0.41679,
+                            'v5/trade/order/details': 0.41679,
+                            'v5/trade/order/history': 0.41679,
+                            'v5/trade/order': 0.41679,
+                            'v5/position/lever': 0.20834,
+                            'v5/position/mode': 0.20834,
+                            'v5/position/risk/limit': 0.20834,
+                            'v5/position/risk/limit_tier': 0.20834,
+                            'v5/market/risk/limit': 0.125,
+                            'v5/market/assets_deduction_currency': 0.125,
+                            'v5/market/multi_assets_margin': 0.125,
+                            'v5/algo/order/opens': 0.41679,
+                            'v5/algo/order': 0.41679,
+                            'v5/algo/order/history': 0.41679,
                         },
                         'post': {
                             # Future Account Interface
@@ -783,127 +783,22 @@ class htx(Exchange, ImplicitAPI):
                             'swap-api/v1/swap_track_cancelall': 1,
                             'swap-api/v1/swap_track_openorders': 1,
                             'swap-api/v1/swap_track_hisorders': 1,
-                            # Swap Account Interface
-                            'linear-swap-api/v1/swap_lever_position_limit': 1,
-                            'linear-swap-api/v1/swap_cross_lever_position_limit': 1,
-                            'linear-swap-api/v1/swap_balance_valuation': 1,
-                            'linear-swap-api/v1/swap_account_info': 1,
-                            'linear-swap-api/v1/swap_cross_account_info': 1,
-                            'linear-swap-api/v1/swap_position_info': 1,
-                            'linear-swap-api/v1/swap_cross_position_info': 1,
-                            'linear-swap-api/v1/swap_account_position_info': 1,
-                            'linear-swap-api/v1/swap_cross_account_position_info': 1,
-                            'linear-swap-api/v1/swap_sub_auth': 1,
-                            'linear-swap-api/v1/swap_sub_account_list': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_list': 1,
-                            'linear-swap-api/v1/swap_sub_account_info_list': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info_list': 1,
-                            'linear-swap-api/v1/swap_sub_account_info': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info': 1,
-                            'linear-swap-api/v1/swap_sub_position_info': 1,
-                            'linear-swap-api/v1/swap_cross_sub_position_info': 1,
-                            'linear-swap-api/v1/swap_financial_record': 1,
-                            'linear-swap-api/v1/swap_financial_record_exact': 1,
-                            'linear-swap-api/v1/swap_user_settlement_records': 1,
-                            'linear-swap-api/v1/swap_cross_user_settlement_records': 1,
-                            'linear-swap-api/v1/swap_available_level_rate': 1,
-                            'linear-swap-api/v1/swap_cross_available_level_rate': 1,
-                            'linear-swap-api/v1/swap_order_limit': 1,
-                            'linear-swap-api/v1/swap_fee': 1,
-                            'linear-swap-api/v1/swap_transfer_limit': 1,
-                            'linear-swap-api/v1/swap_cross_transfer_limit': 1,
-                            'linear-swap-api/v1/swap_position_limit': 1,
-                            'linear-swap-api/v1/swap_cross_position_limit': 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer': 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
-                            'linear-swap-api/v1/swap_transfer_inner': 1,
-                            'linear-swap-api/v3/swap_financial_record': 1,
-                            'linear-swap-api/v3/swap_financial_record_exact': 1,
-                            # Swap Trade Interface
-                            'linear-swap-api/v1/swap_order': 1,
-                            'linear-swap-api/v1/swap_cross_order': 1,
-                            'linear-swap-api/v1/swap_batchorder': 1,
-                            'linear-swap-api/v1/swap_cross_batchorder': 1,
-                            'linear-swap-api/v1/swap_cancel': 1,
-                            'linear-swap-api/v1/swap_cross_cancel': 1,
-                            'linear-swap-api/v1/swap_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_cancelall': 1,
-                            'linear-swap-api/v1/swap_switch_lever_rate': 30,
-                            'linear-swap-api/v1/swap_cross_switch_lever_rate': 30,
-                            'linear-swap-api/v1/swap_lightning_close_position': 1,
-                            'linear-swap-api/v1/swap_cross_lightning_close_position': 1,
-                            'linear-swap-api/v1/swap_order_info': 1,
-                            'linear-swap-api/v1/swap_cross_order_info': 1,
-                            'linear-swap-api/v1/swap_order_detail': 1,
-                            'linear-swap-api/v1/swap_cross_order_detail': 1,
-                            'linear-swap-api/v1/swap_openorders': 1,
-                            'linear-swap-api/v1/swap_cross_openorders': 1,
-                            'linear-swap-api/v1/swap_hisorders': 1,
-                            'linear-swap-api/v1/swap_cross_hisorders': 1,
-                            'linear-swap-api/v1/swap_hisorders_exact': 1,
-                            'linear-swap-api/v1/swap_cross_hisorders_exact': 1,
-                            'linear-swap-api/v1/swap_matchresults': 1,
-                            'linear-swap-api/v1/swap_cross_matchresults': 1,
-                            'linear-swap-api/v1/swap_matchresults_exact': 1,
-                            'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
-                            'linear-swap-api/v1/linear-cancel-after': 1,
-                            'linear-swap-api/v1/swap_switch_position_mode': 1,
-                            'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
-                            'linear-swap-api/v3/swap_matchresults': 1,
-                            'linear-swap-api/v3/swap_cross_matchresults': 1,
-                            'linear-swap-api/v3/swap_matchresults_exact': 1,
-                            'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
-                            'linear-swap-api/v3/swap_hisorders': 1,
-                            'linear-swap-api/v3/swap_cross_hisorders': 1,
-                            'linear-swap-api/v3/swap_hisorders_exact': 1,
-                            'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
-                            'linear-swap-api/v3/fix_position_margin_change': 1,
-                            'linear-swap-api/v3/swap_switch_account_type': 1,
-                            'linear-swap-api/v3/linear_swap_fee_switch': 1,
-                            # Swap Strategy Order Interface
-                            'linear-swap-api/v1/swap_trigger_order': 1,
-                            'linear-swap-api/v1/swap_cross_trigger_order': 1,
-                            'linear-swap-api/v1/swap_trigger_cancel': 1,
-                            'linear-swap-api/v1/swap_cross_trigger_cancel': 1,
-                            'linear-swap-api/v1/swap_trigger_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_trigger_cancelall': 1,
-                            'linear-swap-api/v1/swap_trigger_openorders': 1,
-                            'linear-swap-api/v1/swap_cross_trigger_openorders': 1,
-                            'linear-swap-api/v1/swap_trigger_hisorders': 1,
-                            'linear-swap-api/v1/swap_cross_trigger_hisorders': 1,
-                            'linear-swap-api/v1/swap_tpsl_order': 1,
-                            'linear-swap-api/v1/swap_cross_tpsl_order': 1,
-                            'linear-swap-api/v1/swap_tpsl_cancel': 1,
-                            'linear-swap-api/v1/swap_cross_tpsl_cancel': 1,
-                            'linear-swap-api/v1/swap_tpsl_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_tpsl_cancelall': 1,
-                            'linear-swap-api/v1/swap_tpsl_openorders': 1,
-                            'linear-swap-api/v1/swap_cross_tpsl_openorders': 1,
-                            'linear-swap-api/v1/swap_tpsl_hisorders': 1,
-                            'linear-swap-api/v1/swap_cross_tpsl_hisorders': 1,
-                            'linear-swap-api/v1/swap_relation_tpsl_order': 1,
-                            'linear-swap-api/v1/swap_cross_relation_tpsl_order': 1,
-                            'linear-swap-api/v1/swap_track_order': 1,
-                            'linear-swap-api/v1/swap_cross_track_order': 1,
-                            'linear-swap-api/v1/swap_track_cancel': 1,
-                            'linear-swap-api/v1/swap_cross_track_cancel': 1,
-                            'linear-swap-api/v1/swap_track_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_track_cancelall': 1,
-                            'linear-swap-api/v1/swap_track_openorders': 1,
-                            'linear-swap-api/v1/swap_cross_track_openorders': 1,
-                            'linear-swap-api/v1/swap_track_hisorders': 1,
-                            'linear-swap-api/v1/swap_cross_track_hisorders': 1,
-                            'v5/account/asset_mode': 1,
-                            'v5/trade/order': 1,
-                            'v5/trade/batch_orders': 1,
-                            'v5/trade/cancel_order': 1,
-                            'v5/trade/cancel_batch_orders': 1,
-                            'v5/trade/cancel_all_orders': 1,
-                            'v5/trade/position': 1,
-                            'v5/trade/position_all': 1,
-                            'v5/position/lever': 1,
-                            'v5/position/mode': 1,
-                            'v5/account/fee_deduction_currency': 1,
+                            # Linear Swap Interface
+                            'v5/account/asset_mode': 100,  # 0.1 requests per second = 1000ms / (100 * 100)
+                            'v5/trade/order': 0.41679,
+                            'v5/trade/batch_orders': 0.41679,
+                            'v5/trade/cancel_order': 0.41679,
+                            'v5/trade/cancel_batch_orders': 0.41679,
+                            'v5/trade/cancel_all_orders': 0.41679,
+                            'v5/trade/cancel-after': 0.41679,
+                            'v5/trade/position': 0.41679,
+                            'v5/trade/position_all': 0.41679,
+                            'v5/position/lever': 0.20834,
+                            'v5/position/mode': 0.20834,
+                            'v5/position/margin': 0.20834,
+                            'v5/account/fee_deduction_currency': 0.20834,
+                            'v5/algo/order': 0.41679,
+                            'v5/algo/cancel_orders': 0.41679,
                         },
                     },
                 },
@@ -1236,6 +1131,9 @@ class htx(Exchange, ImplicitAPI):
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
+                    'linear-swap': 'swap',
+                    'swap': 'swap',
+                    'futures': 'future',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -1378,21 +1276,21 @@ class htx(Exchange, ImplicitAPI):
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
-                        'trigger': False,
-                        'trailing': False,
+                        'trigger': True,
+                        'trailing': True,
                         'limit': 50,
                     },
                     'fetchOrders': {
                         'marginMode': True,
-                        'trigger': False,
-                        'trailing': False,
+                        'trigger': True,
+                        'trailing': True,
                         'limit': 50,
                         'daysBack': 90,
                     },
                     'fetchClosedOrders': {
                         'marginMode': True,
-                        'trigger': False,
-                        'trailing': False,
+                        'trigger': True,
+                        'trailing': True,
                         'untilDays': 2,
                         'limit': 50,
                         'daysBack': 90,
@@ -1435,7 +1333,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchStatus', None, params)
         enabledForContracts = self.handle_option('fetchStatus', 'enableForContracts', False)  # temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
@@ -1703,9 +1602,10 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbols': market['id'],  # trading symbols comma-separated
         }
         response = self.spotPrivateGetV2ReferenceTransactFeeRate(self.extend(request, params))
@@ -1732,10 +1632,11 @@ class htx(Exchange, ImplicitAPI):
         # self method should not be called directly, use loadTradingLimits() instead
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbols is None:
             symbols = self.symbols
-        result: dict = {}
+        result = {}
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
@@ -1751,7 +1652,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the limits object of a market structure
         """
-        request: dict = {
+        request = {
             'symbol': id,
         }
         response = self.spotPublicGetV1CommonExchange(self.extend(request, params))
@@ -1852,7 +1753,7 @@ class htx(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         isSpot = (type == 'spot')
-        request: dict = {}
+        request = {}
         response = None
         if not isSpot:
             if subType == 'linear':
@@ -2133,7 +2034,7 @@ class htx(Exchange, ImplicitAPI):
         if symbolOrMarketId in futureMarketIdsForSymbols:
             return futureMarketIdsForSymbols[symbolOrMarketId]
         futureMarkets = self.filter_by(self.markets, 'future', True)
-        futuresCharsMaps: dict = {
+        futuresCharsMaps = {
             'this_week': 'CW',
             'next_week': 'NW',
             'quarter': 'CQ',
@@ -2262,9 +2163,10 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         response = None
         if market['linear']:
             request['contract_code'] = market['id']
@@ -2342,7 +2244,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         first = self.safe_string(symbols, 0)
         market = None
@@ -2353,7 +2256,7 @@ class htx(Exchange, ImplicitAPI):
         subType = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
-        request: dict = {}
+        request = {}
         isSpot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
@@ -2447,7 +2350,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of lastprices structures
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
         type = None
@@ -2564,11 +2468,12 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             #
             # from the API docs
             #
@@ -2717,15 +2622,40 @@ class htx(Exchange, ImplicitAPI):
         #         "trade_partition":"USDT"
         #     }
         #
+        # linear swap fetchMyTrades
+        #
+        #     {
+        #         "id": "1513834754679549965",
+        #         "contract_code": "BTC-USDT",
+        #         "order_id": "1513834754585190400",
+        #         "trade_id": "152022944",
+        #         "side": "sell",
+        #         "position_side": "long",
+        #         "order_type": "1",
+        #         "margin_mode": "cross",
+        #         "type": "market",
+        #         "role": "TAKER",
+        #         "trade_price": "62688.2",
+        #         "trade_volume": "2",
+        #         "trade_turnover": "125.3764",
+        #         "created_time": "1780967931197",
+        #         "updated_time": "1780967931197",
+        #         "order_source": "api",
+        #         "fee_currency": "USDT",
+        #         "trade_fee": "0.07522584",
+        #         "deduction_price": "",
+        #         "profit": "-0.3656",
+        #         "contract_type": "swap"
+        #     }
+        #
         marketId = self.safe_string_2(trade, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        timestamp = self.safe_integer_2(trade, 'ts', 'created-at')
-        timestamp = self.safe_integer_2(trade, 'created_at', 'create_date', timestamp)
+        timestamp = self.safe_integer_n(trade, ['ts', 'created-at', 'created_at', 'create_date', 'created_time'])
         order = self.safe_string_2(trade, 'order-id', 'order_id')
-        side = self.safe_string(trade, 'direction')
+        side = self.safe_string_2(trade, 'direction', 'side')
         type = self.safe_string(trade, 'type')
-        if type is not None:
+        if (type is not None) and (type.find('-') >= 0):
             typeParts = type.split('-')
             side = typeParts[0]
             type = typeParts[1]
@@ -2738,7 +2668,7 @@ class htx(Exchange, ImplicitAPI):
         feeCost = self.safe_string(trade, 'filled-fees')
         if feeCost is None:
             feeCost = Precise.string_neg(self.safe_string(trade, 'trade_fee'))
-        feeCurrencyId = self.safe_string_2(trade, 'fee-currency', 'fee_asset')
+        feeCurrencyId = self.safe_string_n(trade, ['fee-currency', 'fee_asset', 'fee_currency'])
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         filledPoints = self.safe_string(trade, 'filled-points')
         if filledPoints is not None:
@@ -2755,7 +2685,7 @@ class htx(Exchange, ImplicitAPI):
         # htx's multi-market trade-id is a bit complex to parse accordingly.
         # - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2(self happens mostly for contract markets)
         # - otherwise the least priority is given to the `id` key
-        id: Str = None
+        id = None
         safeId = self.safe_string(trade, 'id')
         if safeId is not None and safeId.find('-') >= 0:
             id = safeId
@@ -2813,8 +2743,9 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'order-id': id,
         }
         response = self.spotPrivateGetV1OrderOrdersOrderIdMatchresults(self.extend(request, params))
@@ -2822,21 +2753,21 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        fetch all trades made by the user
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0
         https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
 
-        fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -2846,7 +2777,7 @@ class htx(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        request: dict = {
+        request = {
             # spot -----------------------------------------------------------
             # 'symbol': market['id'],
             # 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-limit-maker,sell-limit-maker,buy-stop-limit,sell-stop-limit',
@@ -2880,25 +2811,21 @@ class htx(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-            request['contract'] = market['id']
-            request['trade_type'] = 0  # 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if since is not None:
-                request['start_time'] = since  # a date within 120 days from today
-                # request['end_time'] = self.sum(request['start_time'], 172800000)  # 48 hours window
+                request['start_time'] = since
             request, params = self.handle_until_option('end_time', request, params)
-            if limit is not None:
-                request['page_size'] = limit  # default 100, max 500
-            if market['linear']:
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    response = self.contractPrivatePostLinearSwapApiV3SwapMatchresultsExact(self.extend(request, params))
-                elif marginMode == 'cross':
-                    response = self.contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact(self.extend(request, params))
-            elif market['inverse']:
+            if self.safe_bool(market, 'linear'):
+                request['contract_code'] = self.safe_string(market, 'id')
+                if limit is not None:
+                    request['limit'] = limit  # default 100, max 500
+                response = self.contractPrivateGetV5TradeOrderDetails(self.extend(request, params))
+            elif self.safe_bool(market, 'inverse'):
+                if limit is not None:
+                    request['page_size'] = limit  # default 100, max 500
+                request['contract'] = self.safe_string(market, 'id')
+                request['trade_type'] = 0  # 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
                 if marketType == 'future':
-                    request['symbol'] = market['settleId']
+                    request['symbol'] = self.safe_string(market, 'settleId')
                     response = self.contractPrivatePostApiV3ContractMatchresultsExact(self.extend(request, params))
                 elif marketType == 'swap':
                     response = self.contractPrivatePostSwapApiV3SwapMatchresultsExact(self.extend(request, params))
@@ -2970,6 +2897,39 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604372202243
         #     }
         #
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "id": "1513834754679549965",
+        #                 "contract_code": "BTC-USDT",
+        #                 "order_id": "1513834754585190400",
+        #                 "trade_id": "152022944",
+        #                 "side": "sell",
+        #                 "position_side": "long",
+        #                 "order_type": "1",
+        #                 "margin_mode": "cross",
+        #                 "type": "market",
+        #                 "role": "TAKER",
+        #                 "trade_price": "62688.2",
+        #                 "trade_volume": "2",
+        #                 "trade_turnover": "125.3764",
+        #                 "created_time": "1780967931197",
+        #                 "updated_time": "1780967931197",
+        #                 "order_source": "api",
+        #                 "fee_currency": "USDT",
+        #                 "trade_fee": "0.07522584",
+        #                 "deduction_price": "",
+        #                 "profit": "-0.3656",
+        #                 "contract_type": "swap"
+        #             }
+        #         ],
+        #         "ts": 1781066959396
+        #     }
+        #
         trades = self.safe_value(response, 'data')
         if not isinstance(trades, list):
             trades = self.safe_value(trades, 'trades')
@@ -2990,9 +2950,10 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
         }
@@ -3089,13 +3050,14 @@ class htx(Exchange, ImplicitAPI):
         :param str [params.useHistoricalEndpointForSpot]: True/false - whether use the historical candles endpoint for spot markets or default klines endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
@@ -3209,7 +3171,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.spotPrivateGetV1AccountAccounts(params)
         #
         #     {
@@ -3341,7 +3304,7 @@ class htx(Exchange, ImplicitAPI):
         type = 'crypto' if (assetType == '1') else 'fiat'
         self.options['networkChainIdsByNames'][code] = {}
         chains = self.safe_list(rawCurrency, 'chains', [])
-        networks: dict = {}
+        networks = {}
         for j in range(0, len(chains)):
             chainEntry = chains[j]
             uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
@@ -3407,8 +3370,10 @@ class htx(Exchange, ImplicitAPI):
         return super(htx, self).network_id_to_code(networkTitle, currencyCode)
 
     def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
+        if networkCode is None:
+            return None
         if currencyCode is None:
-            raise ArgumentsRequired(self.id + ' networkCodeToId() requires a currencyCode argument')
+            return super(htx, self).network_code_to_id(networkCode)
         keys = list(self.options['networkChainIdsByNames'].keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -3426,31 +3391,32 @@ class htx(Exchange, ImplicitAPI):
 
         https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-        https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
         https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
         https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.subType]: linear or future
-        :param bool [params.uta]: provide self parameter if you have a recent account with unified cross+isolated margin account
+        :param str [params.type]: spot, margin, future or swap
+        :param str [params.subType]: linear or inverse
         :param bool [params.multiAssetMode]: set to True if you are using multi-asset mode for USDT-margined contracts
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
+        isUnifiedAccount = None
+        isUnifiedAccount, params = self.handle_option_and_params_2(params, 'fetchBalance', 'unified', 'uta', False)
+        if isUnifiedAccount:
+            raise NotSupported(self.id + ' fetchBalance() unified account has been deprecated on htx')
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         subType = None
-        isUnifiedAccount = None
         isMultiAssetMode = None
         subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear')
-        isUnifiedAccount, params = self.handle_option_and_params_2(params, 'fetchBalance', 'unified', 'uta', False)
         isMultiAssetMode, params = self.handle_option_and_params(params, 'fetchBalance', 'multiAssetMode', False)
-        request: dict = {}
+        request = {}
         spot = (type == 'spot')
         future = (type == 'future')
+        swap = (type == 'swap')
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
         marginMode = None
@@ -3459,7 +3425,7 @@ class htx(Exchange, ImplicitAPI):
         cross = (marginMode == 'cross')
         margin = (type == 'margin') or (spot and (cross or isolated))
         response = None
-        if isMultiAssetMode:
+        if isMultiAssetMode or (linear and (swap or future)):
             response = self.contractPrivateGetV5AccountBalance(self.extend(request, params))
         elif spot or margin:
             if margin:
@@ -3472,13 +3438,6 @@ class htx(Exchange, ImplicitAPI):
                 accountId = self.fetch_account_id_by_type(type, None, None, params)
                 request['account-id'] = accountId
                 response = self.spotPrivateGetV1AccountAccountsAccountIdBalance(self.extend(request, params))
-        elif isUnifiedAccount:
-            response = self.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(self.extend(request, params))
-        elif linear:
-            if isolated:
-                response = self.contractPrivatePostLinearSwapApiV1SwapAccountInfo(self.extend(request, params))
-            else:
-                response = self.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(self.extend(request, params))
         elif inverse:
             if future:
                 response = self.contractPrivatePostApiV1ContractAccountInfo(self.extend(request, params))
@@ -3585,63 +3544,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1637644827566
         #     }
         #
-        # linear cross futures and linear cross swap
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": [
-        #             {
-        #                 "futures_contract_detail": [
-        #                     {
-        #                         "symbol": "ETH",
-        #                         "contract_code": "ETH-USDT-220325",
-        #                         "margin_position": 0,
-        #                         "margin_frozen": 0,
-        #                         "margin_available": 200.000000000000000000,
-        #                         "profit_unreal": 0E-18,
-        #                         "liquidation_price": null,
-        #                         "lever_rate": 5,
-        #                         "adjust_factor": 0.060000000000000000,
-        #                         "contract_type": "quarter",
-        #                         "pair": "ETH-USDT",
-        #                         "business_type": "futures"
-        #                     },
-        #                 ],
-        #                 "margin_mode": "cross",
-        #                 "margin_account": "USDT",
-        #                 "margin_asset": "USDT",
-        #                 "margin_balance": 49.874186030200000000,
-        #                 "money_in": 50,
-        #                 "money_out": 0,
-        #                 "margin_static": 49.872786030200000000,
-        #                 "margin_position": 6.180000000000000000,
-        #                 "margin_frozen": 6.000000000000000000,
-        #                 "profit_unreal": 0.001400000000000000,
-        #                 "withdraw_available": 37.6927860302,
-        #                 "risk_rate": 271.984050521072796934,
-        #                 "new_risk_rate": 0.001858676950514399,
-        #                 "contract_detail": [
-        #                     {
-        #                         "symbol": "MANA",
-        #                         "contract_code": "MANA-USDT",
-        #                         "margin_position": 0,
-        #                         "margin_frozen": 0,
-        #                         "margin_available": 200.000000000000000000,
-        #                         "profit_unreal": 0E-18,
-        #                         "liquidation_price": null,
-        #                         "lever_rate": 5,
-        #                         "adjust_factor": 0.100000000000000000,
-        #                         "contract_type": "swap",
-        #                         "pair": "MANA-USDT",
-        #                         "business_type": "swap"
-        #                     },
-        #                 ]
-        #             }
-        #         ],
-        #         "ts": 1640915104870
-        #     }
-        #
-        # multi asset mode
+        # linear swap and multi asset mode
         #
         #     {
         #         "code": 200,
@@ -3682,16 +3585,17 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         finalResponse = response
-        result: dict = {'info': finalResponse}
+        result = {'info': finalResponse}
         data = self.safe_value(response, 'data')
-        if isMultiAssetMode:
+        if isMultiAssetMode or (linear and (swap or future)):
             details = self.safe_list(data, 'details', [])
             for i in range(0, len(details)):
                 balance = details[i]
                 currencyId = self.safe_string(balance, 'currency')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_string(balance, 'withdraw_available')
+                account['free'] = self.safe_string(balance, 'available_margin')
+                account['total'] = self.safe_string(balance, 'equity')
                 result[code] = account
             result = self.safe_balance(result)
         elif spot or margin:
@@ -3700,7 +3604,7 @@ class htx(Exchange, ImplicitAPI):
                     entry = data[i]
                     symbol = self.safe_symbol(self.safe_string(entry, 'symbol'))
                     balances = self.safe_value(entry, 'list')
-                    subResult: dict = {}
+                    subResult = {}
                     for j in range(0, len(balances)):
                         balance = balances[j]
                         currencyId = self.safe_string(balance, 'currency')
@@ -3714,58 +3618,6 @@ class htx(Exchange, ImplicitAPI):
                     currencyId = self.safe_string(balance, 'currency')
                     code = self.safe_currency_code(currencyId)
                     result[code] = self.parse_margin_balance_helper(balance, code, result)
-                result = self.safe_balance(result)
-        elif isUnifiedAccount:
-            for i in range(0, len(data)):
-                entry = data[i]
-                marginAsset = self.safe_string(entry, 'margin_asset')
-                currencyCode = self.safe_currency_code(marginAsset)
-                if isolated:
-                    isolated_swap = self.safe_value(entry, 'isolated_swap', {})
-                    for j in range(0, len(isolated_swap)):
-                        balance = isolated_swap[j]
-                        marketId = self.safe_string(balance, 'contract_code')
-                        subBalance: dict = {
-                            'code': currencyCode,
-                            'free': self.safe_number(balance, 'margin_available'),
-                        }
-                        symbol = self.safe_symbol(marketId)
-                        result[symbol] = subBalance
-                        result = self.safe_balance(result)
-                else:
-                    account = self.account()
-                    account['free'] = self.safe_string(entry, 'margin_static')
-                    account['used'] = self.safe_string(entry, 'margin_frozen')
-                    result[currencyCode] = account
-                    result = self.safe_balance(result)
-        elif linear:
-            first = self.safe_value(data, 0, {})
-            if isolated:
-                for i in range(0, len(data)):
-                    balance = data[i]
-                    marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
-                    market = self.safe_market(marketId)
-                    currencyId = self.safe_string(balance, 'margin_asset')
-                    currency = self.safe_currency(currencyId)
-                    code = self.safe_string(market, 'settle', currency['code'])
-                    # the exchange outputs positions for delisted markets
-                    # https://www.huobi.com/support/en-us/detail/74882968522337
-                    # we skip it if the market was delisted
-                    if code is not None:
-                        account = self.account()
-                        account['free'] = self.safe_string(balance, 'margin_balance')
-                        account['used'] = self.safe_string(balance, 'margin_frozen')
-                        accountsByCode: dict = {}
-                        accountsByCode[code] = account
-                        symbol = market['symbol']
-                        result[symbol] = self.safe_balance(accountsByCode)
-            else:
-                account = self.account()
-                account['free'] = self.safe_string(first, 'withdraw_available')
-                account['total'] = self.safe_string(first, 'margin_balance')
-                currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
-                code = self.safe_currency_code(currencyId)
-                result[code] = account
                 result = self.safe_balance(result)
         elif inverse:
             for i in range(0, len(data)):
@@ -3785,23 +3637,28 @@ class htx(Exchange, ImplicitAPI):
 
         https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
         https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83
         https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
 
         :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.trigger]: *linear only* set to True if you want to fetch a trigger order
+        :param bool [params.stopLossTakeProfit]: *linear only* set to True if you want to fetch a stop-loss take-profit order
+        :param bool [params.stopLoss]: *linear only* set to True if you want to fetch a stop-loss order
+        :param bool [params.takeProfit]: *linear only* set to True if you want to fetch a take-profit order
+        :param bool [params.trailing]: *linear only* set to True if you want to fetch a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrder', market, params)
-        request: dict = {
+        request = {
             # spot -----------------------------------------------------------
             # 'order-id': 'id',
             # 'symbol': market['id'],
@@ -3826,28 +3683,53 @@ class htx(Exchange, ImplicitAPI):
                 request['order-id'] = id
                 response = self.spotPrivateGetV1OrderOrdersOrderId(self.extend(request, params))
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+            stopLoss = self.safe_bool(params, 'stopLoss')
+            takeProfit = self.safe_bool(params, 'takeProfit')
+            trailing = self.safe_bool(params, 'trailing')
+            isAlgo = (trigger or stopLoss or takeProfit or stopLossTakeProfit or trailing)
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit'])
+            clientOrderId = self.safe_string_n(params, ['client_order_id', 'clientOrderId', 'algo_client_order_id'])
             if clientOrderId is None:
-                request['order_id'] = id
+                if isAlgo:
+                    request['algo_id'] = id
+                else:
+                    request['order_id'] = id
             else:
-                request['client_order_id'] = clientOrderId
-                params = self.omit(params, ['client_order_id', 'clientOrderId'])
-            request['contract_code'] = market['id']
-            if market['linear']:
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    response = self.contractPrivatePostLinearSwapApiV1SwapOrderInfo(self.extend(request, params))
-                elif marginMode == 'cross':
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo(self.extend(request, params))
-            elif market['inverse']:
+                if isAlgo:
+                    request['algo_client_order_id'] = clientOrderId
+                else:
+                    request['client_order_id'] = clientOrderId
+                params = self.omit(params, ['client_order_id', 'clientOrderId', 'algo_client_order_id'])
+            if self.safe_bool(market, 'linear'):
+                if isAlgo:
+                    if trigger:
+                        request['type'] = 'trigger'
+                    elif trailing:
+                        request['type'] = 'trailing_stop'
+                    elif stopLossTakeProfit:
+                        request['type'] = 'tpsl'
+                    elif stopLoss:
+                        request['type'] = 'sl'
+                    elif takeProfit:
+                        request['type'] = 'tp'
+                    response = self.contractPrivateGetV5AlgoOrder(self.extend(request, params))
+                else:
+                    if symbol is None:
+                        raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+                    request['contract_code'] = self.safe_string(market, 'id')
+                    marginMode = None
+                    marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
+                    marginMode = 'cross' if (marginMode is None) else marginMode
+                    request['margin_mode'] = marginMode
+                    response = self.contractPrivateGetV5TradeOrder(self.extend(request, params))
+            elif self.safe_bool(market, 'inverse'):
                 if marketType == 'future':
-                    request['symbol'] = market['settleId']
+                    request['symbol'] = self.safe_string(market, 'settleId')
                     response = self.contractPrivatePostApiV1ContractOrderInfo(self.extend(request, params))
                 elif marketType == 'swap':
+                    request['contract_code'] = self.safe_string(market, 'id')
                     response = self.contractPrivatePostSwapApiV1SwapOrderInfo(self.extend(request, params))
                 else:
                     raise NotSupported(self.id + ' fetchOrder() does not support ' + marketType + ' markets')
@@ -3875,111 +3757,85 @@ class htx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        # linear swap cross margin
+        # linear swap
         #
         #     {
-        #         "status":"ok",
-        #         "data":[
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": {
+        #             "id": "1513828877079584768",
+        #             "side": "buy",
+        #             "type": "limit",
+        #             "price": "50000",
+        #             "volume": "1",
+        #             "state": "new",
+        #             "profit": null,
+        #             "contract_code": "BTC-USDT",
+        #             "position_side": "long",
+        #             "price_match": null,
+        #             "order_id": "1513828877079584768",
+        #             "client_order_id": "1513828877079584768",
+        #             "margin_mode": "cross",
+        #             "lever_rate": 20,
+        #             "order_source": "api",
+        #             "reduce_only": False,
+        #             "time_in_force": "gtc",
+        #             "tp_trigger_price": "",
+        #             "tp_order_price": "",
+        #             "tp_type": "0",
+        #             "tp_trigger_price_type": "",
+        #             "sl_trigger_price": "",
+        #             "sl_order_price": "",
+        #             "sl_type": "0",
+        #             "sl_trigger_price_type": "",
+        #             "trade_avg_price": "0",
+        #             "trade_volume": "0",
+        #             "trade_turnover": "0",
+        #             "fee_currency": "",
+        #             "fee": "0",
+        #             "price_protect": False,
+        #             "real_profit": null,
+        #             "contract_type": "swap",
+        #             "created_time": "1780966529876",
+        #             "updated_time": "1780966572409",
+        #             "cancel_reason": null,
+        #             "self_match_prevent": "cancel_taker"
+        #         },
+        #         "ts": 1780966573200
+        #     }
+        #
+        # linear swap algo
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
         #             {
-        #                 "business_type":"swap",
-        #                 "contract_type":"swap",
-        #                 "pair":"BTC-USDT",
-        #                 "symbol":"BTC",
-        #                 "contract_code":"BTC-USDT",
-        #                 "volume":1,
-        #                 "price":3000,
-        #                 "order_price_type":"limit",
-        #                 "order_type":1,
-        #                 "direction":"buy",
-        #                 "offset":"open",
-        #                 "lever_rate":1,
-        #                 "order_id":924912513206878210,
-        #                 "client_order_id":null,
-        #                 "created_at":1640557927189,
-        #                 "trade_volume":0,
-        #                 "trade_turnover":0,
-        #                 "fee":0,
-        #                 "trade_avg_price":null,
-        #                 "margin_frozen":3.000000000000000000,
-        #                 "profit":0,
-        #                 "status":3,
-        #                 "order_source":"api",
-        #                 "order_id_str":"924912513206878210",
-        #                 "fee_asset":"USDT",
-        #                 "liquidation_type":"0",
-        #                 "canceled_at":0,
-        #                 "margin_asset":"USDT",
-        #                 "margin_account":"USDT",
-        #                 "margin_mode":"cross",
-        #                 "is_tpsl":0,
-        #                 "real_profit":0
+        #                 "id": "162320614",
+        #                 "volume": "2",
+        #                 "type": "tp",
+        #                 "state": "active",
+        #                 "side": "sell",
+        #                 "algo_id": "1513832307038027776",
+        #                 "contract_code": "BTC-USDT",
+        #                 "position_side": "long",
+        #                 "margin_mode": "cross",
+        #                 "created_time": "1780967347642",
+        #                 "updated_time": "1780967347848",
+        #                 "order_source": "api",
+        #                 "tp_trigger_price": "101000",
+        #                 "tp_order_price": "0",
+        #                 "tp_type": "market",
+        #                 "tp_trigger_price_type": "last"
         #             }
         #         ],
-        #         "ts":1640557982556
+        #         "ts": 1780967407144
         #     }
         #
-        # linear swap isolated margin detail
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "symbol": "BTC",
-        #             "contract_code": "BTC-USDT",
-        #             "instrument_price": 0,
-        #             "final_interest": 0,
-        #             "adjust_value": 0,
-        #             "lever_rate": 10,
-        #             "direction": "sell",
-        #             "offset": "open",
-        #             "volume": 1.000000000000000000,
-        #             "price": 13059.800000000000000000,
-        #             "created_at": 1603703614712,
-        #             "canceled_at": 0,
-        #             "order_source": "api",
-        #             "order_price_type": "opponent",
-        #             "margin_frozen": 0,
-        #             "profit": 0,
-        #             "trades": [
-        #                 {
-        #                     "trade_id": 131560927,
-        #                     "trade_price": 13059.800000000000000000,
-        #                     "trade_volume": 1.000000000000000000,
-        #                     "trade_turnover": 13.059800000000000000,
-        #                     "trade_fee": -0.005223920000000000,
-        #                     "created_at": 1603703614715,
-        #                     "role": "taker",
-        #                     "fee_asset": "USDT",
-        #                     "profit": 0,
-        #                     "real_profit": 0,
-        #                     "id": "131560927-770334322963152896-1"
-        #                 }
-        #             ],
-        #             "total_page": 1,
-        #             "current_page": 1,
-        #             "total_size": 1,
-        #             "liquidation_type": "0",
-        #             "fee_asset": "USDT",
-        #             "fee": -0.005223920000000000,
-        #             "order_id": 770334322963152896,
-        #             "order_id_str": "770334322963152896",
-        #             "client_order_id": 57012021045,
-        #             "order_type": "1",
-        #             "status": 6,
-        #             "trade_avg_price": 13059.800000000000000000,
-        #             "trade_turnover": 13.059800000000000000,
-        #             "trade_volume": 1.000000000000000000,
-        #             "margin_asset": "USDT",
-        #             "margin_mode": "isolated",
-        #             "margin_account": "BTC-USDT",
-        #             "real_profit": 0,
-        #             "is_tpsl": 0
-        #         },
-        #         "ts": 1603703678477
-        #     }
         order = self.safe_value(response, 'data')
         if isinstance(order, list):
             order = self.safe_value(order, 0)
-        return self.parse_order(order)
+        return self.parse_order(order, market)
 
     def parse_margin_balance_helper(self, balance, code, result):
         account = None
@@ -3998,9 +3854,10 @@ class htx(Exchange, ImplicitAPI):
         if method == 'spot_private_get_v1_order_orders':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {
+        request = {
             # spot_private_get_v1_order_orders GET /v1/order/orders ----------
             # 'symbol': market['id'],  # required
             # 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-stop-limit,sell-stop-limit,buy-limit-fok,sell-limit-fok,buy-stop-limit-fok,sell-stop-limit-fok',
@@ -4064,63 +3921,127 @@ class htx(Exchange, ImplicitAPI):
         return self.fetch_spot_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
     def fetch_closed_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        return self.fetch_spot_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
+        return self.fetch_spot_orders_by_states('filled', symbol, since, limit, params)
 
     def fetch_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchContractOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            # POST /api/v1/contract_hisorders inverse futures ----------------
-            # 'symbol': market['settleId'],  # BTC, ETH, ...
-            # 'order_type': '1',  # 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
-            # POST /swap-api/v3/swap_hisorders inverse swap ------------------
-            # POST /linear-swap-api/v3/swap_hisorders linear isolated --------
-            # POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
-            'trade_type': 0,  # 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-            'status': '0',  # support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
-        }
+        request = {}
         response = None
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        stopLoss = self.safe_bool(params, 'stopLoss')
+        takeProfit = self.safe_bool(params, 'takeProfit')
         trailing = self.safe_bool(params, 'trailing', False)
-        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-        if trigger or stopLossTakeProfit or trailing:
-            if limit is not None:
-                request['page_size'] = limit
-            request['contract_code'] = market['id']
-            request['create_date'] = 90
-        else:
-            if since is not None:
-                request['start_time'] = since  # max 90 days back
-                # request['end_time'] = since + 172800000  # 48 hours window
-            request['contract'] = market['id']
-            request['type'] = 1  # 1:All Orders,2:Order in Finished Status
+        isAlgo = (trigger or stopLoss or takeProfit or stopLossTakeProfit or trailing)
+        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit'])
+        if since is not None:
+            request['start_time'] = since
         request, params = self.handle_until_option('end_time', request, params)
         if market['linear']:
+            if limit is not None:
+                request['limit'] = limit
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchContractOrders', params)
             marginMode = 'cross' if (marginMode is None) else marginMode
-            if marginMode == 'isolated':
+            request['margin_mode'] = marginMode
+            request['contract_code'] = market['id']
+            if isAlgo:
                 if trigger:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapTriggerHisorders(self.extend(request, params))
-                elif stopLossTakeProfit:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapTpslHisorders(self.extend(request, params))
+                    request['type'] = 'trigger'
                 elif trailing:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapTrackHisorders(self.extend(request, params))
-                else:
-                    response = self.contractPrivatePostLinearSwapApiV3SwapHisorders(self.extend(request, params))
-            elif marginMode == 'cross':
-                if trigger:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(self.extend(request, params))
+                    request['type'] = 'trailing_stop'
                 elif stopLossTakeProfit:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(self.extend(request, params))
-                elif trailing:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(self.extend(request, params))
-                else:
-                    response = self.contractPrivatePostLinearSwapApiV3SwapCrossHisorders(self.extend(request, params))
+                    request['type'] = 'tpsl'
+                elif stopLoss:
+                    request['type'] = 'sl'
+                elif takeProfit:
+                    request['type'] = 'tp'
+                response = self.contractPrivateGetV5AlgoOrderHistory(self.extend(request, params))
+                #
+                #     {
+                #         "code": 200,
+                #         "message": "Success",
+                #         "data": [
+                #             {
+                #                 "id": "162320614",
+                #                 "volume": "2",
+                #                 "type": "tp",
+                #                 "state": "canceled",
+                #                 "side": "sell",
+                #                 "algo_id": "1513832307038027776",
+                #                 "contract_code": "BTC-USDT",
+                #                 "position_side": "long",
+                #                 "margin_mode": "cross",
+                #                 "created_time": "1780967347642",
+                #                 "updated_time": "1780967772476",
+                #                 "order_source": "api",
+                #                 "tp_trigger_price": "101000",
+                #                 "tp_order_price": "0",
+                #                 "tp_type": "market",
+                #                 "tp_trigger_price_type": "last"
+                #             }
+                #         ],
+                #         "ts": 1780997351797
+                #     }
+                #
+            else:
+                response = self.contractPrivateGetV5TradeOrderHistory(self.extend(request, params))
+                #
+                #     {
+                #         "code": 200,
+                #         "message": "Success",
+                #         "data": [
+                #             {
+                #                 "id": "1513834754654384129",
+                #                 "side": "sell",
+                #                 "type": "market",
+                #                 "price": "0",
+                #                 "volume": "2",
+                #                 "state": "filled",
+                #                 "profit": "-0.3656",
+                #                 "contract_code": "BTC-USDT",
+                #                 "position_side": "long",
+                #                 "price_match": null,
+                #                 "order_id": "1513834754585190400",
+                #                 "client_order_id": "1513834754585190400",
+                #                 "margin_mode": "cross",
+                #                 "lever_rate": 20,
+                #                 "order_source": "api",
+                #                 "reduce_only": True,
+                #                 "time_in_force": "gtc",
+                #                 "tp_trigger_price": "",
+                #                 "tp_order_price": "",
+                #                 "tp_type": null,
+                #                 "tp_trigger_price_type": null,
+                #                 "sl_trigger_price": "",
+                #                 "sl_order_price": "",
+                #                 "sl_type": null,
+                #                 "sl_trigger_price_type": null,
+                #                 "trade_avg_price": "62688.2",
+                #                 "trade_volume": "2",
+                #                 "trade_turnover": "125.3764",
+                #                 "fee_currency": "USDT",
+                #                 "fee": "-0.07522584",
+                #                 "price_protect": False,
+                #                 "contract_type": "swap",
+                #                 "created_time": "1780967931182",
+                #                 "updated_time": "1780967931194",
+                #                 "cancel_reason": null,
+                #                 "self_match_prevent": "cancel_taker"
+                #             }
+                #         ],
+                #         "ts": 1780998077332
+                #     }
+                #
         elif market['inverse']:
+            request['contract'] = market['id']
+            request['type'] = 1  # 1:All Orders,2:Order in Finished Status
+            request['trade_type'] = 0  # 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+            request['status'] = '0'  # support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
             if market['swap']:
                 if trigger:
                     response = self.contractPrivatePostSwapApiV1SwapTriggerHisorders(self.extend(request, params))
@@ -4140,181 +4061,58 @@ class htx(Exchange, ImplicitAPI):
                     response = self.contractPrivatePostApiV1ContractTrackHisorders(self.extend(request, params))
                 else:
                     response = self.contractPrivatePostApiV3ContractHisorders(self.extend(request, params))
-        #
-        # future and swap
-        #
-        #     {
-        #         "code": 200,
-        #         "msg": "ok",
-        #         "data": [
-        #             {
-        #                 "direction": "buy",
-        #                 "offset": "open",
-        #                 "volume": 1.000000000000000000,
-        #                 "price": 25000.000000000000000000,
-        #                 "profit": 0E-18,
-        #                 "pair": "BTC-USDT",
-        #                 "query_id": 47403349100,
-        #                 "order_id": 1103683465337593856,
-        #                 "contract_code": "BTC-USDT-230505",
-        #                 "symbol": "BTC",
-        #                 "lever_rate": 5,
-        #                 "create_date": 1683180243577,
-        #                 "order_source": "web",
-        #                 "canceled_source": "web",
-        #                 "order_price_type": 1,
-        #                 "order_type": 1,
-        #                 "margin_frozen": 0E-18,
-        #                 "trade_volume": 0E-18,
-        #                 "trade_turnover": 0E-18,
-        #                 "fee": 0E-18,
-        #                 "trade_avg_price": 0,
-        #                 "status": 7,
-        #                 "order_id_str": "1103683465337593856",
-        #                 "fee_asset": "USDT",
-        #                 "fee_amount": 0,
-        #                 "fee_quote_amount": 0,
-        #                 "liquidation_type": "0",
-        #                 "margin_asset": "USDT",
-        #                 "margin_mode": "cross",
-        #                 "margin_account": "USDT",
-        #                 "update_time": 1683180352034,
-        #                 "is_tpsl": 0,
-        #                 "real_profit": 0,
-        #                 "trade_partition": "USDT",
-        #                 "reduce_only": 0,
-        #                 "contract_type": "self_week",
-        #                 "business_type": "futures"
-        #             }
-        #         ],
-        #         "ts": 1683239909141
-        #     }
-        #
-        # trigger
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "orders": [
-        #                 {
-        #                     "contract_type": "swap",
-        #                     "business_type": "swap",
-        #                     "pair": "BTC-USDT",
-        #                     "symbol": "BTC",
-        #                     "contract_code": "BTC-USDT",
-        #                     "trigger_type": "le",
-        #                     "volume": 1.000000000000000000,
-        #                     "order_type": 1,
-        #                     "direction": "buy",
-        #                     "offset": "open",
-        #                     "lever_rate": 1,
-        #                     "order_id": 1103670703588327424,
-        #                     "order_id_str": "1103670703588327424",
-        #                     "relation_order_id": "-1",
-        #                     "order_price_type": "limit",
-        #                     "status": 6,
-        #                     "order_source": "web",
-        #                     "trigger_price": 25000.000000000000000000,
-        #                     "triggered_price": null,
-        #                     "order_price": 24000.000000000000000000,
-        #                     "created_at": 1683177200945,
-        #                     "triggered_at": null,
-        #                     "order_insert_at": 0,
-        #                     "canceled_at": 1683179075234,
-        #                     "fail_code": null,
-        #                     "fail_reason": null,
-        #                     "margin_mode": "cross",
-        #                     "margin_account": "USDT",
-        #                     "update_time": 1683179075958,
-        #                     "trade_partition": "USDT",
-        #                     "reduce_only": 0
-        #                 },
-        #             ],
-        #             "total_page": 1,
-        #             "current_page": 1,
-        #             "total_size": 2
-        #         },
-        #         "ts": 1683239702792
-        #     }
-        #
-        # stop-loss and take-profit
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "orders": [
-        #                 {
-        #                     "contract_type": "swap",
-        #                     "business_type": "swap",
-        #                     "pair": "BTC-USDT",
-        #                     "symbol": "BTC",
-        #                     "contract_code": "BTC-USDT",
-        #                     "margin_mode": "cross",
-        #                     "margin_account": "USDT",
-        #                     "volume": 1.000000000000000000,
-        #                     "order_type": 1,
-        #                     "tpsl_order_type": "sl",
-        #                     "direction": "sell",
-        #                     "order_id": 1103680386844839936,
-        #                     "order_id_str": "1103680386844839936",
-        #                     "order_source": "web",
-        #                     "trigger_type": "le",
-        #                     "trigger_price": 25000.000000000000000000,
-        #                     "created_at": 1683179509613,
-        #                     "order_price_type": "market",
-        #                     "status": 11,
-        #                     "source_order_id": null,
-        #                     "relation_tpsl_order_id": "-1",
-        #                     "canceled_at": 0,
-        #                     "fail_code": null,
-        #                     "fail_reason": null,
-        #                     "triggered_price": null,
-        #                     "relation_order_id": "-1",
-        #                     "update_time": 1683179968231,
-        #                     "order_price": 0E-18,
-        #                     "trade_partition": "USDT"
-        #                 },
-        #             ],
-        #             "total_page": 1,
-        #             "current_page": 1,
-        #             "total_size": 2
-        #         },
-        #         "ts": 1683229230233
-        #     }
-        #
         orders = self.safe_value(response, 'data')
         if not isinstance(orders, list):
             orders = self.safe_value(orders, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        request: dict = {
-            'status': '5,6,7',  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
-        }
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedContractOrders() requires a symbol argument')
+        if self.markets is None:
+            self.load_markets()
+        request = {}
+        market = self.market(symbol)
+        if market['linear']:
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+            stopLoss = self.safe_bool(params, 'stopLoss')
+            takeProfit = self.safe_bool(params, 'takeProfit')
+            trailing = self.safe_bool(params, 'trailing', False)
+            isAlgo = (trigger or stopLoss or takeProfit or stopLossTakeProfit or trailing)
+            if isAlgo:
+                request['states'] = 'effective'
+            else:
+                request['states'] = 'filled'
+        else:
+            request['status'] = '6'
         return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetches information on multiple orders made by the user
 
         https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
 
-        fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
-        :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
+        :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
+        :param bool [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
+        :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss and take-profit orders
+        :param bool [params.stopLoss]: *contract only* set to True if you want to fetch stop loss orders
+        :param bool [params.takeProfit]: *contract only* set to True if you want to fetch take profit orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -4328,17 +4126,68 @@ class htx(Exchange, ImplicitAPI):
         else:
             return self.fetch_spot_orders(symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetches information on multiple canceled orders made by the user
 
         https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
 
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchCanceledOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchCanceledOrders', symbol, since, limit, params, 100)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchCanceledOrders', market, params)
+        if marketType == 'spot':
+            return self.fetch_spot_orders_by_states('partial-canceled,canceled', symbol, since, limit, params)
+        else:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument for ' + marketType + ' orders')
+            request = {}
+            if self.safe_bool(market, 'linear'):
+                trigger = self.safe_bool_2(params, 'stop', 'trigger')
+                stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+                stopLoss = self.safe_bool(params, 'stopLoss')
+                takeProfit = self.safe_bool(params, 'takeProfit')
+                trailing = self.safe_bool(params, 'trailing', False)
+                isAlgo = (trigger or stopLoss or takeProfit or stopLossTakeProfit or trailing)
+                if isAlgo:
+                    request['states'] = 'canceled'
+                else:
+                    request['states'] = 'partially_canceled,canceled'
+            else:
+                request['status'] = '5,7'  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
         fetches information on multiple closed orders made by the user
+
+        https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -4347,7 +4196,8 @@ class htx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
         if paginate:
@@ -4364,34 +4214,38 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetch all unfilled currently open orders
 
         https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736
 
-        fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
-        :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
+        :param bool [params.stopLoss]: *linear swap contract only* if the orders are stop-loss orders
+        :param bool [params.takeProfit]: *linear swap contract only* if the orders are take-profit orders
+        :param bool [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params, 'linear')
+        isLinear = (subType == 'linear')
         response = None
         if marketType == 'spot':
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             # todo replace with fetchAccountIdByType
             accountId = self.safe_string(params, 'account-id')
             if accountId is None:
@@ -4411,35 +4265,33 @@ class htx(Exchange, ImplicitAPI):
         else:
             if symbol is not None:
                 # raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-                request['contract_code'] = market['id']
+                request['contract_code'] = self.safe_string(market, 'id')
             if limit is not None:
-                request['page_size'] = limit
+                if isLinear:
+                    request['limit'] = limit
+                else:
+                    request['page_size'] = limit
             trigger = self.safe_bool_2(params, 'stop', 'trigger')
-            stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+            stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+            stopLoss = self.safe_bool(params, 'stopLoss')
+            takeProfit = self.safe_bool(params, 'takeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-            if subType == 'linear':
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit'])
+            if isLinear:
+                if trigger or trailing or stopLossTakeProfit or stopLoss or takeProfit:
                     if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(self.extend(request, params))
-                    elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTpslOpenorders(self.extend(request, params))
+                        request['type'] = 'trigger'
                     elif trailing:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTrackOpenorders(self.extend(request, params))
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapOpenorders(self.extend(request, params))
-                elif marginMode == 'cross':
-                    if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(self.extend(request, params))
+                        request['type'] = 'trailing_stop'
                     elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(self.extend(request, params))
-                    elif trailing:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(self.extend(request, params))
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(self.extend(request, params))
+                        request['type'] = 'tpsl'
+                    elif stopLoss:
+                        request['type'] = 'sl'
+                    elif takeProfit:
+                        request['type'] = 'tp'
+                    response = self.contractPrivateGetV5AlgoOrderOpens(self.extend(request, params))
+                else:
+                    response = self.contractPrivateGetV5TradeOrderOpens(self.extend(request, params))
             elif subType == 'inverse':
                 if marketType == 'swap':
                     if trigger:
@@ -4644,13 +4496,89 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1704242440106
         #     }
         #
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "id": "1512509978516443136",
+        #                 "side": "buy",
+        #                 "type": "limit",
+        #                 "price": "30",
+        #                 "volume": "1",
+        #                 "state": "new",
+        #                 "profit": null,
+        #                 "contract_code": "LTC-USDT",
+        #                 "position_side": "long",
+        #                 "price_match": null,
+        #                 "order_id": "1512509978516443136",
+        #                 "client_order_id": "1512509978516443136",
+        #                 "margin_mode": "isolated",
+        #                 "lever_rate": 10,
+        #                 "order_source": "api",
+        #                 "reduce_only": False,
+        #                 "time_in_force": "gtc",
+        #                 "tp_trigger_price": "",
+        #                 "tp_order_price": "",
+        #                 "tp_type": "0",
+        #                 "tp_trigger_price_type": "",
+        #                 "sl_trigger_price": "",
+        #                 "sl_order_price": "",
+        #                 "sl_type": "0",
+        #                 "sl_trigger_price_type": "",
+        #                 "trade_avg_price": "0",
+        #                 "trade_volume": "0",
+        #                 "trade_turnover": "0",
+        #                 "fee_currency": "",
+        #                 "fee": "0",
+        #                 "price_protect": False,
+        #                 "contract_type": "swap",
+        #                 "created_time": "1780652079954",
+        #                 "updated_time": "1780652079954",
+        #                 "cancel_reason": null,
+        #                 "self_match_prevent": "cancel_taker"
+        #             }
+        #         ],
+        #         "ts": 1780652167077
+        #     }
+        #
+        # linear swap algo
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "id": "162173672",
+        #                 "volume": "1",
+        #                 "type": "tp",
+        #                 "state": "active",
+        #                 "side": "sell",
+        #                 "algo_id": "1512871666507657216",
+        #                 "contract_code": "BTC-USDT",
+        #                 "position_side": "long",
+        #                 "margin_mode": "cross",
+        #                 "created_time": "1780738313091",
+        #                 "updated_time": "1780738313187",
+        #                 "order_source": "api",
+        #                 "tp_trigger_price": "101000",
+        #                 "tp_order_price": "0",
+        #                 "tp_type": "market",
+        #                 "tp_trigger_price_type": "last"
+        #             }
+        #         ],
+        #         "ts": 1780739390596
+        #     }
+        #
         orders = self.safe_value(response, 'data')
         if not isinstance(orders, list):
             orders = self.safe_value(orders, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # spot
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
@@ -4667,6 +4595,11 @@ class htx(Exchange, ImplicitAPI):
             '6': 'closed',
             '7': 'canceled',
             '11': 'canceling',
+            # linear swap
+            'active': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'partially_canceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -4708,103 +4641,18 @@ class htx(Exchange, ImplicitAPI):
         #         "canceled-at":  0
         #     }
         #
-        # linear swap cross margin createOrder
+        # linear swap createOrder, closePosition
         #
         #     {
-        #         "order_id":924660854912552960,
-        #         "order_id_str":"924660854912552960"
+        #         "order_id": "1512501029504577536",
+        #         "client_order_id": "1512501029504577536"
         #     }
         #
-        # contracts fetchOrder
+        # linear swap algo createOrder
         #
         #     {
-        #         "business_type":"swap",
-        #         "contract_type":"swap",
-        #         "pair":"BTC-USDT",
-        #         "symbol":"BTC",
-        #         "contract_code":"BTC-USDT",
-        #         "volume":1,
-        #         "price":3000,
-        #         "order_price_type":"limit",
-        #         "order_type":1,
-        #         "direction":"buy",
-        #         "offset":"open",
-        #         "lever_rate":1,
-        #         "order_id":924912513206878210,
-        #         "client_order_id":null,
-        #         "created_at":1640557927189,
-        #         "trade_volume":0,
-        #         "trade_turnover":0,
-        #         "fee":0,
-        #         "trade_avg_price":null,
-        #         "margin_frozen":3.000000000000000000,
-        #         "profit":0,
-        #         "status":3,
-        #         "order_source":"api",
-        #         "order_id_str":"924912513206878210",
-        #         "fee_asset":"USDT",
-        #         "liquidation_type":"0",
-        #         "canceled_at":0,
-        #         "margin_asset":"USDT",
-        #         "margin_account":"USDT",
-        #         "margin_mode":"cross",
-        #         "is_tpsl":0,
-        #         "real_profit":0
-        #     }
-        #
-        # contracts fetchOrder detailed
-        #
-        #     {
-        #         "symbol": "BTC",
-        #         "contract_code": "BTC-USDT",
-        #         "instrument_price": 0,
-        #         "final_interest": 0,
-        #         "adjust_value": 0,
-        #         "lever_rate": 10,
-        #         "direction": "sell",
-        #         "offset": "open",
-        #         "volume": 1.000000000000000000,
-        #         "price": 13059.800000000000000000,
-        #         "created_at": 1603703614712,
-        #         "canceled_at": 0,
-        #         "order_source": "api",
-        #         "order_price_type": "opponent",
-        #         "margin_frozen": 0,
-        #         "profit": 0,
-        #         "trades": [
-        #             {
-        #                 "trade_id": 131560927,
-        #                 "trade_price": 13059.800000000000000000,
-        #                 "trade_volume": 1.000000000000000000,
-        #                 "trade_turnover": 13.059800000000000000,
-        #                 "trade_fee": -0.005223920000000000,
-        #                 "created_at": 1603703614715,
-        #                 "role": "taker",
-        #                 "fee_asset": "USDT",
-        #                 "profit": 0,
-        #                 "real_profit": 0,
-        #                 "id": "131560927-770334322963152896-1"
-        #             }
-        #         ],
-        #         "total_page": 1,
-        #         "current_page": 1,
-        #         "total_size": 1,
-        #         "liquidation_type": "0",
-        #         "fee_asset": "USDT",
-        #         "fee": -0.005223920000000000,
-        #         "order_id": 770334322963152896,
-        #         "order_id_str": "770334322963152896",
-        #         "client_order_id": 57012021045,
-        #         "order_type": "1",
-        #         "status": 6,
-        #         "trade_avg_price": 13059.800000000000000000,
-        #         "trade_turnover": 13.059800000000000000,
-        #         "trade_volume": 1.000000000000000000,
-        #         "margin_asset": "USDT",
-        #         "margin_mode": "isolated",
-        #         "margin_account": "BTC-USDT",
-        #         "real_profit": 0,
-        #         "is_tpsl": 0
+        #         "algo_id": "1512871666507657216",
+        #         "algo_client_order_id": null
         #     }
         #
         # future and swap: fetchOrders
@@ -4846,160 +4694,6 @@ class htx(Exchange, ImplicitAPI):
         #         "business_type": "futures"  # only in cross-margin(inverse & linear)
         #     }
         #
-        # trigger: fetchOpenOrders
-        #
-        #     {
-        #         "contract_type": "swap",
-        #         "business_type": "swap",
-        #         "pair": "BTC-USDT",
-        #         "symbol": "BTC",
-        #         "contract_code": "BTC-USDT",
-        #         "trigger_type": "le",
-        #         "volume": 1.000000000000000000,
-        #         "order_type": 1,
-        #         "direction": "buy",
-        #         "offset": "open",
-        #         "lever_rate": 1,
-        #         "order_id": 1103670703588327424,
-        #         "order_id_str": "1103670703588327424",
-        #         "order_source": "web",
-        #         "trigger_price": 25000.000000000000000000,
-        #         "order_price": 24000.000000000000000000,
-        #         "created_at": 1683177200945,
-        #         "order_price_type": "limit",
-        #         "status": 2,
-        #         "margin_mode": "cross",
-        #         "margin_account": "USDT",
-        #         "trade_partition": "USDT",
-        #         "reduce_only": 0
-        #     }
-        #
-        # stop-loss and take-profit: fetchOpenOrders
-        #
-        #     {
-        #         "contract_type": "swap",
-        #         "business_type": "swap",
-        #         "pair": "BTC-USDT",
-        #         "symbol": "BTC",
-        #         "contract_code": "BTC-USDT",
-        #         "margin_mode": "cross",
-        #         "margin_account": "USDT",
-        #         "volume": 1.000000000000000000,
-        #         "order_type": 1,
-        #         "direction": "sell",
-        #         "order_id": 1103680386844839936,
-        #         "order_id_str": "1103680386844839936",
-        #         "order_source": "web",
-        #         "trigger_type": "le",
-        #         "trigger_price": 25000.000000000000000000,
-        #         "order_price": 0E-18,
-        #         "created_at": 1683179509613,
-        #         "order_price_type": "market",
-        #         "status": 2,
-        #         "tpsl_order_type": "sl",
-        #         "source_order_id": null,
-        #         "relation_tpsl_order_id": "-1",
-        #         "trade_partition": "USDT"
-        #     }
-        #
-        # trailing: fetchOpenOrders
-        #
-        #     {
-        #         "contract_type": "swap",
-        #         "business_type": "swap",
-        #         "pair": "BTC-USDT",
-        #         "symbol": "BTC",
-        #         "contract_code": "BTC-USDT",
-        #         "volume": 1.000000000000000000,
-        #         "order_type": 1,
-        #         "direction": "sell",
-        #         "offset": "close",
-        #         "lever_rate": 1,
-        #         "order_id": 1192021437253877761,
-        #         "order_id_str": "1192021437253877761",
-        #         "order_source": "api",
-        #         "created_at": 1704241657328,
-        #         "order_price_type": "formula_price",
-        #         "status": 2,
-        #         "callback_rate": 0.050000000000000000,
-        #         "active_price": 50000.000000000000000000,
-        #         "is_active": 0,
-        #         "margin_mode": "cross",
-        #         "margin_account": "USDT",
-        #         "trade_partition": "USDT",
-        #         "reduce_only": 1
-        #     }
-        #
-        # trigger: fetchOrders
-        #
-        #     {
-        #         "contract_type": "swap",
-        #         "business_type": "swap",
-        #         "pair": "BTC-USDT",
-        #         "symbol": "BTC",
-        #         "contract_code": "BTC-USDT",
-        #         "trigger_type": "le",
-        #         "volume": 1.000000000000000000,
-        #         "order_type": 1,
-        #         "direction": "buy",
-        #         "offset": "open",
-        #         "lever_rate": 1,
-        #         "order_id": 1103670703588327424,
-        #         "order_id_str": "1103670703588327424",
-        #         "relation_order_id": "-1",
-        #         "order_price_type": "limit",
-        #         "status": 6,
-        #         "order_source": "web",
-        #         "trigger_price": 25000.000000000000000000,
-        #         "triggered_price": null,
-        #         "order_price": 24000.000000000000000000,
-        #         "created_at": 1683177200945,
-        #         "triggered_at": null,
-        #         "order_insert_at": 0,
-        #         "canceled_at": 1683179075234,
-        #         "fail_code": null,
-        #         "fail_reason": null,
-        #         "margin_mode": "cross",
-        #         "margin_account": "USDT",
-        #         "update_time": 1683179075958,
-        #         "trade_partition": "USDT",
-        #         "reduce_only": 0
-        #     }
-        #
-        # stop-loss and take-profit: fetchOrders
-        #
-        #     {
-        #         "contract_type": "swap",
-        #         "business_type": "swap",
-        #         "pair": "BTC-USDT",
-        #         "symbol": "BTC",
-        #         "contract_code": "BTC-USDT",
-        #         "margin_mode": "cross",
-        #         "margin_account": "USDT",
-        #         "volume": 1.000000000000000000,
-        #         "order_type": 1,
-        #         "tpsl_order_type": "sl",
-        #         "direction": "sell",
-        #         "order_id": 1103680386844839936,
-        #         "order_id_str": "1103680386844839936",
-        #         "order_source": "web",
-        #         "trigger_type": "le",
-        #         "trigger_price": 25000.000000000000000000,
-        #         "created_at": 1683179509613,
-        #         "order_price_type": "market",
-        #         "status": 11,
-        #         "source_order_id": null,
-        #         "relation_tpsl_order_id": "-1",
-        #         "canceled_at": 0,
-        #         "fail_code": null,
-        #         "fail_reason": null,
-        #         "triggered_price": null,
-        #         "relation_order_id": "-1",
-        #         "update_time": 1683179968231,
-        #         "order_price": 0E-18,
-        #         "trade_partition": "USDT"
-        #     }
-        #
         # spot: createOrders
         #
         #     [
@@ -5029,24 +4723,122 @@ class htx(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
+        # linear swap fetchOpenOrders, fetchOrder, fetchOrders
+        #
+        #     {
+        #         "id": "1512509978516443136",
+        #         "side": "buy",
+        #         "type": "limit",
+        #         "price": "30",
+        #         "volume": "1",
+        #         "state": "new",
+        #         "profit": null,
+        #         "contract_code": "LTC-USDT",
+        #         "position_side": "long",
+        #         "price_match": null,
+        #         "order_id": "1512509978516443136",
+        #         "client_order_id": "1512509978516443136",
+        #         "margin_mode": "isolated",
+        #         "lever_rate": 10,
+        #         "order_source": "api",
+        #         "reduce_only": False,
+        #         "time_in_force": "gtc",
+        #         "tp_trigger_price": "",
+        #         "tp_order_price": "",
+        #         "tp_type": "0",
+        #         "tp_trigger_price_type": "",
+        #         "sl_trigger_price": "",
+        #         "sl_order_price": "",
+        #         "sl_type": "0",
+        #         "sl_trigger_price_type": "",
+        #         "trade_avg_price": "0",
+        #         "trade_volume": "0",
+        #         "trade_turnover": "0",
+        #         "fee_currency": "",
+        #         "fee": "0",
+        #         "price_protect": False,
+        #         "real_profit": null,
+        #         "contract_type": "swap",
+        #         "created_time": "1780652079954",
+        #         "updated_time": "1780652079954",
+        #         "cancel_reason": null,
+        #         "self_match_prevent": "cancel_taker"
+        #     }
+        #
+        # linear swap algo fetchOpenOrders, fetchOrder, fetchOrders
+        #
+        #     {
+        #         "id": "162173672",
+        #         "volume": "1",
+        #         "type": "tp",
+        #         "state": "active",
+        #         "side": "sell",
+        #         "algo_id": "1512871666507657216",
+        #         "contract_code": "BTC-USDT",
+        #         "position_side": "long",
+        #         "margin_mode": "cross",
+        #         "created_time": "1780738313091",
+        #         "updated_time": "1780738313187",
+        #         "order_source": "api",
+        #         "tp_trigger_price": "101000",
+        #         "tp_order_price": "0",
+        #         "tp_type": "market",
+        #         "tp_trigger_price_type": "last"
+        #     }
+        #
+        # linear swap trailing fetchOpenOrders, fetchOrder, fetchOrders
+        #
+        #     {
+        #         "id": "1163773",
+        #         "volume": "1",
+        #         "type": "trailing_stop",
+        #         "state": "active",
+        #         "side": "sell",
+        #         "algo_id": "1512889773167009792",
+        #         "contract_code": "BTC-USDT",
+        #         "position_side": "long",
+        #         "margin_mode": "cross",
+        #         "created_time": "1780742630055",
+        #         "updated_time": "1780742630223",
+        #         "order_source": "api",
+        #         "active_price": "90000",
+        #         "callback_rate": "0.05",
+        #         "reduce_only": True,
+        #         "order_price_type": "formula_price"
+        #     }
+        #
+        marketId = self.safe_string_2(order, 'contract_code', 'symbol')
+        market = self.safe_market(marketId, market)
         rejectedCreateOrders = self.safe_string_2(order, 'err_code', 'err-code')
         status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
         if rejectedCreateOrders is not None:
             status = 'rejected'
-        id = self.safe_string_n(order, ['id', 'order_id_str', 'order-id'])
-        side = self.safe_string(order, 'direction')
-        type = self.safe_string(order, 'order_price_type')
-        if 'type' in order:
-            orderType = order['type'].split('-')
-            side = orderType[0]
-            type = orderType[1]
-        marketId = self.safe_string_2(order, 'contract_code', 'symbol')
-        market = self.safe_market(marketId, market)
-        timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
-        clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-or' + 'der-id')  # transpiler regex trick for php issue
+        id = self.safe_string_n(order, ['algo_id', 'id', 'order_id_str', 'order-id', 'order_id'])
+        side = self.safe_string_2(order, 'direction', 'side')
+        contractCode = self.safe_string(order, 'contract_code')
+        isLinearOrder = (contractCode is not None) and (market is not None) and market['linear'] and not market['spot']
+        type = None
+        if isLinearOrder:
+            type = self.safe_string(order, 'type')
+            if (type is None) or (type == 'tp') or (type == 'sl') or (type == 'tpsl'):
+                type = self.safe_string_n(order, ['tp_type', 'sl_type'])
+            if type == '0':
+                type = None
+        else:
+            type = self.safe_string(order, 'order_price_type')
+            rawType = self.safe_string(order, 'type')
+            if rawType is not None:
+                if rawType.find('-') >= 0:
+                    orderType = rawType.split('-')
+                    side = orderType[0]
+                    type = orderType[1]
+                elif type is None:
+                    type = rawType
+        timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date', 'created_time'])
+        clientOrderId = self.safe_string_n(order, ['client_order_id', 'client-or' + 'der-id', 'algo_client_order_id'])  # transpiler regex trick for php issue
         cost = None
         amount = None
-        if (type is not None) and (type.find('market') >= 0):
+        if (type is not None) and (type.find('market') >= 0) and (not isLinearOrder):
             cost = self.safe_string(order, 'field-cash-amount')
         else:
             amount = self.safe_string_2(order, 'volume', 'amount')
@@ -5056,9 +4848,9 @@ class htx(Exchange, ImplicitAPI):
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled feeSide
         feeCost = self.safe_string(order, 'fee', feeCost)
         fee = None
-        if feeCost is not None:
+        if (feeCost is not None) and (feeCost != '0') and (feeCost != '0.0'):
             feeCurrency = None
-            feeCurrencyId = self.safe_string(order, 'fee_asset')
+            feeCurrencyId = self.safe_string_2(order, 'fee_asset', 'fee_currency')
             if feeCurrencyId is not None:
                 feeCurrency = self.safe_currency_code(feeCurrencyId)
             else:
@@ -5069,10 +4861,13 @@ class htx(Exchange, ImplicitAPI):
             }
         average = self.safe_string(order, 'trade_avg_price')
         trades = self.safe_value(order, 'trades')
-        reduceOnlyInteger = self.safe_integer(order, 'reduce_only')
         reduceOnly = None
-        if reduceOnlyInteger is not None:
-            reduceOnly = False if (reduceOnlyInteger == 0) else True
+        if isLinearOrder:
+            reduceOnly = self.safe_bool(order, 'reduce_only')
+        else:
+            reduceOnlyInteger = self.safe_integer(order, 'reduce_only')
+            if reduceOnlyInteger is not None:
+                reduceOnly = False if (reduceOnlyInteger == 0) else True
         return self.safe_order({
             'info': order,
             'id': id,
@@ -5082,11 +4877,13 @@ class htx(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': None,
+            'timeInForce': self.safe_string_upper(order, 'time_in_force'),
             'postOnly': None,
             'side': side,
             'price': price,
             'triggerPrice': self.safe_string_2(order, 'stop-price', 'trigger_price'),
+            'stopLossPrice': self.safe_string_2(order, 'sl_trigger_price', 'sl_order_price'),
+            'takeProfitPrice': self.safe_string_2(order, 'tp_trigger_price', 'tp_order_price'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -5098,7 +4895,7 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -5109,7 +4906,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -5151,13 +4949,14 @@ class htx(Exchange, ImplicitAPI):
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: request to be sent to the exchange
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         accountId = self.fetch_account_id_by_type(market['type'], marginMode, symbol)
-        request: dict = {
+        request = {
             # spot -----------------------------------------------------------
             'account-id': accountId,
             'symbol': market['id'],
@@ -5254,23 +5053,74 @@ class htx(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
         :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
+        :param dict [params.takeProfit]: *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: take profit order price take profit orders
+        :param str [params.takeProfit.type]: market is the default, limit, optimal_5, optimal_10, optimal_20
+        :param dict [params.stopLoss]: *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: stop loss order price for stop loss orders
+        :param str [params.stopLoss.type]: market is the default, limit, optimal_5, optimal_10, optimal_20
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'contract_code': market['id'],
             'volume': self.amount_to_precision(symbol, amount),
-            'direction': side,
         }
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', type == 'post_only', params)
         if postOnly:
             type = 'post_only'
-        timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
-        if timeInForce == 'FOK':
-            type = 'fok'
-        elif timeInForce == 'IOC':
-            type = 'ioc'
+        subType = None
+        subType, params = self.handle_sub_type_and_params('createOrder', market, params)
+        isLinear = (subType == 'linear')
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
+        hedged = self.safe_bool(params, 'hedged', False)
+        timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force', 'gtc')
+        if isLinear:
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('createOrder', params, 'cross')
+            request['margin_mode'] = marginMode
+            request['side'] = side
+            if timeInForce is not None:
+                request['time_in_force'] = timeInForce.lower()
+            stopLoss = self.safe_dict(params, 'stopLoss')
+            takeProfit = self.safe_dict(params, 'takeProfit')
+            stopLossTriggerPriceAttached = self.safe_number(stopLoss, 'triggerPrice')
+            stopLossOrderPrice = self.safe_number(stopLoss, 'price')
+            stopLossType = self.safe_string(stopLoss, 'type')
+            takeProfitTriggerPriceAttached = self.safe_number(takeProfit, 'triggerPrice')
+            takeProfitOrderPrice = self.safe_number(takeProfit, 'price')
+            takeProfitType = self.safe_string(takeProfit, 'type')
+            # on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
+            if stopLoss is not None:
+                if stopLossTriggerPriceAttached is not None:
+                    request['sl_trigger_price'] = self.price_to_precision(symbol, stopLossTriggerPriceAttached)
+                if stopLossOrderPrice is not None:
+                    request['sl_order_price'] = self.price_to_precision(symbol, stopLossOrderPrice)
+                if stopLossType is not None:
+                    request['sl_type'] = stopLossType
+                params = self.omit(params, 'stopLoss')
+            if takeProfit is not None:
+                if takeProfitTriggerPriceAttached is not None:
+                    request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPriceAttached)
+                if takeProfitOrderPrice is not None:
+                    request['tp_order_price'] = self.price_to_precision(symbol, takeProfitOrderPrice)
+                if takeProfitType is not None:
+                    request['tp_type'] = takeProfitType
+                params = self.omit(params, 'takeProfit')
+        else:
+            if hedged:
+                if reduceOnly:
+                    request['offset'] = 'close'
+                else:
+                    request['offset'] = 'open'
+            if timeInForce == 'fok':
+                type = 'fok'
+            elif timeInForce == 'ioc':
+                type = 'ioc'
+            request['direction'] = side
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
@@ -5280,70 +5130,82 @@ class htx(Exchange, ImplicitAPI):
         isTrigger = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        clientOrderId = self.safe_integer_n(params, ['client_order_id', 'clientOrderId', 'algo_client_order_id'])
+        if isLinear and (isTrailingPercentOrder or isTrigger or isStopLossTriggerOrder or isTakeProfitTriggerOrder):
+            if clientOrderId is not None:
+                request['algo_client_order_id'] = clientOrderId
+                params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if isTrigger:
-            triggerType = self.safe_string_2(params, 'triggerType', 'trigger_type', 'le')
-            request['trigger_type'] = triggerType
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
-            if price is not None:
-                request['order_price'] = self.price_to_precision(symbol, price)
+            if isLinear:
+                request['type'] = 'trigger'
+                if price is not None:
+                    request['price'] = self.price_to_precision(symbol, price)
+            else:
+                triggerType = self.safe_string_2(params, 'triggerType', 'trigger_type', 'le')
+                request['trigger_type'] = triggerType
+                if price is not None:
+                    request['order_price'] = self.price_to_precision(symbol, price)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             if isStopLossTriggerOrder:
-                request['sl_order_price_type'] = type
+                if not isLinear:
+                    request['sl_order_price_type'] = type
+                else:
+                    request['type'] = 'sl'
                 request['sl_trigger_price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 if price is not None:
                     request['sl_order_price'] = self.price_to_precision(symbol, price)
             else:
-                request['tp_order_price_type'] = type
+                if not isLinear:
+                    request['tp_order_price_type'] = type
+                else:
+                    request['type'] = 'tp'
                 request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 if price is not None:
                     request['tp_order_price'] = self.price_to_precision(symbol, price)
         elif isTrailingPercentOrder:
             trailingPercentString = Precise.string_div(trailingPercent, '100')
             request['callback_rate'] = self.parse_to_numeric(trailingPercentString)
-            request['active_price'] = trailingTriggerPrice
             request['order_price_type'] = self.safe_string(params, 'order_price_type', 'formula_price')
+            request['active_price'] = trailingTriggerPrice
+            if isLinear:
+                request['type'] = 'trailing_stop'
         else:
-            clientOrderId = self.safe_integer_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
                 params = self.omit(params, ['clientOrderId'])
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 if price is not None:
                     request['price'] = self.price_to_precision(symbol, price)
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
             if reduceOnly:
                 request['reduce_only'] = 1
-            request['lever_rate'] = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
-            if not isTrailingPercentOrder:
-                request['order_price_type'] = type
-        hedged = self.safe_bool(params, 'hedged', False)
-        if hedged:
-            if reduceOnly:
-                request['offset'] = 'close'
+            if isLinear:
+                if not isTrailingPercentOrder:
+                    request['type'] = type
             else:
-                request['offset'] = 'open'
+                if not isTrailingPercentOrder:
+                    request['order_price_type'] = type
+                request['lever_rate'] = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId
         params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice', 'hedged'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
 
-        https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
-        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
-        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
+        https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                       # spot, margin
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order            # coin-m swap
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order       # coin-m swap trigger
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7  # usdt-m swap cross and isolated
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9  # usdt-m swap cross and isolated trigger and trailing orders
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
-        https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
-        https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
+        https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                            # coin-m futures
+        https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                       # coin-m futures contract trigger
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -5364,9 +5226,20 @@ class htx(Exchange, ImplicitAPI):
         :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
         :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
         :param bool [params.hedged]: *contract only* True for hedged mode, False for one way mode, default is False
+        :param str [params.marginMode]: linear swap supports 'cross' and 'isolated', 'cross' is the default
+        :param str [params.position_side]: linear swap supports 'long', 'short' and 'both', 'both' is the default
+        :param dict [params.takeProfit]: *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: take profit price for take profit orders
+        :param str [params.takeProfit.type]: market is the default, limit, optimal_5, optimal_10, optimal_20
+        :param dict [params.stopLoss]: *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: stop loss price for stop loss orders
+        :param str [params.stopLoss.type]: market is the default, limit, optimal_5, optimal_10, optimal_20
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
@@ -5385,27 +5258,10 @@ class htx(Exchange, ImplicitAPI):
         else:
             contractRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
             if market['linear']:
-                marginMode = None
-                marginMode, contractRequest = self.handle_margin_mode_and_params('createOrder', contractRequest)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    if isTrigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest)
-                    elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest)
-                    elif isTrailingPercentOrder:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTrackOrder(contractRequest)
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapOrder(contractRequest)
-                elif marginMode == 'cross':
-                    if isTrigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest)
-                    elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest)
-                    elif isTrailingPercentOrder:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(contractRequest)
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest)
+                if isTrigger or isStopLossTriggerOrder or isTakeProfitTriggerOrder or isTrailingPercentOrder:
+                    response = self.contractPrivatePostV5AlgoOrder(contractRequest)
+                else:
+                    response = self.contractPrivatePostV5TradeOrder(contractRequest)
             elif market['inverse']:
                 offset = self.safe_string(params, 'offset')
                 if offset is None:
@@ -5442,6 +5298,32 @@ class htx(Exchange, ImplicitAPI):
         #             "order_id_str": "924660854912552960"
         #         },
         #         "ts": 1640497927185
+        #     }
+        #
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": {
+        #             "order_id": "1512501029504577536",
+        #             "client_order_id": "1512501029504577536"
+        #         },
+        #         "ts": 1780649946353
+        #     }
+        #
+        # linear swap algo
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "algo_id": "1512871666507657216",
+        #                 "algo_client_order_id": null
+        #             }
+        #         ],
+        #         "ts": 1780738313102
         #     }
         #
         # stop-loss and take-profit
@@ -5481,6 +5363,18 @@ class htx(Exchange, ImplicitAPI):
                 'clientOrderId': None,
                 'average': None,
             }, market)
+        elif market['linear']:
+            if isTrigger or isTrailingPercentOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                data = self.safe_list(response, 'data', [])
+                result = self.safe_dict(data, 0, {})
+            else:
+                result = self.safe_dict(response, 'data', {})
+            return self.extend(self.parse_order(result, market), {
+                'type': type,
+                'side': side,
+                'price': price,
+                'amount': amount,
+            })
         elif isStopLossTriggerOrder:
             data = self.safe_value(response, 'data', {})
             result = self.safe_value(data, 'sl_order', {})
@@ -5498,14 +5392,14 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
         https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         symbol = None
         market = None
@@ -5539,22 +5433,18 @@ class htx(Exchange, ImplicitAPI):
                 orderRequest = self.create_contract_order_request(marketId, type, side, amount, price, orderParams)
             orderRequest = self.omit(orderRequest, 'marginMode')
             ordersRequests.append(orderRequest)
-        request: dict = {}
+        request = {}
         response = None
-        if market['spot']:
+        if self.safe_bool(market, 'spot'):
             response = self.privatePostOrderBatchOrders(ordersRequests)
         else:
-            request['orders_data'] = ordersRequests
-            if market['linear']:
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    response = self.contractPrivatePostLinearSwapApiV1SwapBatchorder(request)
-                elif marginMode == 'cross':
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossBatchorder(request)
-            elif market['inverse']:
-                if market['swap']:
+            if self.safe_bool(market, 'linear'):
+                response = self.contractPrivatePostV5TradeBatchOrders(ordersRequests)
+            elif self.safe_bool(market, 'inverse'):
+                request['orders_data'] = ordersRequests
+                if self.safe_bool(market, 'swap'):
                     response = self.contractPrivatePostSwapApiV1SwapBatchorder(request)
-                elif market['future']:
+                elif self.safe_bool(market, 'future'):
                     response = self.contractPrivatePostApiV1ContractBatchorder(request)
         #
         # spot
@@ -5597,34 +5487,71 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1699688256671
         #     }
         #
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "code": 200,
+        #                 "message": "Success",
+        #                 "order_id": "1513217421638275072",
+        #                 "client_order_id": "1513217421638275072"
+        #             },
+        #             {
+        #                 "code": 200,
+        #                 "message": "Success",
+        #                 "order_id": "1513217421638275073",
+        #                 "client_order_id": "1513217421638275073"
+        #             }
+        #         ],
+        #         "ts": 1780820747555
+        #     }
+        #
+        #
         result = None
-        if market['spot']:
+        if self.safe_bool(market, 'spot'):
             result = self.safe_value(response, 'data', [])
         else:
-            data = self.safe_value(response, 'data', {})
-            success = self.safe_value(data, 'success', [])
-            errors = self.safe_value(data, 'errors', [])
-            result = self.array_concat(success, errors)
+            data = self.safe_value(response, 'data')
+            if isinstance(data, list):
+                result = data
+            else:
+                batchData = self.safe_value(response, 'data', {})
+                success = self.safe_value(batchData, 'success', [])
+                errors = self.safe_value(batchData, 'errors', [])
+                result = self.array_concat(success, errors)
         return self.parse_orders(result, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: *contract only* if the order is a trigger trigger order or not
-        :param boolean [params.stopLossTakeProfit]: *contract only* if the order is a stop-loss or take-profit order
-        :param boolean [params.trailing]: *contract only* set to True if you want to cancel a trailing order
+        :param bool [params.trigger]: *contract only* if the order is a trigger trigger order or not
+        :param bool [params.stopLossTakeProfit]: *contract only* if the order is a stop-loss or take-profit order
+        :param bool [params.stopLoss]: *contract only* if the order is a stop-loss order
+        :param bool [params.takeProfit]: *contract only* if the order is a take-profit order
+        :param bool [params.trailing]: *contract only* set to True if you want to cancel a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
-        request: dict = {
+        subType = None
+        subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
+        isLinear = (subType == 'linear')
+        request = {
             # spot -----------------------------------------------------------
             # 'order-id': 'id',
             # 'symbol': market['id'],
@@ -5636,6 +5563,10 @@ class htx(Exchange, ImplicitAPI):
             # 'pair': 'BTC-USDT',
             # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
         }
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool_n(params, ['stopLossTakeProfit', 'stopLoss', 'takeProfit'])
+        trailing = self.safe_bool(params, 'trailing', False)
+        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit'])
         response = None
         if marketType == 'spot':
             clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
@@ -5649,44 +5580,34 @@ class htx(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
-            if clientOrderId is None:
-                request['order_id'] = id
+            clientOrderId = self.safe_string_n(params, ['client_order_id', 'clientOrderId', 'algo_client_order_id'])
+            if not (isLinear and (trigger or stopLossTakeProfit or trailing)):
+                if clientOrderId is None:
+                    request['order_id'] = id
+                else:
+                    request['client_order_id'] = clientOrderId
+                    params = self.omit(params, ['client_order_id', 'clientOrderId'])
+            if self.safe_bool(market, 'future'):
+                request['symbol'] = self.safe_string(market, 'settleId')
             else:
-                request['client_order_id'] = clientOrderId
-                params = self.omit(params, ['client_order_id', 'clientOrderId'])
-            if market['future']:
-                request['symbol'] = market['settleId']
-            else:
-                request['contract_code'] = market['id']
-            trigger = self.safe_bool_2(params, 'stop', 'trigger')
-            stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-            if market['linear']:
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(self.extend(request, params))
-                    elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTpslCancel(self.extend(request, params))
-                    elif trailing:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTrackCancel(self.extend(request, params))
+                request['contract_code'] = self.safe_string(market, 'id')
+            if isLinear:
+                if trigger or stopLossTakeProfit or trailing:
+                    requestItem = {
+                        'contract_code': self.safe_string(market, 'id'),
+                    }
+                    if clientOrderId is None:
+                        requestItem['algo_id'] = id
+                        params = self.omit(params, 'algo_id')
                     else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCancel(self.extend(request, params))
-                elif marginMode == 'cross':
-                    if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(self.extend(request, params))
-                    elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(self.extend(request, params))
-                    elif trailing:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel(self.extend(request, params))
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossCancel(self.extend(request, params))
-            elif market['inverse']:
-                if market['swap']:
+                        requestItem['algo_client_order_id'] = clientOrderId
+                        params = self.omit(params, ['client_order_id', 'clientOrderId', 'algo_client_order_id'])
+                    requestBody = [self.extend(requestItem, params)]
+                    response = self.contractPrivatePostV5AlgoCancelOrders(requestBody)
+                else:
+                    response = self.contractPrivatePostV5TradeCancelOrder(self.extend(request, params))
+            elif self.safe_bool(market, 'inverse'):
+                if self.safe_bool(market, 'swap'):
                     if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -5695,7 +5616,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostSwapApiV1SwapTrackCancel(self.extend(request, params))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, params))
-                elif market['future']:
+                elif self.safe_bool(market, 'future'):
                     if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -5725,7 +5646,44 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1640504486089
         #     }
         #
-        return self.extend(self.parse_order(response, market), {
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "data": {
+        #             "client_order_id": "1512509978516443136",
+        #             "order_id": "1512509978516443136"
+        #         },
+        #         "message": "Success",
+        #         "ts": 1780653244729
+        #     }
+        #
+        # linear swap algo
+        #
+        #     {
+        #         "code": 200,
+        #         "data": [
+        #             {
+        #                 "algo_client_order_id": "1329854623927160832",
+        #                 "code": 200,
+        #                 "message": "Success",
+        #                 "algo_id": "1329854623927160832"
+        #             },
+        #         ],
+        #         "message": "Success",
+        #         "ts": 1737103890390
+        #     }
+        #
+        result = None
+        if isLinear:
+            if trigger or stopLossTakeProfit or trailing:
+                data = self.safe_list(response, 'data', [])
+                result = self.safe_dict(data, 0, {})
+            else:
+                result = self.safe_dict(response, 'data', {})
+        else:
+            result = response
+        return self.extend(self.parse_order(result, market), {
             'id': id,
             'status': 'canceled',
         })
@@ -5733,6 +5691,9 @@ class htx(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8
+
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5740,13 +5701,14 @@ class htx(Exchange, ImplicitAPI):
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        market: Market = None
+        if self.markets is None:
+            self.load_markets()
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrders', market, params)
-        request: dict = {
+        request = {
             # spot -----------------------------------------------------------
             # 'order-ids': ','.join(ids),  # max 50
             # 'client-order-ids': ','.join(ids),  # max 50
@@ -5756,6 +5718,9 @@ class htx(Exchange, ImplicitAPI):
             # 'contract_code': market['id'],
             # 'symbol': market['settleId'],
         }
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trigger'])
         response = None
         if marketType == 'spot':
             clientOrderIds = self.safe_value_2(params, 'client-order-id', 'clientOrderId')
@@ -5775,47 +5740,36 @@ class htx(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-            clientOrderIds = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
-            clientOrderIds = self.safe_string_2(params, 'client_order_ids', 'clientOrderIds', clientOrderIds)
-            if clientOrderIds is None:
-                request['order_id'] = ','.join(ids)
+            clientOrderIds = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+            clientOrderIds = self.safe_value_2(params, 'client_order_ids', 'clientOrderIds', clientOrderIds)
+            params = self.omit(params, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds'])
+            if not self.safe_bool(market, 'linear'):
+                if clientOrderIds is None:
+                    request['order_id'] = ','.join(ids)
+                else:
+                    request['client_order_id'] = clientOrderIds
+            if self.safe_bool(market, 'future'):
+                request['symbol'] = self.safe_string(market, 'settleId')
             else:
-                request['client_order_id'] = clientOrderIds
-                params = self.omit(params, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds'])
-            if market['future']:
-                request['symbol'] = market['settleId']
-            else:
-                request['contract_code'] = market['id']
-            trigger = self.safe_bool_2(params, 'stop', 'trigger')
-            stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trigger'])
-            if market['linear']:
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(self.extend(request, params))
-                    elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTpslCancel(self.extend(request, params))
+                request['contract_code'] = self.safe_string(market, 'id')
+            if self.safe_bool(market, 'linear'):
+                if clientOrderIds is None:
+                    request['order_id'] = ids
+                else:
+                    if isinstance(clientOrderIds, str):
+                        request['client_order_id'] = clientOrderIds.split(',')
                     else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCancel(self.extend(request, params))
-                elif marginMode == 'cross':
-                    if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(self.extend(request, params))
-                    elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(self.extend(request, params))
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossCancel(self.extend(request, params))
-            elif market['inverse']:
-                if market['swap']:
+                        request['client_order_id'] = clientOrderIds
+                response = self.contractPrivatePostV5TradeCancelBatchOrders(self.extend(request, params))
+            elif self.safe_bool(market, 'inverse'):
+                if self.safe_bool(market, 'swap'):
                     if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostSwapApiV1SwapTpslCancel(self.extend(request, params))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, params))
-                elif market['future']:
+                elif self.safe_bool(market, 'future'):
                     if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -5875,6 +5829,30 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604367997451
         #     }
         #
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "code": 200,
+        #                 "message": "Success",
+        #                 "order_id": "1513217421638275072",
+        #                 "client_order_id": "1513217421638275072"
+        #             },
+        #             {
+        #                 "code": 200,
+        #                 "message": "Success",
+        #                 "order_id": "1513217421638275073",
+        #                 "client_order_id": "1513217421638275073"
+        #             }
+        #         ],
+        #         "ts": 1780822053167
+        #     }
+        #
+        if self.safe_bool(market, 'linear') and not trigger and not stopLossTakeProfit:
+            return self.parse_cancel_orders(response)
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
@@ -5907,6 +5885,28 @@ class htx(Exchange, ImplicitAPI):
         #        "successes": "1258075374411399168,1258075393254871040"
         #    }
         #
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "code": 200,
+        #                 "message": "Success",
+        #                 "order_id": "1513217421638275072",
+        #                 "client_order_id": "1513217421638275072"
+        #             },
+        #             {
+        #                 "code": 200,
+        #                 "message": "Success",
+        #                 "order_id": "1513217421638275073",
+        #                 "client_order_id": "1513217421638275073"
+        #             }
+        #         ],
+        #         "ts": 1780822053167
+        #     }
+        #
         successes = self.safe_string(orders, 'successes')
         success = None
         if successes is not None:
@@ -5914,7 +5914,16 @@ class htx(Exchange, ImplicitAPI):
         else:
             success = self.safe_list(orders, 'success', [])
         failed = self.safe_list_2(orders, 'errors', 'failed', [])
+        data = self.safe_list(orders, 'data', [])
         result = []
+        for i in range(0, len(data)):
+            order = data[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': self.safe_string(order, 'order_id'),
+                'status': 'canceled',
+                'clientOrderId': self.safe_string(order, 'client_order_id'),
+            }))
         for i in range(0, len(success)):
             order = success[i]
             result.append(self.safe_order({
@@ -5935,6 +5944,9 @@ class htx(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: *contract only* if the orders are trigger trigger orders or not
@@ -5942,13 +5954,14 @@ class htx(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: *contract only* set to True if you want to cancel all trailing orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        request: dict = {
+        request = {
             # spot -----------------------------------------------------------
             # 'account-id': account['id'],
             # 'symbol': market['id'],  # a list of comma-separated symbols, all symbols by default
@@ -5965,7 +5978,7 @@ class htx(Exchange, ImplicitAPI):
         response = None
         if marketType == 'spot':
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             response = self.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self.extend(request, params))
             #
             #     {
@@ -5986,37 +5999,32 @@ class htx(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-            if market['future']:
-                request['symbol'] = market['settleId']
-            request['contract_code'] = market['id']
+            if self.safe_bool(market, 'future'):
+                request['symbol'] = self.safe_string(market, 'settleId')
+            request['contract_code'] = self.safe_string(market, 'id')
             trigger = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-            if market['linear']:
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(self.extend(request, params))
-                    elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTpslCancelall(self.extend(request, params))
-                    elif trailing:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapTrackCancelall(self.extend(request, params))
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCancelall(self.extend(request, params))
-                elif marginMode == 'cross':
-                    if trigger:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(self.extend(request, params))
-                    elif stopLossTakeProfit:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(self.extend(request, params))
-                    elif trailing:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall(self.extend(request, params))
-                    else:
-                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossCancelall(self.extend(request, params))
-            elif market['inverse']:
-                if market['swap']:
+            if self.safe_bool(market, 'linear'):
+                response = self.contractPrivatePostV5TradeCancelAllOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 200,
+                #         "message": "Success",
+                #         "data": [
+                #             {
+                #                 "code": 200,
+                #                 "message": "Success",
+                #                 "order_id": "1513547991763062784",
+                #                 "client_order_id": "1513547991763062784"
+                #             },
+                #         ],
+                #         "ts": 1780899655629
+                #     }
+                #
+            elif self.safe_bool(market, 'inverse'):
+                if self.safe_bool(market, 'swap'):
                     if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -6025,7 +6033,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostSwapApiV1SwapTrackCancelall(self.extend(request, params))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancelall(self.extend(request, params))
-                elif market['future']:
+                elif self.safe_bool(market, 'future'):
                     if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -6046,6 +6054,8 @@ class htx(Exchange, ImplicitAPI):
             #         "ts": "1683435723755"
             #     }
             #
+            if self.safe_bool(market, 'linear') and (not trigger and not trailing and not stopLossTakeProfit):
+                return self.parse_cancel_orders(response)
             data = self.safe_dict(response, 'data')
             return self.parse_cancel_orders(data)
 
@@ -6059,8 +6069,9 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
         response = self.v2PrivatePostAlgoOrdersCancelAllAfter(self.extend(request, params))
@@ -6112,9 +6123,10 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         response = self.spotPrivateGetV2AccountDepositAddress(self.extend(request, params))
@@ -6145,7 +6157,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
@@ -6153,9 +6166,10 @@ class htx(Exchange, ImplicitAPI):
         return indexedAddresses[selectedNetworkCode]
 
     def fetch_withdraw_addresses(self, code: str, note=None, networkCode=None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         response = self.spotPrivateGetV2AccountWithdrawAddress(self.extend(request, params))
@@ -6198,11 +6212,12 @@ class htx(Exchange, ImplicitAPI):
         """
         if limit is None or limit > 100:
             limit = 100
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {
+        request = {
             'type': 'deposit',
             'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
@@ -6254,11 +6269,12 @@ class htx(Exchange, ImplicitAPI):
         """
         if limit is None or limit > 100:
             limit = 100
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {
+        request = {
             'type': 'withdraw',
             'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
@@ -6387,7 +6403,7 @@ class htx(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # deposit statuses
             'unknown': 'failed',
             'confirming': 'pending',
@@ -6424,10 +6440,11 @@ class htx(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'address': address,  # only supports existing addresses in your withdraw address list
             'currency': currency['id'].lower(),
         }
@@ -6475,18 +6492,49 @@ class htx(Exchange, ImplicitAPI):
         #         "status": "ok"
         #     }
         #
-        id = self.safe_string(transfer, 'data')
-        code = self.safe_currency_code(None, currency)
+        # fetchTransfers
+        #
+        #     {
+        #         "id": 12345,
+        #         "transfer_id": "12345",
+        #         "amount": "10",
+        #         "currency": "USDT",
+        #         "status": "success",
+        #         "from_account_type": "spot",
+        #         "to_account_type": "margin",
+        #         "from_asset_type": "",
+        #         "to_asset_type": "ETHUSDT",
+        #         "transfer_time": 1770357494000
+        #     }
+        #
+        accountsById = self.safe_dict(self.options, 'accountsById', {})
+        id = self.safe_string_2(transfer, 'transfer_id', 'data')
+        currencyId = self.safe_string(transfer, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        amount = self.safe_number(transfer, 'amount')
+        timestamp = self.safe_integer(transfer, 'transfer_time')
+        fromAccountRaw = self.safe_string(transfer, 'from_account_type')
+        toAccountRaw = self.safe_string(transfer, 'to_account_type')
+        fromAccount = self.safe_string(accountsById, fromAccountRaw, fromAccountRaw)
+        toAccount = self.safe_string(accountsById, toAccountRaw, toAccountRaw)
+        statusRaw = self.safe_string(transfer, 'status')
+        status = None
+        if statusRaw == 'success':
+            status = 'ok'
+        elif statusRaw == 'pending':
+            status = 'pending'
+        elif statusRaw == 'failed':
+            status = 'failed'
         return {
             'info': transfer,
             'id': id,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'currency': code,
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': None,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
         }
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -6510,9 +6558,10 @@ class htx(Exchange, ImplicitAPI):
         :param str [params.subType]: 'linear' or 'inverse', only used when transfering to/from swap accounts
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': float(self.currency_to_precision(code, amount)),
         }
@@ -6573,6 +6622,61 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+        """
+        fetch a history of internal transfers made on an account
+
+        https://www.huobi.com/en-us/opend/newApiPages/
+
+        :param str [code]: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfer structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.status]: transfer status: 'success', 'pending', 'failed'
+        :param int [params.from]: the starting ID for pagination
+        :param str [params.direct]: pagination direction: 'prev' or 'next', default 'next'
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['start_time'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['end_time'] = until
+        if limit is not None:
+            request['limit'] = limit
+        response = self.spotPrivateGetV5AccountUniversalTransferRecords(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "id": 12345,
+        #                 "transfer_id": "12345",
+        #                 "amount": "10",
+        #                 "currency": "USDT",
+        #                 "status": "success",
+        #                 "from_account_type": "spot",
+        #                 "to_account_type": "margin",
+        #                 "from_asset_type": "",
+        #                 "to_asset_type": "ETHUSDT",
+        #                 "transfer_time": 1770357494000
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transfers(data, currency, since, limit)
+
     def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies
@@ -6582,7 +6686,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/?id=isolated-borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.spotPrivateGetV1MarginLoanInfo(params)
         #
         # {
@@ -6661,16 +6766,17 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        fetches historical funding rate prices
 
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
 
-        fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
-        :param int [since]: not used by huobi, but filtered internally by ccxt
-        :param int [limit]: not used by huobi, but filtered internally by ccxt
+        :param int [since]: the earliest time in ms to fetch funding rate history for
+        :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
@@ -6679,79 +6785,124 @@ class htx(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'contract_code': market['id'],
         }
-        if limit is not None:
-            request['page_size'] = limit
+        if market['linear']:
+            if limit is not None:
+                request['limit'] = limit
+            if since is not None:
+                request['start_time'] = since
         else:
-            request['page_size'] = 50  # max
+            if limit is not None:
+                request['page_size'] = limit
+            else:
+                request['page_size'] = 50  # max
         response = None
         if market['inverse']:
             response = self.contractPublicGetSwapApiV1SwapHistoricalFundingRate(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": {
+            #             "total_page": 6810,
+            #             "current_page": 1,
+            #             "total_size": 6810,
+            #             "data": [
+            #                 {
+            #                     "avg_premium_index": "0.000149696771643437",
+            #                     "funding_rate": "0.000100000000000000",
+            #                     "realized_rate": null,
+            #                     "funding_time": "1781251200000",
+            #                     "contract_code": "BTC-USD",
+            #                     "symbol": "BTC",
+            #                     "fee_asset": "BTC"
+            #                 }
+            #             ]
+            #         },
+            #         "ts": 1781254828066
+            #     }
+            #
         elif market['linear']:
-            response = self.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate(self.extend(request, params))
+            response = self.contractPublicGetV5MarketFundingRateHistory(self.extend(request, params))
+            #
+            #     {
+            #         "code": 200,
+            #         "message": "Success",
+            #         "data": [
+            #             {
+            #                 "id": "1",
+            #                 "contract_code": "BTC-USDT",
+            #                 "funding_rate": "0.0001",
+            #                 "funding_time": "1603296000000"
+            #             }
+            #         ],
+            #         "ts": 1781254621720
+            #     }
+            #
         else:
             raise NotSupported(self.id + ' fetchFundingRateHistory() supports inverse and linear swaps only')
-        #
-        # {
-        #     "status": "ok",
-        #     "data": {
-        #         "total_page": 62,
-        #         "current_page": 1,
-        #         "total_size": 1237,
-        #         "data": [
-        #             {
-        #                 "avg_premium_index": "-0.000208064395065541",
-        #                 "funding_rate": "0.000100000000000000",
-        #                 "realized_rate": "0.000100000000000000",
-        #                 "funding_time": "1638921600000",
-        #                 "contract_code": "BTC-USDT",
-        #                 "symbol": "BTC",
-        #                 "fee_asset": "USDT"
-        #             },
-        #         ]
-        #     },
-        #     "ts": 1638939294277
-        # }
-        #
         data = self.safe_value(response, 'data')
-        cursor = self.safe_value(data, 'current_page')
-        result = self.safe_value(data, 'data', [])
         rates = []
-        for i in range(0, len(result)):
-            entry = result[i]
-            entry['current_page'] = cursor
-            marketId = self.safe_string(entry, 'contract_code')
-            symbolInner = self.safe_symbol(marketId)
-            timestamp = self.safe_integer(entry, 'funding_time')
-            rates.append({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': self.safe_number(entry, 'funding_rate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
+        if market['linear']:
+            for i in range(0, len(data)):
+                entry = data[i]
+                marketId = self.safe_string(entry, 'contract_code')
+                symbolInner = self.safe_symbol(marketId, market)
+                timestamp = self.safe_integer(entry, 'funding_time')
+                rates.append({
+                    'info': entry,
+                    'symbol': symbolInner,
+                    'fundingRate': self.safe_number(entry, 'funding_rate'),
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                })
+        else:
+            cursor = self.safe_value(data, 'current_page')
+            result = self.safe_value(data, 'data', [])
+            for i in range(0, len(result)):
+                entry = result[i]
+                entry['current_page'] = cursor
+                marketId = self.safe_string(entry, 'contract_code')
+                symbolInner = self.safe_symbol(marketId)
+                timestamp = self.safe_integer(entry, 'funding_time')
+                rates.append({
+                    'info': entry,
+                    'symbol': symbolInner,
+                    'fundingRate': self.safe_number(entry, 'funding_rate'),
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
-        # {
-        #      "status": "ok",
-        #      "data": {
-        #         "estimated_rate": "0.000100000000000000",
+        # inverse swap
+        #
+        #     {
+        #         "estimated_rate": null,
         #         "funding_rate": "0.000100000000000000",
-        #         "contract_code": "BCH-USD",
-        #         "symbol": "BCH",
-        #         "fee_asset": "BCH",
-        #         "funding_time": "1639094400000",
-        #         "next_funding_time": "1639123200000"
-        #     },
-        #     "ts": 1639085854775
-        # }
+        #         "contract_code": "BTC-USD",
+        #         "symbol": "BTC",
+        #         "fee_asset": "BTC",
+        #         "funding_time": "1781280000000",
+        #         "next_funding_time": null
+        #     }
+        #
+        # linear swap
+        #
+        #     {
+        #         "contract_code": "BTC-USDT",
+        #         "funding_rate": "0.000083024939363172",
+        #         "funding_time": "1781251200000",
+        #         "next_funding_time": "1781280000000",
+        #         "min_funding_rate": "-0.003750000000000000",
+        #         "max_funding_rate": "0.003750000000000000"
+        #     }
         #
         nextFundingRate = self.safe_number(contract, 'estimated_rate')
         fundingTimestamp = self.safe_integer(contract, 'funding_time')
@@ -6783,7 +6934,7 @@ class htx(Exchange, ImplicitAPI):
         }
 
     def parse_funding_interval(self, interval):
-        intervals: dict = {
+        intervals = {
             '3600000': '1h',
             '14400000': '4h',
             '28800000': '8h',
@@ -6797,54 +6948,77 @@ class htx(Exchange, ImplicitAPI):
         fetch the current funding rate
 
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'contract_code': market['id'],
         }
         response = None
         if market['inverse']:
             response = self.contractPublicGetSwapApiV1SwapFundingRate(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": {
+            #             "estimated_rate": null,
+            #             "funding_rate": "0.000100000000000000",
+            #             "contract_code": "BTC-USD",
+            #             "symbol": "BTC",
+            #             "fee_asset": "BTC",
+            #             "funding_time": "1781280000000",
+            #             "next_funding_time": null
+            #         },
+            #         "ts": 1781254404101
+            #     }
+            #
         elif market['linear']:
-            response = self.contractPublicGetLinearSwapApiV1SwapFundingRate(self.extend(request, params))
+            response = self.contractPublicGetV5MarketFundingRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": 200,
+            #         "message": "Success",
+            #         "data": [
+            #             {
+            #                 "contract_code": "BTC-USDT",
+            #                 "funding_rate": "0.000083024939363172",
+            #                 "funding_time": "1781251200000",
+            #                 "next_funding_time": "1781280000000",
+            #                 "min_funding_rate": "-0.003750000000000000",
+            #                 "max_funding_rate": "0.003750000000000000"
+            #             }
+            #         ],
+            #         "ts": 1781235318758
+            #     }
+            #
         else:
             raise NotSupported(self.id + ' fetchFundingRate() supports inverse and linear swaps only')
-        #
-        # {
-        #     "status": "ok",
-        #     "data": {
-        #         "estimated_rate": "0.000100000000000000",
-        #         "funding_rate": "0.000100000000000000",
-        #         "contract_code": "BTC-USDT",
-        #         "symbol": "BTC",
-        #         "fee_asset": "USDT",
-        #         "funding_time": "1603699200000",
-        #         "next_funding_time": "1603728000000"
-        #     },
-        #     "ts": 1603696494714
-        # }
-        #
-        result = self.safe_value(response, 'data', {})
+        result = None
+        if market['linear']:
+            data = self.safe_list(response, 'data', [])
+            result = self.safe_dict(data, 0, {})
+        else:
+            result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
 
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         subType = None
@@ -6854,12 +7028,12 @@ class htx(Exchange, ImplicitAPI):
             market = self.market(firstSymbol)
             isLinear = market['linear']
             subType = 'linear' if isLinear else 'inverse'
-        request: dict = {
+        request = {
             # 'contract_code': market['id'],
         }
         response = None
         if subType == 'linear':
-            response = self.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(self.extend(request, params))
+            raise NotSupported(self.id + ' fetchFundingRates() not support self market type')
         elif subType == 'inverse':
             response = self.contractPublicGetSwapApiV1SwapBatchFundingRate(self.extend(request, params))
         else:
@@ -6899,11 +7073,12 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         marginMode = 'cross' if (marginMode is None) else marginMode
-        request: dict = {}
+        request = {}
         if since is not None:
             request['start-date'] = self.yyyymmdd(since)
         if limit is not None:
@@ -7008,9 +7183,14 @@ class htx(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/'
-        query = self.omit(params, self.extract_params(path))
+        isArrayParams = isinstance(params, list)
+        query = None
+        if isArrayParams:
+            query = {}
+        else:
+            query = self.omit(params, self.extract_params(path))
         if isinstance(api, str):
             # signing implementation for the old endpoints
             if (api == 'public') or (api == 'private'):
@@ -7021,7 +7201,7 @@ class htx(Exchange, ImplicitAPI):
             if api == 'private' or api == 'v2Private':
                 self.check_required_credentials()
                 timestamp = self.ymdhms(self.nonce(), 'T')
-                request: dict = {
+                request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': self.apiKey,
@@ -7038,7 +7218,12 @@ class htx(Exchange, ImplicitAPI):
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
                 if method == 'POST':
-                    body = self.json(query)
+                    bodyRequest = None
+                    if isArrayParams:
+                        bodyRequest = params
+                    else:
+                        bodyRequest = query
+                    body = self.json(bodyRequest)
                     headers = {
                         'Content-Type': 'application/json',
                     }
@@ -7075,18 +7260,19 @@ class htx(Exchange, ImplicitAPI):
                 if method == 'POST':
                     options = self.safe_value(self.options, 'broker', {})
                     id = self.safe_string(options, 'id', 'AA03022abc')
-                    if path.find('cancel') == -1 and path.endswith('order'):
-                        # swap order placement
-                        channelCode = self.safe_string(params, 'channel_code')
-                        if channelCode is None:
-                            params['channel_code'] = id
-                    elif path.endswith('orders/place'):
-                        # spot order placement
-                        clientOrderId = self.safe_string(params, 'client-order-id')
-                        if clientOrderId is None:
-                            params['client-order-id'] = id + self.uuid()
+                    if not isArrayParams:
+                        if path.find('cancel') == -1 and path.endswith('order'):
+                            # swap order placement
+                            channelCode = self.safe_string(params, 'channel_code')
+                            if channelCode is None:
+                                params['channel_code'] = id
+                        elif path.endswith('orders/place'):
+                            # spot order placement
+                            clientOrderId = self.safe_string(params, 'client-order-id')
+                            if clientOrderId is None:
+                                params['client-order-id'] = id + self.uuid()
                 timestamp = self.ymdhms(self.nonce(), 'T')
-                request: dict = {
+                request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': self.apiKey,
@@ -7105,8 +7291,13 @@ class htx(Exchange, ImplicitAPI):
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
                 if method == 'POST':
-                    body = self.json(query)
-                    if len(body) == 2:
+                    bodyRequest = None
+                    if isArrayParams:
+                        bodyRequest = params
+                    else:
+                        bodyRequest = query
+                    body = self.json(bodyRequest)
+                    if not isArrayParams and (len(body) == 2):
                         body = '{}'
                     headers = {
                         'Content-Type': 'application/json',
@@ -7158,59 +7349,62 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
-        https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          # coin-m futures
-        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          # coin-m swaps
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         # linear swaps
+        https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   # coin-m futures
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   # coin-m swaps
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
-        request: dict = {
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchFundingHistory', market, params)
+        request = {
             'type': '30,31',
         }
+        request, params = self.handle_until_option('end_time', request, params)
         if since is not None:
-            request['start_date'] = since
+            if market['linear']:
+                request['start_time'] = since
+            else:
+                request['start_date'] = since
         response = None
         if marketType == 'swap':
-            request['contract'] = market['id']
             if market['linear']:
-                #
-                #    {
-                #        "status": "ok",
-                #        "data": {
-                #           "financial_record": [
-                #               {
-                #                   "id": "1320088022",
-                #                   "type": "30",
-                #                   "amount": "0.004732510000000000",
-                #                   "ts": "1641168019321",
-                #                   "contract_code": "BTC-USDT",
-                #                   "asset": "USDT",
-                #                   "margin_account": "BTC-USDT",
-                #                   "face_margin_account": ''
-                #               },
-                #           ],
-                #           "remain_size": "0",
-                #           "next_id": null
-                #        },
-                #        "ts": "1641189898425"
-                #    }
-                #
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchFundingHistory', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    request['mar_acct'] = market['id']
-                else:
-                    request['mar_acct'] = market['quoteId']
-                response = self.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(self.extend(request, query))
+                request['margin_mode'] = marginMode
+                request['contract_code'] = market['id']
+                if limit is not None:
+                    request['limit'] = limit
+                response = self.contractPrivateGetV5AccountBills(self.extend(request, params))
+                #
+                #     {
+                #         "code": 200,
+                #         "message": "Success",
+                #         "data": [
+                #             {
+                #                 "id": "2194774775",
+                #                 "type": "30",
+                #                 "currency": "USDT",
+                #                 "amount": "0.000433432461821856",
+                #                 "contract_code": "BTC-USDT",
+                #                 "margin_mode": "cross",
+                #                 "created_time": "1780963213165"
+                #             },
+                #         ],
+                #         "ts": 1781772448836
+                #     }
+                #
             else:
+                request['contract'] = market['id']
                 #
                 #     {
                 #         "code": 200,
@@ -7231,10 +7425,10 @@ class htx(Exchange, ImplicitAPI):
                 #         "ts": 1604312615051
                 #     }
                 #
-                response = self.contractPrivatePostSwapApiV3SwapFinancialRecordExact(self.extend(request, query))
+                response = self.contractPrivatePostSwapApiV3SwapFinancialRecordExact(self.extend(request, params))
         else:
             request['symbol'] = market['id']
-            response = self.contractPrivatePostApiV3ContractFinancialRecordExact(self.extend(request, query))
+            response = self.contractPrivatePostApiV3ContractFinancialRecordExact(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
@@ -7242,22 +7436,23 @@ class htx(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
         https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  # Coin-m futures
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.position_side]: linear swap supports 'long', 'short' and 'both', 'both' is the default
         :returns dict: response from the exchange
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('setLeverage', market, params)
-        request: dict = {
+        request = {
             'lever_rate': leverage,
         }
         if marketType == 'future' and market['inverse']:
@@ -7269,21 +7464,18 @@ class htx(Exchange, ImplicitAPI):
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
             marginMode = 'cross' if (marginMode is None) else marginMode
-            if marginMode == 'isolated':
-                response = self.contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate(self.extend(request, query))
-            elif marginMode == 'cross':
-                response = self.contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate(self.extend(request, query))
-            else:
-                raise NotSupported(self.id + ' setLeverage() not support self market type')
+            request['margin_mode'] = marginMode
+            response = self.contractPrivatePostV5PositionLever(self.extend(request, query))
             #
             #     {
-            #       "status": "ok",
-            #       "data": {
-            #         "contract_code": "BTC-USDT",
-            #         "lever_rate": "100",
-            #         "margin_mode": "isolated"
-            #       },
-            #       "ts": "1641184710649"
+            #          "code": 200,
+            #          "message": "Success",
+            #          "data": {
+            #             "contract_code": "BTC-USDT",
+            #             "margin_mode": "cross",
+            #             "lever_rate": 10
+            #         },
+            #         "ts": 1781233510379
             #     }
             #
         else:
@@ -7322,12 +7514,24 @@ class htx(Exchange, ImplicitAPI):
         #       "contract_code": "BTC-USD"
         #     }
         #
+        # linear swap
+        #
+        #     {
+        #         "id": "2194774775",
+        #         "type": "30",
+        #         "currency": "USDT",
+        #         "amount": "0.000433432461821856",
+        #         "contract_code": "BTC-USDT",
+        #         "margin_mode": "cross",
+        #         "created_time": "1780963213165"
+        #     }
+        #
         marketId = self.safe_string(income, 'contract_code')
         symbol = self.safe_symbol(marketId, market)
         amount = self.safe_number(income, 'amount')
-        timestamp = self.safe_integer(income, 'ts')
+        timestamp = self.safe_integer_2(income, 'ts', 'created_time')
         id = self.safe_string(income, 'id')
-        currencyId = self.safe_string_2(income, 'symbol', 'asset')
+        currencyId = self.safe_string_n(income, ['symbol', 'asset', 'currency'])
         code = self.safe_currency_code(currencyId)
         return {
             'info': income,
@@ -7371,15 +7575,43 @@ class htx(Exchange, ImplicitAPI):
         #        "margin_static": "24.965720070000000000"
         #    }
         #
+        # linear swap
+        #
+        #     {
+        #         "contract_code": "BTC-USDT",
+        #         "position_side": "long",
+        #         "direction": "buy",
+        #         "margin_mode": "cross",
+        #         "open_avg_price": "63204.5",
+        #         "volume": "1",
+        #         "available": "1",
+        #         "lever_rate": 20,
+        #         "adl_risk_percent": 3,
+        #         "liquidation_price": "-110163.844268282697306843",
+        #         "margin": "3.158275",
+        #         "initial_margin": "3.158275",
+        #         "maintenance_margin": "0.2147627",
+        #         "profit_unreal": "-0.039",
+        #         "profit_rate": "-0.0123",
+        #         "margin_rate": "0.0012",
+        #         "mark_price": "63165.5",
+        #         "last_price": "63163.3",
+        #         "margin_currency": "USDT",
+        #         "contract_type": "swap",
+        #         "created_time": "1780903703234",
+        #         "updated_time": "1780903703234"
+        #     }
+        #
         market = self.safe_market(self.safe_string(position, 'contract_code'))
         symbol = market['symbol']
         contracts = self.safe_string(position, 'volume')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        entryPrice = self.safe_number(position, 'cost_open')
-        initialMargin = self.safe_string(position, 'position_margin')
+        entryPrice = self.safe_number_2(position, 'cost_open', 'open_avg_price')
+        initialMargin = self.safe_string_2(position, 'position_margin', 'initial_margin')
         rawSide = self.safe_string(position, 'direction')
-        side = 'long' if (rawSide == 'buy') else 'short'
+        rawPositionSide = 'long' if (rawSide == 'buy') else 'short'
+        side = self.safe_string(position, 'position_side', rawPositionSide)
         unrealizedProfit = self.safe_number(position, 'profit_unreal')
         marginMode = self.safe_string(position, 'margin_mode')
         leverage = self.safe_string(position, 'lever_rate')
@@ -7393,12 +7625,25 @@ class htx(Exchange, ImplicitAPI):
             notional = Precise.string_div(faceValue, lastPrice)
             marginMode = 'cross'
         intialMarginPercentage = Precise.string_div(initialMargin, notional)
-        collateral = self.safe_string(position, 'margin_balance')
-        liquidationPrice = self.safe_number(position, 'liquidation_price')
+        collateral = self.safe_string_2(position, 'margin_balance', 'margin')
         adjustmentFactor = self.safe_string(position, 'adjust_factor')
-        maintenanceMarginPercentage = Precise.string_div(adjustmentFactor, leverage)
-        maintenanceMargin = Precise.string_mul(maintenanceMarginPercentage, notional)
-        marginRatio = Precise.string_div(maintenanceMargin, collateral)
+        maintenanceMarginLinear = self.safe_string(position, 'maintenance_margin')
+        marginRatioLinear = self.safe_string(position, 'margin_rate')
+        maintenanceMarginPercentage = None
+        maintenanceMargin = None
+        marginRatio = None
+        maintenanceMarginPercentageResult = None
+        if maintenanceMarginLinear is None:
+            maintenanceMarginPercentage = Precise.string_div(adjustmentFactor, leverage)
+            maintenanceMargin = Precise.string_mul(maintenanceMarginPercentage, notional)
+            maintenanceMarginPercentageResult = self.parse_number(maintenanceMarginPercentage)
+        else:
+            maintenanceMargin = maintenanceMarginLinear
+        if marginRatioLinear is None:
+            marginRatio = Precise.string_div(maintenanceMargin, collateral)
+        else:
+            marginRatio = marginRatioLinear
+        timestamp = self.safe_integer(position, 'created_time')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -7413,18 +7658,18 @@ class htx(Exchange, ImplicitAPI):
             'percentage': self.parse_number(percentage),
             'marginMode': marginMode,
             'notional': self.parse_number(notional),
-            'markPrice': None,
-            'lastPrice': None,
-            'liquidationPrice': liquidationPrice,
+            'markPrice': self.safe_number(position, 'mark_price'),
+            'lastPrice': self.parse_number(lastPrice),
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': self.parse_number(intialMarginPercentage),
             'maintenanceMargin': self.parse_number(maintenanceMargin),
-            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'maintenanceMarginPercentage': maintenanceMarginPercentageResult,
             'marginRatio': self.parse_number(marginRatio),
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'hedged': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(position, 'updated_time'),
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })
@@ -7433,8 +7678,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
         https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
 
@@ -7445,7 +7689,8 @@ class htx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: *linear only* 'cross' or 'isolated'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
@@ -7453,8 +7698,6 @@ class htx(Exchange, ImplicitAPI):
             if symbolsLength > 0:
                 first = self.safe_string(symbols, 0)
                 market = self.market(first)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params, 'cross')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
         marketType = None
@@ -7463,37 +7706,38 @@ class htx(Exchange, ImplicitAPI):
             marketType = 'future'
         response = None
         if subType == 'linear':
-            if marginMode == 'isolated':
-                response = self.contractPrivatePostLinearSwapApiV1SwapPositionInfo(params)
-            elif marginMode == 'cross':
-                response = self.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(params)
-            else:
-                raise NotSupported(self.id + ' fetchPositions() not support self market type')
+            response = self.contractPrivateGetV5TradePositionOpens(params)
             #
             #     {
-            #       "status": "ok",
-            #       "data": [
-            #         {
-            #           "symbol": "BTC",
-            #           "contract_code": "BTC-USDT",
-            #           "volume": "1.000000000000000000",
-            #           "available": "1.000000000000000000",
-            #           "frozen": "0E-18",
-            #           "cost_open": "47162.000000000000000000",
-            #           "cost_hold": "47162.000000000000000000",
-            #           "profit_unreal": "0.047300000000000000",
-            #           "profit_rate": "0.002005852169119206",
-            #           "lever_rate": "2",
-            #           "position_margin": "23.604650000000000000",
-            #           "direction": "buy",
-            #           "profit": "0.047300000000000000",
-            #           "last_price": "47209.3",
-            #           "margin_asset": "USDT",
-            #           "margin_mode": "isolated",
-            #           "margin_account": "BTC-USDT"
-            #         }
-            #       ],
-            #       "ts": "1641108676768"
+            #         "code": 200,
+            #         "message": "Success",
+            #         "data": [
+            #             {
+            #                 "contract_code": "BTC-USDT",
+            #                 "position_side": "long",
+            #                 "direction": "buy",
+            #                 "margin_mode": "cross",
+            #                 "open_avg_price": "63204.5",
+            #                 "volume": "1",
+            #                 "available": "1",
+            #                 "lever_rate": 20,
+            #                 "adl_risk_percent": 3,
+            #                 "liquidation_price": "-110163.844268282697306843",
+            #                 "margin": "3.158275",
+            #                 "initial_margin": "3.158275",
+            #                 "maintenance_margin": "0.2147627",
+            #                 "profit_unreal": "-0.039",
+            #                 "profit_rate": "-0.0123",
+            #                 "margin_rate": "0.0012",
+            #                 "mark_price": "63165.5",
+            #                 "last_price": "63163.3",
+            #                 "margin_currency": "USDT",
+            #                 "contract_type": "swap",
+            #                 "created_time": "1780903703234",
+            #                 "updated_time": "1780903703234"
+            #             }
+            #         ],
+            #         "ts": 1780903761300
             #     }
             #
         else:
@@ -7569,8 +7813,7 @@ class htx(Exchange, ImplicitAPI):
         """
         fetch data on a single open contract trade position
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
         https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
 
@@ -7578,142 +7821,54 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchPosition', params)
         marginMode = 'cross' if (marginMode is None) else marginMode
         marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
-        request: dict = {}
+        request = {}
         if market['future'] and market['inverse']:
             request['symbol'] = market['settleId']
         else:
-            if marginMode == 'cross':
+            if not market['linear'] and (marginMode == 'cross'):
                 request['margin_account'] = 'USDT'  # only allowed value
             request['contract_code'] = market['id']
         response = None
         if market['linear']:
-            if marginMode == 'isolated':
-                response = self.contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo(self.extend(request, query))
-            elif marginMode == 'cross':
-                response = self.contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo(self.extend(request, query))
-            else:
-                raise NotSupported(self.id + ' fetchPosition() not support self market type')
-            #
-            # isolated
+            response = self.contractPrivateGetV5TradePositionOpens(self.extend(request, query))
             #
             #     {
-            #         "status": "ok",
+            #         "code": 200,
+            #         "message": "Success",
             #         "data": [
             #             {
-            #                 "positions": [],
-            #                 "symbol": "BTC",
-            #                 "margin_balance": 1.949728350000000000,
-            #                 "margin_position": 0,
-            #                 "margin_frozen": 0E-18,
-            #                 "margin_available": 1.949728350000000000,
-            #                 "profit_real": -0.050271650000000000,
-            #                 "profit_unreal": 0,
-            #                 "risk_rate": null,
-            #                 "withdraw_available": 1.949728350000000000,
-            #                 "liquidation_price": null,
-            #                 "lever_rate": 20,
-            #                 "adjust_factor": 0.150000000000000000,
-            #                 "margin_static": 1.949728350000000000,
             #                 "contract_code": "BTC-USDT",
-            #                 "margin_asset": "USDT",
-            #                 "margin_mode": "isolated",
-            #                 "margin_account": "BTC-USDT",
-            #                 "trade_partition": "USDT",
-            #                 "position_mode": "dual_side"
-            #             },
-            #             ... opposite side position can be present here too(if hedge)
+            #                 "position_side": "long",
+            #                 "direction": "buy",
+            #                 "margin_mode": "cross",
+            #                 "open_avg_price": "63204.5",
+            #                 "volume": "1",
+            #                 "available": "1",
+            #                 "lever_rate": 20,
+            #                 "adl_risk_percent": 3,
+            #                 "liquidation_price": "-110163.844268282697306843",
+            #                 "margin": "3.158275",
+            #                 "initial_margin": "3.158275",
+            #                 "maintenance_margin": "0.2147627",
+            #                 "profit_unreal": "-0.039",
+            #                 "profit_rate": "-0.0123",
+            #                 "margin_rate": "0.0012",
+            #                 "mark_price": "63165.5",
+            #                 "last_price": "63163.3",
+            #                 "margin_currency": "USDT",
+            #                 "contract_type": "swap",
+            #                 "created_time": "1780903703234",
+            #                 "updated_time": "1780903703234"
+            #             }
             #         ],
-            #         "ts": 1653605008286
-            #     }
-            #
-            # cross
-            #
-            #     {
-            #         "status": "ok",
-            #         "data": {
-            #             "positions": [
-            #                 {
-            #                     "symbol": "BTC",
-            #                     "contract_code": "BTC-USDT",
-            #                     "volume": "1.000000000000000000",
-            #                     "available": "1.000000000000000000",
-            #                     "frozen": "0E-18",
-            #                     "cost_open": "29530.000000000000000000",
-            #                     "cost_hold": "29530.000000000000000000",
-            #                     "profit_unreal": "-0.010000000000000000",
-            #                     "profit_rate": "-0.016931933626820200",
-            #                     "lever_rate": "50",
-            #                     "position_margin": "0.590400000000000000",
-            #                     "direction": "buy",
-            #                     "profit": "-0.010000000000000000",
-            #                     "last_price": "29520",
-            #                     "margin_asset": "USDT",
-            #                     "margin_mode": "cross",
-            #                     "margin_account": "USDT",
-            #                     "contract_type": "swap",
-            #                     "pair": "BTC-USDT",
-            #                     "business_type": "swap",
-            #                     "trade_partition": "USDT",
-            #                     "position_mode": "dual_side"
-            #                 },
-            #                 ... opposite side position can be present here too(if hedge)
-            #             ],
-            #             "futures_contract_detail": [
-            #                 {
-            #                     "symbol": "BTC",
-            #                     "contract_code": "BTC-USDT-220624",
-            #                     "margin_position": "0",
-            #                     "margin_frozen": "0E-18",
-            #                     "margin_available": "1.497799766913531118",
-            #                     "profit_unreal": "0",
-            #                     "liquidation_price": null,
-            #                     "lever_rate": "30",
-            #                     "adjust_factor": "0.250000000000000000",
-            #                     "contract_type": "quarter",
-            #                     "pair": "BTC-USDT",
-            #                     "business_type": "futures",
-            #                     "trade_partition": "USDT"
-            #                 },
-            #                 ... other items listed with different expiration(contract_code)
-            #             ],
-            #             "margin_mode": "cross",
-            #             "margin_account": "USDT",
-            #             "margin_asset": "USDT",
-            #             "margin_balance": "2.088199766913531118",
-            #             "margin_static": "2.098199766913531118",
-            #             "margin_position": "0.590400000000000000",
-            #             "margin_frozen": "0E-18",
-            #             "profit_real": "-0.016972710000000000",
-            #             "profit_unreal": "-0.010000000000000000",
-            #             "withdraw_available": "1.497799766913531118",
-            #             "risk_rate": "9.105496355562965147",
-            #             "contract_detail": [
-            #                {
-            #                     "symbol": "BTC",
-            #                     "contract_code": "BTC-USDT",
-            #                     "margin_position": "0.590400000000000000",
-            #                     "margin_frozen": "0E-18",
-            #                     "margin_available": "1.497799766913531118",
-            #                     "profit_unreal": "-0.010000000000000000",
-            #                     "liquidation_price": "27625.176468365024050352",
-            #                     "lever_rate": "50",
-            #                     "adjust_factor": "0.350000000000000000",
-            #                     "contract_type": "swap",
-            #                     "pair": "BTC-USDT",
-            #                     "business_type": "swap",
-            #                     "trade_partition": "USDT"
-            #                 },
-            #                 ... all symbols listed
-            #             ],
-            #             "position_mode": "dual_side"
-            #         },
-            #         "ts": "1653604697466"
+            #         "ts": 1780903761300
             #     }
             #
         else:
@@ -7793,6 +7948,9 @@ class htx(Exchange, ImplicitAPI):
             #     }
             #
         data = self.safe_value(response, 'data')
+        if market['linear']:
+            linearPosition = self.safe_dict(data, 0, {})
+            return self.parse_position(linearPosition, market)
         account = None
         if marginMode == 'cross':
             account = data
@@ -7810,13 +7968,13 @@ class htx(Exchange, ImplicitAPI):
         else:
             position = self.safe_value(positions, 0)
         timestamp = self.safe_integer(response, 'ts')
-        parsed = self.parse_position(self.extend(position, omitted))
+        parsed = self.parse_position(self.extend(position, omitted), market)
         parsed['timestamp'] = timestamp
         parsed['datetime'] = self.iso8601(timestamp)
         return parsed
 
     def parse_ledger_entry_type(self, type):
-        types: dict = {
+        types = {
             'trade': 'trade',
             'etf': 'trade',
             'transact-fee': 'fee',
@@ -7887,13 +8045,14 @@ class htx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 500)
         accountId = self.fetch_account_id_by_type('spot', None, None, params)
-        request: dict = {
+        request = {
             'accountId': accountId,
             # 'currency': code,
             # 'transactTypes': 'all',  # default all
@@ -7955,7 +8114,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(params)
         #
         #    {
@@ -8032,8 +8192,9 @@ class htx(Exchange, ImplicitAPI):
         """
         if timeframe != '1h' and timeframe != '4h' and timeframe != '12h' and timeframe != '1d':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe')
-        self.load_markets()
-        timeframes: dict = {
+        if self.markets is None:
+            self.load_markets()
+        timeframes = {
             '1h': '60min',
             '4h': '4hour',
             '12h': '12hour',
@@ -8041,7 +8202,7 @@ class htx(Exchange, ImplicitAPI):
         }
         market = self.market(symbol)
         amountType = self.safe_integer_2(params, 'amount_type', 'amountType', 2)
-        request: dict = {
+        request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,
         }
@@ -8133,13 +8294,13 @@ class htx(Exchange, ImplicitAPI):
 
         https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
 
         :param str[] [symbols]: a list of unified CCXT market symbols
         :param dict [params]: exchange specific parameters
         :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
@@ -8147,7 +8308,7 @@ class htx(Exchange, ImplicitAPI):
             if symbolsLength > 0:
                 first = self.safe_string(symbols, 0)
                 market = self.market(first)
-        request: dict = {}
+        request = {}
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenInterests', market, params, 'linear')
         marketType = None
@@ -8193,52 +8354,30 @@ class htx(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            request['contract_type'] = 'swap'
-            response = self.contractPublicGetLinearSwapApiV1SwapOpenInterest(self.extend(request, params))
-            #
-            #     {
-            #         "status": "ok",
-            #         "data": [
-            #             {
-            #                 "volume": 7192610.000000000000000000,
-            #                 "amount": 7192.610000000000000000,
-            #                 "symbol": "BTC",
-            #                 "value": 134654290.332000000000000000,
-            #                 "contract_code": "BTC-USDT",
-            #                 "trade_amount": 70692.804,
-            #                 "trade_volume": 70692804,
-            #                 "trade_turnover": 1379302592.9518,
-            #                 "business_type": "swap",
-            #                 "pair": "BTC-USDT",
-            #                 "contract_type": "swap",
-            #                 "trade_partition": "USDT"
-            #             }
-            #         ],
-            #         "ts": 1664336503144
-            #     }
-            #
+            raise NotSupported(self.id + ' fetchOpenInterests() does not currently support linear markets')
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests(data, symbols)
 
-    def fetch_open_interest(self, symbol: str, params={}):
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
         """
         Retrieves the open interest of a currency
 
         https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2
 
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         if market['option']:
             raise NotSupported(self.id + ' fetchOpenInterest() does not currently support option markets')
-        request: dict = {
+        request = {
             'contract_code': market['id'],
         }
         response = None
@@ -8248,34 +8387,27 @@ class htx(Exchange, ImplicitAPI):
             # COIN-M futures
             response = self.contractPublicGetApiV1ContractOpenInterest(self.extend(request, params))
         elif market['linear']:
-            request['contract_type'] = 'swap'
-            # USDT-M
-            response = self.contractPublicGetLinearSwapApiV1SwapOpenInterest(self.extend(request, params))
+            # USDT-M swaps
+            response = self.contractPublicGetV5MarketOpenInterest(self.extend(request, params))
         else:
             # COIN-M swaps
             response = self.contractPublicGetSwapApiV1SwapOpenInterest(self.extend(request, params))
         #
-        # USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        # USDT-M linear swap
         #
         #     {
-        #         "status": "ok",
-        #         "data": [
-        #             {
-        #                 "volume": 7192610.000000000000000000,
-        #                 "amount": 7192.610000000000000000,
-        #                 "symbol": "BTC",
-        #                 "value": 134654290.332000000000000000,
-        #                 "contract_code": "BTC-USDT",
-        #                 "trade_amount": 70692.804,
-        #                 "trade_volume": 70692804,
-        #                 "trade_turnover": 1379302592.9518,
-        #                 "business_type": "swap",
-        #                 "pair": "BTC-USDT",
-        #                 "contract_type": "swap",
-        #                 "trade_partition": "USDT"
-        #             }
-        #         ],
-        #         "ts": 1664336503144
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": {
+        #             "amount": "32476.092",
+        #             "volume": "32476092",
+        #             "value": "2063137924.9668",
+        #             "contract_code": "BTC-USDT",
+        #             "trade_amount": "11371.362",
+        #             "trade_volume": "11371362",
+        #             "trade_turnover": "723600792.7222"
+        #         },
+        #         "ts": 1781327941440
         #     }
         #
         # COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
@@ -8315,9 +8447,15 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1664337928805
         #     }
         #
+        timestamp = self.safe_integer(response, 'ts')
+        if market['linear']:
+            result = self.safe_dict(response, 'data', {})
+            return self.extend(self.parse_open_interest(result, market), {
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
         data = self.safe_value(response, 'data', [])
         openInterest = self.parse_open_interest(data[0], market)
-        timestamp = self.safe_integer(response, 'ts')
         openInterest['timestamp'] = timestamp
         openInterest['datetime'] = self.iso8601(timestamp)
         return openInterest
@@ -8336,18 +8474,13 @@ class htx(Exchange, ImplicitAPI):
         # fetchOpenInterest: USDT-M
         #
         #     {
-        #         "volume": 7192610.000000000000000000,
-        #         "amount": 7192.610000000000000000,
-        #         "symbol": "BTC",
-        #         "value": 134654290.332000000000000000,
+        #         "amount": "32476.092",
+        #         "volume": "32476092",
+        #         "value": "2063137924.9668",
         #         "contract_code": "BTC-USDT",
-        #         "trade_amount": 70692.804,
-        #         "trade_volume": 70692804,
-        #         "trade_turnover": 1379302592.9518,
-        #         "business_type": "swap",
-        #         "pair": "BTC-USDT",
-        #         "contract_type": "swap",
-        #         "trade_partition": "USDT"
+        #         "trade_amount": "11371.362",
+        #         "trade_volume": "11371362",
+        #         "trade_turnover": "723600792.7222"
         #     }
         #
         # fetchOpenInterest: COIN-M Swap
@@ -8403,10 +8536,11 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -8437,9 +8571,10 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
@@ -8469,10 +8604,11 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountId = self.fetch_account_id_by_type('spot', 'isolated', symbol, params)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'accountId': accountId,
@@ -8508,10 +8644,11 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountId = self.fetch_account_id_by_type('spot', 'cross', None, params)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'accountId': accountId,
@@ -8574,7 +8711,7 @@ class htx(Exchange, ImplicitAPI):
 
         https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
 
         :param str symbol: unified symbol of the market to fetch the settlement history for
         :param int [since]: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
@@ -8587,30 +8724,30 @@ class htx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchSettlementHistory() requires a symbol argument')
-        until = self.safe_integer(params, 'until')
-        params = self.omit(params, ['until'])
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if market['future']:
             request['symbol'] = market['baseId']
         else:
             request['contract_code'] = market['id']
-        if since is not None:
-            request['start_at'] = since
         if limit is not None:
-            request['page_size'] = limit
-        if until is not None:
-            request['end_at'] = until
+            if market['linear'] and market['swap']:
+                request['limit'] = limit
+            else:
+                request['page_size'] = limit
+        if since is not None:
+            request['start_time'] = since
+        request, params = self.handle_until_option('end_time', request, params)
         response = None
         if market['swap']:
             if market['linear']:
-                response = self.contractPublicGetLinearSwapApiV1SwapSettlementRecords(self.extend(request, params))
+                response = self.contractPublicGetV5MarketSettlementHistory(self.extend(request, params))
             else:
                 response = self.contractPublicGetSwapApiV1SwapSettlementRecords(self.extend(request, params))
         else:
             response = self.contractPublicGetApiV1ContractSettlementRecords(self.extend(request, params))
         #
-        # linear swap, coin-m swap
+        # coin-m swap
         #
         #    {
         #        "status": "ok",
@@ -8661,6 +8798,27 @@ class htx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
+        # linear swap
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "id": "14900",
+        #                 "contract_code": "BTC-USDT",
+        #                 "settlement_time": "1781827200000",
+        #                 "clawback_ratio": "0",
+        #                 "settlement_price": "62933.747161774209291325"
+        #             },
+        #         ],
+        #         "ts": 1781853150623
+        #     }
+        #
+        if market['linear']:
+            dataLinear = self.safe_list(response, 'data', [])
+            settlementsLinear = self.parse_settlements(dataLinear, market)
+            return self.sort_by(settlementsLinear, 'timestamp')
         data = self.safe_value(response, 'data')
         settlementRecord = self.safe_value(data, 'settlement_record')
         settlements = self.parse_settlements(settlementRecord, market)
@@ -8676,7 +8834,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.spotPublicGetV2ReferenceCurrencies(params)
         #
         #    {
@@ -8783,7 +8942,7 @@ class htx(Exchange, ImplicitAPI):
 
     def parse_settlements(self, settlements, market):
         #
-        # linear swap, coin-m swap, fetchSettlementHistory
+        # coin-m swap, fetchSettlementHistory
         #
         #    [
         #        {
@@ -8818,13 +8977,28 @@ class htx(Exchange, ImplicitAPI):
         #        },
         #    ]
         #
+        # linear swap fetchSettlementHistory
+        #
+        #     [
+        #         {
+        #             "id": "14900",
+        #             "contract_code": "BTC-USDT",
+        #             "settlement_time": "1781827200000",
+        #             "clawback_ratio": "0",
+        #             "settlement_price": "62933.747161774209291325"
+        #         }
+        #     ]
+        #
         result = []
         for i in range(0, len(settlements)):
             settlement = settlements[i]
             list = self.safe_value(settlement, 'list')
-            if list is not None:
+            if market['linear']:
+                parsedSettlement = self.parse_settlement(settlement, market)
+                result.append(parsedSettlement)
+            elif list is not None:
                 timestamp = self.safe_integer(settlement, 'settlement_time')
-                timestampDetails: dict = {
+                timestampDetails = {
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 }
@@ -8838,7 +9012,7 @@ class htx(Exchange, ImplicitAPI):
 
     def parse_settlement(self, settlement, market):
         #
-        # linear swap, coin-m swap, fetchSettlementHistory
+        # coin-m swap, fetchSettlementHistory
         #
         #    {
         #        "symbol": "ADA",
@@ -8860,6 +9034,16 @@ class htx(Exchange, ImplicitAPI):
         #        "settlement_type": "settlement"
         #    }
         #
+        # linear swap fetchSettlementHistory
+        #
+        #     {
+        #         "id": "14900",
+        #         "contract_code": "BTC-USDT",
+        #         "settlement_time": "1781827200000",
+        #         "clawback_ratio": "0",
+        #         "settlement_price": "62933.747161774209291325"
+        #     }
+        #
         timestamp = self.safe_integer(settlement, 'settlement_time')
         marketId = self.safe_string(settlement, 'contract_code')
         return {
@@ -8874,7 +9058,7 @@ class htx(Exchange, ImplicitAPI):
         """
         retrieves the public liquidations of a trading pair
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
         https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
 
@@ -8883,24 +9067,49 @@ class htx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the huobi api endpoint
         :param int [params.until]: timestamp in ms of the latest liquidation
-        :param int [params.tradeType]: default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+        :param int [params.tradeType]: *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        tradeType = self.safe_integer(params, 'trade_type', 0)
-        request: dict = {
-            'trade_type': tradeType,
-        }
+        tradeType = self.safe_integer_2(params, 'trade_type', 'tradeType', 0)
+        request = {}
+        if not market['linear']:
+            request['trade_type'] = tradeType
+        params = self.omit(params, ['trade_type', 'tradeType'])
         if since is not None:
             request['start_time'] = since
         request, params = self.handle_until_option('end_time', request, params)
         response = None
         if market['swap']:
-            request['contract'] = market['id']
             if market['linear']:
-                response = self.contractPublicGetLinearSwapApiV3SwapLiquidationOrders(self.extend(request, params))
+                request['contract_code'] = market['id']
+                if limit is not None:
+                    request['limit'] = limit
+                response = self.contractPublicGetV5MarketLiquidationOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 200,
+                #         "message": "Success",
+                #         "data": [
+                #             {
+                #                 "id": "150153038758",
+                #                 "contract_code": "BTC-USDT",
+                #                 "liquidation_time": "1781849094165",
+                #                 "side": "buy",
+                #                 "position_side": "short",
+                #                 "volume": "2",
+                #                 "amount": "2",
+                #                 "bankrupt_price": "62978.5",
+                #                 "trade_turnover": "125.957"
+                #             }
+                #         ],
+                #         "ts": 1781854869221
+                #     }
+                #
             else:
+                request['contract'] = market['id']
                 response = self.contractPublicGetSwapApiV3SwapLiquidationOrders(self.extend(request, params))
         elif market['future']:
             request['symbol'] = market['id']
@@ -8950,15 +9159,29 @@ class htx(Exchange, ImplicitAPI):
         #         "pair": "BTC-USDT"
         #     }
         #
+        # linear swap
+        #
+        #     {
+        #         "id": "150153038758",
+        #         "contract_code": "BTC-USDT",
+        #         "liquidation_time": "1781849094165",
+        #         "side": "buy",
+        #         "position_side": "short",
+        #         "volume": "2",
+        #         "amount": "2",
+        #         "bankrupt_price": "62978.5",
+        #         "trade_turnover": "125.957"
+        #     }
+        #
         marketId = self.safe_string(liquidation, 'contract_code')
-        timestamp = self.safe_integer(liquidation, 'created_at')
+        timestamp = self.safe_integer_2(liquidation, 'created_at', 'liquidation_time')
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.safe_number(liquidation, 'volume'),
             'contractSize': self.safe_number(market, 'contractSize'),
-            'price': self.safe_number(liquidation, 'price'),
-            'side': self.safe_string_lower(liquidation, 'direction'),
+            'price': self.safe_number_2(liquidation, 'price', 'bankrupt_price'),
+            'side': self.safe_string_lower_2(liquidation, 'direction', 'side'),
             'baseValue': self.safe_number(liquidation, 'amount'),
             'quoteValue': self.safe_number(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
@@ -8967,10 +9190,9 @@ class htx(Exchange, ImplicitAPI):
 
     def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """
-        closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
+        closes open positions for a contract market
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  # USDT-M(isolated)
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  # USDT-M(cross)
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958953a715    # USDT-M
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  # Coin-M swap
         https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      # Coin-M futures
 
@@ -8983,47 +9205,60 @@ class htx(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param number [params.amount]: order quantity
         :param str [params.order_price_type]: 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+        :param str [params.position_side]: linear swap supports 'long', 'short' and 'both', 'both' is the default
         :returns dict: `an order structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if not market['contract']:
             raise BadRequest(self.id + ' closePosition() symbol supports contract markets only')
-        self.check_required_argument('closePosition', side, 'side')
-        request: dict = {
+        request = {
             'contract_code': market['id'],
-            'direction': side,
         }
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        if market['inverse']:
+            params = self.omit(params, 'clientOrderId')
+        response = None
+        if market['linear']:
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
+            request['margin_mode'] = marginMode
+            response = self.contractPrivatePostV5TradePosition(self.extend(request, params))
+            #
+            #     {
+            #         "code": 200,
+            #         "message": "Success",
+            #         "data": {
+            #             "order_id": 1513557136321597440,
+            #             "client_order_id": "1513557136321597440"
+            #         },
+            #         "ts": 1780901741840
+            #     }
+            #
+        else:
+            self.check_required_argument('closePosition', side, 'side')
             amount = self.safe_string_2(params, 'volume', 'amount')
             if amount is None:
                 raise ArgumentsRequired(self.id + ' closePosition() requires an extra argument params["amount"] for inverse markets')
             request['volume'] = self.amount_to_precision(symbol, amount)
-        params = self.omit(params, ['clientOrderId', 'volume', 'amount'])
-        response = None
-        if market['inverse']:  # Coin-M
+            request['direction'] = side
+            params = self.omit(params, ['volume', 'amount'])
             if market['swap']:
                 response = self.contractPrivatePostSwapApiV1SwapLightningClosePosition(self.extend(request, params))
             else:  # future
                 response = self.contractPrivatePostApiV1LightningClosePosition(self.extend(request, params))
-        else:  # USDT-M
-            marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
-            if marginMode == 'cross':
-                response = self.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(self.extend(request, params))
-            else:  # isolated
-                response = self.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition(self.extend(request, params))
+        if market['linear']:
+            data = self.safe_dict(response, 'data', {})
+            return self.parse_order(data, market)
         return self.parse_order(response, market)
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False
 
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3
 
         :param bool hedged: set to True to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
         :param str [symbol]: unified market symbol, required for isolated margin mode
@@ -9031,59 +9266,35 @@ class htx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: "cross"(default) or "isolated"
         :returns dict: response from the exchange
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         posMode = 'dual_side' if hedged else 'single_side'
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('setPositionMode', params, 'cross')
-        request: dict = {
+        request = {
             'position_mode': posMode,
         }
-        response = None
         if (market is not None) and (market['inverse']):
             raise BadRequest(self.id + ' setPositionMode can only be used for linear markets')
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' setPositionMode requires a symbol argument for isolated margin mode')
-            request['margin_account'] = market['id']
-            response = self.contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(self.extend(request, params))
-            #
-            #    {
-            #        "status": "ok",
-            #        "data": [
-            #            {
-            #                "margin_account": "BTC-USDT",
-            #                "position_mode": "single_side"
-            #            }
-            #        ],
-            #        "ts": 1566899973811
-            #    }
-            #
-        else:
-            request['margin_account'] = 'USDT'
-            response = self.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(self.extend(request, params))
-            #
-            #    {
-            #        "status": "ok",
-            #        "data": [
-            #            {
-            #                "margin_account": "USDT",
-            #                "position_mode": "single_side"
-            #            }
-            #        ],
-            #        "ts": 1566899973811
-            #    }
-            #
+        response = self.contractPrivatePostV5PositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": {
+        #             "position_mode": "single_side"
+        #         },
+        #         "ts": 1781233894454
+        #     }
+        #
         return response
 
     def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 
-        https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
-        https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
         https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
         https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
 
@@ -9091,7 +9302,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = None
         if symbols is not None:
@@ -9099,8 +9311,6 @@ class htx(Exchange, ImplicitAPI):
             if symbolsLength > 0:
                 first = self.safe_string(symbols, 0)
                 market = self.market(first)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchPositionsADLRank', params, 'cross')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params, 'linear')
         marketType = None
@@ -9109,58 +9319,38 @@ class htx(Exchange, ImplicitAPI):
             marketType = 'future'
         response = None
         if subType == 'linear':
-            if marginMode == 'isolated':
-                response = self.contractPrivatePostLinearSwapApiV1SwapPositionInfo(params)
-            elif marginMode == 'cross':
-                response = self.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(params)
-            else:
-                raise NotSupported(self.id + ' fetchPositionsADLRank() not support self market type')
+            response = self.contractPrivateGetV5TradePositionOpens(params)
             #
-            #         {
-            #             "status": "ok",
+            #     {
+            #         "code": 200,
+            #         "message": "Success",
             #         "data": [
             #             {
-            #                 "symbol": "BTC",
             #                 "contract_code": "BTC-USDT",
-            #                 "volume": 1.000000000000000000,
-            #                 "available": 1.000000000000000000,
-            #                 "frozen": 0E-18,
-            #                 "cost_open": 96039.700000000000000000,
-            #                 "cost_hold": 96039.700000000000000000,
-            #                 "profit_unreal": 0.000600000000000000,
-            #                 "profit_rate": 0.000006247416432995,
-            #                 "lever_rate": 1,
-            #                 "position_margin": 96.040300000000000000,
+            #                 "position_side": "long",
             #                 "direction": "buy",
-            #                 "profit": 0.000600000000000000,
-            #                 "last_price": 96040.3,
-            #                 "margin_asset": "USDT",
             #                 "margin_mode": "cross",
-            #                 "margin_account": "USDT",
-            #                 "contract_type": "swap",
-            #                 "pair": "BTC-USDT",
-            #                 "business_type": "swap",
-            #                 "trade_partition":"USDT",
-            #                 "position_mode": "single_side",
-            #                 "store_time": "2023-10-08 20:05:06",
-            #                 "liquidation_price": null,
-            #                 "market_closing_slippage": null,
-            #                 "risk_rate": 249.274066168760049797,
-            #                 "new_risk_rate": 0.003995619743220614,
-            #                 "risk_rate_percent": 0.003995619743220614,
-            #                 "withdraw_available": null,
-            #                 "open_adl": 1,
+            #                 "open_avg_price": "63204.5",
+            #                 "volume": "1",
+            #                 "available": "1",
+            #                 "lever_rate": 20,
             #                 "adl_risk_percent": 3,
-            #                 "tp_trigger_price": null,
-            #                 "sl_trigger_price": null,
-            #                 "tp_order_id": null,
-            #                 "sl_order_id": null,
-            #                 "tp_trigger_type": null,
-            #                 "sl_trigger_type": null,
-            #                 "adjust_value": null
+            #                 "liquidation_price": "-110163.844268282697306843",
+            #                 "margin": "3.158275",
+            #                 "initial_margin": "3.158275",
+            #                 "maintenance_margin": "0.2147627",
+            #                 "profit_unreal": "-0.039",
+            #                 "profit_rate": "-0.0123",
+            #                 "margin_rate": "0.0012",
+            #                 "mark_price": "63165.5",
+            #                 "last_price": "63163.3",
+            #                 "margin_currency": "USDT",
+            #                 "contract_type": "swap",
+            #                 "created_time": "1780903703234",
+            #                 "updated_time": "1780903703234"
             #             }
             #         ],
-            #         "ts": 1768489640285
+            #         "ts": 1780903761300
             #     }
             #
         else:
@@ -9251,47 +9441,31 @@ class htx(Exchange, ImplicitAPI):
 
     def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
         #
-        # fetchPositionADLRank linear swap and future
+        # fetchPositionADLRank linear
         #
         #     {
-        #         "symbol": "BTC",
         #         "contract_code": "BTC-USDT",
-        #         "volume": 1.000000000000000000,
-        #         "available": 1.000000000000000000,
-        #         "frozen": 0E-18,
-        #         "cost_open": 96039.700000000000000000,
-        #         "cost_hold": 96039.700000000000000000,
-        #         "profit_unreal": 0.000600000000000000,
-        #         "profit_rate": 0.000006247416432995,
-        #         "lever_rate": 1,
-        #         "position_margin": 96.040300000000000000,
+        #         "position_side": "long",
         #         "direction": "buy",
-        #         "profit": 0.000600000000000000,
-        #         "last_price": 96040.3,
-        #         "margin_asset": "USDT",
         #         "margin_mode": "cross",
-        #         "margin_account": "USDT",
-        #         "contract_type": "swap",
-        #         "pair": "BTC-USDT",
-        #         "business_type": "swap",
-        #         "trade_partition":"USDT",
-        #         "position_mode": "single_side",
-        #         "store_time": "2023-10-08 20:05:06",
-        #         "liquidation_price": null,
-        #         "market_closing_slippage": null,
-        #         "risk_rate": 249.274066168760049797,
-        #         "new_risk_rate": 0.003995619743220614,
-        #         "risk_rate_percent": 0.003995619743220614,
-        #         "withdraw_available": null,
-        #         "open_adl": 1,
+        #         "open_avg_price": "63204.5",
+        #         "volume": "1",
+        #         "available": "1",
+        #         "lever_rate": 20,
         #         "adl_risk_percent": 3,
-        #         "tp_trigger_price": null,
-        #         "sl_trigger_price": null,
-        #         "tp_order_id": null,
-        #         "sl_order_id": null,
-        #         "tp_trigger_type": null,
-        #         "sl_trigger_type": null,
-        #         "adjust_value": null
+        #         "liquidation_price": "-110163.844268282697306843",
+        #         "margin": "3.158275",
+        #         "initial_margin": "3.158275",
+        #         "maintenance_margin": "0.2147627",
+        #         "profit_unreal": "-0.039",
+        #         "profit_rate": "-0.0123",
+        #         "margin_rate": "0.0012",
+        #         "mark_price": "63165.5",
+        #         "last_price": "63163.3",
+        #         "margin_currency": "USDT",
+        #         "contract_type": "swap",
+        #         "created_time": "1780903703234",
+        #         "updated_time": "1780903703234"
         #     }
         #
         # fetchPositionADLRank inverse
@@ -9318,12 +9492,13 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(info, 'contract_code')
+        timestamp = self.safe_integer(info, 'created_time')
         return {
             'info': info,
             'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'rank': self.safe_integer(info, 'adl_risk_percent'),
             'rating': None,
             'percentage': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }

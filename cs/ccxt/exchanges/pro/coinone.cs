@@ -56,12 +56,15 @@ public partial class coinone : ccxt.coinone
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -149,7 +152,10 @@ public partial class coinone : ccxt.coinone
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("ticker:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -199,9 +205,9 @@ public partial class coinone : ccxt.coinone
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object ticker = this.parseWsTicker(data);
         object symbol = getValue(ticker, "symbol");
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         object messageHash = add("ticker:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -276,7 +282,10 @@ public partial class coinone : ccxt.coinone
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("trade:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -317,12 +326,12 @@ public partial class coinone : ccxt.coinone
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object trade = this.parseWsTrade(data);
         object symbol = getValue(trade, "symbol");
-        object stored = this.safeValue(this.trades, symbol);
+        object stored = this.safeValue(this.trades, ((string)symbol));
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
         object messageHash = add("trade:", symbol);
@@ -405,7 +414,7 @@ public partial class coinone : ccxt.coinone
         }
         if (isTrue(isEqual(type, "DATA")))
         {
-            object topic = this.safeString(message, "channel", "");
+            object topic = ((string)this.safeString(message, "channel", ""));
             object methods = new Dictionary<string, object>() {
                 { "ORDERBOOK", this.handleOrderBook },
                 { "TICKER", this.handleTicker },

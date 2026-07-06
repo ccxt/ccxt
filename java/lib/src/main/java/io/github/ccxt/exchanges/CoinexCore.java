@@ -1326,7 +1326,7 @@ public class CoinexCore extends CoinexApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2829,7 +2829,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 Object code = this.safeString(entry, "code");
-                Object message = this.safeString(entry, "message");
+                Object message = this.safeString(entry, "message", "");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
                 {
                     Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
@@ -3335,7 +3335,7 @@ public class CoinexCore extends CoinexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object coinAddress = this.safeString(depositAddress, "address");
+        Object coinAddress = this.safeString(depositAddress, "address", "");
         Object parts = Helpers.split(coinAddress, ":");
         Object address = null;
         Object tag = null;
@@ -4010,7 +4010,7 @@ final Object finalI = i;
             put( "marginMode", "isolated" );
             put( "amount", CoinexCore.this.parseNumber(Precise.stringAbs(change)) );
             put( "total", CoinexCore.this.safeNumber(data, "margin_avbl") );
-            put( "code", Helpers.GetValue(market, "quote") );
+            put( "code", CoinexCore.this.safeString(market, "quote") );
             put( "status", null );
             put( "timestamp", timestamp );
             put( "datetime", CoinexCore.this.iso8601(timestamp) );
@@ -5896,7 +5896,7 @@ final Object finalI = i;
         }
         Object code = this.safeString(response, "code");
         Object data = this.safeValue(response, "data");
-        Object message = this.safeString(response, "message");
+        Object message = this.safeString(response, "message", "");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);

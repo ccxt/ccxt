@@ -1611,7 +1611,7 @@ public class WhitebitCore extends WhitebitApi
                 Object market = this.safeMarket(marketId);
                 Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -1626,7 +1626,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2507,7 +2507,7 @@ public class WhitebitCore extends WhitebitApi
             Object id = Helpers.GetValue(balanceKeys, i);
             Object code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
-            if (Helpers.isTrue(Helpers.isTrue((balance instanceof java.util.Map)) && Helpers.isTrue(!Helpers.isEqual(balance, null))))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(balance, null)) && Helpers.isTrue(this.isDictionary(balance))))
             {
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "main_balance"));
@@ -2733,7 +2733,7 @@ public class WhitebitCore extends WhitebitApi
             put( "margin limit", "limit" );
             put( "margin market", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2856,7 +2856,7 @@ public class WhitebitCore extends WhitebitApi
             put( "PARTIALLY_FILLED", "open" );
             put( "FILLED", "closed" );
         }};
-        return this.safeStringLower(statuses, status, status);
+        return this.safeStringLower(statuses, ((String)status), status);
     }
 
     /**
@@ -3502,7 +3502,7 @@ public class WhitebitCore extends WhitebitApi
             put( "16", "pending" );
             put( "17", "pending" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bigone$1 = require('./abstract/bigone.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var rsa = require('./base/functions/rsa.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -22,13 +22,13 @@ class bigone extends bigone$1["default"] {
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 500 requests per 10 seconds
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': undefined,
+                'future': undefined, // has but unimplemented
                 'option': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -106,7 +106,7 @@ class bigone extends bigone$1["default"] {
                 '1w': 'week1',
                 '1M': 'month1',
             },
-            'hostname': 'big.one',
+            'hostname': 'big.one', // or 'bigone.com'
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
@@ -215,7 +215,7 @@ class bigone extends bigone$1["default"] {
                 },
                 'exchangeMillisecondsCorrection': -100,
                 'fetchCurrencies': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
@@ -328,9 +328,9 @@ class bigone extends bigone$1["default"] {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'triggerDirection': true, // todo implement
+                        'stopLossPrice': false, // todo by trigger
+                        'takeProfitPrice': false, // todo by trigger
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -346,7 +346,7 @@ class bigone extends bigone$1["default"] {
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo: implement
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 200,
@@ -428,28 +428,28 @@ class bigone extends bigone$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '10001': errors.BadRequest,
-                    '10005': errors.ExchangeError,
+                    '10001': errors.BadRequest, // syntax error
+                    '10005': errors.ExchangeError, // internal error
                     "Amount's scale must greater than AssetPair's base scale": errors.InvalidOrder,
                     "Price mulit with amount should larger than AssetPair's min_quote_value": errors.InvalidOrder,
-                    '10007': errors.BadRequest,
-                    '10011': errors.ExchangeError,
-                    '10013': errors.BadSymbol,
-                    '10014': errors.InsufficientFunds,
-                    '10403': errors.PermissionDenied,
-                    '10429': errors.RateLimitExceeded,
-                    '40004': errors.AuthenticationError,
-                    '40103': errors.AuthenticationError,
-                    '40104': errors.AuthenticationError,
-                    '40301': errors.PermissionDenied,
-                    '40302': errors.ExchangeError,
-                    '40601': errors.ExchangeError,
-                    '40602': errors.ExchangeError,
-                    '40603': errors.InsufficientFunds,
-                    '40604': errors.InvalidOrder,
-                    '40605': errors.InvalidOrder,
-                    '40120': errors.InvalidOrder,
-                    '40121': errors.InvalidOrder,
+                    '10007': errors.BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
+                    '10011': errors.ExchangeError, // system error
+                    '10013': errors.BadSymbol, // {"code":10013,"message":"Resource not found"}
+                    '10014': errors.InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
+                    '10403': errors.PermissionDenied, // permission denied
+                    '10429': errors.RateLimitExceeded, // too many requests
+                    '40004': errors.AuthenticationError, // {"code":40004,"message":"invalid jwt"}
+                    '40103': errors.AuthenticationError, // invalid otp code
+                    '40104': errors.AuthenticationError, // invalid asset pin code
+                    '40301': errors.PermissionDenied, // {"code":40301,"message":"Permission denied withdrawal create"}
+                    '40302': errors.ExchangeError, // already requested
+                    '40601': errors.ExchangeError, // resource is locked
+                    '40602': errors.ExchangeError, // resource is depleted
+                    '40603': errors.InsufficientFunds, // insufficient resource
+                    '40604': errors.InvalidOrder, // {"code":40604,"message":"Price exceed the maximum order price"}
+                    '40605': errors.InvalidOrder, // {"code":40605,"message":"Price less than the minimum order price"}
+                    '40120': errors.InvalidOrder, // Order is in trading
+                    '40121': errors.InvalidOrder, // Order is already cancelled or filled
                     '60100': errors.BadSymbol, // {"code":60100,"message":"Asset pair is suspended"}
                 },
                 'broad': {},
@@ -853,11 +853,11 @@ class bigone extends bigone$1["default"] {
             'ask': this.safeString(ask, 'price'),
             'askVolume': this.safeString(ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString(ticker, 'open'), // openValue is a broken number, we don't use it
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'daily_change'),
+            'change': this.safeString(ticker, 'daily_change'), // last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'volume', 'volume24h'),
@@ -877,7 +877,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTicker', market, params);
@@ -920,7 +922,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const symbol = this.safeString(symbols, 0);
         if (symbol !== undefined) {
@@ -1027,12 +1031,14 @@ class bigone extends bigone$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let response = undefined;
+        let response;
         if (market['contract']) {
             const request = {
                 'symbol': market['id'],
@@ -1207,8 +1213,8 @@ class bigone extends bigone$1["default"] {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode;
-        let takerCurrencyCode;
+        let makerCurrencyCode = undefined;
+        let takerCurrencyCode = undefined;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1277,7 +1283,9 @@ class bigone extends bigone$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['contract']) {
             throw new errors.NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
@@ -1344,7 +1352,9 @@ class bigone extends bigone$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['contract']) {
             throw new errors.NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
@@ -1430,10 +1440,12 @@ class bigone extends bigone$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const type = this.safeString(params, 'type', '');
         params = this.omit(params, 'type');
-        let response = undefined;
+        let response;
         if (type === 'funding' || type === 'fund') {
             response = await this.privateGetFundAccounts(params);
         }
@@ -1548,7 +1560,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1578,7 +1592,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const isBuy = (side === 'buy');
         const requestSide = isBuy ? 'BID' : 'ASK';
@@ -1589,8 +1605,8 @@ class bigone extends bigone$1["default"] {
         [postOnly, params] = this.handlePostOnly((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
-            'asset_pair_name': market['id'],
-            'side': requestSide,
+            'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
+            'side': requestSide, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision(symbol, amount), // order amount, string, required
             // "price": this.priceToPrecision (symbol, price), // order price, string, required
             // "operator": "GTE", // stop orders only, GTE greater than and equal, LTE less than and equal
@@ -1681,7 +1697,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = { 'id': id };
         const response = await this.privatePostOrdersIdCancel(this.extend(request, params));
         //    {
@@ -1709,7 +1727,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1760,7 +1780,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = { 'id': id };
         const response = await this.privateGetOrdersId(this.extend(request, params));
         const order = this.safeDict(response, 'data', {});
@@ -1781,7 +1803,9 @@ class bigone extends bigone$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1832,7 +1856,9 @@ class bigone extends bigone$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1944,7 +1970,7 @@ class bigone extends bigone$1["default"] {
                 'nonce': nonce,
                 // 'recv_window': '30', // default 30
             };
-            const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256);
+            const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys(query).length) {
@@ -1969,7 +1995,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset_symbol': currency['id'],
@@ -2015,9 +2043,9 @@ class bigone extends bigone$1["default"] {
     parseTransactionStatus(status) {
         const statuses = {
             // what are other statuses here?
-            'WITHHOLD': 'ok',
+            'WITHHOLD': 'ok', // deposits
             'UNCONFIRMED': 'pending',
-            'CONFIRMED': 'ok',
+            'CONFIRMED': 'ok', // withdrawals
             'COMPLETED': 'ok',
             'PENDING': 'pending',
         };
@@ -2122,7 +2150,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'page_token': 'dxzef', // request page after this page token
         // 'limit': 50, // optional, default 50
@@ -2174,7 +2204,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'page_token': 'dxzef', // request page after this page token
         // 'limit': 50, // optional, default 50
@@ -2227,7 +2259,9 @@ class bigone extends bigone$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2300,7 +2334,9 @@ class bigone extends bigone$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'symbol': currency['id'],

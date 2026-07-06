@@ -1,7 +1,7 @@
 
 import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange } from '../../../../ccxt.js';
+import { Exchange, Trade } from '../../../../ccxt.js';
 
 
 async function testWatchTrades (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -9,7 +9,7 @@ async function testWatchTrades (exchange: Exchange, skippedProperties: object, s
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: Trade[] = [];
         let success = true;
         try {
             response = await exchange.watchTrades (symbol);

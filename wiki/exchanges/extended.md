@@ -70,7 +70,7 @@ retrieves data on all markets for extended
 
 
 ```javascript
-extended.fetchMarkets ([params])
+extended.fetchMarkets (params?)
 ```
 
 
@@ -90,7 +90,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-extended.fetchCurrencies ([params])
+extended.fetchCurrencies (params?)
 ```
 
 
@@ -100,7 +100,7 @@ extended.fetchCurrencies ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.docs.extended.exchange/#get-market-statistics  
 
@@ -111,7 +111,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-extended.fetchTicker (symbol[, params])
+extended.fetchTicker (symbol, params?)
 ```
 
 
@@ -121,7 +121,7 @@ extended.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for all markets
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.docs.extended.exchange/#get-markets  
 
@@ -132,7 +132,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-extended.fetchTickers ([symbols, params])
+extended.fetchTickers (symbols?, params?)
 ```
 
 
@@ -142,7 +142,7 @@ extended.fetchTickers ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.docs.extended.exchange/#get-market-order-book  
 
@@ -154,7 +154,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-extended.fetchOrderBook (symbol[, limit, params])
+extended.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -164,7 +164,7 @@ extended.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api.docs.extended.exchange/#get-market-last-trades  
 
@@ -177,7 +177,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-extended.fetchTrades (symbol[, since, limit, params])
+extended.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -187,7 +187,7 @@ extended.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api.docs.extended.exchange/#get-trades  
 
@@ -201,7 +201,7 @@ fetch all trades made by the user
 
 
 ```javascript
-extended.fetchMyTrades ([symbol, since, limit, params])
+extended.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -211,7 +211,7 @@ extended.fetchMyTrades ([symbol, since, limit, params])
 fetch the funding payments history
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;FundingHistory&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;FundingHistory&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://api.docs.extended.exchange/#get-funding-payments  
 
@@ -225,7 +225,7 @@ fetch the funding payments history
 
 
 ```javascript
-extended.fetchFundingHistory ([symbol, since, limit, params])
+extended.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -252,7 +252,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-extended.fetchOHLCV (symbol, timeframe[, since, limit, params])
+extended.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -262,7 +262,7 @@ extended.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://api.docs.extended.exchange/#get-funding-rates-history  
 
@@ -279,7 +279,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-extended.fetchFundingRateHistory (symbol[, since, limit, params])
+extended.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -289,7 +289,7 @@ extended.fetchFundingRateHistory (symbol[, since, limit, params])
 Retrieves the open interest history of a currency
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://api.docs.extended.exchange/#get-open-interest-history  
 
@@ -304,7 +304,7 @@ Retrieves the open interest history of a currency
 
 
 ```javascript
-extended.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+extended.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -324,7 +324,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-extended.fetchBalance ([params])
+extended.fetchBalance (params?)
 ```
 
 
@@ -334,7 +334,7 @@ extended.fetchBalance ([params])
 fetch the current authenticated sub-account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - an [account structure](https://docs.ccxt.com/#/?id=account-structure)
+**Returns**: <code>object</code> - an [account structure](https://docs.ccxt.com/?id=account-structure)
 
 **See**: https://api.docs.extended.exchange/#get-account-details  
 
@@ -344,7 +344,7 @@ fetch the current authenticated sub-account
 
 
 ```javascript
-extended.fetchAccount ([params])
+extended.fetchAccount (params?)
 ```
 
 
@@ -354,7 +354,7 @@ extended.fetchAccount ([params])
 fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/#/?id=account-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/?id=account-structure)
 
 **See**: https://api.docs.extended.exchange/#get-sub-accounts  
 
@@ -364,7 +364,7 @@ fetch the current authenticated sub-account, extended private endpoints only ret
 
 
 ```javascript
-extended.fetchAccounts ([params])
+extended.fetchAccounts (params?)
 ```
 
 
@@ -374,7 +374,7 @@ extended.fetchAccounts ([params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -388,7 +388,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-extended.fetchLedger ([code, since, limit, params])
+extended.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -398,7 +398,7 @@ extended.fetchLedger ([code, since, limit, params])
 fetch history of deposits, withdrawals, and transfers
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -412,7 +412,7 @@ fetch history of deposits, withdrawals, and transfers
 
 
 ```javascript
-extended.fetchTransactions ([code, since, limit, params])
+extended.fetchTransactions (code?, since?, limit?, params?)
 ```
 
 
@@ -422,7 +422,7 @@ extended.fetchTransactions ([code, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -436,7 +436,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-extended.fetchDeposits ([code, since, limit, params])
+extended.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -446,7 +446,7 @@ extended.fetchDeposits ([code, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -460,7 +460,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-extended.fetchWithdrawals ([code, since, limit, params])
+extended.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -486,7 +486,7 @@ make a Starknet withdrawal
 
 
 ```javascript
-extended.withdraw (code, amount, address, tag[, params])
+extended.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -496,7 +496,7 @@ extended.withdraw (code, amount, address, tag[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;TransferEntry&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;TransferEntry&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -510,7 +510,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-extended.fetchTransfers ([code, since, limit, params])
+extended.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 
@@ -520,7 +520,7 @@ extended.fetchTransfers ([code, since, limit, params])
 transfer collateral between sub-accounts associated with the same wallet
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api.docs.extended.exchange/#create-transfer  
 
@@ -537,7 +537,7 @@ transfer collateral between sub-accounts associated with the same wallet
 
 
 ```javascript
-extended.transfer (code, amount, fromAccount, toAccount[, params])
+extended.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -559,7 +559,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-extended.fetchTradingFee (symbol[, params])
+extended.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -581,7 +581,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-extended.fetchTradingFees ([params])
+extended.fetchTradingFees (params?)
 ```
 
 
@@ -591,7 +591,7 @@ extended.fetchTradingFees ([params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://api.docs.extended.exchange/#get-leverage  
 
@@ -602,7 +602,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-extended.fetchLeverage (symbol[, params])
+extended.fetchLeverage (symbol, params?)
 ```
 
 
@@ -624,7 +624,7 @@ set the level of leverage for a market
 
 
 ```javascript
-extended.setLeverage (leverage, symbol[, params])
+extended.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -634,7 +634,7 @@ extended.setLeverage (leverage, symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#get-positions  
 
@@ -645,7 +645,7 @@ fetch all open positions
 
 
 ```javascript
-extended.fetchPositions (symbols[, params])
+extended.fetchPositions (symbols, params?)
 ```
 
 
@@ -655,7 +655,7 @@ extended.fetchPositions (symbols[, params])
 fetch data on an open position
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#get-positions  
 
@@ -666,7 +666,7 @@ fetch data on an open position
 
 
 ```javascript
-extended.fetchPosition (symbol[, params])
+extended.fetchPosition (symbol, params?)
 ```
 
 
@@ -676,7 +676,7 @@ extended.fetchPosition (symbol[, params])
 fetch historical positions
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#get-positions-history  
 
@@ -690,7 +690,7 @@ fetch historical positions
 
 
 ```javascript
-extended.fetchPositionsHistory (symbols[, since, limit, params])
+extended.fetchPositionsHistory (symbols, since?, limit?, params?)
 ```
 
 
@@ -700,7 +700,7 @@ extended.fetchPositionsHistory (symbols[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#create-or-edit-order  
 
@@ -733,7 +733,7 @@ create a trade order
 
 
 ```javascript
-extended.createOrder (symbol, type, side, amount[, price, params])
+extended.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -743,7 +743,7 @@ extended.createOrder (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#create-or-edit-order  
 
@@ -759,7 +759,7 @@ edit a trade order
 
 
 ```javascript
-extended.editOrder (id, symbol, type, side[, amount, price, params])
+extended.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -786,7 +786,7 @@ cancels an open order
 
 
 ```javascript
-extended.cancelOrder (id[, symbol, params])
+extended.cancelOrder (id, symbol?, params?)
 ```
 
 
@@ -810,7 +810,7 @@ cancel multiple orders by order ids or client order ids
 
 
 ```javascript
-extended.cancelOrders (ids[, symbol, params])
+extended.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -831,7 +831,7 @@ cancels all open orders, optionally filtered by symbol
 
 
 ```javascript
-extended.cancelAllOrders ([symbol, params])
+extended.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -852,7 +852,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-extended.cancelAllOrdersAfter (timeout[, params])
+extended.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -862,7 +862,7 @@ extended.cancelAllOrdersAfter (timeout[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -879,7 +879,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-extended.fetchOrder (id[, symbol, params])
+extended.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -889,7 +889,7 @@ extended.fetchOrder (id[, symbol, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-open-orders  
 
@@ -902,7 +902,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-extended.fetchOpenOrders ([symbol, since, limit, params])
+extended.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -912,7 +912,7 @@ extended.fetchOpenOrders ([symbol, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-orders-history  
 
@@ -926,7 +926,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-extended.fetchOrders ([symbol, since, limit, params])
+extended.fetchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -936,7 +936,7 @@ extended.fetchOrders ([symbol, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-orders-history  
 
@@ -950,7 +950,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-extended.fetchClosedOrders ([symbol, since, limit, params])
+extended.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -960,7 +960,7 @@ extended.fetchClosedOrders ([symbol, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-orders-history  
 
@@ -974,7 +974,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-extended.fetchCanceledOrders ([symbol, since, limit, params])
+extended.fetchCanceledOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -984,7 +984,7 @@ extended.fetchCanceledOrders ([symbol, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.docs.extended.exchange/#order-book-stream  
 
@@ -997,7 +997,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-extended.watchOrderBook (symbol[, limit, params])
+extended.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1020,7 +1020,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-extended.watchOrders (symbol[, since, limit, params])
+extended.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1040,7 +1040,7 @@ watches balance updates
 
 
 ```javascript
-extended.watchBalance ([params])
+extended.watchBalance (params?)
 ```
 
 
@@ -1050,7 +1050,7 @@ extended.watchBalance ([params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api.docs.extended.exchange/#account-updates-stream  
 
@@ -1063,7 +1063,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-extended.watchMyTrades ([symbol, since, limit, params])
+extended.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1073,7 +1073,7 @@ extended.watchMyTrades ([symbol, since, limit, params])
 watches information on multiple positions
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#account-updates-stream  
 
@@ -1086,7 +1086,7 @@ watches information on multiple positions
 
 
 ```javascript
-extended.watchPositions ([symbols, since, limit, params])
+extended.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1107,7 +1107,7 @@ watch the current funding rate
 
 
 ```javascript
-extended.watchFundingRate (symbol[, params])
+extended.watchFundingRate (symbol, params?)
 ```
 
 
@@ -1128,7 +1128,7 @@ watches a mark price for a specific market
 
 
 ```javascript
-extended.watchMarkPrice (symbol[, params])
+extended.watchMarkPrice (symbol, params?)
 ```
 
 
@@ -1151,7 +1151,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-extended.watchTrades (symbol[, since, limit, params])
+extended.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1177,6 +1177,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-extended.watchOHLCV (symbol, timeframe[, since, limit, params])
+extended.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 

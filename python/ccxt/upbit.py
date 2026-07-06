@@ -291,14 +291,15 @@ class upbit(Exchange, ImplicitAPI):
     def fetch_currency(self, code: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         return self.fetch_currency_by_id(currency['id'], params)
 
     def fetch_currency_by_id(self, id: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
-        request: dict = {
+        request = {
             'currency': id,
         }
         response = self.privateGetWithdrawsChance(self.extend(request, params))
@@ -385,14 +386,15 @@ class upbit(Exchange, ImplicitAPI):
     def fetch_market(self, symbol: str, params={}):
         # self method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         return self.fetch_market_by_id(market['id'], params)
 
     def fetch_market_by_id(self, id: str, params={}):
         # self method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
-        request: dict = {
+        request = {
             'market': id,
         }
         response = self.privateGetOrdersChance(self.extend(request, params))
@@ -572,7 +574,7 @@ class upbit(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -597,7 +599,8 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccounts(params)
         #
         #     [{         currency: "BTC",
@@ -625,14 +628,17 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ids = None
         if symbols is None:
-            ids = ','.join(self.ids)
+            allIds = self.ids
+            if allIds is not None:
+                ids = ','.join(allIds)
         else:
-            ids = self.market_ids(symbols)
-            ids = ','.join(ids)
-        request: dict = {
+            marketIds = self.market_ids(symbols)
+            ids = ','.join(marketIds)
+        request = {
             'markets': ids,
             # 'count': limit,
         }
@@ -667,7 +673,7 @@ class upbit(Exchange, ImplicitAPI):
         #                               "ask_size": 2.752,
         #                               "bid_size": 0.4650305}    ]}   ]
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(response)):
             orderbook = response[i]
             marketId = self.safe_string(orderbook, 'market')
@@ -693,7 +699,7 @@ class upbit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbooks = self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
@@ -765,7 +771,8 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         ids = self.market_ids(symbols) if (symbols is not None) else self.ids
         promises = []
@@ -915,11 +922,12 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 200
-        request: dict = {
+        request = {
             'market': market['id'],
             'count': limit,
         }
@@ -959,9 +967,10 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.privateGetOrdersChance(self.extend(request, params))
@@ -1020,11 +1029,12 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `trading fee structure <https://docs.ccxt.com/?id=trading-fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         fetchMarketResponse = self.fetch_markets(params)
-        response: dict = {}
+        response = {}
         for i in range(0, len(fetchMarketResponse)):
-            element: dict = {}
+            element = {}
             element['maker'] = self.safe_number(fetchMarketResponse[i], 'maker')
             element['taker'] = self.safe_number(fetchMarketResponse[i], 'taker')
             element['symbol'] = self.safe_string(fetchMarketResponse[i], 'symbol')
@@ -1073,18 +1083,19 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         timeframePeriod = self.parse_timeframe(timeframe)
         timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         if limit is None:
             limit = 200
-        request: dict = {
+        request = {
             'market': market['id'],
             'timeframe': timeframeValue,
             'count': limit,
         }
-        response = None
+        response: List
         if since is not None:
             # convert `since` to `to` value
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
@@ -1167,7 +1178,8 @@ class upbit(Exchange, ImplicitAPI):
         :param boolean [params.test]: If test is True, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is False.
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         customType = self.safe_string_2(params, 'ordType', 'ord_type')
@@ -1184,7 +1196,7 @@ class upbit(Exchange, ImplicitAPI):
             orderSide = 'ask'
         else:
             raise InvalidOrder(self.id + ' createOrder() supports only buy or sell in the side argument.')
-        request: dict = {
+        request = {
             'market': market['id'],
             'side': orderSide,
             # 'smp_type': selfTradePrevention,
@@ -1228,7 +1240,7 @@ class upbit(Exchange, ImplicitAPI):
                 request['time_in_force'] = timeInForce
         if request['ord_type'] == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
-        response = None
+        response: dict
         params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
         if test:
             response = self.privatePostOrdersTest(self.extend(request, params))
@@ -1268,8 +1280,9 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'uuid': id,
         }
         response = self.privateDeleteOrder(self.extend(request, params))
@@ -1316,8 +1329,9 @@ class upbit(Exchange, ImplicitAPI):
         :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         prevClientOrderId = self.safe_string(params, 'clientOrderId')
         customType = self.safe_string_2(params, 'newOrdType', 'new_ord_type')
         clientOrderId = self.safe_string(params, 'newClientOrderId')
@@ -1397,7 +1411,7 @@ class upbit(Exchange, ImplicitAPI):
         #     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  # new order data
         #     new_order_identifier: '22'                               # new order data
         #   }
-        result: dict = {}
+        result = {}
         result['uuid'] = self.safe_string(response, 'new_order_uuid')
         result['identifier'] = self.safe_string(response, 'new_order_identifier')
         result['side'] = self.safe_string(response, 'side')
@@ -1417,8 +1431,9 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'page': 1,
             # 'order_by': 'asc',  # 'desc'
         }
@@ -1460,8 +1475,9 @@ class upbit(Exchange, ImplicitAPI):
         :param str [params.txid]: withdrawal transaction id, the id argument is reserved for uuid
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'uuid': id,
         }
         currency = None
@@ -1499,8 +1515,9 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'state': 'submitting',  # 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         }
         currency = None
@@ -1542,8 +1559,9 @@ class upbit(Exchange, ImplicitAPI):
         :param str [params.txid]: withdrawal transaction id, the id argument is reserved for uuid
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'uuid': id,
         }
         currency = None
@@ -1569,7 +1587,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
             'almost_accepted': 'pending',  # 출금대기중
@@ -1648,7 +1666,7 @@ class upbit(Exchange, ImplicitAPI):
         }
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -1820,8 +1838,9 @@ class upbit(Exchange, ImplicitAPI):
         :param str [params.state]: default is 'wait', set to 'watch' for stop limit orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1867,8 +1886,9 @@ class upbit(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest order
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'state': 'done',
         }
         market = None
@@ -1920,8 +1940,9 @@ class upbit(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest order
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'state': 'cancel',
         }
         market = None
@@ -1971,8 +1992,9 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'uuid': id,
         }
         response = self.privateGetOrder(self.extend(request, params))
@@ -2032,7 +2054,8 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetDepositsCoinAddresses(params)
         #
         #     [
@@ -2090,7 +2113,8 @@ class upbit(Exchange, ImplicitAPI):
         :param str params['network']: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
@@ -2121,9 +2145,10 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         # https://github.com/ccxt/ccxt/issues/6452
@@ -2163,12 +2188,13 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'amount': amount,
         }
-        response = None
+        response: dict
         if code != 'KRW':
             self.check_address(address)
             # 2023-05-23 Change to required parameters for digital assets
@@ -2204,7 +2230,7 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
@@ -2217,7 +2243,7 @@ class upbit(Exchange, ImplicitAPI):
             self.check_required_credentials()
             headers = {}
             nonce = self.uuid()
-            request: dict = {
+            request = {
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }

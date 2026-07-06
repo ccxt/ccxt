@@ -1,8 +1,5 @@
-- [Bytetrade Create Order](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -28,5 +25,5 @@ $price = 11560;
 
 $order = $exchange->create_order($symbol, $type, $side, $amount, $price);
 print_r ($order);
- 
+
 ```

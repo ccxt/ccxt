@@ -1,8 +1,5 @@
-- [Poloniex Python2 Memleak Test](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -16,5 +13,5 @@ while True:
     orderbook = exchange.fetch_order_book('ETH/BTC')
     process = psutil.Process(os.getpid())
     print(exchange.iso8601(exchange.milliseconds()), process.memory_info()[0])
- 
+
 ```

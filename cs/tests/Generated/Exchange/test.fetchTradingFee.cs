@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchTradingFee";
         object fee = await exchange.fetchTradingFee(symbol);
-        assert((fee is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(fee)));
+        assert(exchange.isDictionary(fee), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(fee)));
         testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;
     }

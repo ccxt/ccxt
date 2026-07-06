@@ -1,9 +1,10 @@
-- [Binance Watch Many Orderbooks](./examples/py/)
-
-
- ```python
- import ccxt.pro as ccxt
+```python
+import ccxt.pro as ccxt
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 orderbooks = {}
 
@@ -52,6 +53,6 @@ async def main():
     await exchange_spot.close()
 
 
-asyncio.run(main())
- 
+run(main())
+
 ```

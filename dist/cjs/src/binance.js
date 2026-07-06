@@ -2,14 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var ed25519_js = require('@noble/curves/ed25519.js');
 var binance$1 = require('./abstract/binance.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -22,7 +22,7 @@ class binance extends binance$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': [],
+            'countries': [], // Japan
             'rateLimit': 50,
             'certified': true,
             'pro': true,
@@ -39,9 +39,9 @@ class binance extends binance$1["default"] {
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': true,
+                'cancelOrders': true, // contract only
                 'closeAllPositions': false,
-                'closePosition': false,
+                'closePosition': false, // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
@@ -177,7 +177,7 @@ class binance extends binance$1["default"] {
                 'withdraw': true,
             },
             'timeframes': {
-                '1s': '1s',
+                '1s': '1s', // spot only for now
                 '1m': '1m',
                 '3m': '3m',
                 '5m': '5m',
@@ -273,9 +273,9 @@ class binance extends binance$1["default"] {
                         'copyTrading/futures/leadSymbol': 2,
                         'system/status': 0.1,
                         // these endpoints require this.apiKey
-                        'accountSnapshot': 240,
+                        'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
                         'account/info': 0.1,
-                        'margin/asset': 1,
+                        'margin/asset': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/pair': 1,
                         'margin/allAssets': 0.1,
                         'margin/allPairs': 0.1,
@@ -287,10 +287,10 @@ class binance extends binance$1["default"] {
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
-                        'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'asset/convert-transfer/queryByPage': 0.033335,
-                        'asset/wallet/balance': 6,
-                        'asset/custody/transfer-history': 6,
+                        'asset/wallet/balance': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'asset/custody/transfer-history': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'margin/borrow-repay': 1,
                         'margin/loan': 1,
                         'margin/repay': 1,
@@ -300,9 +300,9 @@ class binance extends binance$1["default"] {
                         'margin/forceLiquidationRec': 0.1,
                         'margin/order': 1,
                         'margin/openOrders': 1,
-                        'margin/allOrders': 20,
+                        'margin/allOrders': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
                         'margin/myTrades': 1,
-                        'margin/maxBorrowable': 5,
+                        'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable': 5,
                         'margin/tradeCoeff': 1,
                         'margin/isolated/transfer': 0.1,
@@ -312,60 +312,60 @@ class binance extends binance$1["default"] {
                         'margin/isolated/accountLimit': 0.1,
                         'margin/interestRateHistory': 0.1,
                         'margin/orderList': 1,
-                        'margin/allOrderList': 20,
+                        'margin/allOrderList': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
                         'margin/openOrderList': 1,
                         'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
                         'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
-                        'margin/dust': 20.001,
+                        'margin/dust': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
                         'margin/crossMarginCollateralRatio': 10,
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
-                        'margin/capital-flow': 10,
-                        'margin/delist-schedule': 10,
-                        'margin/available-inventory': 0.3334,
-                        'margin/leverageBracket': 0.1,
-                        'loan/vip/loanable/data': 40,
-                        'loan/vip/collateral/data': 40,
-                        'loan/vip/request/data': 2.6668,
-                        'loan/vip/request/interestRate': 2.6668,
-                        'loan/income': 40.002,
-                        'loan/ongoing/orders': 40,
-                        'loan/ltv/adjustment/history': 40,
-                        'loan/borrow/history': 40,
-                        'loan/repay/history': 40,
-                        'loan/loanable/data': 40,
-                        'loan/collateral/data': 40,
-                        'loan/repay/collateral/rate': 600,
-                        'loan/flexible/ongoing/orders': 30,
-                        'loan/flexible/borrow/history': 40,
-                        'loan/flexible/repay/history': 40,
-                        'loan/flexible/ltv/adjustment/history': 40,
-                        'loan/vip/ongoing/orders': 40,
-                        'loan/vip/repay/history': 40,
-                        'loan/vip/collateral/account': 600,
-                        'fiat/orders': 600.03,
+                        'margin/capital-flow': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
+                        'margin/delist-schedule': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
+                        'margin/available-inventory': 0.3334, // Weight(UID): 50 => cost = 0.006667 * 50 = 0.3334
+                        'margin/leverageBracket': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'loan/vip/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/request/data': 2.6668, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
+                        'loan/vip/request/interestRate': 2.6668, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
+                        'loan/income': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/flexible/ongoing/orders': 30, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/account': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
-                        'futures/histDataLink': 0.1,
-                        'rebate/taxQuery': 80.004,
-                        'capital/config/getall': 1,
+                        'futures/histDataLink': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'rebate/taxQuery': 80.004, // Weight(UID): 12000 => cost = 0.006667 * 12000 = 80.004
+                        'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': 1,
                         'capital/deposit/address/list': 1,
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 2,
+                        'capital/withdraw/history': 2, // Weight(UID): 18000 + (Additional: 10 requests per second => cost = ( 1000 / rateLimit ) / 10 = 2
                         'capital/withdraw/address/list': 10,
-                        'capital/contract/convertible-coins': 4.0002,
-                        'convert/tradeFlow': 20.001,
+                        'capital/contract/convertible-coins': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
                         'convert/orderStatus': 0.6667,
-                        'convert/limit/queryOpenOrders': 20.001,
+                        'convert/limit/queryOpenOrders': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -383,16 +383,16 @@ class binance extends binance$1["default"] {
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
-                        'sub-account/transaction-statistics': 0.40002,
-                        'sub-account/subAccountApi/ipRestriction': 20.001,
+                        'sub-account/transaction-statistics': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         'managed-subaccount/queryTransLogForInvestor': 0.1,
-                        'managed-subaccount/queryTransLogForTradeParent': 0.40002,
-                        'managed-subaccount/fetch-future-asset': 0.40002,
+                        'managed-subaccount/queryTransLogForTradeParent': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'managed-subaccount/fetch-future-asset': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
                         'managed-subaccount/marginAsset': 0.1,
-                        'managed-subaccount/info': 0.40002,
-                        'managed-subaccount/deposit/address': 0.006667,
+                        'managed-subaccount/info': 0.40002, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'managed-subaccount/deposit/address': 0.006667, // Weight(UID): 1 => cost = 0.006667 * 1 = 0.006667
                         'managed-subaccount/query-trans-log': 0.40002,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
@@ -406,15 +406,15 @@ class binance extends binance$1["default"] {
                         'lending/project/list': 0.1,
                         'lending/project/position/list': 0.1,
                         // eth-staking
-                        'eth-staking/eth/history/stakingHistory': 15,
-                        'eth-staking/eth/history/redemptionHistory': 15,
-                        'eth-staking/eth/history/rewardsHistory': 15,
-                        'eth-staking/eth/quota': 15,
-                        'eth-staking/eth/history/rateHistory': 15,
-                        'eth-staking/account': 15,
-                        'eth-staking/wbeth/history/wrapHistory': 15,
-                        'eth-staking/wbeth/history/unwrapHistory': 15,
-                        'eth-staking/eth/history/wbethRewardsHistory': 15,
+                        'eth-staking/eth/history/stakingHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/redemptionHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/quota': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/rateHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/wrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/history/unwrapHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/history/wbethRewardsHistory': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sol-staking/sol/history/stakingHistory': 15,
                         'sol-staking/sol/history/redemptionHistory': 15,
                         'sol-staking/sol/history/bnsolRewardsHistory': 15,
@@ -424,7 +424,7 @@ class binance extends binance$1["default"] {
                         // mining endpoints
                         'mining/pub/algoList': 0.1,
                         'mining/pub/coinList': 0.1,
-                        'mining/worker/detail': 0.5,
+                        'mining/worker/detail': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                         'mining/worker/list': 0.5,
                         'mining/payment/list': 0.5,
                         'mining/statistics/user/status': 0.5,
@@ -433,14 +433,14 @@ class binance extends binance$1["default"] {
                         // liquid swap endpoints
                         'bswap/pools': 0.1,
                         'bswap/liquidity': { 'cost': 0.1, 'noPoolId': 1 },
-                        'bswap/liquidityOps': 20.001,
-                        'bswap/quote': 1.00005,
-                        'bswap/swap': 20.001,
-                        'bswap/poolConfigure': 1.00005,
-                        'bswap/addLiquidityPreview': 1.00005,
-                        'bswap/removeLiquidityPreview': 1.00005,
-                        'bswap/unclaimedRewards': 6.667,
-                        'bswap/claimedHistory': 6.667,
+                        'bswap/liquidityOps': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/quote': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/swap': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/poolConfigure': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/addLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/removeLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/unclaimedRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
+                        'bswap/claimedHistory': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
                         'blvt/tokenInfo': 0.1,
                         'blvt/subscribe/record': 0.1,
@@ -478,7 +478,7 @@ class binance extends binance$1["default"] {
                         // c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory': 0.1,
                         // nft endpoints
-                        'nft/history/transactions': 20.001,
+                        'nft/history/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'nft/history/deposit': 20.001,
                         'nft/history/withdraw': 20.001,
                         'nft/user/getAsset': 20.001,
@@ -497,30 +497,30 @@ class binance extends binance$1["default"] {
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
                         'portfolio/asset-index-price': 0.1,
-                        'portfolio/repay-futures-switch': 3,
-                        'portfolio/margin-asset-leverage': 5,
+                        'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'portfolio/margin-asset-leverage': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance': 2,
                         'portfolio/negative-balance-exchange-record': 2,
                         'portfolio/pmloan-history': 5,
-                        'portfolio/earn-asset-balance': 150,
-                        'portfolio/delta-mode': 150,
+                        'portfolio/earn-asset-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/delta-mode': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
                         'staking/stakingRecord': 0.1,
                         'staking/personalLeftQuota': 0.1,
-                        'lending/auto-invest/target-asset/list': 0.1,
+                        'lending/auto-invest/target-asset/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/target-asset/roi/list': 0.1,
                         'lending/auto-invest/all/asset': 0.1,
                         'lending/auto-invest/source-asset/list': 0.1,
                         'lending/auto-invest/plan/list': 0.1,
                         'lending/auto-invest/plan/id': 0.1,
                         'lending/auto-invest/history/list': 0.1,
-                        'lending/auto-invest/index/info': 0.1,
-                        'lending/auto-invest/index/user-summary': 0.1,
-                        'lending/auto-invest/one-off/status': 0.1,
-                        'lending/auto-invest/redeem/history': 0.1,
-                        'lending/auto-invest/rebalance/history': 0.1,
+                        'lending/auto-invest/index/info': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/index/user-summary': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off/status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem/history': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/rebalance/history': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/list': 15,
                         'simple-earn/locked/list': 15,
@@ -549,33 +549,33 @@ class binance extends binance$1["default"] {
                         'accumulator/product/sum-holding': 0.1,
                     },
                     'post': {
-                        'asset/dust': 0.06667,
+                        'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'asset/dust-btc': 0.1,
-                        'asset/transfer': 6.0003,
+                        'asset/transfer': 6.0003, // Weight(UID): 900 => cost = 0.006667 * 900 = 6.0003
                         'asset/get-funding-asset': 0.1,
                         'asset/convert-transfer': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
                         'account/enableFastWithdrawSwitch': 0.1,
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
-                        'capital/withdraw/apply': 4.0002,
+                        'capital/withdraw/apply': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
-                        'capital/deposit/credit-apply': 0.1,
+                        'capital/deposit/credit-apply': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'margin/borrow-repay': 20.001,
                         'margin/transfer': 4.0002,
-                        'margin/loan': 20.001,
+                        'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
-                        'margin/order': 0.040002,
+                        'margin/order': 0.040002, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
                         'margin/order/oco': 0.040002,
-                        'margin/dust': 20.001,
+                        'margin/dust': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/exchange-small-liability': 20.001,
                         // 'margin/isolated/create': 1, discontinued
-                        'margin/isolated/transfer': 4.0002,
-                        'margin/isolated/account': 2.0001,
-                        'margin/max-leverage': 300,
+                        'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
+                        'margin/max-leverage': 300, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn': 0.1,
                         'sub-account/virtualSubAccount': 0.1,
-                        'sub-account/margin/transfer': 4.0002,
+                        'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': 0.1,
                         'sub-account/futures/enable': 0.1,
                         'sub-account/futures/transfer': 0.1,
@@ -595,10 +595,10 @@ class binance extends binance$1["default"] {
                         'lending/daily/purchase': 0.1,
                         'lending/daily/redeem': 0.1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd': 60,
-                        'bswap/liquidityRemove': 60,
-                        'bswap/swap': 60,
-                        'bswap/claimRewards': 6.667,
+                        'bswap/liquidityAdd': 60, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
+                        'bswap/liquidityRemove': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/swap': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/claimRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
                         'blvt/subscribe': 0.1,
                         'blvt/redeem': 0.1,
@@ -638,42 +638,42 @@ class binance extends binance$1["default"] {
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         // eth-staking
-                        'eth-staking/eth/stake': 15,
-                        'eth-staking/eth/redeem': 15,
-                        'eth-staking/wbeth/wrap': 15,
+                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/eth/redeem': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'eth-staking/wbeth/wrap': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sol-staking/sol/stake': 15,
                         'sol-staking/sol/redeem': 15,
                         // mining endpoints
-                        'mining/hash-transfer/config': 0.5,
-                        'mining/hash-transfer/config/cancel': 0.5,
+                        'mining/hash-transfer/config': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'mining/hash-transfer/config/cancel': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                         'portfolio/repay': 20.001,
-                        'loan/vip/renew': 40.002,
+                        'loan/vip/renew': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/vip/borrow': 40.002,
                         'loan/borrow': 40.002,
                         'loan/repay': 40.002,
                         'loan/adjust/ltv': 40.002,
                         'loan/customize/margin_call': 40.002,
-                        'loan/flexible/repay': 40.002,
-                        'loan/flexible/adjust/ltv': 40.002,
+                        'loan/flexible/repay': 40.002, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/adjust/ltv': 40.002, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
                         'loan/vip/repay': 40.002,
-                        'convert/getQuote': 1.3334,
-                        'convert/acceptQuote': 3.3335,
-                        'convert/limit/placeOrder': 3.3335,
-                        'convert/limit/cancelOrder': 1.3334,
-                        'portfolio/auto-collection': 150,
-                        'portfolio/asset-collection': 6,
-                        'portfolio/bnb-transfer': 150,
-                        'portfolio/repay-futures-switch': 150,
-                        'portfolio/repay-futures-negative-balance': 150,
+                        'convert/getQuote': 1.3334, // Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
+                        'convert/acceptQuote': 3.3335, // Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
+                        'convert/limit/placeOrder': 3.3335, // Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
+                        'convert/limit/cancelOrder': 1.3334, // Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
+                        'portfolio/auto-collection': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/asset-collection': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'portfolio/bnb-transfer': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-switch': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/repay-futures-negative-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/mint': 20,
                         'portfolio/redeem': 20,
-                        'portfolio/earn-asset-transfer': 150,
-                        'portfolio/delta-mode': 150,
-                        'lending/auto-invest/plan/add': 0.1,
-                        'lending/auto-invest/plan/edit': 0.1,
-                        'lending/auto-invest/plan/edit-status': 0.1,
-                        'lending/auto-invest/one-off': 0.1,
-                        'lending/auto-invest/redeem': 0.1,
+                        'portfolio/earn-asset-transfer': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/delta-mode': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'lending/auto-invest/plan/add': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/plan/edit': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/plan/edit-status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/subscribe': 0.1,
                         'simple-earn/locked/subscribe': 0.1,
@@ -695,9 +695,9 @@ class binance extends binance$1["default"] {
                     'delete': {
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'margin/openOrders': 0.1,
-                        'margin/order': 0.006667,
+                        'margin/order': 0.006667, // Weight(UID): 1 => cost = 0.006667
                         'margin/orderList': 0.006667,
-                        'margin/isolated/account': 2.0001,
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
@@ -710,23 +710,23 @@ class binance extends binance$1["default"] {
                 },
                 'sapiV2': {
                     'get': {
-                        'eth-staking/account': 15,
+                        'eth-staking/account': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
-                        'loan/flexible/ongoing/orders': 30,
-                        'loan/flexible/borrow/history': 40,
-                        'loan/flexible/repay/history': 40,
-                        'loan/flexible/ltv/adjustment/history': 40,
-                        'loan/flexible/loanable/data': 40,
-                        'loan/flexible/collateral/data': 40,
+                        'loan/flexible/ongoing/orders': 30, // Weight(IP): 300 => cost = 0.1 * 300 = 30
+                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'portfolio/account': 2,
                     },
                     'post': {
-                        'eth-staking/eth/stake': 15,
-                        'sub-account/subAccountApi/ipRestriction': 20.001,
-                        'loan/flexible/borrow': 40.002,
-                        'loan/flexible/repay': 40.002,
+                        'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'loan/flexible/borrow': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
@@ -785,14 +785,15 @@ class binance extends binance$1["default"] {
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': { 'cost': 1, 'noSymbol': 5 },
-                        'allOrders': { 'cost': 20, 'noSymbol': 40 },
+                        'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 },
+                        'allOrders': 5,
                         'balance': 1,
                         'account': 5,
                         'positionMargin/history': 1,
                         'positionRisk': 1,
-                        'userTrades': { 'cost': 20, 'noSymbol': 40 },
+                        'userTrades': 5,
                         'income': 20,
-                        'leverageBracket': 1,
+                        'leverageBracket': { 'cost': 2, 'noSymbol': 2 },
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'adlQuantile': 5,
                         'commissionRate': 20,
@@ -802,12 +803,13 @@ class binance extends binance$1["default"] {
                         'trade/asyn/id': 0.5,
                         'order/asyn': 0.5,
                         'order/asyn/id': 0.5,
-                        'pmExchangeInfo': 0.5,
+                        'pmExchangeInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                         'pmAccountInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                     },
                     'post': {
                         'positionSide/dual': 1,
                         'order': 4,
+                        'algoOrder': 1,
                         'batchOrders': 5,
                         'countdownCancelAll': 10,
                         'leverage': 1,
@@ -822,6 +824,7 @@ class binance extends binance$1["default"] {
                     },
                     'delete': {
                         'order': 1,
+                        'algoOrder': 1,
                         'allOpenOrders': 1,
                         'batchOrders': 5,
                         'listenKey': 1,
@@ -938,7 +941,7 @@ class binance extends binance$1["default"] {
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'feeBurn': 1,
-                        'convert/getQuote': 200,
+                        'convert/getQuote': 200, // 360 requests per hour
                         'convert/acceptQuote': 20,
                         // conditional orders
                         'algoOrder': 1,
@@ -1045,12 +1048,12 @@ class binance extends binance$1["default"] {
                     // IP (api) request rate limit of 6000 per minute
                     // 1 IP (api) => cost = 0.2 => (1000 / (50 * 0.2)) * 60 = 6000
                     'get': {
-                        'ping': 0.2,
+                        'ping': 0.2, // Weight(IP): 1 => cost = 0.2 * 1 = 0.2
                         'time': 0.2,
                         'depth': { 'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]] },
-                        'trades': 2,
+                        'trades': 2, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'aggTrades': 0.4,
-                        'historicalTrades': 2,
+                        'historicalTrades': 2, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': 0.4,
                         'uiKlines': 0.4,
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 },
@@ -1058,7 +1061,7 @@ class binance extends binance$1["default"] {
                         'ticker/tradingDay': 0.8,
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 },
-                        'exchangeInfo': 4,
+                        'exchangeInfo': 4, // Weight(IP): 20 => cost = 0.2 * 20 = 4
                         'avgPrice': 0.4,
                     },
                     'put': {
@@ -1073,16 +1076,16 @@ class binance extends binance$1["default"] {
                 },
                 'private': {
                     'get': {
-                        'allOrderList': 4,
-                        'openOrderList': 1.2,
-                        'orderList': 0.8,
+                        'allOrderList': 4, // oco Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'openOrderList': 1.2, // oco Weight(IP): 6 => cost = 0.2 * 6 = 1.2
+                        'orderList': 0.8, // oco
                         'order': 0.8,
                         'openOrders': { 'cost': 1.2, 'noSymbol': 16 },
                         'allOrders': 4,
                         'account': 4,
                         'myTrades': 4,
-                        'rateLimit/order': 8,
-                        'myPreventedMatches': 4,
+                        'rateLimit/order': 8, // Weight(IP): 40 => cost = 0.2 * 40 = 8
+                        'myPreventedMatches': 4, // Weight(IP): 20 => cost = 0.2 * 20 = 4
                         'myAllocations': 4,
                         'account/commission': 4,
                     },
@@ -1101,7 +1104,7 @@ class binance extends binance$1["default"] {
                     },
                     'delete': {
                         'openOrders': 0.2,
-                        'orderList': 0.2,
+                        'orderList': 0.2, // oco
                         'order': 0.2,
                     },
                 },
@@ -1312,7 +1315,7 @@ class binance extends binance$1["default"] {
                 'BNFCR': this.safeCurrencyStructure({ 'id': 'BNFCR', 'code': 'BNFCR', 'precision': this.parseNumber('0.001') }),
             },
             'commonCurrencies': {
-                'BCC': 'BCC',
+                'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
             'precisionMode': number.TICK_SIZE,
@@ -1322,21 +1325,22 @@ class binance extends binance$1["default"] {
                 'fetchMargins': true,
                 'fetchMarkets': {
                     'types': [
-                        'spot',
-                        'linear',
+                        'spot', // allows CORS in browsers
+                        'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
                 },
                 'loadAllOptions': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
-                'defaultTimeInForce': 'GTC',
-                'defaultType': 'spot',
-                'defaultSubType': undefined,
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
+                'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'warnOnSTPForInverse': true,
                 'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
@@ -1344,15 +1348,15 @@ class binance extends binance$1["default"] {
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
                 'throwMarginModeAlreadySet': false,
-                'fetchPositions': 'positionRisk',
-                'recvWindow': 10 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'fetchPositions': 'positionRisk', // or 'account' or 'option'
+                'recvWindow': 10 * 1000, // 10 sec
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'newOrderRespType': {
-                    'market': 'FULL',
+                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
-                'quoteOrderQty': true,
+                'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
@@ -1368,8 +1372,8 @@ class binance extends binance$1["default"] {
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
-                    'future': 'UMFUTURE',
-                    'delivery': 'CMFUTURE',
+                    'future': 'UMFUTURE', // backwards compatibility
+                    'delivery': 'CMFUTURE', // backwards compatbility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -1384,6 +1388,9 @@ class binance extends binance$1["default"] {
                     'OPTION': 'option',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'BTCSEGWIT': 'SEGWITBTC',
+                    'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
                     'TRC20': 'TRX',
@@ -1391,9 +1398,12 @@ class binance extends binance$1["default"] {
                     'BEP2': 'BNB',
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
+                    'CHZ2': 'CHZ2', // Chiliz chain new
+                    'XRP': 'XRP',
                     'EOS': 'EOS',
-                    'SPL': 'SOL',
-                    'SOL': 'SOL',
+                    'DOGE': 'DOGE',
+                    'SOL': 'SOL', // we shouldn't rename SOL
+                    'SONIC': 'SONIC',
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
                     // 'STAKING': 'STAKING', // not unified atm
@@ -1413,7 +1423,7 @@ class binance extends binance$1["default"] {
                     // LINEA - not supported
                     // CRO - not supported
                     // TAIKO - not supported
-                    'RSK': 'RSK',
+                    'RSK': 'RSK', // RBTC
                     'SEI': 'SEI',
                     // MNT - not supported
                     'TON': 'TON',
@@ -1433,7 +1443,7 @@ class binance extends binance$1["default"] {
                     // HECO - not supported
                     // FSN - not supported
                     'ACA': 'ACA',
-                    'STX': 'STX',
+                    'STX': 'STX', // STACKS
                     'XTZ': 'XTZ',
                     // 'NEO': 'NEO', // tbd NEO3
                     'METIS': 'METIS',
@@ -1446,12 +1456,52 @@ class binance extends binance$1["default"] {
                     'SCRT': 'SCRT',
                     // AUR - not supported
                     'ONT': 'ONT', // ontology
+                    'ZEC': 'ZEC',
+                    'XMR': 'XMR',
+                    'BCH': 'BCH',
+                    'LTC': 'LTC',
+                    'TAO': 'TAO',
+                    'WLD': 'WLD',
+                    'ICP': 'ICP',
+                    'FLR': 'FLR',
+                    'COSMOS': 'ATOM',
+                    'ATOM': 'ATOM',
+                    'FIL': 'FIL',
+                    'INJ': 'INJ',
+                    'DASH': 'DASH',
+                    'VET': 'VET',
+                    'FET': 'FET',
+                    'TIA': 'TIA',
+                    'KAIA': 'KAIA',
+                    'DCR': 'DCR',
+                    'IOTA': 'IOTA',
+                    'THETA': 'THETA',
+                    'AR': 'AR',
+                    'DYDX': 'DYDX',
+                    'XEC': 'XEC',
+                    'QTUM': 'QTUM',
+                    'ENJ': 'ENJ',
+                    'RVN': 'RVN',
+                    'ZIL': 'ZIL',
+                    'BERA': 'BERA',
+                    '0G': '0G',
+                    'MINA': 'MINA',
+                    'AXL': 'AXL',
+                    'ROSE': 'ROSE',
+                    'CKB': 'CKB',
+                    'DGB': 'DGB',
+                    'MOVE': 'MOVE',
+                    'XVG': 'XVG',
+                    'SC': 'SC',
+                    'LINEA': 'LINEA',
+                    'WAVES': 'WAVES',
+                    'MANTA': 'MANTA',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
                     'ETH': 'ERC20',
-                    'SOL': 'SOL',
+                    'SOL': 'SOL', // temporary fix for SPL definition
                     'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
@@ -1528,7 +1578,7 @@ class binance extends binance$1["default"] {
                             'EXPIRE_BOTH': true,
                             'NONE': true,
                         },
-                        'trailing': false,
+                        'trailing': false, // todo: this is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
                         'icebergAmount': true,
                     },
                     'createOrders': undefined,
@@ -1536,7 +1586,7 @@ class binance extends binance$1["default"] {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': undefined,
-                        'untilDays': 1,
+                        'untilDays': 1, // days between start-end
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -1587,7 +1637,7 @@ class binance extends binance$1["default"] {
                         },
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'attachedStopLossTakeProfit': undefined,
+                        'attachedStopLossTakeProfit': undefined, // not supported
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
@@ -1673,334 +1723,334 @@ class binance extends binance$1["default"] {
                         //
                         //        1xxx
                         //
-                        '-1004': errors.OperationFailed,
-                        '-1008': errors.OperationFailed,
-                        '-1099': errors.AuthenticationError,
-                        '-1108': errors.BadRequest,
-                        '-1131': errors.BadRequest,
-                        '-1134': errors.BadRequest,
-                        '-1135': errors.BadRequest,
-                        '-1145': errors.BadRequest,
-                        '-1151': errors.BadSymbol,
+                        '-1004': errors.OperationFailed, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                        '-1008': errors.OperationFailed, // undocumented, but mentioned: This is sent whenever the servers are overloaded with requests.
+                        '-1099': errors.AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                        '-1108': errors.BadRequest, // undocumented, but mentioned: This error will occur if a value to a parameter being sent was too large, potentially causing overflow
+                        '-1131': errors.BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                        '-1134': errors.BadRequest, // strategyType was less than 1000000.
+                        '-1135': errors.BadRequest, // undocumented, but mentioned: This error code will occur if a parameter requiring a JSON object is invalid.
+                        '-1145': errors.BadRequest, // cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
+                        '-1151': errors.BadSymbol, // Symbol is present multiple times in the list.
                         //
                         //        2xxx
                         //
-                        '-2008': errors.AuthenticationError,
-                        '-2016': errors.OperationRejected,
-                        '-2021': errors.BadResponse,
-                        '-2022': errors.BadResponse,
-                        '-2026': errors.InvalidOrder,
+                        '-2008': errors.AuthenticationError, // undocumented, Invalid Api-Key ID
+                        '-2016': errors.OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
+                        '-2021': errors.BadResponse, // This code is sent when either the cancellation of the order failed or the new order placement failed but not both.
+                        '-2022': errors.BadResponse, // This code is sent when both the cancellation of the order failed and the new order placement failed.
+                        '-2026': errors.InvalidOrder, // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
                         //
                         //        3xxx (these errors are available only for spot atm)
                         //
-                        '-3000': errors.OperationFailed,
-                        '-3001': errors.AuthenticationError,
-                        '-3002': errors.BadSymbol,
-                        '-3003': errors.BadRequest,
-                        '-3004': errors.OperationRejected,
-                        '-3005': errors.BadRequest,
-                        '-3006': errors.BadRequest,
-                        '-3007': errors.OperationFailed,
-                        '-3008': errors.BadRequest,
-                        '-3009': errors.OperationRejected,
-                        '-3010': errors.BadRequest,
-                        '-3011': errors.BadRequest,
-                        '-3012': errors.OperationRejected,
-                        '-3013': errors.BadRequest,
-                        '-3014': errors.AccountSuspended,
-                        '-3015': errors.BadRequest,
-                        '-3016': errors.BadRequest,
-                        '-3017': errors.OperationRejected,
-                        '-3018': errors.AccountSuspended,
-                        '-3019': errors.AccountSuspended,
-                        '-3020': errors.BadRequest,
-                        '-3021': errors.BadRequest,
-                        '-3022': errors.AccountSuspended,
-                        '-3023': errors.OperationRejected,
-                        '-3024': errors.OperationRejected,
-                        '-3025': errors.BadRequest,
-                        '-3026': errors.BadRequest,
-                        '-3027': errors.BadSymbol,
-                        '-3028': errors.BadSymbol,
-                        '-3029': errors.OperationFailed,
-                        '-3036': errors.AccountSuspended,
-                        '-3037': errors.OperationFailed,
-                        '-3038': errors.BadRequest,
-                        '-3041': errors.InsufficientFunds,
-                        '-3042': errors.BadRequest,
-                        '-3043': errors.PermissionDenied,
-                        '-3044': errors.OperationFailed,
-                        '-3045': errors.OperationRejected,
-                        '-3999': errors.PermissionDenied,
+                        '-3000': errors.OperationFailed, // {"code":-3000,"msg":"Internal server error."}
+                        '-3001': errors.AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
+                        '-3002': errors.BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
+                        '-3003': errors.BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
+                        '-3004': errors.OperationRejected, // {"code":-3004,"msg":"Trade not allowed."}
+                        '-3005': errors.BadRequest, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                        '-3006': errors.BadRequest, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                        '-3007': errors.OperationFailed, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
+                        '-3008': errors.BadRequest, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                        '-3009': errors.OperationRejected, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
+                        '-3010': errors.BadRequest, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                        '-3011': errors.BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
+                        '-3012': errors.OperationRejected, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                        '-3013': errors.BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
+                        '-3014': errors.AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
+                        '-3015': errors.BadRequest, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                        '-3016': errors.BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
+                        '-3017': errors.OperationRejected, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
+                        '-3018': errors.AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
+                        '-3019': errors.AccountSuspended, // {"code":-3019,"msg":"Transferring out has been banned for this account."}
+                        '-3020': errors.BadRequest, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                        '-3021': errors.BadRequest, // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
+                        '-3022': errors.AccountSuspended, // {"code":-3022,"msg":"You account's trading is banned."}
+                        '-3023': errors.OperationRejected, // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
+                        '-3024': errors.OperationRejected, // {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
+                        '-3025': errors.BadRequest, // {"code":-3025,"msg":"Your input date is invalid."}
+                        '-3026': errors.BadRequest, // {"code":-3026,"msg":"Your input param is invalid."}
+                        '-3027': errors.BadSymbol, // {"code":-3027,"msg":"Not a valid margin asset."}
+                        '-3028': errors.BadSymbol, // {"code":-3028,"msg":"Not a valid margin pair."}
+                        '-3029': errors.OperationFailed, // {"code":-3029,"msg":"Transfer failed."}
+                        '-3036': errors.AccountSuspended, // {"code":-3036,"msg":"This account is not allowed to repay."}
+                        '-3037': errors.OperationFailed, // {"code":-3037,"msg":"PNL is clearing. Wait a second."}
+                        '-3038': errors.BadRequest, // {"code":-3038,"msg":"Listen key not found."}
+                        '-3041': errors.InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
+                        '-3042': errors.BadRequest, // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
+                        '-3043': errors.PermissionDenied, // {"code":-3043,"msg":"Transferring in not allowed."}
+                        '-3044': errors.OperationFailed, // {"code":-3044,"msg":"System busy."}
+                        '-3045': errors.OperationRejected, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                        '-3999': errors.PermissionDenied, // {"code":-3999,"msg":"This function is only available for invited users."}
                         //
                         //        4xxx (different from contract markets)
                         //
-                        '-4000': errors.ExchangeError,
-                        '-4001': errors.BadRequest,
-                        '-4002': errors.BadRequest,
-                        '-4003': errors.BadRequest,
-                        '-4004': errors.AuthenticationError,
-                        '-4005': errors.RateLimitExceeded,
-                        '-4006': errors.BadRequest,
-                        '-4007': errors.PermissionDenied,
-                        '-4008': errors.PermissionDenied,
-                        '-4009': errors.ExchangeError,
-                        '-4010': errors.PermissionDenied,
-                        '-4011': errors.BadRequest,
-                        '-4012': errors.PermissionDenied,
-                        '-4013': errors.AuthenticationError,
-                        '-4014': errors.OperationRejected,
-                        '-4015': errors.PermissionDenied,
-                        '-4016': errors.PermissionDenied,
-                        '-4017': errors.PermissionDenied,
-                        '-4018': errors.BadSymbol,
-                        '-4019': errors.BadRequest,
-                        '-4020': errors.ExchangeError,
-                        '-4021': errors.BadRequest,
-                        '-4022': errors.BadRequest,
-                        '-4023': errors.OperationRejected,
-                        '-4024': errors.InsufficientFunds,
-                        '-4025': errors.InsufficientFunds,
-                        '-4026': errors.InsufficientFunds,
-                        '-4027': errors.OperationFailed,
-                        '-4028': errors.BadRequest,
-                        '-4029': errors.BadRequest,
-                        '-4030': errors.BadResponse,
-                        '-4031': errors.OperationFailed,
-                        '-4032': errors.OperationRejected,
-                        '-4033': errors.BadRequest,
-                        '-4034': errors.OperationRejected,
-                        '-4035': errors.PermissionDenied,
-                        '-4036': errors.PermissionDenied,
-                        '-4037': errors.OperationFailed,
-                        '-4038': errors.OperationFailed,
-                        '-4039': errors.PermissionDenied,
-                        '-4040': errors.OperationRejected,
-                        '-4041': errors.OperationFailed,
-                        '-4042': errors.OperationRejected,
-                        '-4043': errors.OperationRejected,
-                        '-4044': errors.PermissionDenied,
-                        '-4045': errors.OperationFailed,
-                        '-4046': errors.AuthenticationError,
-                        '-4047': errors.BadRequest,
-                        '-4048': errors.ExchangeError,
-                        '-4049': errors.ExchangeError,
-                        '-4050': errors.ExchangeError,
-                        '-4051': errors.ExchangeError,
-                        '-4052': errors.ExchangeError,
-                        '-4053': errors.ExchangeError,
-                        '-4054': errors.ExchangeError,
-                        '-4055': errors.ExchangeError,
-                        '-4056': errors.ExchangeError,
-                        '-4057': errors.ExchangeError,
-                        '-4058': errors.ExchangeError,
-                        '-4059': errors.ExchangeError,
-                        '-4060': errors.OperationFailed,
-                        '-4061': errors.ExchangeError,
-                        '-4062': errors.ExchangeError,
-                        '-4063': errors.ExchangeError,
-                        '-4064': errors.ExchangeError,
-                        '-4065': errors.ExchangeError,
-                        '-4066': errors.ExchangeError,
-                        '-4067': errors.ExchangeError,
-                        '-4068': errors.ExchangeError,
-                        '-4069': errors.ExchangeError,
-                        '-4070': errors.ExchangeError,
-                        '-4071': errors.ExchangeError,
-                        '-4072': errors.ExchangeError,
-                        '-4073': errors.ExchangeError,
-                        '-4074': errors.ExchangeError,
-                        '-4075': errors.ExchangeError,
-                        '-4076': errors.ExchangeError,
-                        '-4077': errors.ExchangeError,
-                        '-4078': errors.ExchangeError,
-                        '-4079': errors.ExchangeError,
-                        '-4080': errors.ExchangeError,
-                        '-4081': errors.ExchangeError,
-                        '-4082': errors.ExchangeError,
-                        '-4083': errors.ExchangeError,
-                        '-4084': errors.ExchangeError,
-                        '-4085': errors.ExchangeError,
-                        '-4086': errors.ExchangeError,
-                        '-4087': errors.ExchangeError,
-                        '-4088': errors.ExchangeError,
-                        '-4089': errors.ExchangeError,
-                        '-4091': errors.ExchangeError,
-                        '-4092': errors.ExchangeError,
-                        '-4093': errors.ExchangeError,
-                        '-4094': errors.ExchangeError,
-                        '-4095': errors.ExchangeError,
-                        '-4096': errors.ExchangeError,
-                        '-4097': errors.ExchangeError,
-                        '-4098': errors.ExchangeError,
-                        '-4099': errors.ExchangeError,
-                        '-4101': errors.ExchangeError,
-                        '-4102': errors.ExchangeError,
-                        '-4103': errors.ExchangeError,
-                        '-4104': errors.ExchangeError,
-                        '-4105': errors.ExchangeError,
-                        '-4106': errors.ExchangeError,
-                        '-4107': errors.ExchangeError,
-                        '-4108': errors.ExchangeError,
-                        '-4109': errors.ExchangeError,
-                        '-4110': errors.ExchangeError,
-                        '-4112': errors.ExchangeError,
-                        '-4113': errors.ExchangeError,
-                        '-4114': errors.ExchangeError,
-                        '-4115': errors.ExchangeError,
-                        '-4116': errors.ExchangeError,
-                        '-4117': errors.ExchangeError,
-                        '-4118': errors.ExchangeError,
-                        '-4119': errors.ExchangeError,
-                        '-4120': errors.ExchangeError,
-                        '-4121': errors.ExchangeError,
-                        '-4122': errors.ExchangeError,
-                        '-4123': errors.ExchangeError,
-                        '-4124': errors.ExchangeError,
-                        '-4125': errors.ExchangeError,
-                        '-4126': errors.ExchangeError,
-                        '-4127': errors.ExchangeError,
-                        '-4128': errors.ExchangeError,
-                        '-4129': errors.ExchangeError,
-                        '-4130': errors.ExchangeError,
-                        '-4131': errors.ExchangeError,
-                        '-4132': errors.ExchangeError,
-                        '-4133': errors.ExchangeError,
-                        '-4134': errors.ExchangeError,
-                        '-4135': errors.ExchangeError,
-                        '-4136': errors.ExchangeError,
-                        '-4137': errors.ExchangeError,
-                        '-4138': errors.ExchangeError,
-                        '-4139': errors.ExchangeError,
-                        '-4141': errors.ExchangeError,
-                        '-4142': errors.ExchangeError,
-                        '-4143': errors.ExchangeError,
-                        '-4144': errors.ExchangeError,
-                        '-4145': errors.ExchangeError,
-                        '-4146': errors.ExchangeError,
-                        '-4147': errors.ExchangeError,
-                        '-4148': errors.ExchangeError,
-                        '-4149': errors.ExchangeError,
-                        '-4150': errors.ExchangeError,
+                        '-4000': errors.ExchangeError, // override commons
+                        '-4001': errors.BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
+                        '-4002': errors.BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
+                        '-4003': errors.BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
+                        '-4004': errors.AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
+                        '-4005': errors.RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                        '-4006': errors.BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
+                        '-4007': errors.PermissionDenied, // {"code":-4007 ,"msg":"Address validation is not passed."}
+                        '-4008': errors.PermissionDenied, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                        '-4009': errors.ExchangeError, // undocumented
+                        '-4010': errors.PermissionDenied, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                        '-4011': errors.BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
+                        '-4012': errors.PermissionDenied, // {"code":-4012 ,"msg":"White list is not opened."}
+                        '-4013': errors.AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
+                        '-4014': errors.OperationRejected, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                        '-4015': errors.PermissionDenied, // {"code":-4015 ,"msg":"Withdraw is limited."}
+                        '-4016': errors.PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                        '-4017': errors.PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                        '-4018': errors.BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
+                        '-4019': errors.BadRequest, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                        '-4020': errors.ExchangeError, // override commons
+                        '-4021': errors.BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
+                        '-4022': errors.BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
+                        '-4023': errors.OperationRejected, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                        '-4024': errors.InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
+                        '-4025': errors.InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
+                        '-4026': errors.InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
+                        '-4027': errors.OperationFailed, // {"code":-4027,"msg":"Failed to obtain tranId."}
+                        '-4028': errors.BadRequest, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
+                        '-4029': errors.BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
+                        '-4030': errors.BadResponse, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
+                        '-4031': errors.OperationFailed, // {"code":-4031,"msg":"Cancellation failed."}
+                        '-4032': errors.OperationRejected, // {"code":-4032,"msg":"Withdraw verification exception."}
+                        '-4033': errors.BadRequest, // {"code":-4033,"msg":"Illegal address."}
+                        '-4034': errors.OperationRejected, // {"code":-4034,"msg":"The address is suspected of fake."}
+                        '-4035': errors.PermissionDenied, // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
+                        '-4036': errors.PermissionDenied, // {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
+                        '-4037': errors.OperationFailed, // {"code":-4037,"msg":"Re-sending Mail failed."}
+                        '-4038': errors.OperationFailed, // {"code":-4038,"msg":"Please try again in 5 minutes."}
+                        '-4039': errors.PermissionDenied, // {"code":-4039,"msg":"The user does not exist."}
+                        '-4040': errors.OperationRejected, // {"code":-4040,"msg":"This address not charged."}
+                        '-4041': errors.OperationFailed, // {"code":-4041,"msg":"Please try again in one minute."}
+                        '-4042': errors.OperationRejected, // {"code":-4042,"msg":"This asset cannot get deposit address again."}
+                        '-4043': errors.OperationRejected, // {"code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours."}
+                        '-4044': errors.PermissionDenied, // {"code":-4044,"msg":"This is a blacklist country."}
+                        '-4045': errors.OperationFailed, // {"code":-4045,"msg":"Failure to acquire assets."}
+                        '-4046': errors.AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
+                        '-4047': errors.BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                        '-4048': errors.ExchangeError, // override commons
+                        '-4049': errors.ExchangeError, // override commons
+                        '-4050': errors.ExchangeError, // override commons
+                        '-4051': errors.ExchangeError, // override commons
+                        '-4052': errors.ExchangeError, // override commons
+                        '-4053': errors.ExchangeError, // override commons
+                        '-4054': errors.ExchangeError, // override commons
+                        '-4055': errors.ExchangeError, // override commons
+                        '-4056': errors.ExchangeError, // override commons
+                        '-4057': errors.ExchangeError, // override commons
+                        '-4058': errors.ExchangeError, // override commons
+                        '-4059': errors.ExchangeError, // override commons
+                        '-4060': errors.OperationFailed, // As your deposit has not reached the required block confirmations, we have temporarily locked {0} asset
+                        '-4061': errors.ExchangeError, // override commons
+                        '-4062': errors.ExchangeError, // override commons
+                        '-4063': errors.ExchangeError, // override commons
+                        '-4064': errors.ExchangeError, // override commons
+                        '-4065': errors.ExchangeError, // override commons
+                        '-4066': errors.ExchangeError, // override commons
+                        '-4067': errors.ExchangeError, // override commons
+                        '-4068': errors.ExchangeError, // override commons
+                        '-4069': errors.ExchangeError, // override commons
+                        '-4070': errors.ExchangeError, // override commons
+                        '-4071': errors.ExchangeError, // override commons
+                        '-4072': errors.ExchangeError, // override commons
+                        '-4073': errors.ExchangeError, // override commons
+                        '-4074': errors.ExchangeError, // override commons
+                        '-4075': errors.ExchangeError, // override commons
+                        '-4076': errors.ExchangeError, // override commons
+                        '-4077': errors.ExchangeError, // override commons
+                        '-4078': errors.ExchangeError, // override commons
+                        '-4079': errors.ExchangeError, // override commons
+                        '-4080': errors.ExchangeError, // override commons
+                        '-4081': errors.ExchangeError, // override commons
+                        '-4082': errors.ExchangeError, // override commons
+                        '-4083': errors.ExchangeError, // override commons
+                        '-4084': errors.ExchangeError, // override commons
+                        '-4085': errors.ExchangeError, // override commons
+                        '-4086': errors.ExchangeError, // override commons
+                        '-4087': errors.ExchangeError, // override commons
+                        '-4088': errors.ExchangeError, // override commons
+                        '-4089': errors.ExchangeError, // override commons
+                        '-4091': errors.ExchangeError, // override commons
+                        '-4092': errors.ExchangeError, // override commons
+                        '-4093': errors.ExchangeError, // override commons
+                        '-4094': errors.ExchangeError, // override commons
+                        '-4095': errors.ExchangeError, // override commons
+                        '-4096': errors.ExchangeError, // override commons
+                        '-4097': errors.ExchangeError, // override commons
+                        '-4098': errors.ExchangeError, // override commons
+                        '-4099': errors.ExchangeError, // override commons
+                        '-4101': errors.ExchangeError, // override commons
+                        '-4102': errors.ExchangeError, // override commons
+                        '-4103': errors.ExchangeError, // override commons
+                        '-4104': errors.ExchangeError, // override commons
+                        '-4105': errors.ExchangeError, // override commons
+                        '-4106': errors.ExchangeError, // override commons
+                        '-4107': errors.ExchangeError, // override commons
+                        '-4108': errors.ExchangeError, // override commons
+                        '-4109': errors.ExchangeError, // override commons
+                        '-4110': errors.ExchangeError, // override commons
+                        '-4112': errors.ExchangeError, // override commons
+                        '-4113': errors.ExchangeError, // override commons
+                        '-4114': errors.ExchangeError, // override commons
+                        '-4115': errors.ExchangeError, // override commons
+                        '-4116': errors.ExchangeError, // override commons
+                        '-4117': errors.ExchangeError, // override commons
+                        '-4118': errors.ExchangeError, // override commons
+                        '-4119': errors.ExchangeError, // override commons
+                        '-4120': errors.ExchangeError, // override commons
+                        '-4121': errors.ExchangeError, // override commons
+                        '-4122': errors.ExchangeError, // override commons
+                        '-4123': errors.ExchangeError, // override commons
+                        '-4124': errors.ExchangeError, // override commons
+                        '-4125': errors.ExchangeError, // override commons
+                        '-4126': errors.ExchangeError, // override commons
+                        '-4127': errors.ExchangeError, // override commons
+                        '-4128': errors.ExchangeError, // override commons
+                        '-4129': errors.ExchangeError, // override commons
+                        '-4130': errors.ExchangeError, // override commons
+                        '-4131': errors.ExchangeError, // override commons
+                        '-4132': errors.ExchangeError, // override commons
+                        '-4133': errors.ExchangeError, // override commons
+                        '-4134': errors.ExchangeError, // override commons
+                        '-4135': errors.ExchangeError, // override commons
+                        '-4136': errors.ExchangeError, // override commons
+                        '-4137': errors.ExchangeError, // override commons
+                        '-4138': errors.ExchangeError, // override commons
+                        '-4139': errors.ExchangeError, // override commons
+                        '-4141': errors.ExchangeError, // override commons
+                        '-4142': errors.ExchangeError, // override commons
+                        '-4143': errors.ExchangeError, // override commons
+                        '-4144': errors.ExchangeError, // override commons
+                        '-4145': errors.ExchangeError, // override commons
+                        '-4146': errors.ExchangeError, // override commons
+                        '-4147': errors.ExchangeError, // override commons
+                        '-4148': errors.ExchangeError, // override commons
+                        '-4149': errors.ExchangeError, // override commons
+                        '-4150': errors.ExchangeError, // override commons
                         //
                         //        5xxx
                         //
-                        '-5001': errors.BadRequest,
-                        '-5002': errors.InsufficientFunds,
-                        '-5003': errors.InsufficientFunds,
-                        '-5004': errors.OperationRejected,
-                        '-5005': errors.OperationRejected,
-                        '-5006': errors.OperationRejected,
-                        '-5007': errors.BadRequest,
-                        '-5008': errors.OperationRejected,
-                        '-5009': errors.BadSymbol,
-                        '-5010': errors.OperationFailed,
-                        '-5011': errors.BadRequest,
-                        '-5012': errors.OperationFailed,
-                        '-5013': errors.InsufficientFunds,
-                        '-5021': errors.BadRequest,
-                        '-5022': errors.BadRequest,
+                        '-5001': errors.BadRequest, // Don't allow transfer to micro assets.
+                        '-5002': errors.InsufficientFunds, // You have insufficient balance.
+                        '-5003': errors.InsufficientFunds, // You don't have this asset.
+                        '-5004': errors.OperationRejected, // The residual balances of %s have exceeded 0.001BTC, Please re-choose.
+                        '-5005': errors.OperationRejected, // The residual balances of %s is too low, Please re-choose.
+                        '-5006': errors.OperationRejected, // Only transfer once in 24 hours.
+                        '-5007': errors.BadRequest, // Quantity must be greater than zero.
+                        '-5008': errors.OperationRejected, // Insufficient amount of returnable assets.
+                        '-5009': errors.BadSymbol, // Product does not exist.
+                        '-5010': errors.OperationFailed, // Asset transfer fail.
+                        '-5011': errors.BadRequest, // future account not exists.
+                        '-5012': errors.OperationFailed, // Asset transfer is in pending.
+                        '-5013': errors.InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
+                        '-5021': errors.BadRequest, // This parent sub have no relation
+                        '-5022': errors.BadRequest, // future account or sub relation not exists.
                         //
                         //        6xxx
                         //
-                        '-6001': errors.BadSymbol,
-                        '-6003': errors.PermissionDenied,
-                        '-6004': errors.BadRequest,
-                        '-6005': errors.BadRequest,
-                        '-6006': errors.BadRequest,
-                        '-6007': errors.OperationRejected,
-                        '-6008': errors.OperationRejected,
-                        '-6009': errors.RateLimitExceeded,
-                        '-6011': errors.OperationRejected,
-                        '-6012': errors.InsufficientFunds,
-                        '-6013': errors.BadResponse,
-                        '-6014': errors.OperationRejected,
-                        '-6015': errors.BadRequest,
-                        '-6016': errors.BadRequest,
-                        '-6017': errors.PermissionDenied,
-                        '-6018': errors.InsufficientFunds,
-                        '-6019': errors.OperationRejected,
-                        '-6020': errors.BadRequest,
+                        '-6001': errors.BadSymbol, // Daily product not exists.
+                        '-6003': errors.PermissionDenied, // Product not exist or you don't have permission
+                        '-6004': errors.BadRequest, // Product not in purchase status
+                        '-6005': errors.BadRequest, // Smaller than min purchase limit
+                        '-6006': errors.BadRequest, // Redeem amount error
+                        '-6007': errors.OperationRejected, // Not in redeem time
+                        '-6008': errors.OperationRejected, // Product not in redeem status
+                        '-6009': errors.RateLimitExceeded, // Request frequency too high
+                        '-6011': errors.OperationRejected, // Exceeding the maximum num allowed to purchase per user
+                        '-6012': errors.InsufficientFunds, // Balance not enough
+                        '-6013': errors.BadResponse, // Purchasing failed
+                        '-6014': errors.OperationRejected, // Exceed up-limit allowed to purchased
+                        '-6015': errors.BadRequest, // Empty request body
+                        '-6016': errors.BadRequest, // Parameter err
+                        '-6017': errors.PermissionDenied, // Not in whitelist
+                        '-6018': errors.InsufficientFunds, // Asset not enough
+                        '-6019': errors.OperationRejected, // Need confirm
+                        '-6020': errors.BadRequest, // Project not exists
                         //
                         //        7xxx
                         //
-                        '-7001': errors.BadRequest,
-                        '-7002': errors.BadRequest,
+                        '-7001': errors.BadRequest, // Date range is not supported.
+                        '-7002': errors.BadRequest, // Data request type is not supported.
                         //
                         //        1xxxx
                         //
-                        '-10001': errors.OperationFailed,
-                        '-10002': errors.BadRequest,
-                        '-10005': errors.BadResponse,
-                        '-10007': errors.BadRequest,
-                        '-10008': errors.BadRequest,
-                        '-10009': errors.BadRequest,
-                        '-10010': errors.BadRequest,
-                        '-10011': errors.InsufficientFunds,
-                        '-10012': errors.BadRequest,
-                        '-10013': errors.InsufficientFunds,
-                        '-10015': errors.OperationFailed,
-                        '-10016': errors.OperationFailed,
-                        '-10017': errors.OperationRejected,
-                        '-10018': errors.BadRequest,
-                        '-10019': errors.BadRequest,
-                        '-10020': errors.BadRequest,
-                        '-10021': errors.InvalidOrder,
-                        '-10022': errors.BadRequest,
-                        '-10023': errors.OperationFailed,
-                        '-10024': errors.BadRequest,
-                        '-10025': errors.OperationFailed,
-                        '-10026': errors.BadRequest,
-                        '-10028': errors.BadRequest,
-                        '-10029': errors.OperationRejected,
-                        '-10030': errors.OperationRejected,
-                        '-10031': errors.OperationRejected,
-                        '-10032': errors.OperationFailed,
-                        '-10034': errors.OperationRejected,
-                        '-10039': errors.OperationRejected,
-                        '-10040': errors.OperationRejected,
-                        '-10041': errors.OperationFailed,
-                        '-10042': errors.BadSymbol,
-                        '-10043': errors.OperationRejected,
-                        '-10044': errors.OperationRejected,
-                        '-10045': errors.OperationRejected,
-                        '-10046': errors.OperationRejected,
-                        '-10047': errors.PermissionDenied,
-                        '-11008': errors.OperationRejected,
-                        '-12014': errors.RateLimitExceeded,
+                        '-10001': errors.OperationFailed, // The system is under maintenance, please try again later.
+                        '-10002': errors.BadRequest, // Invalid input parameters.
+                        '-10005': errors.BadResponse, // No records found.
+                        '-10007': errors.BadRequest, // This coin is not loanable
+                        '-10008': errors.BadRequest, // This coin is not loanable
+                        '-10009': errors.BadRequest, // This coin can not be used as collateral.
+                        '-10010': errors.BadRequest, // This coin can not be used as collateral.
+                        '-10011': errors.InsufficientFunds, // Insufficient spot assets.
+                        '-10012': errors.BadRequest, // Invalid repayment amount.
+                        '-10013': errors.InsufficientFunds, // Insufficient collateral amount.
+                        '-10015': errors.OperationFailed, // Collateral deduction failed.
+                        '-10016': errors.OperationFailed, // Failed to provide loan.
+                        '-10017': errors.OperationRejected, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
+                        '-10018': errors.BadRequest, // Invalid repayment amount.
+                        '-10019': errors.BadRequest, // Configuration does not exists.
+                        '-10020': errors.BadRequest, // User ID does not exist.
+                        '-10021': errors.InvalidOrder, // Order does not exist.
+                        '-10022': errors.BadRequest, // Invalid adjustment amount.
+                        '-10023': errors.OperationFailed, // Failed to adjust LTV.
+                        '-10024': errors.BadRequest, // LTV adjustment not supported.
+                        '-10025': errors.OperationFailed, // Repayment failed.
+                        '-10026': errors.BadRequest, // Invalid parameter.
+                        '-10028': errors.BadRequest, // Invalid parameter.
+                        '-10029': errors.OperationRejected, // Loan amount is too small.
+                        '-10030': errors.OperationRejected, // Loan amount is too much.
+                        '-10031': errors.OperationRejected, // Individual loan quota reached.
+                        '-10032': errors.OperationFailed, // Repayment is temporarily unavailable.
+                        '-10034': errors.OperationRejected, // Repay with collateral is not available currently, please try to repay with borrowed coin.
+                        '-10039': errors.OperationRejected, // Repayment amount is too small.
+                        '-10040': errors.OperationRejected, // Repayment amount is too large.
+                        '-10041': errors.OperationFailed, // Due to high demand, there are currently insufficient loanable assets for {0}. Please adjust your borrow amount or try again tomorrow.
+                        '-10042': errors.BadSymbol, // asset %s is not supported
+                        '-10043': errors.OperationRejected, // {0} borrowing is currently not supported.
+                        '-10044': errors.OperationRejected, // Collateral amount has reached the limit. Please reduce your collateral amount or try with other collaterals.
+                        '-10045': errors.OperationRejected, // The loan coin does not support collateral repayment. Please try again later.
+                        '-10046': errors.OperationRejected, // Collateral Adjustment exceeds the maximum limit. Please try again.
+                        '-10047': errors.PermissionDenied, // This coin is currently not supported in your location due to local regulations.
+                        '-11008': errors.OperationRejected, // undocumented: Exceeding the account’s maximum borrowable limit
+                        '-12014': errors.RateLimitExceeded, // More than 1 request in 2 seconds
                         // BLVT
-                        '-13000': errors.OperationRejected,
-                        '-13001': errors.OperationRejected,
-                        '-13002': errors.OperationRejected,
-                        '-13003': errors.PermissionDenied,
-                        '-13004': errors.OperationRejected,
-                        '-13005': errors.OperationRejected,
-                        '-13006': errors.OperationRejected,
-                        '-13007': errors.PermissionDenied,
+                        '-13000': errors.OperationRejected, // Redeption of the token is forbiden now
+                        '-13001': errors.OperationRejected, // Exceeds individual 24h redemption limit of the token
+                        '-13002': errors.OperationRejected, // Exceeds total 24h redemption limit of the token
+                        '-13003': errors.PermissionDenied, // Subscription of the token is forbiden now
+                        '-13004': errors.OperationRejected, // Exceeds individual 24h subscription limit of the token
+                        '-13005': errors.OperationRejected, // Exceeds total 24h subscription limit of the token
+                        '-13006': errors.OperationRejected, // Subscription amount is too small
+                        '-13007': errors.PermissionDenied, // The Agreement is not signed
                         // 18xxx - BINANCE CODE
-                        '-18002': errors.OperationRejected,
-                        '-18003': errors.OperationRejected,
-                        '-18004': errors.OperationRejected,
-                        '-18005': errors.PermissionDenied,
-                        '-18006': errors.OperationRejected,
-                        '-18007': errors.OperationRejected,
+                        '-18002': errors.OperationRejected, // The total amount of codes you created has exceeded the 24-hour limit, please try again after UTC 0
+                        '-18003': errors.OperationRejected, // Too many codes created in 24 hours, please try again after UTC 0
+                        '-18004': errors.OperationRejected, // Too many invalid redeem attempts in 24 hours, please try again after UTC 0
+                        '-18005': errors.PermissionDenied, // Too many invalid verify attempts, please try later
+                        '-18006': errors.OperationRejected, // The amount is too small, please re-enter
+                        '-18007': errors.OperationRejected, // This token is not currently supported, please re-enter
                         //
                         //        2xxxx
                         //
                         //   21xxx - PORTFOLIO MARGIN (documented in spot docs)
-                        '-21001': errors.BadRequest,
-                        '-21002': errors.BadRequest,
-                        '-21003': errors.BadResponse,
-                        '-21004': errors.OperationRejected,
-                        '-21005': errors.InsufficientFunds,
-                        '-21006': errors.OperationFailed,
-                        '-21007': errors.OperationFailed,
+                        '-21001': errors.BadRequest, // Request ID is not a Portfolio Margin Account.
+                        '-21002': errors.BadRequest, // Portfolio Margin Account doesn't support transfer from margin to futures.
+                        '-21003': errors.BadResponse, // Fail to retrieve margin assets.
+                        '-21004': errors.OperationRejected, // User doesn’t have portfolio margin bankruptcy loan
+                        '-21005': errors.InsufficientFunds, // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
+                        '-21006': errors.OperationFailed, // User had portfolio margin bankruptcy loan repayment in process
+                        '-21007': errors.OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
                         //
                         //        misc
                         //
-                        '-32603': errors.BadRequest,
-                        '400002': errors.BadRequest,
-                        '100001003': errors.AuthenticationError,
+                        '-32603': errors.BadRequest, // undocumented, Filter failure: LOT_SIZE & precision
+                        '400002': errors.BadRequest, // undocumented, { “status”: “FAIL”, “code”: “400002”, “errorMessage”: “Signature for this request is not valid.” }
+                        '100001003': errors.AuthenticationError, // undocumented, {"code":100001003,"msg":"Verification failed"}
                         '200003903': errors.AuthenticationError, // undocumented, {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
                     },
                 },
@@ -2009,104 +2059,104 @@ class binance extends binance$1["default"] {
                         //
                         //        1xxx
                         //
-                        '-1005': errors.PermissionDenied,
-                        '-1008': errors.OperationFailed,
-                        '-1011': errors.PermissionDenied,
-                        '-1023': errors.BadRequest,
-                        '-1099': errors.AuthenticationError,
-                        '-1109': errors.PermissionDenied,
-                        '-1110': errors.BadRequest,
-                        '-1113': errors.BadRequest,
-                        '-1122': errors.BadRequest,
-                        '-1126': errors.BadSymbol,
-                        '-1136': errors.BadRequest,
+                        '-1005': errors.PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
+                        '-1008': errors.OperationFailed, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1011': errors.PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
+                        '-1023': errors.BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                        '-1099': errors.AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                        '-1109': errors.PermissionDenied, // {"code":-1109,"msg":"Invalid account."}
+                        '-1110': errors.BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
+                        '-1113': errors.BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
+                        '-1122': errors.BadRequest, // INVALID_SYMBOL_STATUS
+                        '-1126': errors.BadSymbol, // ASSET_NOT_SUPPORTED
+                        '-1136': errors.BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                         //
                         //        2xxx
                         //
-                        '-2012': errors.OperationFailed,
-                        '-2016': errors.OperationRejected,
-                        '-2017': errors.PermissionDenied,
-                        '-2018': errors.InsufficientFunds,
-                        '-2019': errors.InsufficientFunds,
-                        '-2020': errors.OperationFailed,
-                        '-2021': errors.OrderImmediatelyFillable,
-                        '-2022': errors.InvalidOrder,
-                        '-2023': errors.OperationFailed,
-                        '-2024': errors.InsufficientFunds,
-                        '-2025': errors.OperationRejected,
-                        '-2026': errors.InvalidOrder,
-                        '-2027': errors.OperationRejected,
-                        '-2028': errors.OperationRejected,
+                        '-2012': errors.OperationFailed, // CANCEL_ALL_FAIL
+                        '-2016': errors.OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
+                        '-2017': errors.PermissionDenied, // API Keys are locked on this account.
+                        '-2018': errors.InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
+                        '-2019': errors.InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                        '-2020': errors.OperationFailed, // {"code":-2020,"msg":"Unable to fill."}
+                        '-2021': errors.OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
+                        '-2022': errors.InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                        '-2023': errors.OperationFailed, // {"code":-2023,"msg":"User in liquidation mode now."}
+                        '-2024': errors.InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
+                        '-2025': errors.OperationRejected, // {"code":-2025,"msg":"Reach max open order limit."}
+                        '-2026': errors.InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                        '-2027': errors.OperationRejected, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                        '-2028': errors.OperationRejected, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                         //
                         //        4xxx
                         //
-                        '-4063': errors.BadRequest,
-                        '-4064': errors.BadRequest,
-                        '-4065': errors.BadRequest,
-                        '-4066': errors.BadRequest,
-                        '-4069': errors.BadRequest,
-                        '-4070': errors.BadRequest,
-                        '-4071': errors.BadRequest,
-                        '-4072': errors.OperationRejected,
-                        '-4073': errors.BadRequest,
-                        '-4074': errors.OperationRejected,
-                        '-4075': errors.BadRequest,
-                        '-4076': errors.OperationRejected,
-                        '-4077': errors.OperationRejected,
-                        '-4078': errors.OperationFailed,
-                        '-4079': errors.BadRequest,
-                        '-4080': errors.PermissionDenied,
-                        '-4081': errors.BadRequest,
-                        '-4085': errors.BadRequest,
-                        '-4087': errors.PermissionDenied,
-                        '-4088': errors.PermissionDenied,
-                        '-4114': errors.BadRequest,
-                        '-4115': errors.BadRequest,
-                        '-4116': errors.InvalidOrder,
-                        '-4117': errors.OperationRejected,
-                        '-4118': errors.OperationRejected,
-                        '-4131': errors.OperationRejected,
-                        '-4140': errors.BadRequest,
-                        '-4141': errors.OperationRejected,
-                        '-4144': errors.BadSymbol,
-                        '-4164': errors.InvalidOrder,
-                        '-4136': errors.InvalidOrder,
-                        '-4165': errors.BadRequest,
-                        '-4167': errors.BadRequest,
-                        '-4168': errors.BadRequest,
-                        '-4169': errors.OperationRejected,
-                        '-4170': errors.OperationRejected,
-                        '-4171': errors.OperationRejected,
-                        '-4172': errors.OperationRejected,
-                        '-4183': errors.BadRequest,
-                        '-4184': errors.BadRequest,
-                        '-4192': errors.PermissionDenied,
-                        '-4202': errors.PermissionDenied,
-                        '-4203': errors.PermissionDenied,
-                        '-4205': errors.PermissionDenied,
-                        '-4206': errors.PermissionDenied,
-                        '-4208': errors.OperationRejected,
-                        '-4209': errors.OperationRejected,
-                        '-4210': errors.BadRequest,
-                        '-4211': errors.BadRequest,
-                        '-4400': errors.PermissionDenied,
-                        '-4401': errors.PermissionDenied,
-                        '-4402': errors.PermissionDenied,
-                        '-4403': errors.PermissionDenied,
+                        '-4063': errors.BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
+                        '-4064': errors.BadRequest, // INVALID_OPTIONS_TIME_FRAME
+                        '-4065': errors.BadRequest, // INVALID_OPTIONS_AMOUNT
+                        '-4066': errors.BadRequest, // INVALID_OPTIONS_EVENT_TYPE
+                        '-4069': errors.BadRequest, // Position INVALID_OPTIONS_PREMIUM_FEE
+                        '-4070': errors.BadRequest, // Client options id is not valid.
+                        '-4071': errors.BadRequest, // Invalid options direction
+                        '-4072': errors.OperationRejected, // premium fee is not updated, reject order
+                        '-4073': errors.BadRequest, // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                        '-4074': errors.OperationRejected, // Order amount is bigger than upper boundary or less than 0, reject order
+                        '-4075': errors.BadRequest, // output premium fee is less than 0, reject order
+                        '-4076': errors.OperationRejected, // original fee is too much higher than last fee
+                        '-4077': errors.OperationRejected, // place order amount has reached to limit, reject order
+                        '-4078': errors.OperationFailed, // options internal error
+                        '-4079': errors.BadRequest, // invalid options id
+                        '-4080': errors.PermissionDenied, // user not found with id: %s
+                        '-4081': errors.BadRequest, // OPTIONS_NOT_FOUND
+                        '-4085': errors.BadRequest, // Invalid notional limit coefficient
+                        '-4087': errors.PermissionDenied, // User can only place reduce only order
+                        '-4088': errors.PermissionDenied, // User can not place order currently
+                        '-4114': errors.BadRequest, // INVALID_CLIENT_TRAN_ID_LEN
+                        '-4115': errors.BadRequest, // DUPLICATED_CLIENT_TRAN_ID
+                        '-4116': errors.InvalidOrder, // DUPLICATED_CLIENT_ORDER_ID
+                        '-4117': errors.OperationRejected, // STOP_ORDER_TRIGGERING
+                        '-4118': errors.OperationRejected, // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4131': errors.OperationRejected, // The counterparty's best price does not meet the PERCENT_PRICE filter limit
+                        '-4140': errors.BadRequest, // Invalid symbol status for opening position
+                        '-4141': errors.OperationRejected, // Symbol is closed
+                        '-4144': errors.BadSymbol, // Invalid pair
+                        '-4164': errors.InvalidOrder, // {"code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only)."},
+                        '-4136': errors.InvalidOrder, // {"code":-4136,"msg":"Target strategy invalid for orderType TRAILING_STOP_MARKET,closePosition true"}
+                        '-4165': errors.BadRequest, // Invalid time interval
+                        '-4167': errors.BadRequest, // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
+                        '-4168': errors.BadRequest, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
+                        '-4169': errors.OperationRejected, // Unable to adjust Multi-Assets Mode with insufficient margin balance in USDⓈ-M Futures
+                        '-4170': errors.OperationRejected, // Unable to adjust Multi-Assets Mode with open orders in USDⓈ-M Futures
+                        '-4171': errors.OperationRejected, // Adjusted asset mode is currently set and does not need to be adjusted repeatedly
+                        '-4172': errors.OperationRejected, // Unable to adjust Multi-Assets Mode with a negative wallet balance of margin available asset in USDⓈ-M Futures account.
+                        '-4183': errors.BadRequest, // Price is higher than stop price multiplier cap.
+                        '-4184': errors.BadRequest, // Price is lower than stop price multiplier floor.
+                        '-4192': errors.PermissionDenied, // Trade forbidden due to Cooling-off Period.
+                        '-4202': errors.PermissionDenied, // Intermediate Personal Verification is required for adjusting leverage over 20x
+                        '-4203': errors.PermissionDenied, // More than 20x leverage is available one month after account registration.
+                        '-4205': errors.PermissionDenied, // More than 20x leverage is available %s days after Futures account registration.
+                        '-4206': errors.PermissionDenied, // Users in this country has limited adjust leverage.
+                        '-4208': errors.OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
+                        '-4209': errors.OperationRejected, // Leverage adjustment failed. Current symbol max leverage limit is %sx
+                        '-4210': errors.BadRequest, // Stop price is higher than price multiplier cap
+                        '-4211': errors.BadRequest, // Stop price is lower than price multiplier floor
+                        '-4400': errors.PermissionDenied, // Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later.
+                        '-4401': errors.PermissionDenied, // Compliance restricted account permission: can only place reduceOnly order.
+                        '-4402': errors.PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
+                        '-4403': errors.PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
                         //
                         //        5xxx
                         //
-                        '-5021': errors.OrderNotFillable,
-                        '-5022': errors.OrderNotFillable,
-                        '-5024': errors.OperationRejected,
-                        '-5025': errors.OperationRejected,
-                        '-5026': errors.OperationRejected,
-                        '-5027': errors.OperationRejected,
-                        '-5028': errors.BadRequest,
-                        '-5037': errors.BadRequest,
-                        '-5038': errors.BadRequest,
-                        '-5039': errors.BadRequest,
-                        '-5040': errors.BadRequest,
+                        '-5021': errors.OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
+                        '-5022': errors.OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
+                        '-5024': errors.OperationRejected, // Symbol is not in trading status. Order amendment is not permitted.
+                        '-5025': errors.OperationRejected, // Only limit order is supported.
+                        '-5026': errors.OperationRejected, // Exceed maximum modify order limit.
+                        '-5027': errors.OperationRejected, // No need to modify the order.
+                        '-5028': errors.BadRequest, // Timestamp for this request is outside of the ME recvWindow.
+                        '-5037': errors.BadRequest, // Invalid price match
+                        '-5038': errors.BadRequest, // Price match only supports order type: LIMIT, STOP AND TAKE_PROFIT
+                        '-5039': errors.BadRequest, // Invalid self trade prevention mode
+                        '-5040': errors.BadRequest, // The goodTillDate timestamp must be greater than the current time plus 600 seconds and smaller than 253402300799000
                         '-5041': errors.OperationFailed, // No depth matches this BBO order
                     },
                 },
@@ -2115,57 +2165,57 @@ class binance extends binance$1["default"] {
                         //
                         //        1xxx
                         //
-                        '-1005': errors.PermissionDenied,
-                        '-1011': errors.PermissionDenied,
-                        '-1023': errors.BadRequest,
-                        '-1109': errors.AuthenticationError,
-                        '-1110': errors.BadSymbol,
-                        '-1113': errors.BadRequest,
-                        '-1128': errors.BadRequest,
-                        '-1136': errors.BadRequest,
+                        '-1005': errors.PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
+                        '-1011': errors.PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
+                        '-1023': errors.BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                        '-1109': errors.AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                        '-1110': errors.BadSymbol, // {"code":-1110,"msg":"Invalid symbolType."}
+                        '-1113': errors.BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
+                        '-1128': errors.BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                        '-1136': errors.BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                         //
                         //        2xxx
                         //
-                        '-2016': errors.OperationRejected,
-                        '-2018': errors.InsufficientFunds,
-                        '-2019': errors.InsufficientFunds,
-                        '-2020': errors.OperationFailed,
-                        '-2021': errors.OrderImmediatelyFillable,
-                        '-2022': errors.InvalidOrder,
-                        '-2023': errors.OperationFailed,
-                        '-2024': errors.BadRequest,
-                        '-2025': errors.OperationRejected,
-                        '-2026': errors.InvalidOrder,
-                        '-2027': errors.OperationRejected,
-                        '-2028': errors.OperationRejected,
+                        '-2016': errors.OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
+                        '-2018': errors.InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
+                        '-2019': errors.InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                        '-2020': errors.OperationFailed, // {"code":-2020,"msg":"Unable to fill."}
+                        '-2021': errors.OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
+                        '-2022': errors.InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                        '-2023': errors.OperationFailed, // {"code":-2023,"msg":"User in liquidation mode now."}
+                        '-2024': errors.BadRequest, // {"code":-2024,"msg":"Position is not sufficient."}
+                        '-2025': errors.OperationRejected, // {"code":-2025,"msg":"Reach max open order limit."}
+                        '-2026': errors.InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                        '-2027': errors.OperationRejected, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                        '-2028': errors.OperationRejected, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                         //
                         //        4xxx
                         //
-                        '-4086': errors.BadRequest,
-                        '-4087': errors.BadSymbol,
-                        '-4088': errors.BadRequest,
-                        '-4089': errors.PermissionDenied,
-                        '-4090': errors.PermissionDenied,
-                        '-4110': errors.BadRequest,
-                        '-4111': errors.BadRequest,
-                        '-4112': errors.OperationRejected,
-                        '-4113': errors.OperationRejected,
-                        '-4150': errors.OperationRejected,
-                        '-4151': errors.BadRequest,
-                        '-4152': errors.BadRequest,
-                        '-4154': errors.BadRequest,
-                        '-4155': errors.BadRequest,
-                        '-4178': errors.BadRequest,
-                        '-4188': errors.BadRequest,
-                        '-4192': errors.PermissionDenied,
-                        '-4194': errors.PermissionDenied,
-                        '-4195': errors.PermissionDenied,
-                        '-4196': errors.BadRequest,
-                        '-4197': errors.OperationRejected,
-                        '-4198': errors.OperationRejected,
-                        '-4199': errors.BadRequest,
-                        '-4200': errors.PermissionDenied,
-                        '-4201': errors.PermissionDenied,
+                        '-4086': errors.BadRequest, // Invalid price spread threshold.
+                        '-4087': errors.BadSymbol, // Invalid pair
+                        '-4088': errors.BadRequest, // Invalid time interval
+                        '-4089': errors.PermissionDenied, // User can only place reduce only order.
+                        '-4090': errors.PermissionDenied, // User can not place order currently.
+                        '-4110': errors.BadRequest, // clientTranId is not valid
+                        '-4111': errors.BadRequest, // clientTranId is duplicated.
+                        '-4112': errors.OperationRejected, // ReduceOnly Order Failed. Please check your existing position and open orders.
+                        '-4113': errors.OperationRejected, // The counterparty's best price does not meet the PERCENT_PRICE filter limit.
+                        '-4150': errors.OperationRejected, // Leverage reduction is not supported in Isolated Margin Mode with open positions.
+                        '-4151': errors.BadRequest, // Price is higher than stop price multiplier cap.
+                        '-4152': errors.BadRequest, // Price is lower than stop price multiplier floor.
+                        '-4154': errors.BadRequest, // Stop price is higher than price multiplier cap.
+                        '-4155': errors.BadRequest, // Stop price is lower than price multiplier floor
+                        '-4178': errors.BadRequest, // Order's notional must be no smaller than one (unless you choose reduce only)
+                        '-4188': errors.BadRequest, // Timestamp for this request is outside of the ME recvWindow.
+                        '-4192': errors.PermissionDenied, // Trade forbidden due to Cooling-off Period.
+                        '-4194': errors.PermissionDenied, // Intermediate Personal Verification is required for adjusting leverage over 20x.
+                        '-4195': errors.PermissionDenied, // More than 20x leverage is available one month after account registration.
+                        '-4196': errors.BadRequest, // Only limit order is supported.
+                        '-4197': errors.OperationRejected, // No need to modify the order.
+                        '-4198': errors.OperationRejected, // Exceed maximum modify order limit.
+                        '-4199': errors.BadRequest, // Symbol is not in trading status. Order amendment is not permitted.
+                        '-4200': errors.PermissionDenied, // More than 20x leverage is available %s days after Futures account registration.
+                        '-4201': errors.PermissionDenied, // Users in your location/country can only access a maximum leverage of %s
                         '-4202': errors.OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
                     },
                 },
@@ -2174,29 +2224,29 @@ class binance extends binance$1["default"] {
                         //
                         //        1xxx
                         //
-                        '-1003': errors.ExchangeError,
-                        '-1004': errors.ExchangeError,
-                        '-1006': errors.ExchangeError,
-                        '-1007': errors.ExchangeError,
-                        '-1008': errors.RateLimitExceeded,
-                        '-1010': errors.ExchangeError,
-                        '-1013': errors.ExchangeError,
-                        '-1108': errors.ExchangeError,
-                        '-1112': errors.ExchangeError,
-                        '-1114': errors.ExchangeError,
-                        '-1128': errors.BadSymbol,
-                        '-1129': errors.BadSymbol,
-                        '-1131': errors.BadRequest,
+                        '-1003': errors.ExchangeError, // override common
+                        '-1004': errors.ExchangeError, // override common
+                        '-1006': errors.ExchangeError, // override common
+                        '-1007': errors.ExchangeError, // override common
+                        '-1008': errors.RateLimitExceeded, // TOO_MANY_REQUEST
+                        '-1010': errors.ExchangeError, // override common
+                        '-1013': errors.ExchangeError, // override common
+                        '-1108': errors.ExchangeError, // override common
+                        '-1112': errors.ExchangeError, // override common
+                        '-1114': errors.ExchangeError, // override common
+                        '-1128': errors.BadSymbol, // BAD_CONTRACT
+                        '-1129': errors.BadSymbol, // BAD_CURRENCY
+                        '-1131': errors.BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
                         //
                         //        2xxx
                         //
-                        '-2011': errors.ExchangeError,
-                        '-2018': errors.InsufficientFunds,
-                        '-2027': errors.InsufficientFunds,
+                        '-2011': errors.ExchangeError, // override common
+                        '-2018': errors.InsufficientFunds, // BALANCE_NOT_SUFFICIENT
+                        '-2027': errors.InsufficientFunds, // OPTION_MARGIN_NOT_SUFFICIENT
                         //
                         //        3xxx
                         //
-                        '-3029': errors.OperationFailed,
+                        '-3029': errors.OperationFailed, // {"code":-3029,"msg":"Transfer failed."}
                         //
                         //        4xxx
                         //
@@ -2205,158 +2255,158 @@ class binance extends binance$1["default"] {
                         // -4003 inherited
                         // -4004 inherited
                         // -4005 inherited
-                        '-4006': errors.ExchangeError,
-                        '-4007': errors.ExchangeError,
-                        '-4008': errors.ExchangeError,
-                        '-4009': errors.ExchangeError,
-                        '-4010': errors.ExchangeError,
-                        '-4011': errors.ExchangeError,
-                        '-4012': errors.ExchangeError,
+                        '-4006': errors.ExchangeError, // override commons
+                        '-4007': errors.ExchangeError, // override commons
+                        '-4008': errors.ExchangeError, // override commons
+                        '-4009': errors.ExchangeError, // override commons
+                        '-4010': errors.ExchangeError, // override commons
+                        '-4011': errors.ExchangeError, // override commons
+                        '-4012': errors.ExchangeError, // override commons
                         // -4013 inherited
-                        '-4014': errors.ExchangeError,
-                        '-4015': errors.ExchangeError,
-                        '-4016': errors.ExchangeError,
-                        '-4017': errors.ExchangeError,
-                        '-4018': errors.ExchangeError,
-                        '-4019': errors.ExchangeError,
-                        '-4020': errors.ExchangeError,
-                        '-4021': errors.ExchangeError,
-                        '-4022': errors.ExchangeError,
-                        '-4023': errors.ExchangeError,
-                        '-4024': errors.ExchangeError,
-                        '-4025': errors.ExchangeError,
-                        '-4026': errors.ExchangeError,
-                        '-4027': errors.ExchangeError,
-                        '-4028': errors.ExchangeError,
+                        '-4014': errors.ExchangeError, // override commons
+                        '-4015': errors.ExchangeError, // override commons
+                        '-4016': errors.ExchangeError, // override commons
+                        '-4017': errors.ExchangeError, // override commons
+                        '-4018': errors.ExchangeError, // override commons
+                        '-4019': errors.ExchangeError, // override commons
+                        '-4020': errors.ExchangeError, // override commons
+                        '-4021': errors.ExchangeError, // override commons
+                        '-4022': errors.ExchangeError, // override commons
+                        '-4023': errors.ExchangeError, // override commons
+                        '-4024': errors.ExchangeError, // override commons
+                        '-4025': errors.ExchangeError, // override commons
+                        '-4026': errors.ExchangeError, // override commons
+                        '-4027': errors.ExchangeError, // override commons
+                        '-4028': errors.ExchangeError, // override commons
                         // -4029 inherited
                         // -4030 inherited
-                        '-4031': errors.ExchangeError,
-                        '-4032': errors.ExchangeError,
-                        '-4033': errors.ExchangeError,
-                        '-4034': errors.ExchangeError,
-                        '-4035': errors.ExchangeError,
-                        '-4036': errors.ExchangeError,
-                        '-4037': errors.ExchangeError,
-                        '-4038': errors.ExchangeError,
-                        '-4039': errors.ExchangeError,
-                        '-4040': errors.ExchangeError,
-                        '-4041': errors.ExchangeError,
-                        '-4042': errors.ExchangeError,
-                        '-4043': errors.ExchangeError,
-                        '-4044': errors.ExchangeError,
-                        '-4045': errors.ExchangeError,
-                        '-4046': errors.ExchangeError,
-                        '-4047': errors.ExchangeError,
-                        '-4048': errors.ExchangeError,
-                        '-4049': errors.ExchangeError,
-                        '-4050': errors.ExchangeError,
-                        '-4051': errors.ExchangeError,
-                        '-4052': errors.ExchangeError,
-                        '-4053': errors.ExchangeError,
-                        '-4054': errors.ExchangeError,
+                        '-4031': errors.ExchangeError, // override commons
+                        '-4032': errors.ExchangeError, // override commons
+                        '-4033': errors.ExchangeError, // override commons
+                        '-4034': errors.ExchangeError, // override commons
+                        '-4035': errors.ExchangeError, // override commons
+                        '-4036': errors.ExchangeError, // override commons
+                        '-4037': errors.ExchangeError, // override commons
+                        '-4038': errors.ExchangeError, // override commons
+                        '-4039': errors.ExchangeError, // override commons
+                        '-4040': errors.ExchangeError, // override commons
+                        '-4041': errors.ExchangeError, // override commons
+                        '-4042': errors.ExchangeError, // override commons
+                        '-4043': errors.ExchangeError, // override commons
+                        '-4044': errors.ExchangeError, // override commons
+                        '-4045': errors.ExchangeError, // override commons
+                        '-4046': errors.ExchangeError, // override commons
+                        '-4047': errors.ExchangeError, // override commons
+                        '-4048': errors.ExchangeError, // override commons
+                        '-4049': errors.ExchangeError, // override commons
+                        '-4050': errors.ExchangeError, // override commons
+                        '-4051': errors.ExchangeError, // override commons
+                        '-4052': errors.ExchangeError, // override commons
+                        '-4053': errors.ExchangeError, // override commons
+                        '-4054': errors.ExchangeError, // override commons
                         // -4055 inherited
-                        '-4056': errors.ExchangeError,
-                        '-4057': errors.ExchangeError,
-                        '-4058': errors.ExchangeError,
-                        '-4059': errors.ExchangeError,
-                        '-4060': errors.ExchangeError,
-                        '-4061': errors.ExchangeError,
-                        '-4062': errors.ExchangeError,
-                        '-4063': errors.ExchangeError,
-                        '-4064': errors.ExchangeError,
-                        '-4065': errors.ExchangeError,
-                        '-4066': errors.ExchangeError,
-                        '-4067': errors.ExchangeError,
-                        '-4068': errors.ExchangeError,
-                        '-4069': errors.ExchangeError,
-                        '-4070': errors.ExchangeError,
-                        '-4071': errors.ExchangeError,
-                        '-4072': errors.ExchangeError,
-                        '-4073': errors.ExchangeError,
-                        '-4074': errors.ExchangeError,
-                        '-4075': errors.ExchangeError,
-                        '-4076': errors.ExchangeError,
-                        '-4077': errors.ExchangeError,
-                        '-4078': errors.ExchangeError,
-                        '-4079': errors.ExchangeError,
-                        '-4080': errors.ExchangeError,
-                        '-4081': errors.ExchangeError,
-                        '-4082': errors.ExchangeError,
-                        '-4083': errors.ExchangeError,
-                        '-4084': errors.ExchangeError,
-                        '-4085': errors.ExchangeError,
-                        '-4086': errors.ExchangeError,
-                        '-4087': errors.ExchangeError,
-                        '-4088': errors.ExchangeError,
-                        '-4089': errors.ExchangeError,
-                        '-4091': errors.ExchangeError,
-                        '-4092': errors.ExchangeError,
-                        '-4093': errors.ExchangeError,
-                        '-4094': errors.ExchangeError,
-                        '-4095': errors.ExchangeError,
-                        '-4096': errors.ExchangeError,
-                        '-4097': errors.ExchangeError,
-                        '-4098': errors.ExchangeError,
-                        '-4099': errors.ExchangeError,
-                        '-4101': errors.ExchangeError,
-                        '-4102': errors.ExchangeError,
-                        '-4103': errors.ExchangeError,
-                        '-4104': errors.ExchangeError,
-                        '-4105': errors.ExchangeError,
-                        '-4106': errors.ExchangeError,
-                        '-4107': errors.ExchangeError,
-                        '-4108': errors.ExchangeError,
-                        '-4109': errors.ExchangeError,
-                        '-4110': errors.ExchangeError,
-                        '-4112': errors.ExchangeError,
-                        '-4113': errors.ExchangeError,
-                        '-4114': errors.ExchangeError,
-                        '-4115': errors.ExchangeError,
-                        '-4116': errors.ExchangeError,
-                        '-4117': errors.ExchangeError,
-                        '-4118': errors.ExchangeError,
-                        '-4119': errors.ExchangeError,
-                        '-4120': errors.ExchangeError,
-                        '-4121': errors.ExchangeError,
-                        '-4122': errors.ExchangeError,
-                        '-4123': errors.ExchangeError,
-                        '-4124': errors.ExchangeError,
-                        '-4125': errors.ExchangeError,
-                        '-4126': errors.ExchangeError,
-                        '-4127': errors.ExchangeError,
-                        '-4128': errors.ExchangeError,
-                        '-4129': errors.ExchangeError,
-                        '-4130': errors.ExchangeError,
-                        '-4131': errors.ExchangeError,
-                        '-4132': errors.ExchangeError,
-                        '-4133': errors.ExchangeError,
-                        '-4134': errors.ExchangeError,
-                        '-4135': errors.ExchangeError,
-                        '-4136': errors.ExchangeError,
-                        '-4137': errors.ExchangeError,
-                        '-4138': errors.ExchangeError,
-                        '-4139': errors.ExchangeError,
-                        '-4141': errors.ExchangeError,
-                        '-4142': errors.ExchangeError,
-                        '-4143': errors.ExchangeError,
-                        '-4144': errors.ExchangeError,
-                        '-4145': errors.ExchangeError,
-                        '-4146': errors.ExchangeError,
-                        '-4147': errors.ExchangeError,
-                        '-4148': errors.ExchangeError,
-                        '-4149': errors.ExchangeError,
-                        '-4150': errors.ExchangeError,
+                        '-4056': errors.ExchangeError, // override commons
+                        '-4057': errors.ExchangeError, // override commons
+                        '-4058': errors.ExchangeError, // override commons
+                        '-4059': errors.ExchangeError, // override commons
+                        '-4060': errors.ExchangeError, // override commons
+                        '-4061': errors.ExchangeError, // override commons
+                        '-4062': errors.ExchangeError, // override commons
+                        '-4063': errors.ExchangeError, // override commons
+                        '-4064': errors.ExchangeError, // override commons
+                        '-4065': errors.ExchangeError, // override commons
+                        '-4066': errors.ExchangeError, // override commons
+                        '-4067': errors.ExchangeError, // override commons
+                        '-4068': errors.ExchangeError, // override commons
+                        '-4069': errors.ExchangeError, // override commons
+                        '-4070': errors.ExchangeError, // override commons
+                        '-4071': errors.ExchangeError, // override commons
+                        '-4072': errors.ExchangeError, // override commons
+                        '-4073': errors.ExchangeError, // override commons
+                        '-4074': errors.ExchangeError, // override commons
+                        '-4075': errors.ExchangeError, // override commons
+                        '-4076': errors.ExchangeError, // override commons
+                        '-4077': errors.ExchangeError, // override commons
+                        '-4078': errors.ExchangeError, // override commons
+                        '-4079': errors.ExchangeError, // override commons
+                        '-4080': errors.ExchangeError, // override commons
+                        '-4081': errors.ExchangeError, // override commons
+                        '-4082': errors.ExchangeError, // override commons
+                        '-4083': errors.ExchangeError, // override commons
+                        '-4084': errors.ExchangeError, // override commons
+                        '-4085': errors.ExchangeError, // override commons
+                        '-4086': errors.ExchangeError, // override commons
+                        '-4087': errors.ExchangeError, // override commons
+                        '-4088': errors.ExchangeError, // override commons
+                        '-4089': errors.ExchangeError, // override commons
+                        '-4091': errors.ExchangeError, // override commons
+                        '-4092': errors.ExchangeError, // override commons
+                        '-4093': errors.ExchangeError, // override commons
+                        '-4094': errors.ExchangeError, // override commons
+                        '-4095': errors.ExchangeError, // override commons
+                        '-4096': errors.ExchangeError, // override commons
+                        '-4097': errors.ExchangeError, // override commons
+                        '-4098': errors.ExchangeError, // override commons
+                        '-4099': errors.ExchangeError, // override commons
+                        '-4101': errors.ExchangeError, // override commons
+                        '-4102': errors.ExchangeError, // override commons
+                        '-4103': errors.ExchangeError, // override commons
+                        '-4104': errors.ExchangeError, // override commons
+                        '-4105': errors.ExchangeError, // override commons
+                        '-4106': errors.ExchangeError, // override commons
+                        '-4107': errors.ExchangeError, // override commons
+                        '-4108': errors.ExchangeError, // override commons
+                        '-4109': errors.ExchangeError, // override commons
+                        '-4110': errors.ExchangeError, // override commons
+                        '-4112': errors.ExchangeError, // override commons
+                        '-4113': errors.ExchangeError, // override commons
+                        '-4114': errors.ExchangeError, // override commons
+                        '-4115': errors.ExchangeError, // override commons
+                        '-4116': errors.ExchangeError, // override commons
+                        '-4117': errors.ExchangeError, // override commons
+                        '-4118': errors.ExchangeError, // override commons
+                        '-4119': errors.ExchangeError, // override commons
+                        '-4120': errors.ExchangeError, // override commons
+                        '-4121': errors.ExchangeError, // override commons
+                        '-4122': errors.ExchangeError, // override commons
+                        '-4123': errors.ExchangeError, // override commons
+                        '-4124': errors.ExchangeError, // override commons
+                        '-4125': errors.ExchangeError, // override commons
+                        '-4126': errors.ExchangeError, // override commons
+                        '-4127': errors.ExchangeError, // override commons
+                        '-4128': errors.ExchangeError, // override commons
+                        '-4129': errors.ExchangeError, // override commons
+                        '-4130': errors.ExchangeError, // override commons
+                        '-4131': errors.ExchangeError, // override commons
+                        '-4132': errors.ExchangeError, // override commons
+                        '-4133': errors.ExchangeError, // override commons
+                        '-4134': errors.ExchangeError, // override commons
+                        '-4135': errors.ExchangeError, // override commons
+                        '-4136': errors.ExchangeError, // override commons
+                        '-4137': errors.ExchangeError, // override commons
+                        '-4138': errors.ExchangeError, // override commons
+                        '-4139': errors.ExchangeError, // override commons
+                        '-4141': errors.ExchangeError, // override commons
+                        '-4142': errors.ExchangeError, // override commons
+                        '-4143': errors.ExchangeError, // override commons
+                        '-4144': errors.ExchangeError, // override commons
+                        '-4145': errors.ExchangeError, // override commons
+                        '-4146': errors.ExchangeError, // override commons
+                        '-4147': errors.ExchangeError, // override commons
+                        '-4148': errors.ExchangeError, // override commons
+                        '-4149': errors.ExchangeError, // override commons
+                        '-4150': errors.ExchangeError, // override commons
                         //
                         //        2xxxx
                         //
-                        '-20121': errors.ExchangeError,
-                        '-20124': errors.ExchangeError,
-                        '-20130': errors.ExchangeError,
-                        '-20132': errors.ExchangeError,
-                        '-20194': errors.ExchangeError,
-                        '-20195': errors.ExchangeError,
-                        '-20196': errors.ExchangeError,
-                        '-20198': errors.ExchangeError,
+                        '-20121': errors.ExchangeError, // override commons
+                        '-20124': errors.ExchangeError, // override commons
+                        '-20130': errors.ExchangeError, // override commons
+                        '-20132': errors.ExchangeError, // override commons
+                        '-20194': errors.ExchangeError, // override commons
+                        '-20195': errors.ExchangeError, // override commons
+                        '-20196': errors.ExchangeError, // override commons
+                        '-20198': errors.ExchangeError, // override commons
                         '-20204': errors.ExchangeError, // override commons
                     },
                 },
@@ -2365,186 +2415,186 @@ class binance extends binance$1["default"] {
                         //
                         //        10xx General Server or Network Issues
                         //
-                        '-1000': errors.OperationFailed,
-                        '-1001': errors.ExchangeError,
-                        '-1002': errors.PermissionDenied,
-                        '-1003': errors.RateLimitExceeded,
-                        '-1004': errors.BadRequest,
-                        '-1005': errors.PermissionDenied,
-                        '-1006': errors.BadResponse,
-                        '-1007': errors.BadResponse,
-                        '-1008': errors.OperationFailed,
-                        '-1010': errors.ExchangeError,
-                        '-1011': errors.PermissionDenied,
-                        '-1013': errors.ExchangeError,
-                        '-1014': errors.InvalidOrder,
-                        '-1015': errors.InvalidOrder,
-                        '-1016': errors.NotSupported,
-                        '-1020': errors.NotSupported,
-                        '-1021': errors.BadRequest,
-                        '-1022': errors.BadRequest,
-                        '-1023': errors.BadRequest,
-                        '-1099': errors.OperationFailed,
+                        '-1000': errors.OperationFailed, // An unknown error occured while processing the request.
+                        '-1001': errors.ExchangeError, // Internal error; unable to process your request. Please try again.
+                        '-1002': errors.PermissionDenied, // You are not authorized to execute this request.
+                        '-1003': errors.RateLimitExceeded, // Too many requests use the websocket for live updates to avoid polling the API.
+                        '-1004': errors.BadRequest, // This IP is already on the white list.
+                        '-1005': errors.PermissionDenied, // No such IP has been white listed.
+                        '-1006': errors.BadResponse, // An unexpected response was received from the message bus. Execution status unknown.
+                        '-1007': errors.BadResponse, // Timeout waiting for response from backend server. Send status unknown, execution status unknown.
+                        '-1008': errors.OperationFailed, // WS Spot server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1010': errors.ExchangeError, // ERROR_MSG_RECEIVED
+                        '-1011': errors.PermissionDenied, // This IP cannot access this route.
+                        '-1013': errors.ExchangeError, // INVALID_MESSAGE.
+                        '-1014': errors.InvalidOrder, // Unsupported order combination.
+                        '-1015': errors.InvalidOrder, // Too many new orders.
+                        '-1016': errors.NotSupported, // This service is no longer available.
+                        '-1020': errors.NotSupported, // This operation is not supported.
+                        '-1021': errors.BadRequest, // Timestamp for this request is outside of the recvWindow 1000ms ahead of the servers time.
+                        '-1022': errors.BadRequest, // Signature for this request is not valid.
+                        '-1023': errors.BadRequest, // Start time is greater than end time
+                        '-1099': errors.OperationFailed, // WS not found authenticated or authorized
                         //
                         //        11xx Request Issues
                         //
-                        '-1100': errors.BadRequest,
-                        '-1101': errors.BadRequest,
-                        '-1102': errors.BadRequest,
-                        '-1103': errors.BadRequest,
-                        '-1104': errors.BadRequest,
-                        '-1105': errors.BadRequest,
-                        '-1106': errors.BadRequest,
-                        '-1108': errors.BadRequest,
-                        '-1109': errors.BadRequest,
-                        '-1110': errors.BadSymbol,
-                        '-1111': errors.BadRequest,
-                        '-1112': errors.BadRequest,
-                        '-1113': errors.BadRequest,
-                        '-1114': errors.BadRequest,
-                        '-1115': errors.BadRequest,
-                        '-1116': errors.BadRequest,
-                        '-1117': errors.BadRequest,
-                        '-1118': errors.BadRequest,
-                        '-1119': errors.BadRequest,
-                        '-1120': errors.BadRequest,
-                        '-1121': errors.BadSymbol,
-                        '-1125': errors.BadRequest,
-                        '-1127': errors.BadRequest,
-                        '-1128': errors.BadRequest,
-                        '-1130': errors.BadRequest,
-                        '-1131': errors.BadRequest,
-                        '-1134': errors.BadRequest,
-                        '-1136': errors.BadRequest,
-                        '-1145': errors.BadRequest,
-                        '-1151': errors.BadRequest,
+                        '-1100': errors.BadRequest, // Illegal characters found in a parameter.
+                        '-1101': errors.BadRequest, // Too many parameters sent for this endpoint.
+                        '-1102': errors.BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed.
+                        '-1103': errors.BadRequest, // An unknown parameter was sent.
+                        '-1104': errors.BadRequest, // Not all sent parameters were read.
+                        '-1105': errors.BadRequest, // A parameter was empty.
+                        '-1106': errors.BadRequest, // A parameter was sent when not required.
+                        '-1108': errors.BadRequest, // Invalid asset.
+                        '-1109': errors.BadRequest, // Invalid account.
+                        '-1110': errors.BadSymbol, // Invalid symbolType.
+                        '-1111': errors.BadRequest, // Precision is over the maximum defined for this asset.
+                        '-1112': errors.BadRequest, // No orders on book for symbol.
+                        '-1113': errors.BadRequest, // Withdrawal amount must be negative.
+                        '-1114': errors.BadRequest, // TimeInForce parameter sent when not required.
+                        '-1115': errors.BadRequest, // Invalid timeInForce.
+                        '-1116': errors.BadRequest, // Invalid orderType.
+                        '-1117': errors.BadRequest, // Invalid side.
+                        '-1118': errors.BadRequest, // New client order ID was empty.
+                        '-1119': errors.BadRequest, // Original client order ID was empty.
+                        '-1120': errors.BadRequest, // Invalid interval.
+                        '-1121': errors.BadSymbol, // Invalid symbol.
+                        '-1125': errors.BadRequest, // This listenKey does not exist.
+                        '-1127': errors.BadRequest, // Lookup interval is too big.
+                        '-1128': errors.BadRequest, // Combination of optional parameters invalid.
+                        '-1130': errors.BadRequest, // Invalid data sent for a parameter.
+                        '-1131': errors.BadRequest, // WS recvWindow must be less than 60000
+                        '-1134': errors.BadRequest, // WS strategyType was less than 1000000.
+                        '-1136': errors.BadRequest, // Invalid newOrderRespType.
+                        '-1145': errors.BadRequest, // WS cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
+                        '-1151': errors.BadRequest, // WS Symbol is present multiple times in the list.
                         //
                         //        20xx Processing Issues
                         //
-                        '-2010': errors.InvalidOrder,
-                        '-2011': errors.OperationRejected,
-                        '-2013': errors.OrderNotFound,
-                        '-2014': errors.OperationRejected,
-                        '-2015': errors.OperationRejected,
-                        '-2016': errors.OperationFailed,
-                        '-2018': errors.OperationFailed,
-                        '-2019': errors.OperationFailed,
-                        '-2020': errors.OrderNotFillable,
-                        '-2021': errors.OrderImmediatelyFillable,
-                        '-2022': errors.InvalidOrder,
-                        '-2023': errors.OperationFailed,
-                        '-2024': errors.OperationRejected,
-                        '-2025': errors.OperationRejected,
-                        '-2026': errors.InvalidOrder,
-                        '-2027': errors.OperationRejected,
-                        '-2028': errors.OperationRejected,
+                        '-2010': errors.InvalidOrder, // NEW_ORDER_REJECTED
+                        '-2011': errors.OperationRejected, // CANCEL_REJECTED
+                        '-2013': errors.OrderNotFound, // Order does not exist.
+                        '-2014': errors.OperationRejected, // API-key format invalid.
+                        '-2015': errors.OperationRejected, // Invalid API-key, IP, or permissions for action.
+                        '-2016': errors.OperationFailed, // No trading window could be found for the symbol. Try ticker/24hrs instead.
+                        '-2018': errors.OperationFailed, // Balance is insufficient.
+                        '-2019': errors.OperationFailed, // Margin is insufficient.
+                        '-2020': errors.OrderNotFillable, // Unable to fill.
+                        '-2021': errors.OrderImmediatelyFillable, // Order would immediately trigger.
+                        '-2022': errors.InvalidOrder, // ReduceOnly Order is rejected.
+                        '-2023': errors.OperationFailed, // User in liquidation mode now.
+                        '-2024': errors.OperationRejected, // Position is not sufficient.
+                        '-2025': errors.OperationRejected, // Reach max open order limit.
+                        '-2026': errors.InvalidOrder, // This OrderType is not supported when reduceOnly.
+                        '-2027': errors.OperationRejected, // Exceeded the maximum allowable position at current leverage.
+                        '-2028': errors.OperationRejected, // Leverage is smaller than permitted: insufficient margin balance.
                         //
                         //        4xxx Filters and other issues
                         //
-                        '-4000': errors.BadRequest,
-                        '-4001': errors.BadRequest,
-                        '-4002': errors.BadRequest,
-                        '-4003': errors.BadRequest,
-                        '-4004': errors.BadRequest,
-                        '-4005': errors.BadRequest,
-                        '-4006': errors.BadRequest,
-                        '-4007': errors.BadRequest,
-                        '-4008': errors.BadRequest,
-                        '-4009': errors.BadRequest,
-                        '-4010': errors.BadRequest,
-                        '-4011': errors.BadRequest,
-                        '-4012': errors.BadRequest,
-                        '-4013': errors.BadRequest,
-                        '-4014': errors.BadRequest,
-                        '-4015': errors.BadRequest,
-                        '-4016': errors.BadRequest,
-                        '-4017': errors.BadRequest,
-                        '-4018': errors.BadRequest,
-                        '-4019': errors.BadRequest,
-                        '-4020': errors.BadRequest,
-                        '-4021': errors.BadRequest,
-                        '-4022': errors.BadRequest,
-                        '-4023': errors.BadRequest,
-                        '-4024': errors.BadRequest,
-                        '-4025': errors.BadRequest,
-                        '-4026': errors.BadRequest,
-                        '-4027': errors.BadRequest,
-                        '-4028': errors.BadRequest,
-                        '-4029': errors.BadRequest,
-                        '-4030': errors.BadRequest,
-                        '-4031': errors.BadRequest,
-                        '-4032': errors.BadRequest,
-                        '-4033': errors.BadRequest,
-                        '-4044': errors.BadRequest,
-                        '-4045': errors.BadRequest,
-                        '-4046': errors.BadRequest,
-                        '-4047': errors.BadRequest,
-                        '-4048': errors.BadRequest,
-                        '-4049': errors.BadRequest,
-                        '-4050': errors.BadRequest,
-                        '-4051': errors.BadRequest,
-                        '-4052': errors.BadRequest,
-                        '-4053': errors.BadRequest,
-                        '-4054': errors.BadRequest,
-                        '-4055': errors.BadRequest,
-                        '-4056': errors.PermissionDenied,
-                        '-4057': errors.PermissionDenied,
-                        '-4058': errors.BadRequest,
-                        '-4059': errors.BadRequest,
-                        '-4060': errors.BadRequest,
-                        '-4061': errors.InvalidOrder,
-                        '-4062': errors.BadRequest,
-                        '-4063': errors.BadRequest,
-                        '-4064': errors.BadRequest,
-                        '-4065': errors.BadRequest,
-                        '-4066': errors.BadRequest,
-                        '-4067': errors.BadRequest,
-                        '-4068': errors.BadRequest,
-                        '-4069': errors.BadRequest,
-                        '-4070': errors.BadRequest,
-                        '-4071': errors.BadRequest,
-                        '-4072': errors.OperationRejected,
-                        '-4073': errors.BadRequest,
-                        '-4074': errors.BadRequest,
-                        '-4075': errors.BadRequest,
-                        '-4076': errors.OperationRejected,
-                        '-4077': errors.OperationRejected,
-                        '-4078': errors.OperationFailed,
-                        '-4079': errors.BadRequest,
-                        '-4080': errors.PermissionDenied,
-                        '-4081': errors.BadRequest,
-                        '-4082': errors.BadRequest,
-                        '-4083': errors.BadRequest,
-                        '-4084': errors.NotSupported,
-                        '-4085': errors.BadRequest,
-                        '-4086': errors.BadRequest,
-                        '-4087': errors.PermissionDenied,
-                        '-4088': errors.PermissionDenied,
-                        '-4104': errors.BadRequest,
-                        '-4114': errors.BadRequest,
-                        '-4115': errors.BadRequest,
-                        '-4118': errors.OperationRejected,
-                        '-4131': errors.OperationRejected,
-                        '-4135': errors.BadRequest,
-                        '-4137': errors.BadRequest,
-                        '-4138': errors.BadRequest,
-                        '-4139': errors.BadRequest,
-                        '-4140': errors.OrderImmediatelyFillable,
-                        '-4141': errors.BadRequest,
-                        '-4142': errors.OrderImmediatelyFillable,
-                        '-4144': errors.BadSymbol,
-                        '-4161': errors.OperationRejected,
-                        '-4164': errors.InvalidOrder,
-                        '-4165': errors.BadRequest,
-                        '-4183': errors.InvalidOrder,
-                        '-4184': errors.InvalidOrder,
-                        '-4408': errors.InvalidOrder,
+                        '-4000': errors.BadRequest, // Invalid order status.
+                        '-4001': errors.BadRequest, // Price less than 0.
+                        '-4002': errors.BadRequest, // Price greater than max price.
+                        '-4003': errors.BadRequest, // Quantity less than zero.
+                        '-4004': errors.BadRequest, // Quantity less than min quantity.
+                        '-4005': errors.BadRequest, // Quantity greater than max quantity.
+                        '-4006': errors.BadRequest, // Stop price less than zero.
+                        '-4007': errors.BadRequest, // Stop price greater than max price.
+                        '-4008': errors.BadRequest, // Tick size less than zero.
+                        '-4009': errors.BadRequest, // Max price less than min price.
+                        '-4010': errors.BadRequest, // Max qty less than min qty.
+                        '-4011': errors.BadRequest, // Step size less than zero.
+                        '-4012': errors.BadRequest, // Max mum orders less than zero.
+                        '-4013': errors.BadRequest, // Price less than min price.
+                        '-4014': errors.BadRequest, // Price not increased by tick size.
+                        '-4015': errors.BadRequest, // Client order id is not valid.
+                        '-4016': errors.BadRequest, // Price is higher than mark price multiplier cap.
+                        '-4017': errors.BadRequest, // Multiplier up less than zero.
+                        '-4018': errors.BadRequest, // Multiplier down less than zero.
+                        '-4019': errors.BadRequest, // Composite scale too large.
+                        '-4020': errors.BadRequest, // Target strategy invalid for orderType '%s',reduceOnly '%b'.
+                        '-4021': errors.BadRequest, // Invalid depth limit.
+                        '-4022': errors.BadRequest, // market status sent is not valid.
+                        '-4023': errors.BadRequest, // Qty not increased by step size.
+                        '-4024': errors.BadRequest, // Price is lower than mark price multiplier floor.
+                        '-4025': errors.BadRequest, // Multiplier decimal less than zero.
+                        '-4026': errors.BadRequest, // Commission invalid.
+                        '-4027': errors.BadRequest, // Invalid account type.
+                        '-4028': errors.BadRequest, // Invalid leverage
+                        '-4029': errors.BadRequest, // Tick size precision is invalid.
+                        '-4030': errors.BadRequest, // Step size precision is invalid.
+                        '-4031': errors.BadRequest, // Invalid parameter working type
+                        '-4032': errors.BadRequest, // Exceed maximum cancel order size.
+                        '-4033': errors.BadRequest, // Insurance account not found.
+                        '-4044': errors.BadRequest, // Balance Type is invalid.
+                        '-4045': errors.BadRequest, // Reach max stop order limit.
+                        '-4046': errors.BadRequest, // No need to change margin type.
+                        '-4047': errors.BadRequest, // Margin type cannot be changed if there exists open orders.
+                        '-4048': errors.BadRequest, // Margin type cannot be changed if there exists position.
+                        '-4049': errors.BadRequest, // Add margin only support for isolated position.
+                        '-4050': errors.BadRequest, // Cross balance insufficient.
+                        '-4051': errors.BadRequest, // Isolated balance insufficient.
+                        '-4052': errors.BadRequest, // No need to change auto add margin.
+                        '-4053': errors.BadRequest, // Auto add margin only support for isolated position.
+                        '-4054': errors.BadRequest, // Cannot add position margin: position is 0.
+                        '-4055': errors.BadRequest, // Amount must be positive.
+                        '-4056': errors.PermissionDenied, // Invalid api key type.
+                        '-4057': errors.PermissionDenied, // Invalid api public key
+                        '-4058': errors.BadRequest, // maxPrice and priceDecimal too large,please check.
+                        '-4059': errors.BadRequest, // No need to change position side.
+                        '-4060': errors.BadRequest, // Invalid position side.
+                        '-4061': errors.InvalidOrder, // Order's position side does not match user's setting.
+                        '-4062': errors.BadRequest, // Invalid or improper reduceOnly value.
+                        '-4063': errors.BadRequest, // Invalid options request type
+                        '-4064': errors.BadRequest, // Invalid options time frame
+                        '-4065': errors.BadRequest, // Invalid options amount
+                        '-4066': errors.BadRequest, // Invalid options event type
+                        '-4067': errors.BadRequest, // Position side cannot be changed if there exists open orders.
+                        '-4068': errors.BadRequest, // Position side cannot be changed if there exists position.
+                        '-4069': errors.BadRequest, // Invalid options premium fee
+                        '-4070': errors.BadRequest, // Client options id is not valid.
+                        '-4071': errors.BadRequest, // Invalid options direction
+                        '-4072': errors.OperationRejected, // premium fee is not updated, reject order
+                        '-4073': errors.BadRequest, // input premium fee is less than 0, reject order
+                        '-4074': errors.BadRequest, // Order amount is bigger than upper boundary or less than 0, reject order
+                        '-4075': errors.BadRequest, // output premium fee is less than 0, reject order
+                        '-4076': errors.OperationRejected, // original fee is too much higher than last fee
+                        '-4077': errors.OperationRejected, // place order amount has reached to limit, reject order
+                        '-4078': errors.OperationFailed, // options internal error
+                        '-4079': errors.BadRequest, // invalid options id
+                        '-4080': errors.PermissionDenied, // user not found
+                        '-4081': errors.BadRequest, // options not found
+                        '-4082': errors.BadRequest, // Invalid number of batch place orders.
+                        '-4083': errors.BadRequest, // Fail to place batch orders.
+                        '-4084': errors.NotSupported, // Method is not allowed currently. Upcoming soon.
+                        '-4085': errors.BadRequest, // Invalid notional limit coefficient
+                        '-4086': errors.BadRequest, // Invalid price spread threshold
+                        '-4087': errors.PermissionDenied, // User can only place reduce only order
+                        '-4088': errors.PermissionDenied, // User can not place order currently
+                        '-4104': errors.BadRequest, // Invalid contract type
+                        '-4114': errors.BadRequest, // clientTranId is not valid
+                        '-4115': errors.BadRequest, // clientTranId is duplicated
+                        '-4118': errors.OperationRejected, // ReduceOnly Order Failed. Please check your existing position and open orders
+                        '-4131': errors.OperationRejected, // The counterparty's best price does not meet the PERCENT_PRICE filter limit
+                        '-4135': errors.BadRequest, // Invalid activation price
+                        '-4137': errors.BadRequest, // Quantity must be zero with closePosition equals true
+                        '-4138': errors.BadRequest, // Reduce only must be true with closePosition equals true
+                        '-4139': errors.BadRequest, // Order type can not be market if it's unable to cancel
+                        '-4140': errors.OrderImmediatelyFillable, // Invalid symbol status for opening position
+                        '-4141': errors.BadRequest, // Symbol is closed
+                        '-4142': errors.OrderImmediatelyFillable, // REJECT: take profit or stop order will be triggered immediately
+                        '-4144': errors.BadSymbol, // Invalid pair
+                        '-4161': errors.OperationRejected, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164': errors.InvalidOrder, // Order's notional must be no smaller than 5.0 (unless you choose reduce only)
+                        '-4165': errors.BadRequest, // Invalid time interval
+                        '-4183': errors.InvalidOrder, // Price is higher than stop price multiplier cap.
+                        '-4184': errors.InvalidOrder, // Price is lower than stop price multiplier floor.
+                        '-4408': errors.InvalidOrder, // This symbol is in reduce only mode due to regulation requirements. Please upgrade to Binance Credits Trading Mode.
                         //
                         //        5xxx Order Execution Issues
                         //
-                        '-5021': errors.OrderNotFillable,
-                        '-5022': errors.OrderNotFillable,
-                        '-5028': errors.OperationFailed,
+                        '-5021': errors.OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
+                        '-5022': errors.OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
+                        '-5028': errors.OperationFailed, // The requested timestamp is outside the recvWindow of the matching engine
                         '-5041': errors.RateLimitExceeded, // Time out for too many requests from this account queueing at the same time.
                     },
                 },
@@ -2553,158 +2603,158 @@ class binance extends binance$1["default"] {
                     //
                     //        1xxx
                     //
-                    '-1000': errors.OperationFailed,
-                    '-1001': errors.OperationFailed,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.OperationRejected,
-                    '-1006': errors.OperationFailed,
-                    '-1007': errors.RequestTimeout,
-                    '-1010': errors.OperationFailed,
-                    '-1013': errors.BadRequest,
-                    '-1014': errors.InvalidOrder,
-                    '-1015': errors.RateLimitExceeded,
-                    '-1016': errors.BadRequest,
-                    '-1020': errors.BadRequest,
-                    '-1021': errors.InvalidNonce,
-                    '-1022': errors.AuthenticationError,
-                    '-1100': errors.BadRequest,
-                    '-1101': errors.BadRequest,
-                    '-1102': errors.BadRequest,
-                    '-1103': errors.BadRequest,
-                    '-1104': errors.BadRequest,
-                    '-1105': errors.BadRequest,
-                    '-1106': errors.BadRequest,
-                    '-1108': errors.BadSymbol,
-                    '-1111': errors.BadRequest,
-                    '-1112': errors.OperationFailed,
-                    '-1114': errors.BadRequest,
-                    '-1115': errors.BadRequest,
-                    '-1116': errors.BadRequest,
-                    '-1117': errors.BadRequest,
-                    '-1118': errors.BadRequest,
-                    '-1119': errors.BadRequest,
-                    '-1120': errors.BadRequest,
-                    '-1121': errors.BadSymbol,
-                    '-1125': errors.AuthenticationError,
-                    '-1127': errors.BadRequest,
-                    '-1128': errors.BadRequest,
-                    '-1130': errors.BadRequest,
+                    '-1000': errors.OperationFailed, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1001': errors.OperationFailed, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
+                    '-1002': errors.AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
+                    '-1003': errors.RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
+                    '-1004': errors.OperationRejected, // DUPLICATE_IP : This IP is already on the white list
+                    '-1006': errors.OperationFailed, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
+                    '-1007': errors.RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    '-1010': errors.OperationFailed, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
+                    '-1013': errors.BadRequest, // INVALID_MESSAGE
+                    '-1014': errors.InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
+                    '-1015': errors.RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
+                    '-1016': errors.BadRequest, // {"code":-1016,"msg":"'This service is no longer available.',"}
+                    '-1020': errors.BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
+                    '-1021': errors.InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
+                    '-1022': errors.AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1100': errors.BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
+                    '-1101': errors.BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
+                    '-1102': errors.BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
+                    '-1103': errors.BadRequest, // {"code":-1103,"msg":"An unknown parameter was sent."}
+                    '-1104': errors.BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
+                    '-1105': errors.BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
+                    '-1106': errors.BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                    '-1108': errors.BadSymbol, // {"code":-1108,"msg":"Invalid asset."}
+                    '-1111': errors.BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
+                    '-1112': errors.OperationFailed, // {"code":-1112,"msg":"No orders on book for symbol."}
+                    '-1114': errors.BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
+                    '-1115': errors.BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116': errors.BadRequest, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': errors.BadRequest, // {"code":-1117,"msg":"Invalid side."}
+                    '-1118': errors.BadRequest, // {"code":-1118,"msg":"New client order ID was empty."}
+                    '-1119': errors.BadRequest, // {"code":-1119,"msg":"Original client order ID was empty."}
+                    '-1120': errors.BadRequest, // {"code":-1120,"msg":"Invalid interval."}
+                    '-1121': errors.BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
+                    '-1125': errors.AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
+                    '-1127': errors.BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                    '-1128': errors.BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                    '-1130': errors.BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                     //
                     //        2xxx
                     //
-                    '-2010': errors.InvalidOrder,
-                    '-2011': errors.OrderNotFound,
-                    '-2013': errors.OrderNotFound,
-                    '-2014': errors.AuthenticationError,
-                    '-2015': errors.AuthenticationError,
+                    '-2010': errors.InvalidOrder, // NEW_ORDER_REJECTED
+                    '-2011': errors.OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
+                    '-2013': errors.OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
+                    '-2014': errors.AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
+                    '-2015': errors.AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     //
                     //        4xxx (common for linear, inverse, pm)
                     //
-                    '-4000': errors.InvalidOrder,
-                    '-4001': errors.BadRequest,
-                    '-4002': errors.BadRequest,
-                    '-4003': errors.BadRequest,
-                    '-4004': errors.BadRequest,
-                    '-4005': errors.BadRequest,
-                    '-4006': errors.BadRequest,
-                    '-4007': errors.BadRequest,
-                    '-4008': errors.BadRequest,
-                    '-4009': errors.BadRequest,
-                    '-4010': errors.BadRequest,
-                    '-4011': errors.BadRequest,
-                    '-4012': errors.BadRequest,
-                    '-4013': errors.BadRequest,
-                    '-4014': errors.BadRequest,
-                    '-4015': errors.BadRequest,
-                    '-4016': errors.BadRequest,
-                    '-4017': errors.BadRequest,
-                    '-4018': errors.BadRequest,
-                    '-4019': errors.OperationRejected,
-                    '-4020': errors.BadRequest,
-                    '-4021': errors.BadRequest,
-                    '-4022': errors.BadRequest,
-                    '-4023': errors.BadRequest,
-                    '-4024': errors.BadRequest,
-                    '-4025': errors.BadRequest,
-                    '-4026': errors.BadRequest,
-                    '-4027': errors.BadRequest,
-                    '-4028': errors.BadRequest,
-                    '-4029': errors.BadRequest,
-                    '-4030': errors.BadRequest,
-                    '-4031': errors.BadRequest,
-                    '-4032': errors.OperationRejected,
-                    '-4033': errors.BadRequest,
-                    '-4044': errors.BadRequest,
-                    '-4045': errors.OperationRejected,
-                    '-4046': errors.OperationRejected,
-                    '-4047': errors.OperationRejected,
-                    '-4048': errors.OperationRejected,
-                    '-4049': errors.BadRequest,
-                    '-4050': errors.InsufficientFunds,
-                    '-4051': errors.InsufficientFunds,
-                    '-4052': errors.OperationRejected,
-                    '-4053': errors.BadRequest,
-                    '-4054': errors.OperationRejected,
-                    '-4055': errors.BadRequest,
-                    '-4056': errors.AuthenticationError,
-                    '-4057': errors.AuthenticationError,
-                    '-4058': errors.BadRequest,
-                    '-4059': errors.OperationRejected,
-                    '-4060': errors.BadRequest,
-                    '-4061': errors.OperationRejected,
-                    '-4062': errors.BadRequest,
-                    '-4067': errors.OperationRejected,
-                    '-4068': errors.OperationRejected,
-                    '-4082': errors.BadRequest,
-                    '-4083': errors.OperationRejected,
-                    '-4084': errors.BadRequest,
-                    '-4086': errors.BadRequest,
-                    '-4104': errors.BadRequest,
-                    '-4135': errors.BadRequest,
-                    '-4137': errors.BadRequest,
-                    '-4138': errors.BadRequest,
-                    '-4139': errors.BadRequest,
-                    '-4142': errors.OrderImmediatelyFillable,
+                    '-4000': errors.InvalidOrder, // INVALID_ORDER_STATUS
+                    '-4001': errors.BadRequest, // PRICE_LESS_THAN_ZERO
+                    '-4002': errors.BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
+                    '-4003': errors.BadRequest, // QTY_LESS_THAN_ZERO
+                    '-4004': errors.BadRequest, // QTY_LESS_THAN_MIN_QTY
+                    '-4005': errors.BadRequest, // QTY_GREATER_THAN_MAX_QTY
+                    '-4006': errors.BadRequest, // STOP_PRICE_LESS_THAN_ZERO
+                    '-4007': errors.BadRequest, // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                    '-4008': errors.BadRequest, // TICK SIZE LESS THAN ZERO
+                    '-4009': errors.BadRequest, // MAX_PRICE_LESS_THAN_MIN_PRICE
+                    '-4010': errors.BadRequest, // MAX_QTY_LESS_THAN_MIN_QTY
+                    '-4011': errors.BadRequest, // STEP_SIZE_LESS_THAN_ZERO
+                    '-4012': errors.BadRequest, // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                    '-4013': errors.BadRequest, // PRICE_LESS_THAN_MIN_PRICE
+                    '-4014': errors.BadRequest, // PRICE NOT INCREASED BY TICK SIZE
+                    '-4015': errors.BadRequest, // Client order id is not valid
+                    '-4016': errors.BadRequest, // Price is higher than mark price multiplier cap.
+                    '-4017': errors.BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
+                    '-4018': errors.BadRequest, // MULTIPLIER_DOWN_LESS_THAN_ZERO
+                    '-4019': errors.OperationRejected, // COMPOSITE_SCALE_OVERFLOW
+                    '-4020': errors.BadRequest, // TARGET_STRATEGY_INVALID
+                    '-4021': errors.BadRequest, // INVALID_DEPTH_LIMIT
+                    '-4022': errors.BadRequest, // WRONG_MARKET_STATUS
+                    '-4023': errors.BadRequest, // QTY_NOT_INCREASED_BY_STEP_SIZE
+                    '-4024': errors.BadRequest, // PRICE_LOWER_THAN_MULTIPLIER_DOWN
+                    '-4025': errors.BadRequest, // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
+                    '-4026': errors.BadRequest, // COMMISSION_INVALID
+                    '-4027': errors.BadRequest, // INVALID_ACCOUNT_TYPE
+                    '-4028': errors.BadRequest, // INVALID_LEVERAGE
+                    '-4029': errors.BadRequest, // INVALID_TICK SIZE_PRECISION
+                    '-4030': errors.BadRequest, // INVALID_STEP_SIZE_PRECISION
+                    '-4031': errors.BadRequest, // INVALID_WORKING_TYPE
+                    '-4032': errors.OperationRejected, // EXCEED_MAX_CANCEL_ORDER_SIZE (or Invalid parameter working type: %s)
+                    '-4033': errors.BadRequest, // INSURANCE_ACCOUNT_NOT_FOUND
+                    '-4044': errors.BadRequest, // INVALID_BALANCE_TYPE
+                    '-4045': errors.OperationRejected, // MAX_STOP_ORDER_EXCEEDED
+                    '-4046': errors.OperationRejected, // NO_NEED_TO_CHANGE_MARGIN_TYPE
+                    '-4047': errors.OperationRejected, // Margin type cannot be changed if there exists open orders.
+                    '-4048': errors.OperationRejected, // Margin type cannot be changed if there exists position.
+                    '-4049': errors.BadRequest, // Add margin only support for isolated position.
+                    '-4050': errors.InsufficientFunds, // Cross balance insufficient
+                    '-4051': errors.InsufficientFunds, // Isolated balance insufficient.
+                    '-4052': errors.OperationRejected, // No need to change auto add margin.
+                    '-4053': errors.BadRequest, // Auto add margin only support for isolated position.
+                    '-4054': errors.OperationRejected, // Cannot add position margin: position is 0.
+                    '-4055': errors.BadRequest, // Amount must be positive.
+                    '-4056': errors.AuthenticationError, // INVALID_API_KEY_TYPE
+                    '-4057': errors.AuthenticationError, // INVALID_RSA_PUBLIC_KEY: Invalid api public key
+                    '-4058': errors.BadRequest, // MAX_PRICE_TOO_LARGE
+                    '-4059': errors.OperationRejected, // NO_NEED_TO_CHANGE_POSITION_SIDE
+                    '-4060': errors.BadRequest, // INVALID_POSITION_SIDE
+                    '-4061': errors.OperationRejected, // POSITION_SIDE_NOT_MATCH: Order's position side does not match user's setting.
+                    '-4062': errors.BadRequest, // REDUCE_ONLY_CONFLICT: Invalid or improper reduceOnly value.
+                    '-4067': errors.OperationRejected, // Position side cannot be changed if there exists open orders.
+                    '-4068': errors.OperationRejected, // Position side cannot be changed if there exists position.
+                    '-4082': errors.BadRequest, // Invalid number of batch place orders.
+                    '-4083': errors.OperationRejected, // PLACE_BATCH_ORDERS_FAIL : Fail to place batch orders.
+                    '-4084': errors.BadRequest, // UPCOMING_METHOD : Method is not allowed currently. Upcoming soon.
+                    '-4086': errors.BadRequest, // Invalid price spread threshold.
+                    '-4104': errors.BadRequest, // INVALID_CONTRACT_TYPE
+                    '-4135': errors.BadRequest, // Invalid activation price
+                    '-4137': errors.BadRequest, // Quantity must be zero with closePosition equals true
+                    '-4138': errors.BadRequest, // Reduce only must be true with closePosition equals true
+                    '-4139': errors.BadRequest, // Order type can not be market if it's unable to cancel
+                    '-4142': errors.OrderImmediatelyFillable, // REJECT: take profit or stop order will be triggered immediately
                     //
                     //        2xxxx
                     //
                     // 20xxx - spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                    '-20121': errors.BadSymbol,
-                    '-20124': errors.BadRequest,
-                    '-20130': errors.BadRequest,
-                    '-20132': errors.BadRequest,
-                    '-20194': errors.BadRequest,
-                    '-20195': errors.BadRequest,
-                    '-20196': errors.BadRequest,
-                    '-20198': errors.OperationRejected,
-                    '-20204': errors.BadRequest,
+                    '-20121': errors.BadSymbol, // Invalid symbol.
+                    '-20124': errors.BadRequest, // Invalid algo id or it has been completed.
+                    '-20130': errors.BadRequest, // Invalid data sent for a parameter
+                    '-20132': errors.BadRequest, // The client algo id is duplicated
+                    '-20194': errors.BadRequest, // Duration is too short to execute all required quantity.
+                    '-20195': errors.BadRequest, // The total size is too small.
+                    '-20196': errors.BadRequest, // The total size is too large.
+                    '-20198': errors.OperationRejected, // Reach the max open orders allowed.
+                    '-20204': errors.BadRequest, // The notional of USD is less or more than the limit.
                     //
                     // strings
                     //
-                    'System is under maintenance.': errors.OnMaintenance,
-                    'System abnormality': errors.OperationFailed,
-                    'You are not authorized to execute this request.': errors.PermissionDenied,
+                    'System is under maintenance.': errors.OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
+                    'System abnormality': errors.OperationFailed, // {"code":-1000,"msg":"System abnormality"}
+                    'You are not authorized to execute this request.': errors.PermissionDenied, // {"msg":"You are not authorized to execute this request."}
                     'API key does not exist': errors.AuthenticationError,
                     'Order would trigger immediately.': errors.OrderImmediatelyFillable,
-                    'Stop price would trigger immediately.': errors.OrderImmediatelyFillable,
-                    'Order would immediately match and take.': errors.OrderImmediatelyFillable,
+                    'Stop price would trigger immediately.': errors.OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
+                    'Order would immediately match and take.': errors.OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
                     'Account has insufficient balance for requested action.': errors.InsufficientFunds,
                     'Rest API trading is not enabled.': errors.PermissionDenied,
                     'This account may not place or cancel orders.': errors.PermissionDenied,
-                    "You don't have permission.": errors.PermissionDenied,
-                    'Market is closed.': errors.MarketClosed,
-                    'Too many requests. Please try again later.': errors.RateLimitExceeded,
-                    'This action is disabled on this account.': errors.AccountSuspended,
+                    "You don't have permission.": errors.PermissionDenied, // {"msg":"You don't have permission.","success":false}
+                    'Market is closed.': errors.MarketClosed, // {"code":-1013,"msg":"Market is closed."}
+                    'Too many requests. Please try again later.': errors.RateLimitExceeded, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action is disabled on this account.': errors.AccountSuspended, // {"code":-2011,"msg":"This action is disabled on this account."}
                     'Limit orders require GTC for this phase.': errors.BadRequest,
                     'This order type is not possible in this trading phase.': errors.BadRequest,
-                    'This type of sub-account exceeds the maximum number limit': errors.OperationRejected,
+                    'This type of sub-account exceeds the maximum number limit': errors.OperationRejected, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
                     'This symbol is restricted for this account.': errors.PermissionDenied,
                     'This symbol is not permitted for this account.': errors.PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
                 },
                 'broad': {
                     'has no operation privilege': errors.PermissionDenied,
-                    'MAX_POSITION': errors.BadRequest,
+                    'MAX_POSITION': errors.BadRequest, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                     'PERCENT_PRICE_BY_SIDE': errors.InvalidOrder, // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
@@ -3098,7 +3148,7 @@ class binance extends binance$1["default"] {
             const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
             const depositEnable = this.safeBool(networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool(networkItem, 'withdrawEnable');
-            fees[network] = withdrawFee;
+            fees[networkCode] = withdrawFee;
             this.safeBool(networkItem, 'isDefault');
             // todo: default networks in "setMarkets" overload
             // if (isDefault) {
@@ -3727,7 +3777,7 @@ class binance extends binance$1["default"] {
             }
         }
         else if (isolated) {
-            const assets = this.safeList(response, 'assets');
+            const assets = this.safeList(response, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const marketId = this.safeString(asset, 'symbol');
@@ -3810,7 +3860,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
         let type = this.safeString(params, 'type', defaultType);
         let subType = undefined;
@@ -4076,10 +4128,12 @@ class binance extends binance$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4327,7 +4381,7 @@ class binance extends binance$1["default"] {
             'open': this.safeString2(ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
-            'previousClose': this.safeString(ticker, 'prevClosePrice'),
+            'previousClose': this.safeString(ticker, 'prevClosePrice'), // previous day close
             'change': this.safeString(ticker, 'priceChange'),
             'percentage': this.safeString(ticker, 'priceChangePercent'),
             'average': undefined,
@@ -4378,7 +4432,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4422,7 +4478,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
@@ -4461,7 +4519,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
@@ -4567,7 +4627,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
@@ -4632,7 +4694,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchMarkPrice', market, params, 'swap');
@@ -4668,7 +4732,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
@@ -4775,7 +4841,9 @@ class binance extends binance$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -5190,7 +5258,9 @@ class binance extends binance$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -5323,7 +5393,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editSpotOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
@@ -5510,6 +5582,10 @@ class binance extends binance$1["default"] {
         return this.extend(request, params);
     }
     editContractOrderRequest(id, symbol, type, side, amount, price = undefined, params = {}) {
+        if ((price === undefined) && !('priceMatch' in params)) {
+            // moved here from editContractOrder for warning in case of calling editOrderWs() without price argument for swap orders
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() and editOrderWs() require a price argument for swap orders');
+        }
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.NotSupported(this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
@@ -5549,15 +5625,12 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editContractOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'editContractOrder', 'papi', 'portfolioMargin', false);
-        if (market['linear'] || isPortfolioMargin) {
-            if ((price === undefined) && !('priceMatch' in params)) {
-                throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a price argument for portfolio margin and linear orders');
-            }
-        }
         const request = this.editContractOrderRequest(id, symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['linear']) {
@@ -5622,7 +5695,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['option']) {
             throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders');
@@ -5645,7 +5720,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         let orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
@@ -5729,7 +5806,7 @@ class binance extends binance$1["default"] {
             'FINISHED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
-            'PENDING_CANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
             'EXPIRED_IN_MATCH': 'expired',
@@ -6373,7 +6450,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         let orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
@@ -6485,7 +6564,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         // don't handle/omit params here, omitting happens inside createOrderRequest
         const marketType = this.safeString(params, 'type', market['type']);
@@ -6548,7 +6629,13 @@ class binance extends binance$1["default"] {
                 }
             }
             else {
-                response = await this.dapiPrivatePostOrder(request);
+                if (isConditional) {
+                    request['algoType'] = 'CONDITIONAL';
+                    response = await this.dapiPrivatePostAlgoOrder(request);
+                }
+                else {
+                    response = await this.dapiPrivatePostOrder(request);
+                }
             }
         }
         else if (marketType === 'margin' || marginMode !== undefined || isPortfolioMargin) {
@@ -6881,7 +6968,7 @@ class binance extends binance$1["default"] {
                 }
             }
             if (stopPrice !== undefined) {
-                if (market['linear'] && market['swap'] && !isPortfolioMargin) {
+                if (market['swap'] && !isPortfolioMargin) {
                     request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
                 }
                 else {
@@ -6911,9 +6998,10 @@ class binance extends binance$1["default"] {
         let selfTradePrevention = undefined;
         [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
-            if (market['spot']) {
-                request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            if (market['inverse'] && this.options['warnOnSTPForInverse']) {
+                throw new errors.NotSupported(this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the "warnOnSTPForInverse" option to false.');
             }
+            request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         const icebergAmount = this.safeNumber(params, 'icebergAmount');
@@ -6937,7 +7025,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketOrderWithCost() supports spot orders only');
@@ -6958,7 +7048,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -6979,7 +7071,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
@@ -7011,7 +7105,9 @@ class binance extends binance$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const defaultType = this.safeString2(this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString(params, 'type', defaultType);
@@ -7112,7 +7208,9 @@ class binance extends binance$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -7393,7 +7491,9 @@ class binance extends binance$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let type = undefined;
         const request = {};
@@ -7457,7 +7557,12 @@ class binance extends binance$1["default"] {
                 }
             }
             else {
-                response = await this.dapiPrivateGetOpenOrders(this.extend(request, params));
+                if (isConditional) {
+                    response = await this.dapiPrivateGetOpenAlgoOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.dapiPrivateGetOpenOrders(this.extend(request, params));
+                }
             }
         }
         else if (type === 'margin' || marginMode !== undefined || isPortfolioMargin) {
@@ -7500,7 +7605,9 @@ class binance extends binance$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -7816,7 +7923,9 @@ class binance extends binance$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const defaultType = this.safeString2(this.options, 'cancelOrder', 'defaultType', 'spot');
         const type = this.safeString(params, 'type', defaultType);
@@ -7833,7 +7942,7 @@ class binance extends binance$1["default"] {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
             }
-            else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            else if (market['swap'] && isConditional && !isPortfolioMargin) {
                 request['clientAlgoId'] = clientOrderId;
             }
             else {
@@ -7849,7 +7958,7 @@ class binance extends binance$1["default"] {
             if (isPortfolioMargin && isConditional) {
                 request['strategyId'] = id;
             }
-            else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            else if (market['swap'] && isConditional && !isPortfolioMargin) {
                 request['algoId'] = id;
             }
             else {
@@ -7889,7 +7998,12 @@ class binance extends binance$1["default"] {
                 }
             }
             else {
-                response = await this.dapiPrivateDeleteOrder(this.extend(request, params));
+                if (isConditional) {
+                    response = await this.dapiPrivateDeleteAlgoOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.dapiPrivateDeleteOrder(this.extend(request, params));
+                }
             }
         }
         else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
@@ -7934,7 +8048,9 @@ class binance extends binance$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -8116,7 +8232,9 @@ class binance extends binance$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.BadRequest(this.id + ' cancelOrders is only supported for swap markets.');
@@ -8196,7 +8314,9 @@ class binance extends binance$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const type = this.safeString(params, 'type', market['type']);
         params = this.omit(params, 'type');
@@ -8229,7 +8349,9 @@ class binance extends binance$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -8254,7 +8376,7 @@ class binance extends binance$1["default"] {
             const currentTimestamp = this.milliseconds();
             const oneWeek = 7 * 24 * 60 * 60 * 1000;
             if ((currentTimestamp - startTime) >= oneWeek) {
-                if ((endTime === undefined) && market['linear']) {
+                if ((endTime === undefined) && this.safeBool(market, 'linear')) {
                     endTime = this.sum(startTime, oneWeek);
                     endTime = Math.min(endTime, currentTimestamp);
                 }
@@ -8265,7 +8387,7 @@ class binance extends binance$1["default"] {
             params = this.omit(params, ['endTime', 'until']);
         }
         if (limit !== undefined) {
-            if ((type === 'option') || market['contract']) {
+            if ((type === 'option') || this.safeBool(market, 'contract')) {
                 limit = Math.min(limit, 1000); // above 1000, returns error
             }
             request['limit'] = limit;
@@ -8295,7 +8417,7 @@ class binance extends binance$1["default"] {
                     response = await this.privateGetMyTrades(this.extend(request, params));
                 }
             }
-            else if (market['linear']) {
+            else if (this.safeBool(market, 'linear')) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetUmUserTrades(this.extend(request, params));
                 }
@@ -8303,7 +8425,7 @@ class binance extends binance$1["default"] {
                     response = await this.fapiPrivateGetUserTrades(this.extend(request, params));
                 }
             }
-            else if (market['inverse']) {
+            else if (this.safeBool(market, 'inverse')) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetCmUserTrades(this.extend(request, params));
                 }
@@ -8462,7 +8584,9 @@ class binance extends binance$1["default"] {
         // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8604,7 +8728,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -8717,7 +8843,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -8853,13 +8981,13 @@ class binance extends binance$1["default"] {
                 'Refund Failed': 'failed',
             },
             'withdrawal': {
-                '0': 'pending',
-                '1': 'canceled',
-                '2': 'pending',
-                '3': 'failed',
-                '4': 'pending',
-                '5': 'failed',
-                '6': 'ok',
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
+                '6': 'ok', // Completed
                 // Fiat
                 // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
                 'Processing': 'pending',
@@ -9154,7 +9282,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -9260,7 +9390,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const internal = this.safeBool(params, 'internal');
         params = this.omit(params, 'internal');
         let paginate = false;
@@ -9401,7 +9533,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -9469,7 +9603,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.sapiGetCapitalConfigGetall(params);
         //
         //  [
@@ -9583,7 +9719,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.sapiGetCapitalConfigGetall(params);
         //
         //    [
@@ -9713,7 +9851,9 @@ class binance extends binance$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -9779,7 +9919,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const type = market['type'];
         let subType = undefined;
@@ -9849,7 +9991,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
         let subType = undefined;
@@ -10033,7 +10177,9 @@ class binance extends binance$1["default"] {
         if ((type < 1) || (type > 4)) {
             throw new errors.ArgumentsRequired(this.id + ' type must be between 1 and 4');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -10059,7 +10205,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -10107,7 +10255,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
@@ -10185,7 +10335,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const defaultType = this.safeString2(this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString(params, 'type', defaultType);
@@ -10266,7 +10418,7 @@ class binance extends binance$1["default"] {
         };
     }
     parseAccountPositions(account, filterClosed = false) {
-        const positions = this.safeList(account, 'positions');
+        const positions = this.safeList(account, 'positions', []);
         const assets = this.safeList(account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
@@ -10792,7 +10944,7 @@ class binance extends binance$1["default"] {
             'marginRatio': marginRatio,
             'datetime': this.iso8601(timestamp),
             'marginMode': marginMode,
-            'marginType': marginMode,
+            'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -10801,7 +10953,9 @@ class binance extends binance$1["default"] {
         });
     }
     async loadLeverageBrackets(reload = false, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeDict(this.options, 'leverageBrackets');
@@ -10866,7 +11020,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchLeverageTiers', undefined, params);
         let subType = undefined;
@@ -10985,7 +11141,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['option']) {
             throw new errors.NotSupported(this.id + ' fetchPosition() supports option markets only');
@@ -11029,7 +11187,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchOptionPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         let market = undefined;
@@ -11200,7 +11360,9 @@ class binance extends binance$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPositions() requires an array argument for symbols');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadLeverageBrackets(false, params);
         const defaultType = this.safeString(this.options, 'defaultType', 'future');
         const type = this.safeString(params, 'type', defaultType);
@@ -11331,7 +11493,9 @@ class binance extends binance$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadLeverageBrackets(false, params);
         const request = {};
         let defaultType = 'future';
@@ -11506,7 +11670,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
@@ -11577,7 +11743,9 @@ class binance extends binance$1["default"] {
         if ((leverage < 1) || (leverage > 125)) {
             throw new errors.BadRequest(this.id + ' leverage should be between 1 and 125');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -11636,7 +11804,9 @@ class binance extends binance$1["default"] {
         if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
             throw new errors.BadRequest(this.id + ' marginMode must be either isolated or cross');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -11754,7 +11924,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadLeverageBrackets(false, params);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchLeverages', undefined, params);
@@ -11833,7 +12005,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
@@ -11842,8 +12016,8 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         if (symbol !== undefined) {
-            symbol = market['symbol'];
-            request['underlying'] = market['baseId'] + market['quoteId'];
+            symbol = this.safeString(market, 'symbol');
+            request['underlying'] = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -11879,7 +12053,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [settlement history objects]
      */
     async fetchMySettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchMySettlementHistory', market, params);
@@ -11888,8 +12064,8 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
-            symbol = market['symbol'];
+            request['symbol'] = this.safeString(market, 'id');
+            symbol = this.safeString(market, 'symbol');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -12015,7 +12191,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedgerEntry(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchLedgerEntry', undefined, params);
         if (type !== 'option') {
@@ -12062,7 +12240,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -12314,7 +12494,7 @@ class binance extends binance$1["default"] {
             let query = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeList(params, 'batchOrders');
+                const batchOrders = this.safeList(params, 'batchOrders', []);
                 let checkedBatchOrders = batchOrders;
                 if (method === 'POST' && api === 'fapiPrivate') {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
@@ -12382,14 +12562,14 @@ class binance extends binance$1["default"] {
             let signature = undefined;
             if (this.secret.indexOf('PRIVATE KEY') > -1) {
                 if (this.secret.length > 120) {
-                    signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
+                    signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha2_js.sha256));
                 }
                 else {
-                    signature = this.encodeURIComponent(crypto.eddsa(this.encode(query), this.secret, ed25519.ed25519));
+                    signature = this.encodeURIComponent(crypto.eddsa(this.encode(query), this.secret, ed25519_js.ed25519));
                 }
             }
             else {
-                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+                signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
             }
             query += '&' + 'signature=' + signature;
             headers = {
@@ -12564,7 +12744,9 @@ class binance extends binance$1["default"] {
         if ((type === 'margin') || (type === 'spot')) {
             throw new errors.NotSupported(this.id + ' add / reduce margin only supported with type future or delivery');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         amount = this.amountToPrecision(symbol, amount);
         const request = {
@@ -12676,7 +12858,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRate(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -12728,7 +12912,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchIsolatedBorrowRates(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const symbol = this.safeString(params, 'symbol');
         params = this.omit(params, 'symbol');
@@ -12772,7 +12958,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (limit === undefined) {
             limit = 93;
         }
@@ -12872,7 +13060,9 @@ class binance extends binance$1["default"] {
      * @returns {object} The gift code id, code, currency and amount
      */
     async createGiftCode(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         // ensure you have enough token in your funding account before calling this code
         const request = {
@@ -12965,7 +13155,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
         let request = {};
@@ -13064,7 +13256,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -13123,7 +13317,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayIsolatedMargin(symbol, code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const market = this.market(symbol);
         const request = {
@@ -13155,7 +13351,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -13192,7 +13390,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowIsolatedMargin(symbol, code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const market = this.market(symbol);
         const request = {
@@ -13259,7 +13459,9 @@ class binance extends binance$1["default"] {
         if (timeframe === '1m') {
             throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenInterestHistory', 'paginate', false);
         if (paginate) {
@@ -13325,7 +13527,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         if (market['option']) {
@@ -13402,8 +13606,8 @@ class binance extends binance$1["default"] {
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(id, market, undefined, 'contract'),
-            'baseVolume': market['inverse'] ? undefined : amount,
-            'quoteVolume': value,
+            'baseVolume': this.safeBool(market, 'inverse') ? undefined : amount, // deprecated
+            'quoteVolume': value, // deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -13432,7 +13636,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyLiquidations', 'paginate');
         if (paginate) {
@@ -13496,7 +13702,7 @@ class binance extends binance$1["default"] {
             }
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type') + ' markets');
         }
         //
         // margin
@@ -13672,7 +13878,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -13707,7 +13915,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const request = {};
         let market = undefined;
@@ -13784,7 +13994,7 @@ class binance extends binance$1["default"] {
         const tradingLimits = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol');
             if ((symbols === undefined) || (this.inArray(symbol, symbols))) {
                 tradingLimits[symbol] = market['limits']['amount'];
             }
@@ -13810,14 +14020,13 @@ class binance extends binance$1["default"] {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPositionMode', market, params);
         let response = undefined;
-        if (subType === 'linear') {
-            response = await this.fapiPrivateGetPositionSideDual(params);
-        }
-        else if (subType === 'inverse') {
+        // we still have two working endpoints but positionMode is common for linear and inverse markets
+        // thus we do not throw an error if the subType is not specified and default to linear for now
+        if (subType === 'inverse') {
             response = await this.dapiPrivateGetPositionSideDual(params);
         }
         else {
-            throw new errors.BadRequest(this.id + ' fetchPositionMode requires either a symbol argument or params["subType"]');
+            response = await this.fapiPrivateGetPositionSideDual(params);
         }
         //
         //    {
@@ -13843,7 +14052,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginModes(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
@@ -13938,7 +14149,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchMarginMode', market, params);
@@ -13983,7 +14196,7 @@ class binance extends binance$1["default"] {
         }
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': reMarginMode,
         };
     }
@@ -13997,7 +14210,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOption(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -14090,7 +14305,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory () requires a symbol argument');
         }
@@ -14149,7 +14366,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchConvertCurrencies(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.sapiGetConvertAssetInfo(params);
         //
         //     [
@@ -14211,7 +14430,9 @@ class binance extends binance$1["default"] {
         if (amount === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchConvertQuote() requires an amount argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'fromAsset': fromCode,
             'toAsset': toCode,
@@ -14245,7 +14466,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let response = undefined;
         if ((fromCode === 'BUSD') || (toCode === 'BUSD')) {
@@ -14290,7 +14513,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTrade(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let response = undefined;
         if (code === 'BUSD') {
@@ -14370,7 +14595,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const msInThirtyDays = 2592000000;
         const now = this.milliseconds();
@@ -14559,7 +14786,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingIntervals(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
@@ -14606,7 +14835,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (timeframe === undefined) {
             timeframe = '1d';
@@ -14702,7 +14933,9 @@ class binance extends binance$1["default"] {
      * @returns {object} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchADLRank(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -14739,7 +14972,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchPositionsADLRank(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let subType = undefined;

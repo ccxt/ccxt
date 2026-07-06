@@ -699,11 +699,15 @@ public class UpbitCore extends UpbitApi
             Object ids = null;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                ids = String.join((String)",", (java.util.List<String>)this.ids);
+                Object allIds = this.ids;
+                if (Helpers.isTrue(!Helpers.isEqual(allIds, null)))
+                {
+                    ids = String.join((String)",", (java.util.List<String>)allIds);
+                }
             } else
             {
-                ids = this.marketIds(symbols);
-                ids = String.join((String)",", (java.util.List<String>)ids);
+                Object marketIds = this.marketIds(symbols);
+                ids = String.join((String)",", (java.util.List<String>)marketIds);
             }
             final Object finalIds = ids;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -772,7 +776,7 @@ public class UpbitCore extends UpbitApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

@@ -19,20 +19,19 @@ function test_after_construct($exchange, $skipped_properties) {
 
 function test_options_networks($exchange, $skipped_properties) {
     if (!(is_array($skipped_properties) && array_key_exists('networks', $skipped_properties))) {
-        // only allow these whitelisted unified networkCodes to be repeated
-        $allowed_unified_aliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SPL', 'SOL', 'POLYGON', 'MATIC'];
-        $networks = $exchange->options['networks'];
+        $allowed_unified_aliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SOL', 'POLYGON', 'MATIC', 'CARDANO', 'ADA', 'ATOM', 'COSMOS'];
+        $networks = $exchange->safe_dict($exchange->options, 'networks');
         if ($networks === null) {
             return;
         }
         // 1) ensure 'networks' dictionary exists in options
-        assert($exchange->is_dictionary($networks), 'exchange.options["networks"] is not an object');
+        assert($exchange->is_dictionary($networks), 'exchange.options["networks"] is not a dict');
         if (count(is_array($networks) ? array_keys($networks) : array()) === 0) {
             return;
         }
         // 2) ensure 'networksById' dictionary exists in options
         assert(is_array($exchange->options) && array_key_exists('networksById', $exchange->options), 'exchange.options["networksById"] is not set');
-        assert($exchange->is_dictionary($exchange->options['networksById']), 'exchange.options["networksById"] is not an object');
+        assert($exchange->is_dictionary($exchange->options['networksById']), 'exchange.options["networksById"] is not a dict');
         //
         $network_codes = is_array($exchange->options['networks']) ? array_keys($exchange->options['networks']) : array();
         // 3) ensure that the same network-id is not assigned to multiple networkCodes

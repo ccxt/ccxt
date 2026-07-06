@@ -1781,24 +1781,24 @@
                         "withdraw": true,
                         "fee": 0.01,
                         "fees": {
-                            "BSC": 0.01,
+                            "BEP20": 0.01,
                             "NEAR": 0.2,
                             "AVAXC": 0.04,
                             "APT": 0.1,
-                            "ARBITRUM": 0.1,
+                            "ARBONE": 0.1,
                             "STATEMINT": 0.1,
                             "CELO": 0.05,
-                            "ETH": 0.5,
+                            "ERC20": 0.5,
                             "KAVAEVM": 0.2,
                             "KAIA": 0.02,
-                            "OPTIMISM": 0.04,
+                            "OP": 0.04,
                             "PLASMA": 0.012,
                             "MATIC": 0.07,
                             "SCROLL": 0.1,
                             "SOL": 0.3,
                             "XTZ": 0.1,
                             "TON": 0.3,
-                            "TRX": 1,
+                            "TRC20": 1,
                             "OPBNB": 0.015
                         },
                         "networks": {
@@ -3010,12 +3010,12 @@
                         "withdraw": true,
                         "fee": 0.0000089,
                         "fees": {
-                            "BSC": 0.0000089,
+                            "BEP20": 0.0000089,
                             "ETH": 0.0001,
-                            "ARBITRUM": 0.00002,
+                            "ARBONE": 0.00002,
                             "BASE": 0.00005,
                             "MANTA": 0.00001,
-                            "OPTIMISM": 0.000015,
+                            "OP": 0.000015,
                             "SCROLL": 0.00001,
                             "STARKNET": 0.00001,
                             "ZKSYNCERA": 0.00004
@@ -3627,11 +3627,11 @@
                         "withdraw": true,
                         "fee": 2.8e-7,
                         "fees": {
-                            "BSC": 2.8e-7,
+                            "BEP20": 2.8e-7,
                             "BTC": 0.000015,
-                            "SEGWITBTC": 0.001,
-                            "ETH": 0.0000061,
-                            "LIGHTNING": 0.000001
+                            "BTCSEGWIT": 0.001,
+                            "ERC20": 0.0000061,
+                            "BTCLIGHTNING": 0.000001
                         },
                         "networks": {
                             "BEP20": {
@@ -3728,7 +3728,7 @@
                                     }
                                 }
                             },
-                            "SEGWITBTC": {
+                            "BTCSEGWIT": {
                                 "info": {
                                     "network": "SEGWITBTC",
                                     "coin": "BTC",
@@ -3757,7 +3757,7 @@
                                     "busy": false
                                 },
                                 "id": "SEGWITBTC",
-                                "network": "SEGWITBTC",
+                                "network": "BTCSEGWIT",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": false,
@@ -3822,7 +3822,7 @@
                                     }
                                 }
                             },
-                            "LIGHTNING": {
+                            "BTCLIGHTNING": {
                                 "info": {
                                     "network": "LIGHTNING",
                                     "coin": "BTC",
@@ -3850,7 +3850,7 @@
                                     "busy": false
                                 },
                                 "id": "LIGHTNING",
-                                "network": "LIGHTNING",
+                                "network": "BTCLIGHTNING",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,

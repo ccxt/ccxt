@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -27,7 +27,7 @@ export default class extended extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -163,16 +163,16 @@ export default class extended extends Exchange {
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo': 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
                 'test': {
                     'rest': 'https://api.starknet.sepolia.{hostname}',
                 },
-                'www': 'https://app.{hostname}',
-                'doc': 'https://api.docs.{hostname}',
-                'fees': 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www': 'https://app.extended.exchange',
+                'doc': 'https://api.docs.extended.exchange',
+                'fees': 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral': '',
             },
             'api': {
@@ -520,7 +520,7 @@ export default class extended extends Exchange {
         //
         const tradingConfig = this.safeDict (market, 'tradingConfig', {});
         const marketId = this.safeString (market, 'name');
-        let baseId = this.safeString (market, 'assetName');
+        let baseId = this.safeString (market, 'assetName', '');
         if (baseId.indexOf ('SPOT') >= 0) {
             baseId = baseId.replace ('SPOT', '');
         }
@@ -538,14 +538,14 @@ export default class extended extends Exchange {
         const minAmount = this.safeNumber (tradingConfig, 'minOrderSize');
         const maxCost = this.safeNumber (tradingConfig, 'maxLimitOrderValue');
         const created: Int = this.safeInteger (market, 'createdAt');
-        let settleId = undefined;
-        let settle = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
         let symbol = base + '/' + quote;
         let isSpot = false;
         let type = this.safeStringLower (market, 'type');
-        let contractSize = undefined;
-        let linear = undefined;
-        let inverse = undefined;
+        let contractSize: Num = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         if (type === 'spot') {
             isSpot = true;
         } else {
@@ -681,7 +681,7 @@ export default class extended extends Exchange {
             code = 'USDC';
         }
         const name = this.safeString (currency, 'name');
-        const precision = this.safeInteger (currency, 'precision');
+        const precision = this.safeInteger (currency, 'precision', 0);
         const isActive = this.safeBool (currency, 'isActive');
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -705,7 +705,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-market-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -761,14 +761,14 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-markets
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (symbols !== undefined) {
-            const marketIds = [];
+            const marketIds: List = [];
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
                 marketIds.push (market['id']);
@@ -802,12 +802,14 @@ export default class extended extends Exchange {
             const stats = this.safeDict (marketData, 'marketStats', {});
             const ticker = this.parseTicker (stats, market);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //       "dailyVolume": "231216165.666600",
@@ -879,7 +881,7 @@ export default class extended extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -927,7 +929,7 @@ export default class extended extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -966,7 +968,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -975,7 +977,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Trade[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1014,7 +1016,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1036,7 +1038,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
         await this.loadMarkets ();
@@ -1045,7 +1047,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as FundingHistory[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1085,7 +1087,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1129,7 +1131,7 @@ export default class extended extends Exchange {
     }
 
     parseFundingHistories (histories, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < histories.length; i++) {
             result.push (this.parseFundingHistory (histories[i], market));
         }
@@ -1137,7 +1139,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1182,7 +1184,7 @@ export default class extended extends Exchange {
             'currency': (market === undefined) ? undefined : market['settle'],
         };
         const isTaker = this.safeBool (trade, 'isTaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isTaker !== undefined) {
             takerOrMaker = isTaker ? 'taker' : 'maker';
         }
@@ -1263,7 +1265,7 @@ export default class extended extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //       "o": "75657.5",
@@ -1297,7 +1299,7 @@ export default class extended extends Exchange {
      * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
      * @param {int} [params.cursor] offset of the result set
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
@@ -1346,7 +1348,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1390,7 +1392,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum amount of open interest structures to retrieve
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
-     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterestHistory (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
@@ -1442,7 +1444,7 @@ export default class extended extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 't');
         return this.safeOpenInterest ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': this.safeNumber (interest, 'I'),
             'openInterestValue': this.safeNumber (interest, 'i'),
             'baseVolume': this.safeNumber (interest, 'I'),
@@ -1517,7 +1519,7 @@ export default class extended extends Exchange {
      * @description fetch the current authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-account-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccount (params = {}): Promise<Account> {
         const response = await this.v1PrivateGetUserAccountInfo (params);
@@ -1549,7 +1551,7 @@ export default class extended extends Exchange {
      * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-sub-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
         const response = await this.v1PrivateGetUserAccounts (params);
@@ -1583,7 +1585,7 @@ export default class extended extends Exchange {
 
     parseAccount (account: Dict): Account {
         const accountIndex = this.safeInteger (account, 'accountIndex');
-        let type = undefined;
+        let type: Str = undefined;
         if (accountIndex !== undefined) {
             type = (accountIndex === 0) ? 'main' : 'subaccount';
         }
@@ -1605,7 +1607,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -1614,7 +1616,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as LedgerEntry[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1626,7 +1628,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1661,7 +1663,7 @@ export default class extended extends Exchange {
         if (amountString !== undefined) {
             direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
         }
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -1698,7 +1700,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of transaction structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
@@ -1707,7 +1709,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransactions', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1741,7 +1743,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1763,7 +1765,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of deposit structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'DEPOSIT' }, params));
@@ -1779,7 +1781,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'WITHDRAWAL' }, params));
@@ -1813,7 +1815,7 @@ export default class extended extends Exchange {
         const account = await this.fetchExtendedAccount ();
         const amountString = this.currencyToPrecision (code, amount);
         const accountId = this.safeString (account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData (address, amountString, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData (address, amountString as string, currency, account, params);
         const request: Dict = {
             'accountId': accountId,
             'amount': amountString,
@@ -1864,7 +1866,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
@@ -1873,7 +1875,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1887,7 +1889,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -1912,14 +1914,14 @@ export default class extended extends Exchange {
      * @param {string} params.toVault destination account L2 vault
      * @param {string} params.toL2Key destination account L2 public key
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);
         const account = await this.fetchExtendedAccount ();
-        const currentAccountId = this.safeString (account, 'accountId');
+        const currentAccountId = this.safeString (account, 'accountId', '');
         if (fromAccount === undefined) {
             fromAccount = currentAccountId;
         } else if (fromAccount !== currentAccountId) {
@@ -1931,7 +1933,7 @@ export default class extended extends Exchange {
             throw new ArgumentsRequired (this.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]');
         }
         const amountString = this.currencyToPrecision (code, amount);
-        const settlement = this.createTransferSettlementData (amountString, currency, account, toVault, toL2Key, params);
+        const settlement = this.createTransferSettlementData (amountString as string, currency, account, toVault, toL2Key, params);
         const request: Dict = {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -2030,7 +2032,7 @@ export default class extended extends Exchange {
             'COMPLETED': 'ok',
             'REJECTED': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransactionType (type: Str): Str {
@@ -2040,7 +2042,7 @@ export default class extended extends Exchange {
             'TRANSFER': 'transfer',
             'CLAIM': 'claim',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, type as string, type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2062,7 +2064,7 @@ export default class extended extends Exchange {
         const code = this.getExtendedCurrencyCodeById (assetId, currency);
         const amountString = this.safeString (transaction, 'amount');
         const amount = (amountString === undefined) ? undefined : this.parseNumber (Precise.stringAbs (amountString));
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2163,12 +2165,14 @@ export default class extended extends Exchange {
             const fee = this.safeDict (data, i, {});
             const parsed = this.parseTradingFee (fee);
             const symbol = this.safeString (parsed, 'symbol');
-            result[symbol] = parsed;
+            if (symbol !== undefined) {
+                result[symbol] = parsed;
+            }
         }
         return result;
     }
 
-    parseTradingFee (fee, market = undefined): TradingFeeInterface {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2196,7 +2200,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
@@ -2251,7 +2255,7 @@ export default class extended extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage, market: Market = undefined): Leverage {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2277,7 +2281,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
@@ -2328,7 +2332,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition (symbol: string, params = {}): Promise<Position> {
         const positions = await this.fetchPositions ([ symbol ], params);
@@ -2345,7 +2349,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of position structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
@@ -2392,7 +2396,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -2405,7 +2409,7 @@ export default class extended extends Exchange {
         return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
     }
 
-    parsePosition (position, market = undefined): Position {
+    parsePosition (position, market: Market = undefined): Position {
         //
         //     {
         //         "id": 1,
@@ -2473,9 +2477,9 @@ export default class extended extends Exchange {
     getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
         const resolutionString = this.numberToString (resolution);
         const precise = Precise.stringMul (amount, resolutionString);
-        let result = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        let result = this.decimalToPrecision (precise as string, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (roundUp && Precise.stringGt (precise, result)) {
-            result = Precise.stringAdd (result, '1');
+            result = Precise.stringAdd (result, '1') as string;
         }
         return result;
     }
@@ -2505,13 +2509,13 @@ export default class extended extends Exchange {
         const baseRoundUp = isBuy;
         const quoteRoundUp = isBuy;
         let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, baseRoundUp);
-        let collateralAmount = this.getExtendedStarkAmount (quoteAmount, collateralResolution, quoteRoundUp);
+        let collateralAmount = this.getExtendedStarkAmount (quoteAmount as string, collateralResolution, quoteRoundUp);
         if (isBuy) {
-            collateralAmount = Precise.stringNeg (collateralAmount);
+            collateralAmount = Precise.stringNeg (collateralAmount) as string;
         } else {
-            baseAmount = Precise.stringNeg (baseAmount);
+            baseAmount = Precise.stringNeg (baseAmount) as string;
         }
-        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount), collateralResolution, true);
+        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount) as string, collateralResolution, true);
         const settlement = {
             'starkKey': starkKey,
             'collateralPosition': collateralPosition,
@@ -2602,7 +2606,7 @@ export default class extended extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const uppercaseSide = side.toUpperCase ();
+        const uppercaseSide = (side as string).toUpperCase ();
         if (market['spot'] && uppercaseType !== 'LIMIT') {
             throw new BadRequest (this.id + ' createOrder() supports limit orders for spot markets only');
         }
@@ -2621,8 +2625,8 @@ export default class extended extends Exchange {
             timeInForce = (uppercaseType === 'MARKET') ? 'IOC' : 'GTT';
         }
         const fee = this.safeString (params, 'fee', '0.0005');
-        let builderFeeRate = undefined;
-        let builderId = undefined;
+        let builderFeeRate: Str = undefined;
+        let builderId: Str = undefined;
         if (this.isSandboxModeEnabled) {
             builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
             builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
@@ -2633,7 +2637,7 @@ export default class extended extends Exchange {
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {
-            totalFee = Precise.stringAdd (fee, builderFeeRate);
+            totalFee = Precise.stringAdd (fee, builderFeeRate) as string;
         }
         const now = this.milliseconds ();
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
@@ -2689,7 +2693,7 @@ export default class extended extends Exchange {
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
-        const settlement = this.createOrderSettlementData (isBuy, amountString, priceString, settlementParams);
+        const settlement = this.createOrderSettlementData (isBuy, amountString as string, priceString as string, settlementParams);
         request['settlement'] = {
             'signature': { 'r': settlement['r'], 's': settlement['s'] },
             'starkKey': starkKey,
@@ -2711,7 +2715,7 @@ export default class extended extends Exchange {
                 const stopLossTriggerPriceType = this.safeString (stopLoss, 'triggerPriceType');
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
-                const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString, stopLossExecutionPrice, settlementParams);
+                const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString as string, stopLossExecutionPrice as string, settlementParams);
                 const requestStopLoss = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
@@ -2734,7 +2738,7 @@ export default class extended extends Exchange {
                 const takeProfitTriggerPriceType = this.safeString (takeProfit, 'triggerPriceType');
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
-                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString, takeProfitExecutionPrice, settlementParams);
+                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString as string, takeProfitExecutionPrice as string, settlementParams);
                 const requestTakeProfit = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
@@ -2818,7 +2822,7 @@ export default class extended extends Exchange {
      * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
      * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
      * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         this.checkRequiredCredentials ();
@@ -2854,7 +2858,7 @@ export default class extended extends Exchange {
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         if (id === undefined) {
@@ -2934,11 +2938,11 @@ export default class extended extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3002,7 +3006,7 @@ export default class extended extends Exchange {
             clientOrderIds = [ clientOrderId ];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;
@@ -3035,7 +3039,7 @@ export default class extended extends Exchange {
         const request: Dict = {
             'cancelAll': true,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['markets'] = [ market['id'] ];
@@ -3062,7 +3066,7 @@ export default class extended extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'countdownTime': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+            'countdownTime': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
         return await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
     }
@@ -3077,16 +3081,16 @@ export default class extended extends Exchange {
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = undefined;
-        let order = undefined;
+        let response: NullableDict = undefined;
+        let order: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3118,11 +3122,11 @@ export default class extended extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3171,7 +3175,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -3180,7 +3184,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3224,7 +3228,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'cursor');
-        const result = [];
+        const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             let entry = data[i];
@@ -3247,7 +3251,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const orders = await this.fetchOrders (symbol, since, undefined, params);
@@ -3265,7 +3269,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const orders = await this.fetchOrders (symbol, since, undefined, params);
@@ -3284,10 +3288,10 @@ export default class extended extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "id": 1784963886257016832,
@@ -3393,14 +3397,14 @@ export default class extended extends Exchange {
         if (typeof value === 'string') {
             decimalString = value;
         } else {
-            decimalString = this.numberToString (value);
+            decimalString = this.numberToString (value) as string;
         }
         const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
         let result = '';
         while (Precise.stringGt (decimalString, '0')) {
             const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
             result = hexChars[remainder] + result;
-            decimalString = Precise.stringDiv (decimalString, '16', 0);
+            decimalString = Precise.stringDiv (decimalString, '16', 0) as string;
         }
         if (result === '') {
             return '0';
@@ -3415,7 +3419,7 @@ export default class extended extends Exchange {
             }
             return '0x' + this.getExtendedDecimalToBase16 (signature);
         }
-        const signatureString = this.numberToString (signature);
+        const signatureString = this.numberToString (signature) as string;
         if (signatureString.indexOf ('0x') === 0) {
             return signatureString;
         }
@@ -3444,16 +3448,16 @@ export default class extended extends Exchange {
         ));
         const domainHash = this.getExtendedDomainHash ();
         // Order fields
-        const positionId = this.convertToBigInt (this.safeString (settlement, 'collateralPosition'));
-        const baseAssetId = this.safeString (settlement, 'baseAssetId');
-        const baseAmount = this.convertToBigInt (this.safeString (settlement, 'baseAmount'));
-        const quoteAssetId = this.safeString (settlement, 'quoteAssetId');
-        const quoteAmount = this.convertToBigInt (this.safeString (settlement, 'quoteAmount'));
-        const feeAssetId = this.safeString (settlement, 'feeAssetId');
-        const feeAmount = this.convertToBigInt (this.safeString (settlement, 'feeAmount'));
-        const expiration = this.convertToBigInt (this.safeString2 (settlement, 'expiration', 'expirationTimestamp'));
-        const salt = this.convertToBigInt (this.safeString2 (settlement, 'salt', 'nonce'));
-        const starkKey = this.convertToBigInt (this.safeString (settlement, 'starkKey'));
+        const positionId = this.convertToBigInt (this.safeString (settlement, 'collateralPosition', '0'));
+        const baseAssetId = this.safeString (settlement, 'baseAssetId', '0');
+        const baseAmount = this.convertToBigInt (this.safeString (settlement, 'baseAmount', '0'));
+        const quoteAssetId = this.safeString (settlement, 'quoteAssetId', '0');
+        const quoteAmount = this.convertToBigInt (this.safeString (settlement, 'quoteAmount', '0'));
+        const feeAssetId = this.safeString (settlement, 'feeAssetId', '0');
+        const feeAmount = this.convertToBigInt (this.safeString (settlement, 'feeAmount', '0'));
+        const expiration = this.convertToBigInt (this.safeString2 (settlement, 'expiration', 'expirationTimestamp', '0'));
+        const salt = this.convertToBigInt (this.safeString2 (settlement, 'salt', 'nonce', '0'));
+        const starkKey = this.convertToBigInt (this.safeString (settlement, 'starkKey', '0'));
         // Order struct hash
         const orderHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             orderTypeHash,
@@ -3484,12 +3488,12 @@ export default class extended extends Exchange {
         const expiration = this.safeDict (settlement, 'expiration', {});
         const withdrawalHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             withdrawalTypeHash,
-            this.convertToBigInt (this.safeString (settlement, 'recipient')),
-            this.convertToBigInt (this.safeString (settlement, 'positionId')),
-            this.convertToBigInt (this.safeString (settlement, 'collateralId')),
-            this.convertToBigInt (this.safeString (settlement, 'amount')),
-            this.convertToBigInt (this.safeString (expiration, 'seconds')),
-            this.convertToBigInt (this.safeString (settlement, 'salt')),
+            this.convertToBigInt (this.safeString (settlement, 'recipient', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'positionId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'collateralId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'amount', '0')),
+            this.convertToBigInt (this.safeString (expiration, 'seconds', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'salt', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),
@@ -3504,15 +3508,15 @@ export default class extended extends Exchange {
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         const domainHash = this.getExtendedDomainHash ();
-        const senderPublicKey = this.convertToBigInt (this.safeString (settlement, 'senderPublicKey'));
+        const senderPublicKey = this.convertToBigInt (this.safeString (settlement, 'senderPublicKey', '0'));
         const transferHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             transferTypeHash,
-            this.convertToBigInt (this.safeString (settlement, 'senderPositionId')),
-            this.convertToBigInt (this.safeString (settlement, 'receiverPositionId')),
-            this.convertToBigInt (this.safeString (settlement, 'assetId')),
-            this.convertToBigInt (this.safeString (settlement, 'amount')),
-            this.convertToBigInt (this.safeString (settlement, 'expirationTimestamp')),
-            this.convertToBigInt (this.safeString (settlement, 'nonce')),
+            this.convertToBigInt (this.safeString (settlement, 'senderPositionId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'receiverPositionId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'assetId', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'amount', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'expirationTimestamp', '0')),
+            this.convertToBigInt (this.safeString (settlement, 'nonce', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),
@@ -3541,7 +3545,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);

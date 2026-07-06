@@ -32,7 +32,7 @@ retrieves data on all markets for ace
 
 
 ```javascript
-btcbox.fetchMarkets ([params])
+btcbox.fetchMarkets (params?)
 ```
 
 
@@ -52,7 +52,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-btcbox.fetchBalance ([params])
+btcbox.fetchBalance (params?)
 ```
 
 
@@ -62,7 +62,7 @@ btcbox.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>btcbox</code>](#btcbox)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://blog.btcbox.jp/en/archives/8762#toc6  
 
@@ -74,7 +74,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-btcbox.fetchOrderBook (symbol[, limit, params])
+btcbox.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -95,7 +95,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-btcbox.fetchTicker (symbol[, params])
+btcbox.fetchTicker (symbol, params?)
 ```
 
 
@@ -115,7 +115,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-btcbox.fetchTickers ([symbols, params])
+btcbox.fetchTickers (symbols?, params?)
 ```
 
 
@@ -138,7 +138,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-btcbox.fetchTrades (symbol[, since, limit, params])
+btcbox.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -163,7 +163,7 @@ create a trade order
 
 
 ```javascript
-btcbox.createOrder (symbol, type, side, amount[, price, params])
+btcbox.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -185,7 +185,7 @@ cancels an open order
 
 
 ```javascript
-btcbox.cancelOrder (id, symbol[, params])
+btcbox.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -207,7 +207,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-btcbox.fetchOrder (id, symbol[, params])
+btcbox.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -230,7 +230,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-btcbox.fetchOrders (symbol[, since, limit, params])
+btcbox.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -253,6 +253,6 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-btcbox.fetchOpenOrders (symbol[, since, limit, params])
+btcbox.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 

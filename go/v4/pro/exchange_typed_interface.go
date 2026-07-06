@@ -16,20 +16,11 @@ type IExchange interface {
 func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
-    case "aftermath":
-        itf := NewAftermath(options)
-        return itf
     case "alpaca":
         itf := NewAlpaca(options)
         return itf
     case "apex":
         itf := NewApex(options)
-        return itf
-    case "arkham":
-        itf := NewArkham(options)
-        return itf
-    case "ascendex":
-        itf := NewAscendex(options)
         return itf
     case "aster":
         itf := NewAster(options)
@@ -109,9 +100,6 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "coinbase":
         itf := NewCoinbase(options)
         return itf
-    case "coinbaseadvanced":
-        itf := NewCoinbaseadvanced(options)
-        return itf
     case "coinbaseexchange":
         itf := NewCoinbaseexchange(options)
         return itf
@@ -151,6 +139,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "gate":
         itf := NewGate(options)
         return itf
+    case "gateeu":
+        itf := NewGateeu(options)
+        return itf
     case "gemini":
         itf := NewGemini(options)
         return itf
@@ -169,9 +160,6 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "htx":
         itf := NewHtx(options)
         return itf
-    case "huobi":
-        itf := NewHuobi(options)
-        return itf
     case "hyperliquid":
         itf := NewHyperliquid(options)
         return itf
@@ -186,6 +174,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
         return itf
     case "kucoin":
         itf := NewKucoin(options)
+        return itf
+    case "kucoineu":
+        itf := NewKucoineu(options)
         return itf
     case "kucoinfutures":
         itf := NewKucoinfutures(options)
@@ -204,6 +195,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
         return itf
     case "modetrade":
         itf := NewModetrade(options)
+        return itf
+    case "mudrex":
+        itf := NewMudrex(options)
         return itf
     case "myokx":
         itf := NewMyokx(options)

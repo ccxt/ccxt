@@ -268,7 +268,7 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "BEP20", "BSC" );
                     put( "OMNI", "OMNI" );
                     put( "EOS", "EOS" );
-                    put( "SPL", "SOL" );
+                    put( "SOL", "SOL" );
                 }} );
                 put( "reverseNetworks", new java.util.HashMap<String, Object>() {{
                     put( "tronscan.org", "TRC20" );
@@ -936,7 +936,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -955,7 +955,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "USDT")))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.add(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId")));
+                Helpers.addElementToObject(request, "symbol", Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")));
                 response = (this.binanceGetDepth(this.extend(request, parameters))).join();
             } else
             {
@@ -1416,7 +1416,7 @@ public class TokocryptoCore extends TokocryptoApi
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.add(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId")) );
+                put( "symbol", Helpers.add(TokocryptoCore.this.safeString(market, "baseId", ""), TokocryptoCore.this.safeString(market, "quoteId", "")) );
             }};
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if (Helpers.isTrue(Helpers.isArray(response)))

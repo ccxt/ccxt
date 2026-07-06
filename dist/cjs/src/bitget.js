@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitget$1 = require('./abstract/bitget.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ class bitget extends bitget$1["default"] {
             'name': 'Bitget',
             'countries': ['SG'],
             'version': 'v2',
-            'rateLimit': 50,
+            'rateLimit': 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified': true,
             'pro': true,
             'has': {
@@ -162,7 +162,7 @@ class bitget extends bitget$1["default"] {
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
+                'logo': 'https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -204,22 +204,22 @@ class bitget extends bitget$1["default"] {
                     },
                     'spot': {
                         'get': {
-                            'spot/v1/notice/queryAllNotices': 1,
+                            'spot/v1/notice/queryAllNotices': 1, // 20 times/1s (IP) => 20/20 = 1
                             'spot/v1/public/time': 1,
-                            'spot/v1/public/currencies': 6.6667,
+                            'spot/v1/public/currencies': 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
                             'spot/v1/public/products': 1,
                             'spot/v1/public/product': 1,
                             'spot/v1/market/ticker': 1,
                             'spot/v1/market/tickers': 1,
-                            'spot/v1/market/fills': 2,
+                            'spot/v1/market/fills': 2, // 10 times/1s (IP) => 20/10 = 2
                             'spot/v1/market/fills-history': 2,
                             'spot/v1/market/candles': 1,
                             'spot/v1/market/depth': 1,
                             'spot/v1/market/spot-vip-level': 2,
                             'spot/v1/market/merge-depth': 1,
                             'spot/v1/market/history-candles': 1,
-                            'spot/v1/public/loan/coinInfos': 2,
-                            'spot/v1/public/loan/hour-interest': 2,
+                            'spot/v1/public/loan/coinInfos': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
                             'v2/spot/public/coins': 6.6667,
                             'v2/spot/public/symbols': 1,
                             'v2/spot/market/vip-fee-rate': 2,
@@ -281,11 +281,11 @@ class bitget extends bitget$1["default"] {
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/public/interestRateAndLimit': 2,
-                            'margin/v1/isolated/public/interestRateAndLimit': 2,
-                            'margin/v1/cross/public/tierData': 2,
-                            'margin/v1/isolated/public/tierData': 2,
-                            'margin/v1/public/currencies': 1,
+                            'margin/v1/cross/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/cross/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
                             'v2/margin/currencies': 2,
                             'v2/margin/market/long-short-ratio': 20,
                         },
@@ -325,15 +325,15 @@ class bitget extends bitget$1["default"] {
                             'spot/v1/wallet/deposit-list': 1,
                             'spot/v1/account/getInfo': 20,
                             'spot/v1/account/assets': 2,
-                            'spot/v1/account/assets-lite': 2,
-                            'spot/v1/account/transferRecords': 1,
+                            'spot/v1/account/assets-lite': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
                             'spot/v1/convert/currencies': 2,
                             'spot/v1/convert/convert-record': 2,
-                            'spot/v1/loan/ongoing-orders': 2,
-                            'spot/v1/loan/repay-history': 2,
-                            'spot/v1/loan/revise-history': 2,
-                            'spot/v1/loan/borrow-history': 2,
-                            'spot/v1/loan/debts': 2,
+                            'spot/v1/loan/ongoing-orders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay-history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/borrow-history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/debts': 2, // 10 times/1s (UID) => 20/10 = 2
                             'v2/spot/trade/orderInfo': 1,
                             'v2/spot/trade/unfilled-orders': 1,
                             'v2/spot/trade/history-orders': 1,
@@ -379,33 +379,33 @@ class bitget extends bitget$1["default"] {
                             'spot/v1/plan/cancelPlan': 1,
                             'spot/v1/plan/currentPlan': 1,
                             'spot/v1/plan/historyPlan': 1,
-                            'spot/v1/plan/batchCancelPlan': 2,
+                            'spot/v1/plan/batchCancelPlan': 2, // 10 times/1s (UID) => 20/10 = 2
                             'spot/v1/convert/quoted-price': 4,
                             'spot/v1/convert/trade': 4,
-                            'spot/v1/loan/borrow': 2,
-                            'spot/v1/loan/repay': 2,
-                            'spot/v1/loan/revise-pledge': 2,
-                            'spot/v1/trace/order/orderCurrentList': 2,
-                            'spot/v1/trace/order/orderHistoryList': 2,
-                            'spot/v1/trace/order/closeTrackingOrder': 2,
-                            'spot/v1/trace/order/updateTpsl': 2,
-                            'spot/v1/trace/order/followerEndOrder': 2,
-                            'spot/v1/trace/order/spotInfoList': 2,
-                            'spot/v1/trace/config/getTraderSettings': 2,
-                            'spot/v1/trace/config/getFollowerSettings': 2,
-                            'spot/v1/trace/user/myTraders': 2,
-                            'spot/v1/trace/config/setFollowerConfig': 2,
-                            'spot/v1/trace/user/myFollowers': 2,
-                            'spot/v1/trace/config/setProductCode': 2,
-                            'spot/v1/trace/user/removeTrader': 2,
+                            'spot/v1/loan/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-pledge': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderCurrentList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderHistoryList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/closeTrackingOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/updateTpsl': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/followerEndOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/spotInfoList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getTraderSettings': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getFollowerSettings': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myTraders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myFollowers': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setProductCode': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/removeTrader': 2, // 10 times/1s (UID) => 20/10 = 2
                             'spot/v1/trace/getRemovableFollower': 2,
                             'spot/v1/trace/user/removeFollower': 2,
-                            'spot/v1/trace/profit/totalProfitInfo': 2,
-                            'spot/v1/trace/profit/totalProfitList': 2,
-                            'spot/v1/trace/profit/profitHisList': 2,
-                            'spot/v1/trace/profit/profitHisDetailList': 2,
-                            'spot/v1/trace/profit/waitProfitDetailList': 2,
-                            'spot/v1/trace/user/getTraderInfo': 2,
+                            'spot/v1/trace/profit/totalProfitInfo': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/waitProfitDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/getTraderInfo': 2, // 10 times/1s (UID) => 20/10 = 2
                             'v2/spot/trade/place-order': 2,
                             'v2/spot/trade/cancel-order': 2,
                             'v2/spot/trade/batch-orders': 20,
@@ -430,32 +430,32 @@ class bitget extends bitget$1["default"] {
                             'mix/v1/account/accounts': 2,
                             'mix/v1/position/singlePosition': 2,
                             'mix/v1/position/singlePosition-v2': 2,
-                            'mix/v1/position/allPosition': 4,
-                            'mix/v1/position/allPosition-v2': 4,
+                            'mix/v1/position/allPosition': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/allPosition-v2': 4, // 5 times/1s (UID) => 20/5 = 4
                             'mix/v1/position/history-position': 1,
                             'mix/v1/account/accountBill': 2,
                             'mix/v1/account/accountBusinessBill': 4,
-                            'mix/v1/order/current': 1,
-                            'mix/v1/order/marginCoinCurrent': 1,
+                            'mix/v1/order/current': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/marginCoinCurrent': 1, // 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/order/history': 2,
-                            'mix/v1/order/historyProductType': 4,
+                            'mix/v1/order/historyProductType': 4, // 5 times/1s (UID) => 20/5 = 4
                             'mix/v1/order/detail': 2,
                             'mix/v1/order/fills': 2,
                             'mix/v1/order/allFills': 2,
-                            'mix/v1/plan/currentPlan': 1,
+                            'mix/v1/plan/currentPlan': 1, // 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/plan/historyPlan': 2,
                             'mix/v1/trace/currentTrack': 2,
                             'mix/v1/trace/followerOrder': 2,
                             'mix/v1/trace/followerHistoryOrders': 2,
                             'mix/v1/trace/historyTrack': 2,
-                            'mix/v1/trace/summary': 1,
-                            'mix/v1/trace/profitSettleTokenIdGroup': 1,
-                            'mix/v1/trace/profitDateGroupList': 1,
+                            'mix/v1/trace/summary': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitSettleTokenIdGroup': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitDateGroupList': 1, // 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/trade/profitDateList': 2,
-                            'mix/v1/trace/waitProfitDateList': 1,
-                            'mix/v1/trace/traderSymbols': 1,
+                            'mix/v1/trace/waitProfitDateList': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderSymbols': 1, // 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/trace/traderList': 2,
-                            'mix/v1/trace/traderDetail': 2,
+                            'mix/v1/trace/traderDetail': 2, // 10 times/1s (UID) => 20/10 = 2
                             'mix/v1/trace/queryTraceConfig': 2,
                             'v2/mix/account/account': 2,
                             'v2/mix/account/accounts': 2,
@@ -485,17 +485,17 @@ class bitget extends bitget$1["default"] {
                             'v2/mix/market/position-long-short': 20,
                         },
                         'post': {
-                            'mix/v1/account/sub-account-contract-assets': 200,
+                            'mix/v1/account/sub-account-contract-assets': 200, // 0.1 times/1s (UID) => 20/0.1 = 200
                             'mix/v1/account/open-count': 1,
-                            'mix/v1/account/setLeverage': 4,
-                            'mix/v1/account/setMargin': 4,
-                            'mix/v1/account/setMarginMode': 4,
-                            'mix/v1/account/setPositionMode': 4,
+                            'mix/v1/account/setLeverage': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMargin': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMarginMode': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setPositionMode': 4, // 5 times/1s (UID) => 20/5 = 4
                             'mix/v1/order/placeOrder': 2,
                             'mix/v1/order/batch-orders': 2,
                             'mix/v1/order/cancel-order': 2,
                             'mix/v1/order/cancel-batch-orders': 2,
-                            'mix/v1/order/modifyOrder': 2,
+                            'mix/v1/order/modifyOrder': 2, // 10 times/1s (UID) => 20/10 = 2
                             'mix/v1/order/cancel-symbol-orders': 2,
                             'mix/v1/order/cancel-all-orders': 2,
                             'mix/v1/order/close-all-positions': 20,
@@ -510,23 +510,23 @@ class bitget extends bitget$1["default"] {
                             'mix/v1/plan/cancelSymbolPlan': 2,
                             'mix/v1/plan/cancelAllPlan': 2,
                             'mix/v1/trace/closeTrackOrder': 2,
-                            'mix/v1/trace/modifyTPSL': 2,
+                            'mix/v1/trace/modifyTPSL': 2, // 10 times/1s (UID) => 20/10 = 2
                             'mix/v1/trace/closeTrackOrderBySymbol': 2,
                             'mix/v1/trace/setUpCopySymbols': 2,
                             'mix/v1/trace/followerSetBatchTraceConfig': 2,
                             'mix/v1/trace/followerCloseByTrackingNo': 2,
                             'mix/v1/trace/followerCloseByAll': 2,
                             'mix/v1/trace/followerSetTpsl': 2,
-                            'mix/v1/trace/cancelCopyTrader': 4,
-                            'mix/v1/trace/traderUpdateConfig': 2,
-                            'mix/v1/trace/myTraderList': 2,
-                            'mix/v1/trace/myFollowerList': 2,
-                            'mix/v1/trace/removeFollower': 2,
-                            'mix/v1/trace/public/getFollowerConfig': 2,
-                            'mix/v1/trace/report/order/historyList': 2,
-                            'mix/v1/trace/report/order/currentList': 2,
-                            'mix/v1/trace/queryTraderTpslRatioConfig': 2,
-                            'mix/v1/trace/traderUpdateTpslRatioConfig': 2,
+                            'mix/v1/trace/cancelCopyTrader': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/trace/traderUpdateConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myTraderList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myFollowerList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/removeFollower': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/public/getFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/report/order/historyList': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/report/order/currentList': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/queryTraderTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/traderUpdateTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
                             'v2/mix/account/set-auto-margin': 4,
                             'v2/mix/account/set-leverage': 4,
                             'v2/mix/account/set-all-leverage': 4,
@@ -566,7 +566,7 @@ class bitget extends bitget$1["default"] {
                         'post': {
                             'user/v1/sub/virtual-create': 4,
                             'user/v1/sub/virtual-modify': 4,
-                            'user/v1/sub/virtual-api-batch-create': 20,
+                            'user/v1/sub/virtual-api-batch-create': 20, // 1 times/1s (UID) => 20/1 = 20
                             'user/v1/sub/virtual-api-create': 4,
                             'user/v1/sub/virtual-api-modify': 4,
                             'v2/user/create-virtual-subaccount': 4,
@@ -578,10 +578,10 @@ class bitget extends bitget$1["default"] {
                     },
                     'p2p': {
                         'get': {
-                            'p2p/v1/merchant/merchantList': 2,
-                            'p2p/v1/merchant/merchantInfo': 2,
-                            'p2p/v1/merchant/advList': 2,
-                            'p2p/v1/merchant/orderList': 2,
+                            'p2p/v1/merchant/merchantList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantInfo': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/advList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/orderList': 2, // 10 times/1s (UID) => 20/10 = 2
                             'v2/p2p/merchantList': 2,
                             'v2/p2p/merchantInfo': 2,
                             'v2/p2p/orderList': 2,
@@ -590,15 +590,15 @@ class bitget extends bitget$1["default"] {
                     },
                     'broker': {
                         'get': {
-                            'broker/v1/account/info': 2,
-                            'broker/v1/account/sub-list': 20,
-                            'broker/v1/account/sub-email': 20,
-                            'broker/v1/account/sub-spot-assets': 2,
-                            'broker/v1/account/sub-future-assets': 2,
-                            'broker/v1/account/subaccount-transfer': 1,
-                            'broker/v1/account/subaccount-deposit': 1,
-                            'broker/v1/account/subaccount-withdrawal': 1,
-                            'broker/v1/account/sub-api-list': 2,
+                            'broker/v1/account/info': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-list': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-email': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-spot-assets': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-future-assets': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/subaccount-transfer': 1, // unknown
+                            'broker/v1/account/subaccount-deposit': 1, // unknown
+                            'broker/v1/account/subaccount-withdrawal': 1, // unknown
+                            'broker/v1/account/sub-api-list': 2, // 10 times/1s (UID) => 20/10 = 2
                             'v2/broker/account/info': 2,
                             'v2/broker/account/subaccount-list': 20,
                             'v2/broker/account/subaccount-email': 2,
@@ -607,14 +607,14 @@ class bitget extends bitget$1["default"] {
                             'v2/broker/manage/subaccount-apikey-list': 2,
                         },
                         'post': {
-                            'broker/v1/account/sub-create': 20,
-                            'broker/v1/account/sub-modify': 20,
-                            'broker/v1/account/sub-modify-email': 20,
-                            'broker/v1/account/sub-address': 2,
-                            'broker/v1/account/sub-withdrawal': 2,
-                            'broker/v1/account/sub-auto-transfer': 4,
-                            'broker/v1/account/sub-api-create': 2,
-                            'broker/v1/account/sub-api-modify': 2,
+                            'broker/v1/account/sub-create': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify-email': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-address': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-withdrawal': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-auto-transfer': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'broker/v1/account/sub-api-create': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-modify': 2, // 10 times/1s (UID) => 20/10 = 2
                             'v2/broker/account/modify-subaccount-email': 2,
                             'v2/broker/account/create-subaccount': 20,
                             'v2/broker/account/modify-subaccount': 20,
@@ -627,27 +627,27 @@ class bitget extends bitget$1["default"] {
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/account/riskRate': 2,
-                            'margin/v1/cross/account/maxTransferOutAmount': 2,
-                            'margin/v1/isolated/account/maxTransferOutAmount': 2,
-                            'margin/v1/isolated/order/openOrders': 2,
-                            'margin/v1/isolated/order/history': 2,
-                            'margin/v1/isolated/order/fills': 2,
-                            'margin/v1/isolated/loan/list': 2,
-                            'margin/v1/isolated/repay/list': 2,
-                            'margin/v1/isolated/interest/list': 2,
-                            'margin/v1/isolated/liquidation/list': 2,
-                            'margin/v1/isolated/fin/list': 2,
-                            'margin/v1/cross/order/openOrders': 2,
-                            'margin/v1/cross/order/history': 2,
-                            'margin/v1/cross/order/fills': 2,
-                            'margin/v1/cross/loan/list': 2,
-                            'margin/v1/cross/repay/list': 2,
-                            'margin/v1/cross/interest/list': 2,
-                            'margin/v1/cross/liquidation/list': 2,
-                            'margin/v1/cross/fin/list': 2,
-                            'margin/v1/cross/account/assets': 2,
-                            'margin/v1/isolated/account/assets': 2,
+                            'margin/v1/cross/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
                             'v2/margin/crossed/borrow-history': 2,
                             'v2/margin/crossed/repay-history': 2,
                             'v2/margin/crossed/interest-history': 2,
@@ -678,25 +678,25 @@ class bitget extends bitget$1["default"] {
                             'v2/margin/isolated/fills': 2,
                         },
                         'post': {
-                            'margin/v1/cross/account/borrow': 2,
-                            'margin/v1/isolated/account/borrow': 2,
-                            'margin/v1/cross/account/repay': 2,
-                            'margin/v1/isolated/account/repay': 2,
-                            'margin/v1/isolated/account/riskRate': 2,
-                            'margin/v1/cross/account/maxBorrowableAmount': 2,
-                            'margin/v1/isolated/account/maxBorrowableAmount': 2,
-                            'margin/v1/isolated/account/flashRepay': 2,
-                            'margin/v1/isolated/account/queryFlashRepayStatus': 2,
-                            'margin/v1/cross/account/flashRepay': 2,
-                            'margin/v1/cross/account/queryFlashRepayStatus': 2,
-                            'margin/v1/isolated/order/placeOrder': 4,
-                            'margin/v1/isolated/order/batchPlaceOrder': 4,
-                            'margin/v1/isolated/order/cancelOrder': 2,
-                            'margin/v1/isolated/order/batchCancelOrder': 2,
-                            'margin/v1/cross/order/placeOrder': 2,
-                            'margin/v1/cross/order/batchPlaceOrder': 2,
-                            'margin/v1/cross/order/cancelOrder': 2,
-                            'margin/v1/cross/order/batchCancelOrder': 2,
+                            'margin/v1/cross/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/placeOrder': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/batchPlaceOrder': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/placeOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchPlaceOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
                             'v2/margin/crossed/account/borrow': 2,
                             'v2/margin/crossed/account/repay': 2,
                             'v2/margin/crossed/account/flash-repay': 2,
@@ -950,469 +950,469 @@ class bitget extends bitget$1["default"] {
                 // 404 Not Found
                 // 500 Internal Server Error — We had a problem with our server
                 'exact': {
-                    '1': errors.ExchangeError,
+                    '1': errors.ExchangeError, // { "code": 1, "message": "System error" }
                     // undocumented
-                    'failure to get a peer from the ring-balancer': errors.ExchangeNotAvailable,
-                    '4010': errors.PermissionDenied,
+                    'failure to get a peer from the ring-balancer': errors.ExchangeNotAvailable, // { "message": "failure to get a peer from the ring-balancer" }
+                    '4010': errors.PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
                     // common
                     // '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
-                    '4001': errors.ExchangeError,
-                    '4002': errors.ExchangeError,
-                    '40020': errors.BadRequest,
+                    '4001': errors.ExchangeError, // no data received in 30s
+                    '4002': errors.ExchangeError, // Buffer full. cannot write data
+                    '40020': errors.BadRequest, // {"code":"40020","msg":"Parameter orderId error","requestTime":1754305078588,"data":null}
                     // --------------------------------------------------------
-                    '30001': errors.AuthenticationError,
-                    '30002': errors.AuthenticationError,
-                    '30003': errors.AuthenticationError,
-                    '30004': errors.AuthenticationError,
-                    '30005': errors.InvalidNonce,
-                    '30006': errors.AuthenticationError,
-                    '30007': errors.BadRequest,
-                    '30008': errors.RequestTimeout,
-                    '30009': errors.ExchangeError,
-                    '30010': errors.AuthenticationError,
-                    '30011': errors.PermissionDenied,
-                    '30012': errors.AuthenticationError,
-                    '30013': errors.AuthenticationError,
-                    '30014': errors.DDoSProtection,
-                    '30015': errors.AuthenticationError,
-                    '30016': errors.ExchangeError,
-                    '30017': errors.ExchangeError,
-                    '30018': errors.ExchangeError,
-                    '30019': errors.ExchangeNotAvailable,
-                    '30020': errors.BadRequest,
-                    '30021': errors.BadRequest,
-                    '30022': errors.PermissionDenied,
-                    '30023': errors.BadRequest,
-                    '30024': errors.BadSymbol,
-                    '30025': errors.BadRequest,
-                    '30026': errors.DDoSProtection,
-                    '30027': errors.AuthenticationError,
-                    '30028': errors.PermissionDenied,
-                    '30029': errors.AccountSuspended,
-                    '30030': errors.ExchangeError,
-                    '30031': errors.BadRequest,
-                    '30032': errors.BadSymbol,
-                    '30033': errors.BadRequest,
-                    '30034': errors.ExchangeError,
-                    '30035': errors.ExchangeError,
-                    '30036': errors.ExchangeError,
-                    '30037': errors.ExchangeNotAvailable,
+                    '30001': errors.AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
+                    '30002': errors.AuthenticationError, // { "code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
+                    '30003': errors.AuthenticationError, // { "code": 30003, "message": 'request header "OK_ACCESS_TIMESTAMP" cannot be blank'}
+                    '30004': errors.AuthenticationError, // { "code": 30004, "message": 'request header "OK_ACCESS_PASSPHRASE" cannot be blank'}
+                    '30005': errors.InvalidNonce, // { "code": 30005, "message": "invalid OK_ACCESS_TIMESTAMP" }
+                    '30006': errors.AuthenticationError, // { "code": 30006, "message": "invalid OK_ACCESS_KEY" }
+                    '30007': errors.BadRequest, // { "code": 30007, "message": 'invalid Content_Type, please use "application/json" format'}
+                    '30008': errors.RequestTimeout, // { "code": 30008, "message": "timestamp request expired" }
+                    '30009': errors.ExchangeError, // { "code": 30009, "message": "system error" }
+                    '30010': errors.AuthenticationError, // { "code": 30010, "message": "API validation failed" }
+                    '30011': errors.PermissionDenied, // { "code": 30011, "message": "invalid IP" }
+                    '30012': errors.AuthenticationError, // { "code": 30012, "message": "invalid authorization" }
+                    '30013': errors.AuthenticationError, // { "code": 30013, "message": "invalid sign" }
+                    '30014': errors.DDoSProtection, // { "code": 30014, "message": "request too frequent" }
+                    '30015': errors.AuthenticationError, // { "code": 30015, "message": 'request header "OK_ACCESS_PASSPHRASE" incorrect'}
+                    '30016': errors.ExchangeError, // { "code": 30015, "message": "you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey" }
+                    '30017': errors.ExchangeError, // { "code": 30017, "message": "apikey's broker id does not match" }
+                    '30018': errors.ExchangeError, // { "code": 30018, "message": "apikey's domain does not match" }
+                    '30019': errors.ExchangeNotAvailable, // { "code": 30019, "message": "Api is offline or unavailable" }
+                    '30020': errors.BadRequest, // { "code": 30020, "message": "body cannot be blank" }
+                    '30021': errors.BadRequest, // { "code": 30021, "message": "Json data format error" }, { "code": 30021, "message": "json data format error" }
+                    '30022': errors.PermissionDenied, // { "code": 30022, "message": "Api has been frozen" }
+                    '30023': errors.BadRequest, // { "code": 30023, "message": "{0} parameter cannot be blank" }
+                    '30024': errors.BadSymbol, // {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
+                    '30025': errors.BadRequest, // { "code": 30025, "message": "{0} parameter category error" }
+                    '30026': errors.DDoSProtection, // { "code": 30026, "message": "requested too frequent" }
+                    '30027': errors.AuthenticationError, // { "code": 30027, "message": "login failure" }
+                    '30028': errors.PermissionDenied, // { "code": 30028, "message": "unauthorized execution" }
+                    '30029': errors.AccountSuspended, // { "code": 30029, "message": "account suspended" }
+                    '30030': errors.ExchangeError, // { "code": 30030, "message": "endpoint request failed. Please try again" }
+                    '30031': errors.BadRequest, // { "code": 30031, "message": "token does not exist" }
+                    '30032': errors.BadSymbol, // { "code": 30032, "message": "pair does not exist" }
+                    '30033': errors.BadRequest, // { "code": 30033, "message": "exchange domain does not exist" }
+                    '30034': errors.ExchangeError, // { "code": 30034, "message": "exchange ID does not exist" }
+                    '30035': errors.ExchangeError, // { "code": 30035, "message": "trading is not supported in this website" }
+                    '30036': errors.ExchangeError, // { "code": 30036, "message": "no relevant data" }
+                    '30037': errors.ExchangeNotAvailable, // { "code": 30037, "message": "endpoint is offline or unavailable" }
                     // '30038': AuthenticationError, // { "code": 30038, "message": "user does not exist" }
-                    '30038': errors.OnMaintenance,
+                    '30038': errors.OnMaintenance, // {"client_oid":"","code":"30038","error_code":"30038","error_message":"Matching engine is being upgraded. Please try in about 1 minute.","message":"Matching engine is being upgraded. Please try in about 1 minute.","order_id":"-1","result":false}
                     // futures
-                    '32001': errors.AccountSuspended,
-                    '32002': errors.PermissionDenied,
-                    '32003': errors.CancelPending,
-                    '32004': errors.ExchangeError,
-                    '32005': errors.InvalidOrder,
-                    '32006': errors.InvalidOrder,
-                    '32007': errors.InvalidOrder,
-                    '32008': errors.InvalidOrder,
-                    '32009': errors.InvalidOrder,
-                    '32010': errors.ExchangeError,
-                    '32011': errors.ExchangeError,
-                    '32012': errors.ExchangeError,
-                    '32013': errors.ExchangeError,
-                    '32014': errors.ExchangeError,
-                    '32015': errors.ExchangeError,
-                    '32016': errors.ExchangeError,
-                    '32017': errors.ExchangeError,
-                    '32018': errors.ExchangeError,
-                    '32019': errors.ExchangeError,
-                    '32020': errors.ExchangeError,
-                    '32021': errors.ExchangeError,
-                    '32022': errors.ExchangeError,
-                    '32023': errors.ExchangeError,
-                    '32024': errors.ExchangeError,
-                    '32025': errors.ExchangeError,
-                    '32026': errors.ExchangeError,
-                    '32027': errors.ExchangeError,
-                    '32028': errors.AccountSuspended,
-                    '32029': errors.ExchangeError,
-                    '32030': errors.InvalidOrder,
-                    '32031': errors.ArgumentsRequired,
-                    '32038': errors.AuthenticationError,
-                    '32040': errors.ExchangeError,
-                    '32044': errors.ExchangeError,
-                    '32045': errors.ExchangeError,
-                    '32046': errors.ExchangeError,
-                    '32047': errors.ExchangeError,
-                    '32048': errors.InvalidOrder,
-                    '32049': errors.ExchangeError,
-                    '32050': errors.InvalidOrder,
-                    '32051': errors.InvalidOrder,
-                    '32052': errors.ExchangeError,
-                    '32053': errors.ExchangeError,
-                    '32057': errors.ExchangeError,
-                    '32054': errors.ExchangeError,
-                    '32055': errors.InvalidOrder,
-                    '32056': errors.ExchangeError,
-                    '32058': errors.ExchangeError,
-                    '32059': errors.InvalidOrder,
-                    '32060': errors.InvalidOrder,
-                    '32061': errors.InvalidOrder,
-                    '32062': errors.InvalidOrder,
-                    '32063': errors.InvalidOrder,
-                    '32064': errors.ExchangeError,
-                    '32065': errors.ExchangeError,
-                    '32066': errors.ExchangeError,
-                    '32067': errors.ExchangeError,
-                    '32068': errors.ExchangeError,
-                    '32069': errors.ExchangeError,
-                    '32070': errors.ExchangeError,
-                    '32071': errors.ExchangeError,
-                    '32072': errors.ExchangeError,
-                    '32073': errors.ExchangeError,
-                    '32074': errors.ExchangeError,
-                    '32075': errors.ExchangeError,
-                    '32076': errors.ExchangeError,
-                    '32077': errors.ExchangeError,
-                    '32078': errors.ExchangeError,
-                    '32079': errors.ExchangeError,
-                    '32080': errors.ExchangeError,
-                    '32083': errors.ExchangeError,
+                    '32001': errors.AccountSuspended, // { "code": 32001, "message": "futures account suspended" }
+                    '32002': errors.PermissionDenied, // { "code": 32002, "message": "futures account does not exist" }
+                    '32003': errors.CancelPending, // { "code": 32003, "message": "canceling, please wait" }
+                    '32004': errors.ExchangeError, // { "code": 32004, "message": "you have no unfilled orders" }
+                    '32005': errors.InvalidOrder, // { "code": 32005, "message": "max order quantity" }
+                    '32006': errors.InvalidOrder, // { "code": 32006, "message": "the order price or trigger price exceeds USD 1 million" }
+                    '32007': errors.InvalidOrder, // { "code": 32007, "message": "leverage level must be the same for orders on the same side of the contract" }
+                    '32008': errors.InvalidOrder, // { "code": 32008, "message": "Max. positions to open (cross margin)" }
+                    '32009': errors.InvalidOrder, // { "code": 32009, "message": "Max. positions to open (fixed margin)" }
+                    '32010': errors.ExchangeError, // { "code": 32010, "message": "leverage cannot be changed with open positions" }
+                    '32011': errors.ExchangeError, // { "code": 32011, "message": "futures status error" }
+                    '32012': errors.ExchangeError, // { "code": 32012, "message": "futures order update error" }
+                    '32013': errors.ExchangeError, // { "code": 32013, "message": "token type is blank" }
+                    '32014': errors.ExchangeError, // { "code": 32014, "message": "your number of contracts closing is larger than the number of contracts available" }
+                    '32015': errors.ExchangeError, // { "code": 32015, "message": "margin ratio is lower than 100% before opening positions" }
+                    '32016': errors.ExchangeError, // { "code": 32016, "message": "margin ratio is lower than 100% after opening position" }
+                    '32017': errors.ExchangeError, // { "code": 32017, "message": "no BBO" }
+                    '32018': errors.ExchangeError, // { "code": 32018, "message": "the order quantity is less than 1, please try again" }
+                    '32019': errors.ExchangeError, // { "code": 32019, "message": "the order price deviates from the price of the previous minute by more than 3%" }
+                    '32020': errors.ExchangeError, // { "code": 32020, "message": "the price is not in the range of the price limit" }
+                    '32021': errors.ExchangeError, // { "code": 32021, "message": "leverage error" }
+                    '32022': errors.ExchangeError, // { "code": 32022, "message": "this function is not supported in your country or region according to the regulations" }
+                    '32023': errors.ExchangeError, // { "code": 32023, "message": "this account has outstanding loan" }
+                    '32024': errors.ExchangeError, // { "code": 32024, "message": "order cannot be placed during delivery" }
+                    '32025': errors.ExchangeError, // { "code": 32025, "message": "order cannot be placed during settlement" }
+                    '32026': errors.ExchangeError, // { "code": 32026, "message": "your account is restricted from opening positions" }
+                    '32027': errors.ExchangeError, // { "code": 32027, "message": "cancelled over 20 orders" }
+                    '32028': errors.AccountSuspended, // { "code": 32028, "message": "account is suspended and liquidated" }
+                    '32029': errors.ExchangeError, // { "code": 32029, "message": "order info does not exist" }
+                    '32030': errors.InvalidOrder, // The order cannot be cancelled
+                    '32031': errors.ArgumentsRequired, // client_oid or order_id is required.
+                    '32038': errors.AuthenticationError, // User does not exist
+                    '32040': errors.ExchangeError, // User have open contract orders or position
+                    '32044': errors.ExchangeError, // { "code": 32044, "message": "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." }
+                    '32045': errors.ExchangeError, // String of commission over 1 million
+                    '32046': errors.ExchangeError, // Each user can hold up to 10 trade plans at the same time
+                    '32047': errors.ExchangeError, // system error
+                    '32048': errors.InvalidOrder, // Order strategy track range error
+                    '32049': errors.ExchangeError, // Each user can hold up to 10 track plans at the same time
+                    '32050': errors.InvalidOrder, // Order strategy rang error
+                    '32051': errors.InvalidOrder, // Order strategy ice depth error
+                    '32052': errors.ExchangeError, // String of commission over 100 thousand
+                    '32053': errors.ExchangeError, // Each user can hold up to 6 ice plans at the same time
+                    '32057': errors.ExchangeError, // The order price is zero. Market-close-all function cannot be executed
+                    '32054': errors.ExchangeError, // Trade not allow
+                    '32055': errors.InvalidOrder, // cancel order error
+                    '32056': errors.ExchangeError, // iceberg per order average should between {0}-{1} contracts
+                    '32058': errors.ExchangeError, // Each user can hold up to 6 initiative plans at the same time
+                    '32059': errors.InvalidOrder, // Total amount should exceed per order amount
+                    '32060': errors.InvalidOrder, // Order strategy type error
+                    '32061': errors.InvalidOrder, // Order strategy initiative limit error
+                    '32062': errors.InvalidOrder, // Order strategy initiative range error
+                    '32063': errors.InvalidOrder, // Order strategy initiative rate error
+                    '32064': errors.ExchangeError, // Time Stringerval of orders should set between 5-120s
+                    '32065': errors.ExchangeError, // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
+                    '32066': errors.ExchangeError, // You have open orders. Please cancel all open orders before changing your leverage level.
+                    '32067': errors.ExchangeError, // Account equity < required margin in this setting. Please adjust your leverage level again.
+                    '32068': errors.ExchangeError, // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32069': errors.ExchangeError, // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
+                    '32070': errors.ExchangeError, // Please check open position or unfilled order
+                    '32071': errors.ExchangeError, // Your current liquidation mode does not support this action.
+                    '32072': errors.ExchangeError, // The highest available margin for your order’s tier is {0}. Please edit your margin and place a new order.
+                    '32073': errors.ExchangeError, // The action does not apply to the token
+                    '32074': errors.ExchangeError, // The number of contracts of your position, open orders, and the current order has exceeded the maximum order limit of this asset.
+                    '32075': errors.ExchangeError, // Account risk rate breach
+                    '32076': errors.ExchangeError, // Liquidation of the holding position(s) at market price will require cancellation of all pending close orders of the contracts.
+                    '32077': errors.ExchangeError, // Your margin for this asset in futures account is insufficient and the position has been taken over for liquidation. (You will not be able to place orders, close positions, transfer funds, or add margin during this period of time. Your account will be restored after the liquidation is complete.)
+                    '32078': errors.ExchangeError, // Please cancel all open orders before switching the liquidation mode(Please cancel all open orders before switching the liquidation mode)
+                    '32079': errors.ExchangeError, // Your open positions are at high risk.(Please add margin or reduce positions before switching the mode)
+                    '32080': errors.ExchangeError, // Funds cannot be transferred out within 30 minutes after futures settlement
+                    '32083': errors.ExchangeError, // The number of contracts should be a positive multiple of %%. Please place your order again
                     // token and margin trading
-                    '33001': errors.PermissionDenied,
-                    '33002': errors.AccountSuspended,
-                    '33003': errors.InsufficientFunds,
-                    '33004': errors.ExchangeError,
-                    '33005': errors.ExchangeError,
-                    '33006': errors.ExchangeError,
-                    '33007': errors.ExchangeError,
-                    '33008': errors.InsufficientFunds,
-                    '33009': errors.ExchangeError,
-                    '33010': errors.ExchangeError,
-                    '33011': errors.ExchangeError,
-                    '33012': errors.ExchangeError,
-                    '33013': errors.InvalidOrder,
-                    '33014': errors.OrderNotFound,
-                    '33015': errors.InvalidOrder,
-                    '33016': errors.ExchangeError,
-                    '33017': errors.InsufficientFunds,
-                    '33018': errors.ExchangeError,
-                    '33020': errors.ExchangeError,
-                    '33021': errors.BadRequest,
-                    '33022': errors.InvalidOrder,
-                    '33023': errors.ExchangeError,
-                    '33024': errors.InvalidOrder,
-                    '33025': errors.InvalidOrder,
-                    '33026': errors.ExchangeError,
-                    '33027': errors.InvalidOrder,
-                    '33028': errors.InvalidOrder,
-                    '33029': errors.InvalidOrder,
-                    '33034': errors.ExchangeError,
-                    '33035': errors.ExchangeError,
-                    '33036': errors.ExchangeError,
-                    '33037': errors.ExchangeError,
-                    '33038': errors.ExchangeError,
-                    '33039': errors.ExchangeError,
-                    '33040': errors.ExchangeError,
-                    '33041': errors.ExchangeError,
-                    '33042': errors.ExchangeError,
-                    '33043': errors.ExchangeError,
-                    '33044': errors.ExchangeError,
-                    '33045': errors.ExchangeError,
-                    '33046': errors.ExchangeError,
-                    '33047': errors.ExchangeError,
-                    '33048': errors.ExchangeError,
-                    '33049': errors.ExchangeError,
-                    '33050': errors.ExchangeError,
-                    '33051': errors.ExchangeError,
-                    '33059': errors.BadRequest,
-                    '33060': errors.BadRequest,
-                    '33061': errors.ExchangeError,
-                    '33062': errors.ExchangeError,
-                    '33063': errors.ExchangeError,
-                    '33064': errors.ExchangeError,
-                    '33065': errors.ExchangeError,
+                    '33001': errors.PermissionDenied, // { "code": 33001, "message": "margin account for this pair is not enabled yet" }
+                    '33002': errors.AccountSuspended, // { "code": 33002, "message": "margin account for this pair is suspended" }
+                    '33003': errors.InsufficientFunds, // { "code": 33003, "message": "no loan balance" }
+                    '33004': errors.ExchangeError, // { "code": 33004, "message": "loan amount cannot be smaller than the minimum limit" }
+                    '33005': errors.ExchangeError, // { "code": 33005, "message": "repayment amount must exceed 0" }
+                    '33006': errors.ExchangeError, // { "code": 33006, "message": "loan order not found" }
+                    '33007': errors.ExchangeError, // { "code": 33007, "message": "status not found" }
+                    '33008': errors.InsufficientFunds, // { "code": 33008, "message": "loan amount cannot exceed the maximum limit" }
+                    '33009': errors.ExchangeError, // { "code": 33009, "message": "user ID is blank" }
+                    '33010': errors.ExchangeError, // { "code": 33010, "message": "you cannot cancel an order during session 2 of call auction" }
+                    '33011': errors.ExchangeError, // { "code": 33011, "message": "no new market data" }
+                    '33012': errors.ExchangeError, // { "code": 33012, "message": "order cancellation failed" }
+                    '33013': errors.InvalidOrder, // { "code": 33013, "message": "order placement failed" }
+                    '33014': errors.OrderNotFound, // { "code": 33014, "message": "order does not exist" }
+                    '33015': errors.InvalidOrder, // { "code": 33015, "message": "exceeded maximum limit" }
+                    '33016': errors.ExchangeError, // { "code": 33016, "message": "margin trading is not open for this token" }
+                    '33017': errors.InsufficientFunds, // { "code": 33017, "message": "insufficient balance" }
+                    '33018': errors.ExchangeError, // { "code": 33018, "message": "this parameter must be smaller than 1" }
+                    '33020': errors.ExchangeError, // { "code": 33020, "message": "request not supported" }
+                    '33021': errors.BadRequest, // { "code": 33021, "message": "token and the pair do not match" }
+                    '33022': errors.InvalidOrder, // { "code": 33022, "message": "pair and the order do not match" }
+                    '33023': errors.ExchangeError, // { "code": 33023, "message": "you can only place market orders during call auction" }
+                    '33024': errors.InvalidOrder, // { "code": 33024, "message": "trading amount too small" }
+                    '33025': errors.InvalidOrder, // { "code": 33025, "message": "base token amount is blank" }
+                    '33026': errors.ExchangeError, // { "code": 33026, "message": "transaction completed" }
+                    '33027': errors.InvalidOrder, // { "code": 33027, "message": "cancelled order or order cancelling" }
+                    '33028': errors.InvalidOrder, // { "code": 33028, "message": "the decimal places of the trading price exceeded the limit" }
+                    '33029': errors.InvalidOrder, // { "code": 33029, "message": "the decimal places of the trading size exceeded the limit" }
+                    '33034': errors.ExchangeError, // { "code": 33034, "message": "You can only place limit order after Call Auction has started" }
+                    '33035': errors.ExchangeError, // This type of order cannot be canceled(This type of order cannot be canceled)
+                    '33036': errors.ExchangeError, // Exceeding the limit of entrust order
+                    '33037': errors.ExchangeError, // The buy order price should be lower than 130% of the trigger price
+                    '33038': errors.ExchangeError, // The sell order price should be higher than 70% of the trigger price
+                    '33039': errors.ExchangeError, // The limit of callback rate is 0 < x <= 5%
+                    '33040': errors.ExchangeError, // The trigger price of a buy order should be lower than the latest transaction price
+                    '33041': errors.ExchangeError, // The trigger price of a sell order should be higher than the latest transaction price
+                    '33042': errors.ExchangeError, // The limit of price variance is 0 < x <= 1%
+                    '33043': errors.ExchangeError, // The total amount must be larger than 0
+                    '33044': errors.ExchangeError, // The average amount should be 1/1000 * total amount <= x <= total amount
+                    '33045': errors.ExchangeError, // The price should not be 0, including trigger price, order price, and price limit
+                    '33046': errors.ExchangeError, // Price variance should be 0 < x <= 1%
+                    '33047': errors.ExchangeError, // Sweep ratio should be 0 < x <= 100%
+                    '33048': errors.ExchangeError, // Per order limit: Total amount/1000 < x <= Total amount
+                    '33049': errors.ExchangeError, // Total amount should be X > 0
+                    '33050': errors.ExchangeError, // Time interval should be 5 <= x <= 120s
+                    '33051': errors.ExchangeError, // cancel order number not higher limit: plan and track entrust no more than 10, ice and time entrust no more than 6
+                    '33059': errors.BadRequest, // { "code": 33059, "message": "client_oid or order_id is required" }
+                    '33060': errors.BadRequest, // { "code": 33060, "message": "Only fill in either parameter client_oid or order_id" }
+                    '33061': errors.ExchangeError, // Value of a single market price order cannot exceed 100,000 USD
+                    '33062': errors.ExchangeError, // The leverage ratio is too high. The borrowed position has exceeded the maximum position of this leverage ratio. Please readjust the leverage ratio
+                    '33063': errors.ExchangeError, // Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
+                    '33064': errors.ExchangeError, // The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
+                    '33065': errors.ExchangeError, // Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
                     // account
-                    '21009': errors.ExchangeError,
-                    '34001': errors.PermissionDenied,
-                    '34002': errors.InvalidAddress,
-                    '34003': errors.ExchangeError,
-                    '34004': errors.ExchangeError,
-                    '34005': errors.ExchangeError,
-                    '34006': errors.ExchangeError,
-                    '34007': errors.ExchangeError,
-                    '34008': errors.InsufficientFunds,
-                    '34009': errors.ExchangeError,
-                    '34010': errors.ExchangeError,
-                    '34011': errors.ExchangeError,
-                    '34012': errors.ExchangeError,
-                    '34013': errors.ExchangeError,
-                    '34014': errors.ExchangeError,
-                    '34015': errors.ExchangeError,
-                    '34016': errors.PermissionDenied,
-                    '34017': errors.AccountSuspended,
-                    '34018': errors.AuthenticationError,
-                    '34019': errors.PermissionDenied,
-                    '34020': errors.PermissionDenied,
-                    '34021': errors.InvalidAddress,
-                    '34022': errors.ExchangeError,
-                    '34023': errors.PermissionDenied,
-                    '34026': errors.ExchangeError,
-                    '34036': errors.ExchangeError,
-                    '34037': errors.ExchangeError,
-                    '34038': errors.ExchangeError,
-                    '34039': errors.ExchangeError,
+                    '21009': errors.ExchangeError, // Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
+                    '34001': errors.PermissionDenied, // { "code": 34001, "message": "withdrawal suspended" }
+                    '34002': errors.InvalidAddress, // { "code": 34002, "message": "please add a withdrawal address" }
+                    '34003': errors.ExchangeError, // { "code": 34003, "message": "sorry, this token cannot be withdrawn to xx at the moment" }
+                    '34004': errors.ExchangeError, // { "code": 34004, "message": "withdrawal fee is smaller than minimum limit" }
+                    '34005': errors.ExchangeError, // { "code": 34005, "message": "withdrawal fee exceeds the maximum limit" }
+                    '34006': errors.ExchangeError, // { "code": 34006, "message": "withdrawal amount is lower than the minimum limit" }
+                    '34007': errors.ExchangeError, // { "code": 34007, "message": "withdrawal amount exceeds the maximum limit" }
+                    '34008': errors.InsufficientFunds, // { "code": 34008, "message": "insufficient balance" }
+                    '34009': errors.ExchangeError, // { "code": 34009, "message": "your withdrawal amount exceeds the daily limit" }
+                    '34010': errors.ExchangeError, // { "code": 34010, "message": "transfer amount must be larger than 0" }
+                    '34011': errors.ExchangeError, // { "code": 34011, "message": "conditions not met" }
+                    '34012': errors.ExchangeError, // { "code": 34012, "message": "the minimum withdrawal amount for NEO is 1, and the amount must be an integer" }
+                    '34013': errors.ExchangeError, // { "code": 34013, "message": "please transfer" }
+                    '34014': errors.ExchangeError, // { "code": 34014, "message": "transfer limited" }
+                    '34015': errors.ExchangeError, // { "code": 34015, "message": "subaccount does not exist" }
+                    '34016': errors.PermissionDenied, // { "code": 34016, "message": "transfer suspended" }
+                    '34017': errors.AccountSuspended, // { "code": 34017, "message": "account suspended" }
+                    '34018': errors.AuthenticationError, // { "code": 34018, "message": "incorrect trades password" }
+                    '34019': errors.PermissionDenied, // { "code": 34019, "message": "please bind your email before withdrawal" }
+                    '34020': errors.PermissionDenied, // { "code": 34020, "message": "please bind your funds password before withdrawal" }
+                    '34021': errors.InvalidAddress, // { "code": 34021, "message": "Not verified address" }
+                    '34022': errors.ExchangeError, // { "code": 34022, "message": "Withdrawals are not available for sub accounts" }
+                    '34023': errors.PermissionDenied, // { "code": 34023, "message": "Please enable futures trading before transferring your funds" }
+                    '34026': errors.ExchangeError, // transfer too frequently(transfer too frequently)
+                    '34036': errors.ExchangeError, // Parameter is incorrect, please refer to API documentation
+                    '34037': errors.ExchangeError, // Get the sub-account balance interface, account type is not supported
+                    '34038': errors.ExchangeError, // Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
+                    '34039': errors.ExchangeError, // You are now restricted from transferring out your funds due to abnormal trades on C2C Market. Please transfer your fund on our website or app instead to verify your identity
                     // swap
-                    '35001': errors.ExchangeError,
-                    '35002': errors.ExchangeError,
-                    '35003': errors.ExchangeError,
-                    '35004': errors.ExchangeError,
-                    '35005': errors.AuthenticationError,
-                    '35008': errors.InvalidOrder,
-                    '35010': errors.InvalidOrder,
-                    '35012': errors.InvalidOrder,
-                    '35014': errors.InvalidOrder,
-                    '35015': errors.InvalidOrder,
-                    '35017': errors.ExchangeError,
-                    '35019': errors.InvalidOrder,
-                    '35020': errors.InvalidOrder,
-                    '35021': errors.InvalidOrder,
-                    '35022': errors.ExchangeError,
-                    '35024': errors.ExchangeError,
-                    '35025': errors.InsufficientFunds,
-                    '35026': errors.ExchangeError,
-                    '35029': errors.OrderNotFound,
-                    '35030': errors.InvalidOrder,
-                    '35031': errors.InvalidOrder,
-                    '35032': errors.ExchangeError,
-                    '35037': errors.ExchangeError,
-                    '35039': errors.ExchangeError,
-                    '35040': errors.InvalidOrder,
-                    '35044': errors.ExchangeError,
-                    '35046': errors.InsufficientFunds,
-                    '35047': errors.InsufficientFunds,
-                    '35048': errors.ExchangeError,
-                    '35049': errors.InvalidOrder,
-                    '35050': errors.InvalidOrder,
-                    '35052': errors.InsufficientFunds,
-                    '35053': errors.ExchangeError,
-                    '35055': errors.InsufficientFunds,
-                    '35057': errors.ExchangeError,
-                    '35058': errors.ExchangeError,
-                    '35059': errors.BadRequest,
-                    '35060': errors.BadRequest,
-                    '35061': errors.BadRequest,
-                    '35062': errors.InvalidOrder,
-                    '35063': errors.InvalidOrder,
-                    '35064': errors.InvalidOrder,
-                    '35066': errors.InvalidOrder,
-                    '35067': errors.InvalidOrder,
-                    '35068': errors.InvalidOrder,
-                    '35069': errors.InvalidOrder,
-                    '35070': errors.InvalidOrder,
-                    '35071': errors.InvalidOrder,
-                    '35072': errors.InvalidOrder,
-                    '35073': errors.InvalidOrder,
-                    '35074': errors.InvalidOrder,
-                    '35075': errors.InvalidOrder,
-                    '35076': errors.InvalidOrder,
-                    '35077': errors.InvalidOrder,
-                    '35078': errors.InvalidOrder,
-                    '35079': errors.InvalidOrder,
-                    '35080': errors.InvalidOrder,
-                    '35081': errors.InvalidOrder,
-                    '35082': errors.InvalidOrder,
-                    '35083': errors.InvalidOrder,
-                    '35084': errors.InvalidOrder,
-                    '35085': errors.InvalidOrder,
-                    '35086': errors.InvalidOrder,
-                    '35087': errors.InvalidOrder,
-                    '35088': errors.InvalidOrder,
-                    '35089': errors.InvalidOrder,
-                    '35090': errors.ExchangeError,
-                    '35091': errors.ExchangeError,
-                    '35092': errors.ExchangeError,
-                    '35093': errors.ExchangeError,
-                    '35094': errors.ExchangeError,
-                    '35095': errors.BadRequest,
-                    '35096': errors.ExchangeError,
-                    '35097': errors.ExchangeError,
-                    '35098': errors.ExchangeError,
-                    '35099': errors.ExchangeError,
+                    '35001': errors.ExchangeError, // { "code": 35001, "message": "Contract does not exist" }
+                    '35002': errors.ExchangeError, // { "code": 35002, "message": "Contract settling" }
+                    '35003': errors.ExchangeError, // { "code": 35003, "message": "Contract paused" }
+                    '35004': errors.ExchangeError, // { "code": 35004, "message": "Contract pending settlement" }
+                    '35005': errors.AuthenticationError, // { "code": 35005, "message": "User does not exist" }
+                    '35008': errors.InvalidOrder, // { "code": 35008, "message": "Risk ratio too high" }
+                    '35010': errors.InvalidOrder, // { "code": 35010, "message": "Position closing too large" }
+                    '35012': errors.InvalidOrder, // { "code": 35012, "message": "Incorrect order size" }
+                    '35014': errors.InvalidOrder, // { "code": 35014, "message": "Order price is not within limit" }
+                    '35015': errors.InvalidOrder, // { "code": 35015, "message": "Invalid leverage level" }
+                    '35017': errors.ExchangeError, // { "code": 35017, "message": "Open orders exist" }
+                    '35019': errors.InvalidOrder, // { "code": 35019, "message": "Order size too large" }
+                    '35020': errors.InvalidOrder, // { "code": 35020, "message": "Order price too high" }
+                    '35021': errors.InvalidOrder, // { "code": 35021, "message": "Order size exceeded current tier limit" }
+                    '35022': errors.ExchangeError, // { "code": 35022, "message": "Contract status error" }
+                    '35024': errors.ExchangeError, // { "code": 35024, "message": "Contract not initialized" }
+                    '35025': errors.InsufficientFunds, // { "code": 35025, "message": "No account balance" }
+                    '35026': errors.ExchangeError, // { "code": 35026, "message": "Contract settings not initialized" }
+                    '35029': errors.OrderNotFound, // { "code": 35029, "message": "Order does not exist" }
+                    '35030': errors.InvalidOrder, // { "code": 35030, "message": "Order size too large" }
+                    '35031': errors.InvalidOrder, // { "code": 35031, "message": "Cancel order size too large" }
+                    '35032': errors.ExchangeError, // { "code": 35032, "message": "Invalid user status" }
+                    '35037': errors.ExchangeError, // No last traded price in cache
+                    '35039': errors.ExchangeError, // { "code": 35039, "message": "Open order quantity exceeds limit" }
+                    '35040': errors.InvalidOrder, // {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
+                    '35044': errors.ExchangeError, // { "code": 35044, "message": "Invalid order status" }
+                    '35046': errors.InsufficientFunds, // { "code": 35046, "message": "Negative account balance" }
+                    '35047': errors.InsufficientFunds, // { "code": 35047, "message": "Insufficient account balance" }
+                    '35048': errors.ExchangeError, // { "code": 35048, "message": "User contract is frozen and liquidating" }
+                    '35049': errors.InvalidOrder, // { "code": 35049, "message": "Invalid order type" }
+                    '35050': errors.InvalidOrder, // { "code": 35050, "message": "Position settings are blank" }
+                    '35052': errors.InsufficientFunds, // { "code": 35052, "message": "Insufficient cross margin" }
+                    '35053': errors.ExchangeError, // { "code": 35053, "message": "Account risk too high" }
+                    '35055': errors.InsufficientFunds, // { "code": 35055, "message": "Insufficient account balance" }
+                    '35057': errors.ExchangeError, // { "code": 35057, "message": "No last traded price" }
+                    '35058': errors.ExchangeError, // { "code": 35058, "message": "No limit" }
+                    '35059': errors.BadRequest, // { "code": 35059, "message": "client_oid or order_id is required" }
+                    '35060': errors.BadRequest, // { "code": 35060, "message": "Only fill in either parameter client_oid or order_id" }
+                    '35061': errors.BadRequest, // { "code": 35061, "message": "Invalid instrument_id" }
+                    '35062': errors.InvalidOrder, // { "code": 35062, "message": "Invalid match_price" }
+                    '35063': errors.InvalidOrder, // { "code": 35063, "message": "Invalid order_size" }
+                    '35064': errors.InvalidOrder, // { "code": 35064, "message": "Invalid client_oid" }
+                    '35066': errors.InvalidOrder, // Order interval error
+                    '35067': errors.InvalidOrder, // Time-weighted order ratio error
+                    '35068': errors.InvalidOrder, // Time-weighted order range error
+                    '35069': errors.InvalidOrder, // Time-weighted single transaction limit error
+                    '35070': errors.InvalidOrder, // Algo order type error
+                    '35071': errors.InvalidOrder, // Order total must be larger than single order limit
+                    '35072': errors.InvalidOrder, // Maximum 6 unfulfilled time-weighted orders can be held at the same time
+                    '35073': errors.InvalidOrder, // Order price is 0. Market-close-all not available
+                    '35074': errors.InvalidOrder, // Iceberg order single transaction average error
+                    '35075': errors.InvalidOrder, // Failed to cancel order
+                    '35076': errors.InvalidOrder, // LTC 20x leverage. Not allowed to open position
+                    '35077': errors.InvalidOrder, // Maximum 6 unfulfilled iceberg orders can be held at the same time
+                    '35078': errors.InvalidOrder, // Order amount exceeded 100,000
+                    '35079': errors.InvalidOrder, // Iceberg order price variance error
+                    '35080': errors.InvalidOrder, // Callback rate error
+                    '35081': errors.InvalidOrder, // Maximum 10 unfulfilled trail orders can be held at the same time
+                    '35082': errors.InvalidOrder, // Trail order callback rate error
+                    '35083': errors.InvalidOrder, // Each user can only hold a maximum of 10 unfulfilled stop-limit orders at the same time
+                    '35084': errors.InvalidOrder, // Order amount exceeded 1 million
+                    '35085': errors.InvalidOrder, // Order amount is not in the correct range
+                    '35086': errors.InvalidOrder, // Price exceeds 100 thousand
+                    '35087': errors.InvalidOrder, // Price exceeds 100 thousand
+                    '35088': errors.InvalidOrder, // Average amount error
+                    '35089': errors.InvalidOrder, // Price exceeds 100 thousand
+                    '35090': errors.ExchangeError, // No stop-limit orders available for cancelation
+                    '35091': errors.ExchangeError, // No trail orders available for cancellation
+                    '35092': errors.ExchangeError, // No iceberg orders available for cancellation
+                    '35093': errors.ExchangeError, // No trail orders available for cancellation
+                    '35094': errors.ExchangeError, // Stop-limit order last traded price error
+                    '35095': errors.BadRequest, // Instrument_id error
+                    '35096': errors.ExchangeError, // Algo order status error
+                    '35097': errors.ExchangeError, // Order status and order ID cannot exist at the same time
+                    '35098': errors.ExchangeError, // An order status or order ID must exist
+                    '35099': errors.ExchangeError, // Algo order ID error
                     // option
-                    '36001': errors.BadRequest,
-                    '36002': errors.BadRequest,
-                    '36005': errors.ExchangeError,
-                    '36101': errors.AuthenticationError,
-                    '36102': errors.PermissionDenied,
-                    '36103': errors.AccountSuspended,
-                    '36104': errors.PermissionDenied,
-                    '36105': errors.PermissionDenied,
-                    '36106': errors.AccountSuspended,
-                    '36107': errors.PermissionDenied,
-                    '36108': errors.InsufficientFunds,
-                    '36109': errors.PermissionDenied,
-                    '36201': errors.PermissionDenied,
-                    '36202': errors.PermissionDenied,
-                    '36203': errors.InvalidOrder,
-                    '36204': errors.ExchangeError,
-                    '36205': errors.BadRequest,
-                    '36206': errors.BadRequest,
-                    '36207': errors.InvalidOrder,
-                    '36208': errors.InvalidOrder,
-                    '36209': errors.InvalidOrder,
-                    '36210': errors.InvalidOrder,
-                    '36211': errors.InvalidOrder,
-                    '36212': errors.InvalidOrder,
-                    '36213': errors.InvalidOrder,
-                    '36214': errors.ExchangeError,
-                    '36216': errors.OrderNotFound,
-                    '36217': errors.InvalidOrder,
-                    '36218': errors.InvalidOrder,
-                    '36219': errors.InvalidOrder,
-                    '36220': errors.InvalidOrder,
-                    '36221': errors.InvalidOrder,
-                    '36222': errors.InvalidOrder,
-                    '36223': errors.InvalidOrder,
-                    '36224': errors.InvalidOrder,
-                    '36225': errors.InvalidOrder,
-                    '36226': errors.InvalidOrder,
-                    '36227': errors.InvalidOrder,
-                    '36228': errors.InvalidOrder,
-                    '36229': errors.InvalidOrder,
-                    '36230': errors.InvalidOrder,
+                    '36001': errors.BadRequest, // Invalid underlying index.
+                    '36002': errors.BadRequest, // Instrument does not exist.
+                    '36005': errors.ExchangeError, // Instrument status is invalid.
+                    '36101': errors.AuthenticationError, // Account does not exist.
+                    '36102': errors.PermissionDenied, // Account status is invalid.
+                    '36103': errors.AccountSuspended, // Account is suspended due to ongoing liquidation.
+                    '36104': errors.PermissionDenied, // Account is not enabled for options trading.
+                    '36105': errors.PermissionDenied, // Please enable the account for option contract.
+                    '36106': errors.AccountSuspended, // Funds cannot be transferred in or out, as account is suspended.
+                    '36107': errors.PermissionDenied, // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
+                    '36108': errors.InsufficientFunds, // Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36109': errors.PermissionDenied, // Funds cannot be transferred in or out during option exercising or settlement.
+                    '36201': errors.PermissionDenied, // New order function is blocked.
+                    '36202': errors.PermissionDenied, // Account does not have permission to short option.
+                    '36203': errors.InvalidOrder, // Invalid format for client_oid.
+                    '36204': errors.ExchangeError, // Invalid format for request_id.
+                    '36205': errors.BadRequest, // Instrument id does not match underlying index.
+                    '36206': errors.BadRequest, // Order_id and client_oid can not be used at the same time.
+                    '36207': errors.InvalidOrder, // Either order price or fartouch price must be present.
+                    '36208': errors.InvalidOrder, // Either order price or size must be present.
+                    '36209': errors.InvalidOrder, // Either order_id or client_oid must be present.
+                    '36210': errors.InvalidOrder, // Either order_ids or client_oids must be present.
+                    '36211': errors.InvalidOrder, // Exceeding max batch size for order submission.
+                    '36212': errors.InvalidOrder, // Exceeding max batch size for oder cancellation.
+                    '36213': errors.InvalidOrder, // Exceeding max batch size for order amendment.
+                    '36214': errors.ExchangeError, // Instrument does not have valid bid/ask quote.
+                    '36216': errors.OrderNotFound, // Order does not exist.
+                    '36217': errors.InvalidOrder, // Order submission failed.
+                    '36218': errors.InvalidOrder, // Order cancellation failed.
+                    '36219': errors.InvalidOrder, // Order amendment failed.
+                    '36220': errors.InvalidOrder, // Order is pending cancel.
+                    '36221': errors.InvalidOrder, // Order qty is not valid multiple of lot size.
+                    '36222': errors.InvalidOrder, // Order price is breaching highest buy limit.
+                    '36223': errors.InvalidOrder, // Order price is breaching lowest sell limit.
+                    '36224': errors.InvalidOrder, // Exceeding max order size.
+                    '36225': errors.InvalidOrder, // Exceeding max open order count for instrument.
+                    '36226': errors.InvalidOrder, // Exceeding max open order count for underlying.
+                    '36227': errors.InvalidOrder, // Exceeding max open size across all orders for underlying
+                    '36228': errors.InvalidOrder, // Exceeding max available qty for instrument.
+                    '36229': errors.InvalidOrder, // Exceeding max available qty for underlying.
+                    '36230': errors.InvalidOrder, // Exceeding max position limit for underlying.
                     // --------------------------------------------------------
                     // swap
-                    '400': errors.BadRequest,
-                    '401': errors.AuthenticationError,
-                    '403': errors.PermissionDenied,
-                    '404': errors.BadRequest,
-                    '405': errors.BadRequest,
-                    '415': errors.BadRequest,
-                    '429': errors.DDoSProtection,
-                    '500': errors.ExchangeNotAvailable,
-                    '1001': errors.RateLimitExceeded,
-                    '1002': errors.ExchangeError,
-                    '1003': errors.ExchangeError,
+                    '400': errors.BadRequest, // Bad Request
+                    '401': errors.AuthenticationError, // Unauthorized access
+                    '403': errors.PermissionDenied, // Access prohibited
+                    '404': errors.BadRequest, // Request address does not exist
+                    '405': errors.BadRequest, // The HTTP Method is not supported
+                    '415': errors.BadRequest, // The current media type is not supported
+                    '429': errors.DDoSProtection, // Too many requests
+                    '500': errors.ExchangeNotAvailable, // System busy
+                    '1001': errors.RateLimitExceeded, // The request is too frequent and has been throttled
+                    '1002': errors.ExchangeError, // {0} verifications within 24 hours
+                    '1003': errors.ExchangeError, // You failed more than {0} times today, the current operation is locked, please try again in 24 hours
                     // '00000': ExchangeError, // success
-                    '40001': errors.AuthenticationError,
-                    '40002': errors.AuthenticationError,
-                    '40003': errors.AuthenticationError,
-                    '40004': errors.InvalidNonce,
-                    '40005': errors.InvalidNonce,
-                    '40006': errors.AuthenticationError,
-                    '40007': errors.BadRequest,
-                    '40008': errors.InvalidNonce,
-                    '40009': errors.AuthenticationError,
-                    '40010': errors.AuthenticationError,
-                    '40011': errors.AuthenticationError,
-                    '40012': errors.AuthenticationError,
-                    '40013': errors.ExchangeError,
-                    '40014': errors.PermissionDenied,
-                    '40015': errors.ExchangeError,
-                    '40016': errors.PermissionDenied,
-                    '40017': errors.ExchangeError,
-                    '40018': errors.PermissionDenied,
-                    '40019': errors.BadRequest,
-                    '40031': errors.AccountSuspended,
-                    '40037': errors.AuthenticationError,
-                    '40102': errors.BadRequest,
-                    '40103': errors.BadRequest,
-                    '40104': errors.ExchangeError,
-                    '40105': errors.ExchangeError,
-                    '40106': errors.ExchangeError,
-                    '40107': errors.ExchangeError,
-                    '40108': errors.InvalidOrder,
-                    '40109': errors.OrderNotFound,
-                    '40200': errors.OnMaintenance,
-                    '40201': errors.InvalidOrder,
-                    '40202': errors.ExchangeError,
-                    '40203': errors.BadRequest,
-                    '40204': errors.BadRequest,
-                    '40205': errors.BadRequest,
-                    '40206': errors.BadRequest,
-                    '40207': errors.BadRequest,
-                    '40208': errors.BadRequest,
-                    '40209': errors.BadRequest,
-                    '40300': errors.ExchangeError,
-                    '40301': errors.PermissionDenied,
-                    '40302': errors.BadRequest,
-                    '40303': errors.BadRequest,
-                    '40304': errors.BadRequest,
-                    '40305': errors.BadRequest,
-                    '40306': errors.ExchangeError,
-                    '40308': errors.OnMaintenance,
-                    '40309': errors.BadSymbol,
-                    '40400': errors.ExchangeError,
-                    '40401': errors.ExchangeError,
-                    '40402': errors.BadRequest,
-                    '40403': errors.BadRequest,
-                    '40404': errors.BadRequest,
-                    '40405': errors.BadRequest,
-                    '40406': errors.BadRequest,
-                    '40407': errors.ExchangeError,
-                    '40408': errors.ExchangeError,
-                    '40409': errors.ExchangeError,
-                    '40500': errors.InvalidOrder,
-                    '40501': errors.ExchangeError,
-                    '40502': errors.ExchangeError,
-                    '40503': errors.ExchangeError,
-                    '40504': errors.ExchangeError,
-                    '40505': errors.ExchangeError,
-                    '40506': errors.AuthenticationError,
-                    '40507': errors.AuthenticationError,
-                    '40508': errors.ExchangeError,
-                    '40509': errors.ExchangeError,
-                    '40600': errors.ExchangeError,
-                    '40601': errors.ExchangeError,
-                    '40602': errors.ExchangeError,
-                    '40603': errors.ExchangeError,
-                    '40604': errors.ExchangeNotAvailable,
-                    '40605': errors.ExchangeError,
-                    '40606': errors.ExchangeError,
-                    '40607': errors.ExchangeError,
-                    '40608': errors.ExchangeError,
-                    '40609': errors.ExchangeError,
-                    '40700': errors.BadRequest,
-                    '40701': errors.ExchangeError,
-                    '40702': errors.ExchangeError,
-                    '40703': errors.ExchangeError,
-                    '40704': errors.ExchangeError,
-                    '40705': errors.BadRequest,
-                    '40706': errors.InvalidOrder,
-                    '40707': errors.BadRequest,
-                    '40708': errors.BadRequest,
-                    '40709': errors.ExchangeError,
-                    '40710': errors.ExchangeError,
-                    '40711': errors.InsufficientFunds,
-                    '40712': errors.InsufficientFunds,
-                    '40713': errors.ExchangeError,
-                    '40714': errors.ExchangeError,
-                    '40762': errors.InsufficientFunds,
-                    '40768': errors.OrderNotFound,
-                    '40808': errors.InvalidOrder,
-                    '41103': errors.InvalidOrder,
-                    '41114': errors.OnMaintenance,
-                    '43011': errors.InvalidOrder,
+                    '40001': errors.AuthenticationError, // ACCESS_KEY cannot be empty
+                    '40002': errors.AuthenticationError, // SECRET_KEY cannot be empty
+                    '40003': errors.AuthenticationError, // Signature cannot be empty
+                    '40004': errors.InvalidNonce, // Request timestamp expired
+                    '40005': errors.InvalidNonce, // Invalid ACCESS_TIMESTAMP
+                    '40006': errors.AuthenticationError, // Invalid ACCESS_KEY
+                    '40007': errors.BadRequest, // Invalid Content_Type
+                    '40008': errors.InvalidNonce, // Request timestamp expired
+                    '40009': errors.AuthenticationError, // sign signature error
+                    '40010': errors.AuthenticationError, // sign signature error
+                    '40011': errors.AuthenticationError, // ACCESS_PASSPHRASE cannot be empty
+                    '40012': errors.AuthenticationError, // apikey/password is incorrect
+                    '40013': errors.ExchangeError, // User status is abnormal
+                    '40014': errors.PermissionDenied, // Incorrect permissions
+                    '40015': errors.ExchangeError, // System is abnormal, please try again later
+                    '40016': errors.PermissionDenied, // The user must bind the phone or Google
+                    '40017': errors.ExchangeError, // Parameter verification failed
+                    '40018': errors.PermissionDenied, // Invalid IP
+                    '40019': errors.BadRequest, // {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40031': errors.AccountSuspended, // The account has been cancelled and cannot be used again
+                    '40037': errors.AuthenticationError, // Apikey does not exist
+                    '40102': errors.BadRequest, // Contract configuration does not exist, please check the parameters
+                    '40103': errors.BadRequest, // Request method cannot be empty
+                    '40104': errors.ExchangeError, // Lever adjustment failure
+                    '40105': errors.ExchangeError, // Abnormal access to current price limit data
+                    '40106': errors.ExchangeError, // Abnormal get next settlement time
+                    '40107': errors.ExchangeError, // Abnormal access to index price data
+                    '40108': errors.InvalidOrder, // Wrong order quantity
+                    '40109': errors.OrderNotFound, // The data of the order cannot be found, please confirm the order number
+                    '40200': errors.OnMaintenance, // Server upgrade, please try again later
+                    '40201': errors.InvalidOrder, // Order number cannot be empty
+                    '40202': errors.ExchangeError, // User information cannot be empty
+                    '40203': errors.BadRequest, // The amount of adjustment margin cannot be empty or negative
+                    '40204': errors.BadRequest, // Adjustment margin type cannot be empty
+                    '40205': errors.BadRequest, // Adjusted margin type data is wrong
+                    '40206': errors.BadRequest, // The direction of the adjustment margin cannot be empty
+                    '40207': errors.BadRequest, // The adjustment margin data is wrong
+                    '40208': errors.BadRequest, // The accuracy of the adjustment margin amount is incorrect
+                    '40209': errors.BadRequest, // The current page number is wrong, please confirm
+                    '40300': errors.ExchangeError, // User does not exist
+                    '40301': errors.PermissionDenied, // Permission has not been obtained yet. If you need to use it, please contact customer service
+                    '40302': errors.BadRequest, // Parameter abnormality
+                    '40303': errors.BadRequest, // Can only query up to 20,000 data
+                    '40304': errors.BadRequest, // Parameter type is abnormal
+                    '40305': errors.BadRequest, // Client_oid length is not greater than 50, and cannot be Martian characters
+                    '40306': errors.ExchangeError, // Batch processing orders can only process up to 20
+                    '40308': errors.OnMaintenance, // The contract is being temporarily maintained
+                    '40309': errors.BadSymbol, // The contract has been removed
+                    '40400': errors.ExchangeError, // Status check abnormal
+                    '40401': errors.ExchangeError, // The operation cannot be performed
+                    '40402': errors.BadRequest, // The opening direction cannot be empty
+                    '40403': errors.BadRequest, // Wrong opening direction format
+                    '40404': errors.BadRequest, // Whether to enable automatic margin call parameters cannot be empty
+                    '40405': errors.BadRequest, // Whether to enable the automatic margin call parameter type is wrong
+                    '40406': errors.BadRequest, // Whether to enable automatic margin call parameters is of unknown type
+                    '40407': errors.ExchangeError, // The query direction is not the direction entrusted by the plan
+                    '40408': errors.ExchangeError, // Wrong time range
+                    '40409': errors.ExchangeError, // Time format error
+                    '40500': errors.InvalidOrder, // Client_oid check error
+                    '40501': errors.ExchangeError, // Channel name error
+                    '40502': errors.ExchangeError, // If it is a copy user, you must pass the copy to whom
+                    '40503': errors.ExchangeError, // With the single type
+                    '40504': errors.ExchangeError, // Platform code must pass
+                    '40505': errors.ExchangeError, // Not the same as single type
+                    '40506': errors.AuthenticationError, // Platform signature error
+                    '40507': errors.AuthenticationError, // Api signature error
+                    '40508': errors.ExchangeError, // KOL is not authorized
+                    '40509': errors.ExchangeError, // Abnormal copy end
+                    '40600': errors.ExchangeError, // Copy function suspended
+                    '40601': errors.ExchangeError, // Followers cannot be KOL
+                    '40602': errors.ExchangeError, // The number of copies has reached the limit and cannot process the request
+                    '40603': errors.ExchangeError, // Abnormal copy end
+                    '40604': errors.ExchangeNotAvailable, // Server is busy, please try again later
+                    '40605': errors.ExchangeError, // Copy type, the copy number must be passed
+                    '40606': errors.ExchangeError, // The type of document number is wrong
+                    '40607': errors.ExchangeError, // Document number must be passed
+                    '40608': errors.ExchangeError, // No documented products currently supported
+                    '40609': errors.ExchangeError, // The contract product does not support copying
+                    '40700': errors.BadRequest, // Cursor parameters are incorrect
+                    '40701': errors.ExchangeError, // KOL is not authorized
+                    '40702': errors.ExchangeError, // Unauthorized copying user
+                    '40703': errors.ExchangeError, // Bill inquiry start and end time cannot be empty
+                    '40704': errors.ExchangeError, // Can only check the data of the last three months
+                    '40705': errors.BadRequest, // The start and end time cannot exceed 90 days
+                    '40706': errors.InvalidOrder, // Wrong order price
+                    '40707': errors.BadRequest, // Start time is greater than end time
+                    '40708': errors.BadRequest, // Parameter verification is abnormal
+                    '40709': errors.ExchangeError, // There is no position in this position, and no automatic margin call can be set
+                    '40710': errors.ExchangeError, // Abnormal account status
+                    '40711': errors.InsufficientFunds, // Insufficient contract account balance
+                    '40712': errors.InsufficientFunds, // Insufficient margin
+                    '40713': errors.ExchangeError, // Cannot exceed the maximum transferable margin amount
+                    '40714': errors.ExchangeError, // No direct margin call is allowed
+                    '40762': errors.InsufficientFunds, // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null}
+                    '40768': errors.OrderNotFound, // Order does not exist
+                    '40808': errors.InvalidOrder, // {"code":"40808","msg":"Parameter verification exception size checkBDScale error value=2293.577 checkScale=2","requestTime":1725638500052,"data":null}
+                    '41103': errors.InvalidOrder, // {"code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null}
+                    '41114': errors.OnMaintenance, // {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
+                    '43011': errors.InvalidOrder, // The parameter does not meet the specification executePrice <= 0
                     '43001': errors.OrderNotFound,
-                    '43012': errors.InsufficientFunds,
-                    '43025': errors.InvalidOrder,
-                    '43115': errors.OnMaintenance,
-                    '45110': errors.InvalidOrder,
-                    '40774': errors.InvalidOrder,
-                    '40917': errors.InvalidOrder,
-                    '45122': errors.InvalidOrder,
+                    '43012': errors.InsufficientFunds, // {"code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null}
+                    '43025': errors.InvalidOrder, // Plan order does not exist
+                    '43115': errors.OnMaintenance, // {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
+                    '45110': errors.InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
+                    '40774': errors.InvalidOrder, // {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '40917': errors.InvalidOrder, // {"code":"40917","msg":"Stop price for long positions please < mark price {0}","requestTime":1776355933687,"data":null}
+                    '45122': errors.InvalidOrder, // {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     // spot
                     'invalid sign': errors.AuthenticationError,
-                    'invalid currency': errors.BadSymbol,
+                    'invalid currency': errors.BadSymbol, // invalid trading pair
                     'invalid symbol': errors.BadSymbol,
-                    'invalid period': errors.BadRequest,
+                    'invalid period': errors.BadRequest, // invalid Kline type
                     'invalid user': errors.ExchangeError,
                     'invalid amount': errors.InvalidOrder,
-                    'invalid type': errors.InvalidOrder,
+                    'invalid type': errors.InvalidOrder, // {"status":"error","ts":1595700344504,"err_code":"invalid-parameter","err_msg":"invalid type"}
                     'invalid orderId': errors.InvalidOrder,
                     'invalid record': errors.ExchangeError,
                     'invalid accountId': errors.BadRequest,
                     'invalid address': errors.BadRequest,
-                    'accesskey not null': errors.AuthenticationError,
+                    'accesskey not null': errors.AuthenticationError, // {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
                     'illegal accesskey': errors.AuthenticationError,
                     'sign not null': errors.AuthenticationError,
                     'req_time is too much difference from server time': errors.InvalidNonce,
-                    'permissions not right': errors.PermissionDenied,
-                    'illegal sign invalid': errors.AuthenticationError,
+                    'permissions not right': errors.PermissionDenied, // {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
+                    'illegal sign invalid': errors.AuthenticationError, // {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
                     'user locked': errors.AccountSuspended,
                     'Request Frequency Is Too High': errors.RateLimitExceeded,
                     'more than a daily rate of cash': errors.BadRequest,
@@ -1423,7 +1423,7 @@ class bitget extends bitget$1["default"] {
                     'Cash Withdrawal Is Less Than The Minimum Value': errors.BadRequest,
                     'Cash Withdrawal Is More Than The Maximum Value': errors.BadRequest,
                     'the account with in 24 hours ban coin': errors.PermissionDenied,
-                    'order cancel fail': errors.BadRequest,
+                    'order cancel fail': errors.BadRequest, // {"status":"error","ts":1595703343035,"err_code":"bad-request","err_msg":"order cancel fail"}
                     'base symbol error': errors.BadSymbol,
                     'base date error': errors.ExchangeError,
                     'api signature not valid': errors.AuthenticationError,
@@ -1433,33 +1433,33 @@ class bitget extends bitget$1["default"] {
                     'market no need price': errors.InvalidOrder,
                     'limit need price': errors.InvalidOrder,
                     'userid not equal to account_id': errors.ExchangeError,
-                    'your balance is low': errors.InsufficientFunds,
+                    'your balance is low': errors.InsufficientFunds, // {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
                     'address invalid cointype': errors.ExchangeError,
-                    'system exception': errors.ExchangeError,
-                    '50003': errors.ExchangeError,
-                    '50004': errors.BadSymbol,
-                    '50006': errors.PermissionDenied,
-                    '50007': errors.PermissionDenied,
-                    '50008': errors.RequestTimeout,
-                    '50009': errors.RateLimitExceeded,
-                    '50010': errors.ExchangeError,
-                    '50014': errors.InvalidOrder,
-                    '50015': errors.InvalidOrder,
-                    '50016': errors.InvalidOrder,
-                    '50017': errors.InvalidOrder,
-                    '50018': errors.InvalidOrder,
-                    '50019': errors.InvalidOrder,
-                    '50020': errors.InsufficientFunds,
-                    '50021': errors.InvalidOrder,
-                    '50026': errors.InvalidOrder,
-                    'invalid order query time': errors.ExchangeError,
-                    'invalid start time': errors.BadRequest,
-                    'invalid end time': errors.BadRequest,
-                    '20003': errors.ExchangeError,
-                    '01001': errors.ExchangeError,
-                    '40024': errors.RestrictedLocation,
-                    '41117': errors.InvalidOrder,
-                    '43111': errors.PermissionDenied,
+                    'system exception': errors.ExchangeError, // {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
+                    '50003': errors.ExchangeError, // No record
+                    '50004': errors.BadSymbol, // The transaction pair is currently not supported or has been suspended
+                    '50006': errors.PermissionDenied, // The account is forbidden to withdraw. If you have any questions, please contact customer service.
+                    '50007': errors.PermissionDenied, // The account is forbidden to withdraw within 24 hours. If you have any questions, please contact customer service.
+                    '50008': errors.RequestTimeout, // network timeout
+                    '50009': errors.RateLimitExceeded, // The operation is too frequent, please try again later
+                    '50010': errors.ExchangeError, // The account is abnormally frozen. If you have any questions, please contact customer service.
+                    '50014': errors.InvalidOrder, // The transaction amount under minimum limits
+                    '50015': errors.InvalidOrder, // The transaction amount exceed maximum limits
+                    '50016': errors.InvalidOrder, // The price can't be higher than the current price
+                    '50017': errors.InvalidOrder, // Price under minimum limits
+                    '50018': errors.InvalidOrder, // The price exceed maximum limits
+                    '50019': errors.InvalidOrder, // The amount under minimum limits
+                    '50020': errors.InsufficientFunds, // Insufficient balance
+                    '50021': errors.InvalidOrder, // Price is under minimum limits
+                    '50026': errors.InvalidOrder, // Market price parameter error
+                    'invalid order query time': errors.ExchangeError, // start time is greater than end time; or the time interval between start time and end time is greater than 48 hours
+                    'invalid start time': errors.BadRequest, // start time is a date 30 days ago; or start time is a date in the future
+                    'invalid end time': errors.BadRequest, // end time is a date 30 days ago; or end time is a date in the future
+                    '20003': errors.ExchangeError, // operation failed, {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
+                    '01001': errors.ExchangeError, // order failed, {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
+                    '40024': errors.RestrictedLocation, // {"code":"40024","msg":"The currency is a regional currency and does not meet the purchase conditions.","requestTime":1765282460733,"data":null}
+                    '41117': errors.InvalidOrder, // {"code":"41117","msg":"K/USDT selling price cannot be lower than 0.00085","requestTime":1773990851247,"data":null}
+                    '43111': errors.PermissionDenied, // {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
                     '45113': errors.InvalidOrder, // {"code":"45113","msg":"Maximum order value limit triggered","requestTime":1774884278712,"data":null}
                 },
                 'broad': {
@@ -1470,15 +1470,15 @@ class bitget extends bitget$1["default"] {
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
-                'EVA': 'Evadore',
+                'EVA': 'Evadore', // conflict with EverValue Coin
                 'JADE': 'Jade Protocol',
-                'OMNI': 'omni',
+                'OMNI': 'omni', // conflict with Omni Network
                 'TONCOIN': 'TON',
             },
             'options': {
-                'uta': false,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'uta': undefined,
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1528,8 +1528,8 @@ class bitget extends bitget$1["default"] {
                 'fetchMarkets': {
                     'types': ['spot', 'swap'], // there is future markets but they use the same endpoints as swap
                 },
-                'defaultType': 'spot',
-                'defaultSubType': 'linear',
+                'defaultType': 'spot', // 'spot', 'swap', 'future'
+                'defaultSubType': 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': true,
                 'broker': 'p4sve',
                 'withdraw': {
@@ -1670,7 +1670,7 @@ class bitget extends bitget$1["default"] {
                     'QTUM': 'QTUM',
                     'REEF': 'REEF',
                     'SOL': 'SOL',
-                    'SYS': 'SYS',
+                    'SYS': 'SYS', // SyscoinNEVM is different
                     'SXP': 'Solar',
                     'XYM': 'Symbol',
                     'TON': 'TON',
@@ -1708,7 +1708,7 @@ class bitget extends bitget$1["default"] {
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
-                'defaultTimeInForce': 'GTC',
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 // fiat currencies on deposit page
                 'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
             },
@@ -1725,8 +1725,8 @@ class bitget extends bitget$1["default"] {
                             'index': false, // not on spot
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': true,
-                        'takeProfitPrice': true,
+                        'stopLossPrice': true, // todo:  not yet implemented in spot
+                        'takeProfitPrice': true, // todo: not yet implemented in spot
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': false,
@@ -1921,6 +1921,27 @@ class bitget extends bitget$1["default"] {
         params = this.omit(params, ['productType', 'category']);
         return [productType, params];
     }
+    async handleUTAAndParams(params, methodName, defaultValue = false) {
+        let uta = undefined;
+        [uta, params] = this.handleOptionAndParams(params, methodName, 'uta');
+        if (uta !== undefined) {
+            return [uta, params];
+        }
+        if (this.checkRequiredCredentials(false)) {
+            // use the api to determine if the account is uta or not
+            let accountIsUTa = false;
+            try {
+                await this.privateUtaGetV3AccountSettings(params);
+                accountIsUTa = true;
+            }
+            catch (e) {
+                accountIsUTa = false;
+            }
+            this.options['uta'] = accountIsUTa;
+            return [accountIsUTa, params];
+        }
+        return [defaultValue, params];
+    }
     /**
      * @method
      * @name bitget#fetchTime
@@ -1961,7 +1982,7 @@ class bitget extends bitget$1["default"] {
             await this.loadTimeDifference();
         }
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchMarkets', false);
         if (uta) {
             return await this.fetchUtaMarkets(params);
         }
@@ -2132,8 +2153,8 @@ class bitget extends bitget$1["default"] {
                     expiry = this.safeInteger(market, 'deliveryTime');
                     expiryDatetime = this.iso8601(expiry);
                     const expiryParts = expiryDatetime.split('-');
-                    const yearPart = this.safeString(expiryParts, 0);
-                    const dayPart = this.safeString(expiryParts, 2);
+                    const yearPart = this.safeString(expiryParts, 0, '');
+                    const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
                     const month = this.safeString(expiryParts, 1);
                     const day = dayPart.slice(0, 2);
@@ -2399,8 +2420,8 @@ class bitget extends bitget$1["default"] {
                     expiry = this.safeInteger(market, 'deliveryTime');
                     expiryDatetime = this.iso8601(expiry);
                     const expiryParts = expiryDatetime.split('-');
-                    const yearPart = this.safeString(expiryParts, 0);
-                    const dayPart = this.safeString(expiryParts, 2);
+                    const yearPart = this.safeString(expiryParts, 0, '');
+                    const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
                     const month = this.safeString(expiryParts, 1);
                     const day = dayPart.slice(0, 2);
@@ -2618,7 +2639,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
@@ -2627,7 +2650,7 @@ class bitget extends bitget$1["default"] {
         let uta = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchMarketLeverageTiers', params, 'isolated');
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        [uta, params] = this.handleOptionAndParams(params, 'fetchMarketLeverageTiers', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchMarketLeverageTiers', false);
         if (uta) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
@@ -2794,7 +2817,7 @@ class bitget extends bitget$1["default"] {
             }
             const maxNotional = this.safeNumberN(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue']);
             const marginCurrency = this.safeString2(item, 'coin', 'baseCoin');
-            const currencyId = (marginCurrency !== undefined) ? marginCurrency : market['base'];
+            const currencyId = (marginCurrency !== undefined) ? marginCurrency : this.safeString(market, 'base');
             const marketId = this.safeString(item, 'symbol');
             tiers.push({
                 'tier': this.safeInteger2(item, 'level', 'tier'),
@@ -2825,7 +2848,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -2894,7 +2919,9 @@ class bitget extends bitget$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a "network" parameter');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const networkId = this.networkCodeToId(networkCode, code);
         const request = {
@@ -2949,7 +2976,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -3102,7 +3131,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const currency = this.currency(code);
@@ -3166,10 +3197,12 @@ class bitget extends bitget$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3181,7 +3214,7 @@ class bitget extends bitget$1["default"] {
         [productType, params] = this.handleProductTypeAndParams(market, params);
         let response = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchOrderBook', false);
         if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook(this.extend(request, params));
@@ -3383,7 +3416,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3392,7 +3427,7 @@ class bitget extends bitget$1["default"] {
         [productType, params] = this.handleProductTypeAndParams(market, params);
         let response = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchTicker', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchTicker', false);
         if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, params));
@@ -3540,7 +3575,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3573,7 +3610,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue(symbols, 0);
@@ -3591,12 +3630,12 @@ class bitget extends bitget$1["default"] {
         [productType, params] = this.handleProductTypeAndParams(market, params);
         // only if passedSubType && productType is undefined, then use spot
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchTickers', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchTickers', false);
         if (uta) {
             if (symbols !== undefined) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength === 1) {
-                    request['symbol'] = market['id'];
+                    request['symbol'] = this.safeString(market, 'id');
                 }
             }
             request['category'] = productType;
@@ -3901,7 +3940,9 @@ class bitget extends bitget$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -3912,7 +3953,7 @@ class bitget extends bitget$1["default"] {
             'symbol': market['id'],
         };
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchTrades', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchTrades', false);
         if (limit !== undefined) {
             if (uta) {
                 request['limit'] = Math.min(limit, 100);
@@ -4040,7 +4081,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4086,7 +4129,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let response = undefined;
         let marginMode = undefined;
         let marketType = undefined;
@@ -4253,7 +4298,9 @@ class bitget extends bitget$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
         const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
@@ -4272,7 +4319,7 @@ class bitget extends bitget$1["default"] {
         let marketType = undefined;
         let timeframes = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchOHLCV', false);
         if (uta) {
             timeframes = this.options['timeframes']['uta'];
             request['interval'] = this.safeString(timeframes, timeframe, timeframe);
@@ -4441,13 +4488,15 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let marketType = undefined;
         let marginMode = undefined;
         let response = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchBalance', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchBalance', false);
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
         if (uta) {
@@ -5082,7 +5131,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -5138,7 +5189,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marginParams = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = marginParams[0];
@@ -5153,7 +5206,7 @@ class bitget extends bitget$1["default"] {
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let response = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'createOrder', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'createOrder', false);
         if (uta) {
             const request = this.createUtaOrderRequest(symbol, type, side, amount, price, params);
             if (isStopLossOrTakeProfitTrigger) {
@@ -5570,7 +5623,9 @@ class bitget extends bitget$1["default"] {
         return this.extend(request, params);
     }
     async createUtaOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         let symbol = undefined;
         let marginMode = undefined;
@@ -5638,9 +5693,11 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'createOrders', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'createOrders', false);
         if (uta) {
             return await this.createUtaOrders(orders, params);
         }
@@ -5770,7 +5827,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
         // 'orderId': id,
@@ -5811,7 +5870,7 @@ class bitget extends bitget$1["default"] {
         let productType = undefined;
         let uta = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        [uta, params] = this.handleOptionAndParams(params, 'editOrder', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'editOrder', false);
         if (uta) {
             if (amount !== undefined) {
                 request['qty'] = this.amountToPrecision(symbol, amount);
@@ -6000,10 +6059,12 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marginMode = undefined;
-        let response = undefined;
+        let response = {};
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const request = {};
         const trailing = this.safeValue(params, 'trailing');
@@ -6013,7 +6074,7 @@ class bitget extends bitget$1["default"] {
             request['symbol'] = market['id'];
         }
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'cancelOrder', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'cancelOrder', false);
         const isPlanOrder = trigger || trailing;
         const isContract = market['swap'] || market['future'];
         const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
@@ -6136,10 +6197,10 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        let order = undefined;
+        let order = {};
         if (isContractTriggerEndpoint) {
             const orderInfo = this.safeValue(data, 'successList', []);
-            order = orderInfo[0];
+            order = this.safeDict(orderInfo, 0, {});
         }
         else {
             if (uta && trigger) {
@@ -6155,7 +6216,9 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -6208,10 +6271,12 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'cancelOrders', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'cancelOrders', false);
         if (uta) {
             return await this.cancelUtaOrders(ids, symbol, params);
         }
@@ -6301,7 +6366,9 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrders', params);
@@ -6314,7 +6381,7 @@ class bitget extends bitget$1["default"] {
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'cancelAllOrders', false);
         if (uta) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
@@ -6387,7 +6454,7 @@ class bitget extends bitget$1["default"] {
             //     {
             //         "code": "00000",
             //         "msg": "success",
-            //         "requestTime": "1680008815965",
+            //         "requestTime": "1680008815966",
             //         "data": {
             //             "successList": [
             //                 {
@@ -6429,7 +6496,9 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
         // 'orderId': id,
@@ -6444,7 +6513,7 @@ class bitget extends bitget$1["default"] {
         }
         let response = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchOrder', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchOrder', false);
         if (uta) {
             response = await this.privateUtaGetV3TradeOrderInfo(this.extend(request, params));
         }
@@ -6616,14 +6685,16 @@ class bitget extends bitget$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let type = undefined;
         let request = {};
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchOpenOrders', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -7029,7 +7100,9 @@ class bitget extends bitget$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, params);
         return this.filterBy(orders, 'status', 'closed');
     }
@@ -7057,7 +7130,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, params);
         return this.filterBy(orders, 'status', 'canceled');
     }
@@ -7088,11 +7163,13 @@ class bitget extends bitget$1["default"] {
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchCanceledAndClosedOrders', false);
         if (uta) {
             return await this.fetchUtaCanceledAndClosedOrders(symbol, since, limit, params);
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let request = {};
         if (symbol !== undefined) {
@@ -7381,7 +7458,9 @@ class bitget extends bitget$1["default"] {
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchUtaCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -7523,7 +7602,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbol = this.safeString(params, 'symbol');
         params = this.omit(params, 'symbol');
         let market = undefined;
@@ -7560,7 +7641,7 @@ class bitget extends bitget$1["default"] {
         }
         else {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             let productType = undefined;
             [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -7652,7 +7733,7 @@ class bitget extends bitget$1["default"] {
         const timestamp = this.safeInteger(item, 'cTime');
         const after = this.safeNumber(item, 'balance');
         const fee = this.safeNumber2(item, 'fees', 'fee');
-        const amountRaw = this.safeString2(item, 'size', 'amount');
+        const amountRaw = this.safeString2(item, 'size', 'amount', '');
         const amount = this.parseNumber(Precise["default"].stringAbs(amountRaw));
         let direction = 'in';
         if (amountRaw.indexOf('-') >= 0) {
@@ -7744,11 +7825,13 @@ class bitget extends bitget$1["default"] {
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchMyTrades', false);
         if (!uta && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {};
         [request, params] = this.handleUntilOption('endTime', request, params);
@@ -7968,7 +8051,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -7978,7 +8063,7 @@ class bitget extends bitget$1["default"] {
         let response = undefined;
         let uta = undefined;
         let result = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchPosition', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchPosition', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition(this.extend(request, params));
@@ -8080,7 +8165,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchPositions', 'paginate');
         if (paginate) {
@@ -8108,7 +8195,7 @@ class bitget extends bitget$1["default"] {
         let response = undefined;
         let isHistory = false;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchPositions', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchPositions', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition(this.extend(request, params));
@@ -8507,7 +8594,9 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -8517,7 +8606,7 @@ class bitget extends bitget$1["default"] {
         let response = undefined;
         let result = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        [uta, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchFundingRateHistory', false);
         if (uta) {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -8601,7 +8690,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
@@ -8613,7 +8704,7 @@ class bitget extends bitget$1["default"] {
         };
         let uta = undefined;
         let response = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchFundingRate', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchFundingRate', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, params));
             //
@@ -8692,7 +8783,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue(symbols, 0);
@@ -8775,7 +8868,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingIntervals(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params = this.extend({ 'method': 'publicMixGetV2MixMarketCurrentFundRate' }, params);
         return await this.fetchFundingRates(symbols, params);
     }
@@ -8882,12 +8977,14 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchFundingHistory', false);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -9032,7 +9129,9 @@ class bitget extends bitget$1["default"] {
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const holdSide = this.safeString(params, 'holdSide');
         const market = this.market(symbol);
         let productType = undefined;
@@ -9040,8 +9139,8 @@ class bitget extends bitget$1["default"] {
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'amount': this.amountToPrecision(symbol, amount),
-            'holdSide': holdSide,
+            'amount': this.amountToPrecision(symbol, amount), // positive value for adding margin, negative for reducing
+            'holdSide': holdSide, // long or short
             'productType': productType,
         };
         params = this.omit(params, 'holdSide');
@@ -9074,12 +9173,12 @@ class bitget extends bitget$1["default"] {
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': status,
             'timestamp': undefined,
             'datetime': undefined,
@@ -9132,7 +9231,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -9179,7 +9280,7 @@ class bitget extends bitget$1["default"] {
         const shortLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': isCrossMarginMode ? 'cross' : 'isolated',
             'longLeverage': this.safeInteger(leverage, longLevKey),
             'shortLeverage': this.safeInteger(leverage, shortLevKey),
@@ -9203,7 +9304,9 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -9212,8 +9315,8 @@ class bitget extends bitget$1["default"] {
             'leverage': this.numberToString(leverage),
         };
         let uta = undefined;
-        let response = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'setLeverage', 'uta', false);
+        let response = {};
+        [uta, params] = await this.handleUTAAndParams(params, 'setLeverage', false);
         if (uta) {
             if (productType === 'SPOT') {
                 let marginMode = undefined;
@@ -9277,7 +9380,9 @@ class bitget extends bitget$1["default"] {
         if ((marginMode !== 'isolated') && (marginMode !== 'crossed')) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be either isolated or crossed (cross)');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -9318,7 +9423,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} response from the exchange
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const posMode = hedged ? 'hedge_mode' : 'one_way_mode';
         const request = {};
         let market = undefined;
@@ -9327,9 +9434,9 @@ class bitget extends bitget$1["default"] {
         }
         let productType = undefined;
         let uta = undefined;
-        let response = undefined;
+        let response = {};
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        [uta, params] = this.handleOptionAndParams(params, 'setPositionMode', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'setPositionMode', false);
         if (uta) {
             request['holdMode'] = posMode;
             response = await this.privateUtaPostV3AccountSetHoldMode(this.extend(request, params));
@@ -9371,7 +9478,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
@@ -9383,7 +9492,7 @@ class bitget extends bitget$1["default"] {
         };
         let uta = undefined;
         let response = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchOpenInterest', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchOpenInterest', false);
         if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOpenInterest(this.extend(request, params));
@@ -9481,7 +9590,9 @@ class bitget extends bitget$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTransfers', undefined, params);
         const fromAccount = this.safeString(params, 'fromAccount', type);
@@ -9540,7 +9651,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromType = this.safeString(accountsByType, fromAccount);
@@ -9688,7 +9801,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicSpotGetV2SpotPublicCoins(params);
         //
         //     {
@@ -9733,7 +9848,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -9767,7 +9884,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowIsolatedMargin(symbol, code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const market = this.market(symbol);
         const request = {
@@ -9804,7 +9923,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayIsolatedMargin(symbol, code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const market = this.market(symbol);
         const request = {
@@ -9841,7 +9962,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -9934,7 +10057,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyLiquidations', 'paginate');
         if (paginate) {
@@ -9967,7 +10092,7 @@ class bitget extends bitget$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchMyLiquidations() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
@@ -10087,7 +10212,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
     async fetchIsolatedBorrowRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -10186,7 +10313,7 @@ class bitget extends bitget$1["default"] {
             'baseRate': this.safeNumber(info, 'baseDailyInterestRate'),
             'quote': this.safeCurrencyCode(quoteId),
             'quoteRate': this.safeNumber(info, 'quoteDailyInterestRate'),
-            'period': 86400000,
+            'period': 86400000, // 1-Day
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -10204,15 +10331,17 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
     async fetchCrossBorrowRate(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
         };
         let uta = undefined;
         let response = undefined;
-        let result = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchCrossBorrowRate', 'uta', false);
+        let result = {};
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchCrossBorrowRate', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketMarginLoans(this.extend(request, params));
             //
@@ -10299,7 +10428,7 @@ class bitget extends bitget$1["default"] {
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
             'rate': this.safeNumber2(info, 'dailyInterestRate', 'dailyInterest'),
-            'period': 86400000,
+            'period': 86400000, // 1-Day
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -10320,7 +10449,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchBorrowInterest', 'paginate');
         if (paginate) {
@@ -10352,7 +10483,7 @@ class bitget extends bitget$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchBorrowInterest() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             response = await this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
@@ -10471,7 +10602,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -10480,7 +10613,7 @@ class bitget extends bitget$1["default"] {
         let uta = undefined;
         let response = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        [uta, params] = this.handleOptionAndParams(params, 'closePosition', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'closePosition', false);
         if (uta) {
             if (side !== undefined) {
                 request['posSide'] = side;
@@ -10543,13 +10676,15 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closeAllPositions(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let productType = undefined;
         let uta = undefined;
         let response = undefined;
         [productType, params] = this.handleProductTypeAndParams(undefined, params);
-        [uta, params] = this.handleOptionAndParams(params, 'closeAllPositions', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'closeAllPositions', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaPostV3TradeClosePositions(this.extend(request, params));
@@ -10604,7 +10739,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -10650,7 +10787,7 @@ class bitget extends bitget$1["default"] {
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginType,
         };
     }
@@ -10670,7 +10807,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         let market = undefined;
         let productType = undefined;
@@ -10691,7 +10830,7 @@ class bitget extends bitget$1["default"] {
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        [uta, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchPositionsHistory', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionHistoryPosition(this.extend(request, params));
@@ -10777,7 +10916,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'fromCoin': fromCode,
             'toCoin': toCode,
@@ -10822,7 +10963,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const price = this.safeString2(params, 'price', 'cnvtPrice');
         if (price === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createConvertTrade() requires a price parameter');
@@ -10871,7 +11014,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const msInDay = 86400000;
         const now = this.milliseconds();
@@ -10982,7 +11127,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchConvertCurrencies(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateConvertGetV2ConvertCurrencies(params);
         //
         //     {
@@ -11048,7 +11195,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingInterval(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -11057,7 +11206,7 @@ class bitget extends bitget$1["default"] {
         };
         let response = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'fetchFundingInterval', 'uta', false);
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchFundingInterval', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, params));
             //
@@ -11114,7 +11263,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -11247,16 +11398,21 @@ class bitget extends bitget$1["default"] {
             }
             else {
                 if (Object.keys(params).length) {
-                    let queryInner = '?' + this.urlencode(this.keysort(params));
+                    const sortedParams = this.keysort(params);
+                    let queryInner = '?' + this.urlencode(sortedParams, true);
                     // check #21169 pr
                     if (queryInner.indexOf('%24') > -1) {
                         queryInner = queryInner.replace('%24', '$');
                     }
                     url += queryInner;
-                    auth += queryInner;
+                    // bitget signs the raw (non-percent-encoded) query string, so the
+                    // signature must use the decoded values (e.g. non-ascii market ids).
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    auth += '?' + this.rawencode(sortedParams, true);
                 }
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             const broker = this.safeString(this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,
