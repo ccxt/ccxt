@@ -76,7 +76,7 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'method': name,
             'params': request,
             'id': self.milliseconds(),
@@ -156,12 +156,12 @@ class p2b(ccxt.async_support.p2b):
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
         messageHashes = []
         args = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len((symbols))):
+            market = self.market((symbols)[i])
             messageHashes.append(name + '::' + market['symbol'])
             args.append(market['id'])
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'method': name + '.subscribe',
             'params': args,
             'id': self.milliseconds(),
@@ -203,7 +203,7 @@ class p2b(ccxt.async_support.p2b):
                 messageHashes.append('deals::' + symbols[i])
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'method': 'deals.subscribe',
             'params': marketIds,
             'id': self.milliseconds(),
@@ -226,7 +226,7 @@ class p2b(ccxt.async_support.p2b):
         :param int [limit]: 1-100, default=100
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.interval]: 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -315,8 +315,8 @@ class p2b(ccxt.async_support.p2b):
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesArray = ArrayCache(tradesLimit)
             self.trades[symbol] = tradesArray
-        for i in range(0, len(trades)):
-            item = trades[i]
+        for i in range(0, len((trades))):
+            item = (trades)[i]
             trade = self.parse_trade(item, market)
             tradesArray.append(trade)
         messageHash = 'deals::' + symbol
@@ -363,7 +363,7 @@ class p2b(ccxt.async_support.p2b):
         splitMethod = method.split('.')
         messageHashStart = self.safe_string(splitMethod, 0)
         tickerData = self.safe_dict(data, 1)
-        ticker = None
+        ticker: Ticker
         if method == 'price.update':
             lastPrice = self.safe_string(data, 1)
             ticker = self.safe_ticker({
@@ -437,7 +437,7 @@ class p2b(ccxt.async_support.p2b):
             self.handle_pong(client, message)
             return
         method = self.safe_string(message, 'method')
-        methods: dict = {
+        methods = {
             'depth.update': self.handle_order_book,
             'price.update': self.handle_ticker,
             'kline.update': self.handle_ohlcv,

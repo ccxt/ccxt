@@ -9,7 +9,7 @@ public partial class coincheck : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coincheck" },
-            { "name", "coincheck" },
+            { "name", "Coincheck" },
             { "countries", new List<object>() {"JP", "ID"} },
             { "rateLimit", 1500 },
             { "has", new Dictionary<string, object>() {
@@ -83,6 +83,7 @@ public partial class coincheck : Exchange
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", false },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -110,10 +111,10 @@ public partial class coincheck : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"exchange/orders/rate", "order_books", "rate/{pair}", "ticker", "trades"} },
+                    { "get", new List<object>() {"exchange/orders/rate", "exchange_status", "order_books", "rate/{pair}", "ticker", "trades"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/opens", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"} },
+                    { "get", new List<object>() {"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/{id}", "exchange/orders/opens", "exchange/orders/cancel_status", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"} },
                     { "post", new List<object>() {"bank_accounts", "deposit_money/{id}/fast", "exchange/orders", "exchange/transfers/to_leverage", "exchange/transfers/from_leverage", "lending/borrows", "lending/borrows/{id}/repay", "send_money", "withdraws"} },
                     { "delete", new List<object>() {"bank_accounts/{id}", "exchange/orders/{id}", "withdraws/{id}"} },
                 } },
@@ -268,6 +269,59 @@ public partial class coincheck : Exchange
 
     /**
      * @method
+     * @name coincheck#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coincheck.com/documents/exchange/api#status-retrieval
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public async override Task<object> fetchStatus(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.publicGetExchangeStatus(parameters);
+        //
+        //     {
+        //         "exchange_status": [
+        //             {
+        //                 "pair": "btc_jpy",
+        //                 "status": "available",
+        //                 "timestamp": 1782787596,
+        //                 "availability": {
+        //                     "order": true,
+        //                     "market_order": true,
+        //                     "cancel": true
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        object exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
+        object status = "ok";
+        object updated = null;
+        for (object i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
+        {
+            object exchangeStatus = getValue(exchangeStatuses, i);
+            object rawStatus = this.safeString(exchangeStatus, "status");
+            if (isTrue(isEqual(updated, null)))
+            {
+                updated = this.safeTimestamp(exchangeStatus, "timestamp");
+            }
+            if (isTrue(!isEqual(rawStatus, "available")))
+            {
+                status = "maintenance";
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "status", status },
+            { "updated", updated },
+            { "eta", null },
+            { "url", null },
+            { "info", response },
+        };
+    }
+
+    /**
+     * @method
      * @name coincheck#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
@@ -374,7 +428,7 @@ public partial class coincheck : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -520,8 +574,8 @@ public partial class coincheck : Exchange
                 takerOrMaker = "maker";
             }
             object funds = this.safeValue(trade, "funds", new Dictionary<string, object>() {});
-            amountString = this.safeString(funds, baseId);
-            costString = this.safeString(funds, quoteId);
+            amountString = this.safeString(funds, ((string)baseId));
+            costString = this.safeString(funds, ((string)quoteId));
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeString(trade, "fee_currency") },
                 { "cost", this.safeString(trade, "fee") },
@@ -565,7 +619,7 @@ public partial class coincheck : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -670,11 +724,16 @@ public partial class coincheck : Exchange
         //
         object fees = this.safeValue(response, "exchange_fees", new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        if (isTrue(isEqual(symbols, null)))
         {
-            object symbol = getValue(this.symbols, i);
+            return result;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object fee = this.safeValue(fees, getValue(market, "id"), new Dictionary<string, object>() {});
+            object fee = this.safeValue(fees, ((string)getValue(market, "id")), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
@@ -883,7 +942,7 @@ public partial class coincheck : Exchange
             { "confirmed", "pending" },
             { "received", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)

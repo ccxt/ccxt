@@ -781,20 +781,21 @@ public class BinanceCore extends BinanceApi
                             put( "cost", 1 );
                             put( "noSymbol", 5 );
                         }} );
-                        put( "allOrders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 20 );
+                        put( "openAlgoOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
                             put( "noSymbol", 40 );
                         }} );
+                        put( "allOrders", 5 );
                         put( "balance", 1 );
                         put( "account", 5 );
                         put( "positionMargin/history", 1 );
                         put( "positionRisk", 1 );
-                        put( "userTrades", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 20 );
-                            put( "noSymbol", 40 );
-                        }} );
+                        put( "userTrades", 5 );
                         put( "income", 20 );
-                        put( "leverageBracket", 1 );
+                        put( "leverageBracket", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                            put( "noSymbol", 2 );
+                        }} );
                         put( "forceOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
                             put( "noSymbol", 50 );
@@ -813,6 +814,7 @@ public class BinanceCore extends BinanceApi
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "positionSide/dual", 1 );
                         put( "order", 4 );
+                        put( "algoOrder", 1 );
                         put( "batchOrders", 5 );
                         put( "countdownCancelAll", 10 );
                         put( "leverage", 1 );
@@ -827,6 +829,7 @@ public class BinanceCore extends BinanceApi
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
                         put( "order", 1 );
+                        put( "algoOrder", 1 );
                         put( "allOpenOrders", 1 );
                         put( "batchOrders", 5 );
                         put( "listenKey", 1 );
@@ -1370,6 +1373,7 @@ public class BinanceCore extends BinanceApi
                 put( "defaultSubType", null );
                 put( "hasAlreadyAuthenticatedSuccessfully", false );
                 put( "warnOnFetchOpenOrdersWithoutSymbol", true );
+                put( "warnOnSTPForInverse", true );
                 put( "currencyToPrecisionRoundingMode", TRUNCATE );
                 put( "throwMarginModeAlreadySet", false );
                 put( "fetchPositions", "positionRisk" );
@@ -1412,6 +1416,9 @@ public class BinanceCore extends BinanceApi
                     put( "OPTION", "option" );
                 }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
+                    put( "BTC", "BTC" );
+                    put( "BTCSEGWIT", "SEGWITBTC" );
+                    put( "BTCLIGHTNING", "LIGHTNING" );
                     put( "ERC20", "ETH" );
                     put( "ETH", "ETH" );
                     put( "TRC20", "TRX" );
@@ -1419,9 +1426,12 @@ public class BinanceCore extends BinanceApi
                     put( "BEP2", "BNB" );
                     put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
+                    put( "CHZ2", "CHZ2" );
+                    put( "XRP", "XRP" );
                     put( "EOS", "EOS" );
-                    put( "SPL", "SOL" );
+                    put( "DOGE", "DOGE" );
                     put( "SOL", "SOL" );
+                    put( "SONIC", "SONIC" );
                     put( "ARBONE", "ARBITRUM" );
                     put( "AVAXC", "AVAXC" );
                     put( "MATIC", "MATIC" );
@@ -1454,6 +1464,46 @@ public class BinanceCore extends BinanceApi
                     put( "CFX", "CFX" );
                     put( "SCRT", "SCRT" );
                     put( "ONT", "ONT" );
+                    put( "ZEC", "ZEC" );
+                    put( "XMR", "XMR" );
+                    put( "BCH", "BCH" );
+                    put( "LTC", "LTC" );
+                    put( "TAO", "TAO" );
+                    put( "WLD", "WLD" );
+                    put( "ICP", "ICP" );
+                    put( "FLR", "FLR" );
+                    put( "COSMOS", "ATOM" );
+                    put( "ATOM", "ATOM" );
+                    put( "FIL", "FIL" );
+                    put( "INJ", "INJ" );
+                    put( "DASH", "DASH" );
+                    put( "VET", "VET" );
+                    put( "FET", "FET" );
+                    put( "TIA", "TIA" );
+                    put( "KAIA", "KAIA" );
+                    put( "DCR", "DCR" );
+                    put( "IOTA", "IOTA" );
+                    put( "THETA", "THETA" );
+                    put( "AR", "AR" );
+                    put( "DYDX", "DYDX" );
+                    put( "XEC", "XEC" );
+                    put( "QTUM", "QTUM" );
+                    put( "ENJ", "ENJ" );
+                    put( "RVN", "RVN" );
+                    put( "ZIL", "ZIL" );
+                    put( "BERA", "BERA" );
+                    put( "0G", "0G" );
+                    put( "MINA", "MINA" );
+                    put( "AXL", "AXL" );
+                    put( "ROSE", "ROSE" );
+                    put( "CKB", "CKB" );
+                    put( "DGB", "DGB" );
+                    put( "MOVE", "MOVE" );
+                    put( "XVG", "XVG" );
+                    put( "SC", "SC" );
+                    put( "LINEA", "LINEA" );
+                    put( "WAVES", "WAVES" );
+                    put( "MANTA", "MANTA" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
@@ -1657,7 +1707,7 @@ public class BinanceCore extends BinanceApi
                         put( "symbolRequired", true );
                     }} );
                     put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
-                        put( "limit", 1500 );
+                        put( "limit", 500 );
                     }} );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
@@ -2927,215 +2977,217 @@ public class BinanceCore extends BinanceApi
                 Object responseMarginables = Helpers.GetValue(results, 1);
                 marginablesById = this.indexBy(responseMarginables, "assetName");
             }
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseCurrencies)); i++)
-            {
-                //
-                //    {
-                //        "coin": "LINK",
-                //        "depositAllEnable": true,
-                //        "withdrawAllEnable": true,
-                //        "name": "ChainLink",
-                //        "free": "0",
-                //        "locked": "0",
-                //        "freeze": "0",
-                //        "withdrawing": "0",
-                //        "ipoing": "0",
-                //        "ipoable": "0",
-                //        "storage": "0",
-                //        "isLegalMoney": false,
-                //        "trading": true,
-                //        "networkList": [
-                //            {
-                //                "network": "BSC",
-                //                "coin": "LINK",
-                //                "withdrawIntegerMultiple": "0.00000001",
-                //                "isDefault": false,
-                //                "depositEnable": true,
-                //                "withdrawEnable": true,
-                //                "depositDesc": "",
-                //                "withdrawDesc": "",
-                //                "specialTips": "",
-                //                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
-                //                "name": "BNB Smart Chain (BEP20)",
-                //                "resetAddressStatus": false,
-                //                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
-                //                "addressRule": "",
-                //                "memoRegex": "",
-                //                "withdrawFee": "0.012",
-                //                "withdrawMin": "0.024",
-                //                "withdrawMax": "9999999999.99999999",
-                //                "minConfirm": "15",
-                //                "unLockConfirm": "0",
-                //                "sameAddress": false,
-                //                "estimatedArrivalTime": "5",
-                //                "busy": false,
-                //                "country": "AE,BINANCE_BAHRAIN_BSC"
-                //            },
-                //            {
-                //                "network": "BNB",
-                //                "coin": "LINK",
-                //                "withdrawIntegerMultiple": "0.00000001",
-                //                "isDefault": false,
-                //                "depositEnable": true,
-                //                "withdrawEnable": true,
-                //                "depositDesc": "",
-                //                "withdrawDesc": "",
-                //                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
-                //                "specialWithdrawTips": "",
-                //                "name": "BNB Beacon Chain (BEP2)",
-                //                "resetAddressStatus": false,
-                //                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-                //                "addressRule": "",
-                //                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-                //                "withdrawFee": "0.003",
-                //                "withdrawMin": "0.01",
-                //                "withdrawMax": "10000000000",
-                //                "minConfirm": "1",
-                //                "unLockConfirm": "0",
-                //                "sameAddress": true,
-                //                "estimatedArrivalTime": "5",
-                //                "busy": false,
-                //                "country": "AE,BINANCE_BAHRAIN_BSC"
-                //            },
-                //            {
-                //                "network": "ETH",
-                //                "coin": "LINK",
-                //                "withdrawIntegerMultiple": "0.00000001",
-                //                "isDefault": true,
-                //                "depositEnable": true,
-                //                "withdrawEnable": true,
-                //                "depositDesc": "",
-                //                "withdrawDesc": "",
-                //                "name": "Ethereum (ERC20)",
-                //                "resetAddressStatus": false,
-                //                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
-                //                "addressRule": "",
-                //                "memoRegex": "",
-                //                "withdrawFee": "0.55",
-                //                "withdrawMin": "1.1",
-                //                "withdrawMax": "10000000000",
-                //                "minConfirm": "12",
-                //                "unLockConfirm": "0",
-                //                "sameAddress": false,
-                //                "estimatedArrivalTime": "5",
-                //                "busy": false,
-                //                "country": "AE,BINANCE_BAHRAIN_BSC"
-                //            }
-                //        ]
-                //    }
-                //
-                //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
-                //
-                //                "specialTips": "",
-                //                "specialWithdrawTips": "",
-                //                "withdrawInternalMin": "0",
-                //                "contractAddressUrl": "https://etherscan.io/address/",
-                //                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
-                //
-                Object entry = Helpers.GetValue(responseCurrencies, i);
-                Object id = this.safeString(entry, "coin");
-                Object name = this.safeString(entry, "name");
-                Object code = this.safeCurrencyCode(id);
-                Object isFiat = this.safeBool(entry, "isLegalMoney");
-                Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object fees = new java.util.HashMap<String, Object>() {{}};
-                Object fee = null;
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object isETF = false;
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
-                {
-                    Object networkItem = Helpers.GetValue(networkList, j);
-                    Object network = this.safeString(networkItem, "network");
-                    Object networkCode = this.networkIdToCode(network, code);
-                    isETF = (Helpers.isEqual(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
-                    // const name = this.safeString (networkItem, 'name');
-                    Object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
-                    Object depositEnable = this.safeBool(networkItem, "depositEnable");
-                    Object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
-                    Helpers.addElementToObject(fees, network, withdrawFee);
-                    Object isDefault = this.safeBool(networkItem, "isDefault");
-                    if (Helpers.isTrue(Helpers.isTrue(isDefault) || Helpers.isTrue((Helpers.isEqual(fee, null)))))
-                    {
-                        fee = withdrawFee;
-                    }
-                    // todo: default networks in "setMarkets" overload
-                    // if (isDefault) {
-                    //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
-                    // }
-                    Object withdrawPrecision = this.omitZero(this.safeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"));
-                    // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
-                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(withdrawPrecision, null)) && Helpers.isTrue(isFiat)))
-                    {
-                        withdrawPrecision = this.safeString(this.options, "defaultFiatWithdrawPrecision");
-                    }
-                    final Object finalNetwork = network;
-                    final Object finalWithdrawPrecision = withdrawPrecision;
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", networkItem );
-        put( "id", finalNetwork );
-        put( "network", networkCode );
-        put( "active", null );
-        put( "deposit", depositEnable );
-        put( "withdraw", withdrawEnable );
-        put( "fee", withdrawFee );
-        put( "precision", BinanceCore.this.parseNumber(finalWithdrawPrecision) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", BinanceCore.this.safeNumber(networkItem, "withdrawMin") );
-                put( "max", BinanceCore.this.safeNumber(networkItem, "withdrawMax") );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", BinanceCore.this.safeNumber(networkItem, "depositDust") );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Object type = null;
-                if (Helpers.isTrue(isETF))
-                {
-                    type = "other";
-                } else if (Helpers.isTrue(isFiat))
-                {
-                    type = "fiat";
-                } else
-                {
-                    type = "crypto";
-                }
-                Object trading = this.safeBool(entry, "trading");
-                Object marginEntry = this.safeDict(marginablesById, id, new java.util.HashMap<String, Object>() {{}});
-                //
-                //     {
-                //         assetName: "BTC",
-                //         assetFullName: "Bitcoin",
-                //         isBorrowable: true,
-                //         isMortgageable: true,
-                //         userMinBorrow: "0",
-                //         userMinRepay: "0",
-                //     }
-                //
-                final Object finalType = type;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "name", name );
-        put( "code", code );
-        put( "type", finalType );
-        put( "precision", null );
-        put( "info", entry );
-        put( "active", trading );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "networks", networks );
-        put( "fee", null );
-        put( "fees", fees );
-        put( "limits", null );
-        put( "margin", BinanceCore.this.safeBool(marginEntry, "isBorrowable") );
-    }}));
-            }
-            return result;
+            return this.parseCurrenciesCustom(responseCurrencies, marginablesById);
         });
 
+    }
+
+    public Object parseCurrenciesCustom(Object responseCurrencies, Object marginablesById)
+    {
+        Object result = new java.util.HashMap<String, Object>() {{}};
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseCurrencies)); i++)
+        {
+            Object parsed = this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
+            Object code = Helpers.GetValue(parsed, "code");
+            Object marginEntry = this.safeDict(marginablesById, Helpers.GetValue(parsed, "id"));
+            Helpers.addElementToObject(parsed, "margin", this.safeBool(marginEntry, "isBorrowable"));
+            Helpers.addElementToObject(result, code, parsed);
+        }
+        return result;
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        //
+        //    {
+        //        "coin": "LINK",
+        //        "depositAllEnable": true,
+        //        "withdrawAllEnable": true,
+        //        "name": "ChainLink",
+        //        "free": "0",
+        //        "locked": "0",
+        //        "freeze": "0",
+        //        "withdrawing": "0",
+        //        "ipoing": "0",
+        //        "ipoable": "0",
+        //        "storage": "0",
+        //        "isLegalMoney": false,
+        //        "trading": true,
+        //        "networkList": [
+        //            {
+        //                "network": "BSC",
+        //                "coin": "LINK",
+        //                "withdrawIntegerMultiple": "0.00000001",
+        //                "isDefault": false,
+        //                "depositEnable": true,
+        //                "withdrawEnable": true,
+        //                "depositDesc": "",
+        //                "withdrawDesc": "",
+        //                "specialTips": "",
+        //                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
+        //                "name": "BNB Smart Chain (BEP20)",
+        //                "resetAddressStatus": false,
+        //                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        //                "addressRule": "",
+        //                "memoRegex": "",
+        //                "withdrawFee": "0.012",
+        //                "withdrawMin": "0.024",
+        //                "withdrawMax": "9999999999.99999999",
+        //                "minConfirm": "15",
+        //                "unLockConfirm": "0",
+        //                "sameAddress": false,
+        //                "estimatedArrivalTime": "5",
+        //                "busy": false,
+        //                "country": "AE,BINANCE_BAHRAIN_BSC"
+        //            },
+        //            {
+        //                "network": "BNB",
+        //                "coin": "LINK",
+        //                "withdrawIntegerMultiple": "0.00000001",
+        //                "isDefault": false,
+        //                "depositEnable": true,
+        //                "withdrawEnable": true,
+        //                "depositDesc": "",
+        //                "withdrawDesc": "",
+        //                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+        //                "specialWithdrawTips": "",
+        //                "name": "BNB Beacon Chain (BEP2)",
+        //                "resetAddressStatus": false,
+        //                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        //                "addressRule": "",
+        //                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        //                "withdrawFee": "0.003",
+        //                "withdrawMin": "0.01",
+        //                "withdrawMax": "10000000000",
+        //                "minConfirm": "1",
+        //                "unLockConfirm": "0",
+        //                "sameAddress": true,
+        //                "estimatedArrivalTime": "5",
+        //                "busy": false,
+        //                "country": "AE,BINANCE_BAHRAIN_BSC"
+        //            },
+        //            {
+        //                "network": "ETH",
+        //                "coin": "LINK",
+        //                "withdrawIntegerMultiple": "0.00000001",
+        //                "isDefault": true,
+        //                "depositEnable": true,
+        //                "withdrawEnable": true,
+        //                "depositDesc": "",
+        //                "withdrawDesc": "",
+        //                "name": "Ethereum (ERC20)",
+        //                "resetAddressStatus": false,
+        //                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        //                "addressRule": "",
+        //                "memoRegex": "",
+        //                "withdrawFee": "0.55",
+        //                "withdrawMin": "1.1",
+        //                "withdrawMax": "10000000000",
+        //                "minConfirm": "12",
+        //                "unLockConfirm": "0",
+        //                "sameAddress": false,
+        //                "estimatedArrivalTime": "5",
+        //                "busy": false,
+        //                "country": "AE,BINANCE_BAHRAIN_BSC"
+        //            }
+        //        ]
+        //    }
+        //
+        //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
+        //
+        //                "specialTips": "",
+        //                "specialWithdrawTips": "",
+        //                "withdrawInternalMin": "0",
+        //                "contractAddressUrl": "https://etherscan.io/address/",
+        //                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+        //
+        Object entry = rawCurrency;
+        Object id = this.safeString(entry, "coin");
+        Object name = this.safeString(entry, "name");
+        Object code = this.safeCurrencyCode(id);
+        Object isFiat = this.safeBool(entry, "isLegalMoney");
+        Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object fees = new java.util.HashMap<String, Object>() {{}};
+        Object fee = null;
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object isETF = false;
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
+        {
+            Object networkItem = Helpers.GetValue(networkList, j);
+            Object network = this.safeString(networkItem, "network");
+            Object networkCode = this.networkIdToCode(network, code);
+            isETF = (Helpers.isEqual(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
+            // const name = this.safeString (networkItem, 'name');
+            Object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
+            Object depositEnable = this.safeBool(networkItem, "depositEnable");
+            Object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
+            Helpers.addElementToObject(fees, networkCode, withdrawFee);
+            Object isDefault = this.safeBool(networkItem, "isDefault");
+            if (Helpers.isTrue(Helpers.isTrue(isDefault) || Helpers.isTrue((Helpers.isEqual(fee, null)))))
+            {
+                fee = withdrawFee;
+            }
+            // todo: default networks in "setMarkets" overload
+            // if (isDefault) {
+            //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+            // }
+            Object withdrawPrecision = this.omitZero(this.safeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"));
+            // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(withdrawPrecision, null)) && Helpers.isTrue(isFiat)))
+            {
+                withdrawPrecision = this.safeString(this.options, "defaultFiatWithdrawPrecision");
+            }
+            final Object finalNetwork = network;
+            final Object finalWithdrawPrecision = withdrawPrecision;
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", networkItem );
+    put( "id", finalNetwork );
+    put( "network", networkCode );
+    put( "active", null );
+    put( "deposit", depositEnable );
+    put( "withdraw", withdrawEnable );
+    put( "fee", withdrawFee );
+    put( "precision", BinanceCore.this.parseNumber(finalWithdrawPrecision) );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", BinanceCore.this.safeNumber(networkItem, "withdrawMin") );
+            put( "max", BinanceCore.this.safeNumber(networkItem, "withdrawMax") );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", BinanceCore.this.safeNumber(networkItem, "depositDust") );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        Object type = null;
+        if (Helpers.isTrue(isETF))
+        {
+            type = "other";
+        } else if (Helpers.isTrue(isFiat))
+        {
+            type = "fiat";
+        } else
+        {
+            type = "crypto";
+        }
+        Object trading = this.safeBool(entry, "trading");
+        final Object finalType = type;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "name", name );
+            put( "code", code );
+            put( "type", finalType );
+            put( "precision", null );
+            put( "info", entry );
+            put( "active", trading );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "networks", networks );
+            put( "fee", null );
+            put( "fees", fees );
+            put( "limits", null );
+        }});
     }
 
     /**
@@ -3773,7 +3825,7 @@ public class BinanceCore extends BinanceApi
             }
         } else if (Helpers.isTrue(isolated))
         {
-            Object assets = this.safeList(response, "assets");
+            Object assets = this.safeList(response, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object asset = Helpers.GetValue(assets, i);
@@ -4150,7 +4202,7 @@ public class BinanceCore extends BinanceApi
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -4242,7 +4294,7 @@ public class BinanceCore extends BinanceApi
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104562", // mark price
+        //         "markPrice": "11793.63104563", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -5768,6 +5820,10 @@ public class BinanceCore extends BinanceApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && !Helpers.isTrue((Helpers.inOp(parameters, "priceMatch")))))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() and editOrderWs() require a price argument for swap orders")) ;
+        }
         Object market = this.market(symbol);
         if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
         {
@@ -5823,13 +5879,6 @@ public class BinanceCore extends BinanceApi
             var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) || Helpers.isTrue(isPortfolioMargin)))
-            {
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && !Helpers.isTrue((Helpers.inOp(parameters, "priceMatch")))))
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument for portfolio margin and linear orders")) ;
-                }
-            }
             Object request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
@@ -6901,7 +6950,14 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    response = (this.dapiPrivatePostOrder(request)).join();
+                    if (Helpers.isTrue(isConditional))
+                    {
+                        Helpers.addElementToObject(request, "algoType", "CONDITIONAL");
+                        response = (this.dapiPrivatePostAlgoOrder(request)).join();
+                    } else
+                    {
+                        response = (this.dapiPrivatePostOrder(request)).join();
+                    }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "margin")) || Helpers.isTrue(!Helpers.isEqual(marginMode, null))) || Helpers.isTrue(isPortfolioMargin)))
             {
@@ -7292,7 +7348,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && !Helpers.isTrue(isPortfolioMargin)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && !Helpers.isTrue(isPortfolioMargin)))
                 {
                     Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, stopPrice));
                 } else
@@ -7331,10 +7387,11 @@ public class BinanceCore extends BinanceApi
         parameters = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(selfTradePrevention, null)))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "inverse")) && Helpers.isTrue(Helpers.GetValue(this.options, "warnOnSTPForInverse"))))
             {
-                Helpers.addElementToObject(request, "selfTradePreventionMode", ((String)selfTradePrevention).toUpperCase()); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+                throw new NotSupported((String)Helpers.add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the \"warnOnSTPForInverse\" option to false.")) ;
             }
+            Helpers.addElementToObject(request, "selfTradePreventionMode", ((String)selfTradePrevention).toUpperCase()); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         Object icebergAmount = this.safeNumber(parameters, "icebergAmount");
@@ -7984,7 +8041,13 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    response = (this.dapiPrivateGetOpenOrders(this.extend(request, parameters))).join();
+                    if (Helpers.isTrue(isConditional))
+                    {
+                        response = (this.dapiPrivateGetOpenAlgoOrders(this.extend(request, parameters))).join();
+                    } else
+                    {
+                        response = (this.dapiPrivateGetOpenOrders(this.extend(request, parameters))).join();
+                    }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "margin")) || Helpers.isTrue(!Helpers.isEqual(marginMode, null))) || Helpers.isTrue(isPortfolioMargin)))
             {
@@ -8432,7 +8495,7 @@ public class BinanceCore extends BinanceApi
                 if (Helpers.isTrue(Helpers.GetValue(market, "option")))
                 {
                     Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
-                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
+                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
                 {
                     Helpers.addElementToObject(request, "clientAlgoId", clientOrderId);
                 } else
@@ -8450,7 +8513,7 @@ public class BinanceCore extends BinanceApi
                 if (Helpers.isTrue(Helpers.isTrue(isPortfolioMargin) && Helpers.isTrue(isConditional)))
                 {
                     Helpers.addElementToObject(request, "strategyId", id);
-                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
+                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
                 {
                     Helpers.addElementToObject(request, "algoId", id);
                 } else
@@ -8497,7 +8560,13 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    response = (this.dapiPrivateDeleteOrder(this.extend(request, parameters))).join();
+                    if (Helpers.isTrue(isConditional))
+                    {
+                        response = (this.dapiPrivateDeleteAlgoOrder(this.extend(request, parameters))).join();
+                    } else
+                    {
+                        response = (this.dapiPrivateDeleteOrder(this.extend(request, parameters))).join();
+                    }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "margin"))) || Helpers.isTrue((!Helpers.isEqual(marginMode, null)))) || Helpers.isTrue(isPortfolioMargin)))
             {
@@ -8841,7 +8910,7 @@ public class BinanceCore extends BinanceApi
                 Object oneWeek = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual((Helpers.subtract(currentTimestamp, startTime)), oneWeek)))
                 {
-                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(endTime, null))) && Helpers.isTrue(Helpers.GetValue(market, "linear"))))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(endTime, null))) && Helpers.isTrue(this.safeBool(market, "linear"))))
                     {
                         endTime = this.sum(startTime, oneWeek);
                         endTime = Helpers.mathMin(endTime, currentTimestamp);
@@ -8855,7 +8924,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "option"))) || Helpers.isTrue(Helpers.GetValue(market, "contract"))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "option"))) || Helpers.isTrue(this.safeBool(market, "contract"))))
                 {
                     limit = Helpers.mathMin(limit, 1000); // above 1000, returns error
                 }
@@ -8894,7 +8963,7 @@ public class BinanceCore extends BinanceApi
                     {
                         response = (this.privateGetMyTrades(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                } else if (Helpers.isTrue(this.safeBool(market, "linear")))
                 {
                     if (Helpers.isTrue(isPortfolioMargin))
                     {
@@ -8903,7 +8972,7 @@ public class BinanceCore extends BinanceApi
                     {
                         response = (this.fapiPrivateGetUserTrades(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
                 {
                     if (Helpers.isTrue(isPortfolioMargin))
                     {
@@ -10990,7 +11059,7 @@ public class BinanceCore extends BinanceApi
     public Object parseAccountPositions(Object account, Object... optionalArgs)
     {
         Object filterClosed = Helpers.getArg(optionalArgs, 0, false);
-        Object positions = this.safeList(account, "positions");
+        Object positions = this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object assets = this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object balances = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
@@ -11265,7 +11334,7 @@ public class BinanceCore extends BinanceApi
             Object rounderString = String.valueOf(rounder);
             Object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             Object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(truncatedLiquidationPrice, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -12784,8 +12853,8 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                symbol = Helpers.GetValue(market, "symbol");
-                Helpers.addElementToObject(request, "underlying", Helpers.add(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId")));
+                symbol = this.safeString(market, "symbol");
+                Helpers.addElementToObject(request, "underlying", Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -12847,8 +12916,8 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                symbol = Helpers.GetValue(market, "symbol");
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
+                symbol = this.safeString(market, "symbol");
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -13357,7 +13426,7 @@ final Object finalMarket = market;
             // handle batchOrders
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "batchOrders"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))))))
             {
-                Object batchOrders = this.safeList(parameters, "batchOrders");
+                Object batchOrders = this.safeList(parameters, "batchOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object checkedBatchOrders = batchOrders;
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) && Helpers.isTrue(Helpers.isEqual(api, "fapiPrivate"))))
                 {
@@ -14698,7 +14767,7 @@ final Object finalMarket = market;
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", BinanceCore.this.safeSymbol(id, market, null, "contract") );
-            put( "baseVolume", ((Helpers.isTrue(Helpers.GetValue(market, "inverse")))) ? null : amount );
+            put( "baseVolume", ((Helpers.isTrue(BinanceCore.this.safeBool(market, "inverse")))) ? null : amount );
             put( "quoteVolume", value );
             put( "openInterestAmount", amount );
             put( "openInterestValue", value );
@@ -14823,7 +14892,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), Helpers.GetValue(market, "type")), " markets")) ;
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), this.safeString(market, "type")), " markets")) ;
             }
             //
             // margin
@@ -15146,7 +15215,7 @@ final Object finalMarket = market;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                Object symbol = Helpers.GetValue(market, "symbol");
+                Object symbol = this.safeString(market, "symbol");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue((this.inArray(symbol, symbols)))))
                 {
                     Helpers.addElementToObject(tradingLimits, symbol, Helpers.GetValue(Helpers.GetValue(market, "limits"), "amount"));
@@ -15185,15 +15254,14 @@ final Object finalMarket = market;
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
-            {
-                response = (this.fapiPrivateGetPositionSideDual(parameters)).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+            // we still have two working endpoints but positionMode is common for linear and inverse markets
+            // thus we do not throw an error if the subType is not specified and default to linear for now
+            if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.dapiPrivateGetPositionSideDual(parameters)).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchPositionMode requires either a symbol argument or params[\"subType\"]")) ;
+                response = (this.fapiPrivateGetPositionSideDual(parameters)).join();
             }
             //
             //    {
@@ -15324,7 +15392,7 @@ final Object finalMarket = market;
         final Object finalReMarginMode = reMarginMode;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", BinanceCore.this.safeString(finalMarket, "symbol") );
             put( "marginMode", finalReMarginMode );
         }};
     }

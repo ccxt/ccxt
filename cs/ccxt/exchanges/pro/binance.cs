@@ -674,7 +674,7 @@ public partial class binance : ccxt.binance
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -734,7 +734,7 @@ public partial class binance : ccxt.binance
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -815,7 +815,7 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -879,7 +879,7 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -896,7 +896,7 @@ public partial class binance : ccxt.binance
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
@@ -1117,23 +1117,23 @@ public partial class binance : ccxt.binance
                 {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (isTrue(isGreaterThan(u, getValue(orderbook, "nonce"))))
+                    if (isTrue(isGreaterThan(u, nonce)))
                     {
                         object timestamp = this.safeInteger(orderbook, "timestamp");
                         object conditional = null;
                         if (isTrue(isEqual(timestamp, null)))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = isTrue((isLessThanOrEqual((subtract(U, 1)), getValue(orderbook, "nonce")))) && isTrue((isGreaterThanOrEqual((subtract(u, 1)), getValue(orderbook, "nonce"))));
+                            conditional = isTrue((isLessThanOrEqual((subtract(U, 1)), nonce))) && isTrue((isGreaterThanOrEqual((subtract(u, 1)), nonce)));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = (isEqual((subtract(U, 1)), getValue(orderbook, "nonce")));
+                            conditional = (isEqual((subtract(U, 1)), nonce));
                         }
                         if (isTrue(conditional))
                         {
                             this.handleOrderBookMessage(client as WebSocketClient, message, orderbook);
-                            if (isTrue(isLessThan(nonce, getValue(orderbook, "nonce"))))
+                            if (isTrue(isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
                             }
@@ -1150,14 +1150,14 @@ public partial class binance : ccxt.binance
                 {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (isTrue(isGreaterThanOrEqual(u, getValue(orderbook, "nonce"))))
+                    if (isTrue(isGreaterThanOrEqual(u, nonce)))
                     {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if (isTrue(isTrue((isLessThanOrEqual(U, getValue(orderbook, "nonce")))) || isTrue((isEqual(pu, getValue(orderbook, "nonce"))))))
+                        if (isTrue(isTrue((isLessThanOrEqual(U, nonce))) || isTrue((isEqual(pu, nonce)))))
                         {
                             this.handleOrderBookMessage(client as WebSocketClient, message, orderbook);
-                            if (isTrue(isLessThanOrEqual(nonce, getValue(orderbook, "nonce"))))
+                            if (isTrue(isLessThanOrEqual(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
                             }
@@ -1434,7 +1434,7 @@ public partial class binance : ccxt.binance
         //
         //     {
         //         "e": "trade",       // event type
-        //         "E": 1579481530911, // event time
+        //         "E": 1579481530912, // event time
         //         "s": "ETHBTC",      // symbol
         //         "t": 158410082,     // trade id
         //         "p": "0.01914100",  // price
@@ -2531,7 +2531,7 @@ public partial class binance : ccxt.binance
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
@@ -4184,9 +4184,9 @@ public partial class binance : ccxt.binance
         await this.loadMarkets();
         object market = this.market(symbol);
         object type = this.getMarketType("fetchOpenOrdersWs", market, parameters);
-        if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))))
+        if (isTrue(!isEqual(type, "spot")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOpenOrdersWs only supports spot or swap markets")) ;
+            throw new BadRequest ((string)add(this.id, " fetchOpenOrdersWs only supports spot markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
         object requestId = this.requestId(url);

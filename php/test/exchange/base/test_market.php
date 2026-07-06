@@ -10,6 +10,9 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function test_market($exchange, $skipped_properties, $method, $market) {
+    if ($market === null) {
+        return;
+    }
     $format = array(
         'id' => 'btcusd',
         'symbol' => 'BTC/USD',
@@ -262,7 +265,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
     // margin modes
     if (!(is_array($skipped_properties) && array_key_exists('marginModes', $skipped_properties))) {
-        $margin_modes = $exchange->safe_dict($market, 'marginModes'); // in future, remove safeDict
+        $margin_modes = $exchange->safe_dict($market, 'marginModes', array()); // in future, remove safeDict
         assert(is_array($margin_modes) && array_key_exists('cross', $margin_modes), 'marginModes should have "cross" key' . $log_text);
         assert(is_array($margin_modes) && array_key_exists('isolated', $margin_modes), 'marginModes should have "isolated" key' . $log_text);
         assert_in_array($exchange, $skipped_properties, $method, $margin_modes, 'cross', [true, false, null]);

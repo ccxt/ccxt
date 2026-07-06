@@ -148,9 +148,8 @@ public partial class blofin : Exchange
                 { "1w", "1W" },
                 { "1M", "1M" },
             } },
-            { "hostname", "www.blofin.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b" },
+                { "logo", "https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://openapi.blofin.com" },
                 } },
@@ -598,7 +597,7 @@ public partial class blofin : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -988,8 +987,7 @@ public partial class blofin : Exchange
             ((IDictionary<string,object>)request)["after"] = until;
             parameters = this.omit(parameters, "until");
         }
-        object response = null;
-        response = await this.publicGetMarketCandles(this.extend(request, parameters));
+        object response = await this.publicGetMarketCandles(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
@@ -1747,7 +1745,7 @@ public partial class blofin : Exchange
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+            object orderRequest = this.createOrderRequest(((string)marketId), type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object response = await this.privatePostTradeBatchOrders(ordersRequests);
@@ -2031,8 +2029,7 @@ public partial class blofin : Exchange
         var requestparametersVariable = this.handleUntilOption("end", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = null;
-        response = await this.privateGetAssetBills(this.extend(request, parameters));
+        object response = await this.privateGetAssetBills(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseLedger(data, currency, since, limit);
     }
@@ -2646,10 +2643,11 @@ public partial class blofin : Exchange
             throw new BadRequest ((string)add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         symbols = this.marketSymbols(symbols);
+        object symbolsList = symbols;
         object instIds = "";
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
         {
-            object entry = getValue(symbols, i);
+            object entry = getValue(symbolsList, i);
             object entryMarket = this.market(entry);
             if (isTrue(isGreaterThan(i, 0)))
             {
@@ -2954,7 +2952,7 @@ public partial class blofin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((object)this.parseMarginMode(data, market));
+        return ((object)this.parseMarginMode(data, market));  // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
     }
 
     /**
@@ -3150,7 +3148,7 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         object request = add(add(add("/api/", this.version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), "rest")), request);
+        object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
         // const type = this.getPathAuthenticationType (path);
         if (isTrue(isEqual(api, "public")))
         {

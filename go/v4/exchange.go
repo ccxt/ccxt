@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	random2 "math/rand"
 	"net/http"
 	"net/url"
@@ -19,6 +20,9 @@ import (
 	"sync"
 	"time"
 
+	starkfelt "github.com/NethermindEth/juno/core/felt"
+	starkcurve "github.com/NethermindEth/starknet.go/curve"
+	starkutils "github.com/NethermindEth/starknet.go/utils"
 	pb "github.com/ccxt/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -90,17 +94,21 @@ type Exchange struct {
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	LastRequestHeaders       any
-	Last_request_headers     any
-	Last_response_headers    any
-	LastResponseHeaders      any
-	Last_http_response       any
-	LastRequestBody          any
-	Last_request_body        any
-	Last_request_url         any
-	LastRequestUrl           string
-	Headers                  any
-	ReturnResponseHeaders    bool
+	// lastMu guards the per-instance "last request/response" bookkeeping fields
+	// (timestamp, request headers/body/url, response headers) which are otherwise
+	// written by concurrent request goroutines that share the same *Exchange.
+	lastMu                sync.Mutex
+	LastRequestHeaders    any
+	Last_request_headers  any
+	Last_response_headers any
+	LastResponseHeaders   any
+	Last_http_response    any
+	LastRequestBody       any
+	Last_request_body     any
+	Last_request_url      any
+	LastRequestUrl        string
+	Headers               any
+	ReturnResponseHeaders bool
 
 	// type check this
 	Number any
@@ -178,7 +186,9 @@ type Exchange struct {
 	// tests only
 	FetchResponse any
 
-	IsSandboxModeEnabled bool
+	IsSandboxModeEnabled  bool
+	FetchHistoryCacheSize int
+	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
 	WsClients   map[string]any // one websocket client per URL
@@ -210,6 +220,7 @@ const (
 
 func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
+	this.FetchHistoryCache = &ConcurrentListForRequests{}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
@@ -275,6 +286,9 @@ func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[s
 }
 
 func (this *Exchange) Init(userConfig map[string]any) {
+	if this.FetchHistoryCache == nil {
+		this.FetchHistoryCache = &ConcurrentListForRequests{}
+	}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
@@ -524,7 +538,11 @@ func (this *Exchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
 }
 
 func (this *Exchange) ConvertToBigInt(data any) any {
-	return ParseInt(data)
+	bigValue := parseStarknetBigInt(data)
+	if bigValue == nil {
+		return nil
+	}
+	return bigValue.String()
 }
 
 func (this *Exchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
@@ -1327,6 +1345,90 @@ func (this *Exchange) StarknetSign(a any, b any) any {
 	return nil // to do
 }
 
+func (this *Exchange) ExtendedStarknetSign(a any, b any) any {
+	msgHash := parseStarknetBigInt(a)
+	privateKey := parseStarknetBigInt(b)
+	if msgHash == nil || privateKey == nil {
+		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
+	}
+	r, s, err := starkcurve.Sign(msgHash, privateKey)
+	if err != nil {
+		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
+	}
+	return this.Json([]any{r.String(), s.String()})
+}
+
+func (this *Exchange) ExtendedStarknetGetSelectorFromName(a any) any {
+	return starkutils.GetSelectorFromName(ToString(a)).String()
+}
+
+func (this *Exchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
+	values, ok := a.([]any)
+	if !ok {
+		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
+	}
+	felts := make([]*starkfelt.Felt, 0, len(values))
+	for _, value := range values {
+		bigValue := parseStarknetBigInt(value)
+		if bigValue == nil {
+			panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() invalid felt value")))
+		}
+		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
+	}
+	hash := starkcurve.PoseidonArray(felts...)
+	return hash.BigInt(new(big.Int)).String()
+}
+
+func parseStarknetBigInt(value any) *big.Int {
+	switch v := value.(type) {
+	case nil:
+		return nil
+	case *big.Int:
+		return new(big.Int).Set(v)
+	case big.Int:
+		return new(big.Int).Set(&v)
+	case string:
+		text := strings.TrimSpace(v)
+		if text == "" {
+			return nil
+		}
+		base := 10
+		if strings.HasPrefix(text, "0x") || strings.HasPrefix(text, "0X") {
+			base = 16
+			text = text[2:]
+		}
+		result := new(big.Int)
+		if _, ok := result.SetString(text, base); ok {
+			return result
+		}
+	case int:
+		return big.NewInt(int64(v))
+	case int8:
+		return big.NewInt(int64(v))
+	case int16:
+		return big.NewInt(int64(v))
+	case int32:
+		return big.NewInt(int64(v))
+	case int64:
+		return big.NewInt(v)
+	case uint:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint8:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint16:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint32:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint64:
+		return new(big.Int).SetUint64(v)
+	case float32:
+		return big.NewInt(int64(v))
+	case float64:
+		return big.NewInt(int64(v))
+	}
+	return nil
+}
+
 func (this *Exchange) GetZKContractSignatureObj(seed any, params any) <-chan any {
 	ch := make(chan any)
 
@@ -1544,17 +1646,16 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 	future := client.NewFuture(messageHash)
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
-	client.SubscriptionsMu.Lock()
-	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
-	if clientSubscription == nil {
-		if subscription != nil {
-			client.Subscriptions[subscribeHash.(string)] = subscription
-		} else {
-			// client.Subscriptions[subscribeHash.(string)] = make(chan any)
-			client.Subscriptions[subscribeHash.(string)] = true
-		}
+	var subValue any = true
+	if subscription != nil {
+		subValue = subscription
 	}
-	client.SubscriptionsMu.Unlock()
+	// atomically register the subscription; alreadySubscribed is true if it existed before
+	existing, alreadySubscribed := client.Subscriptions.LoadOrStore(subscribeHash.(string), subValue)
+	var clientSubscription any
+	if alreadySubscribed {
+		clientSubscription = existing
+	}
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
@@ -1563,10 +1664,8 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
-		client.SubscriptionsMu.Lock()
-		delete(client.Subscriptions, subscribeHash.(string))
+		client.Subscriptions.Delete(subscribeHash.(string))
 		future.Reject(err)
-		client.SubscriptionsMu.Unlock()
 		return future.Await()
 	}
 	// the following is executed only if the catch-clause does not
@@ -1576,7 +1675,7 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 		go func() {
 			result := <-connected.Await()
 			if err, ok := result.(error); ok {
-				delete(client.Subscriptions, subscribeHash.(string))
+				client.Subscriptions.Delete(subscribeHash.(string))
 				future.Reject(err)
 				return
 			}
@@ -1597,9 +1696,7 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 				sendFutureChannel := <-client.Send(message)
 				if err, ok := sendFutureChannel.(error); ok {
 					client.OnError(err)
-					client.SubscriptionsMu.Lock()
-					delete(client.Subscriptions, subscribeHash.(string))
-					client.SubscriptionsMu.Unlock()
+					client.Subscriptions.Delete(subscribeHash.(string))
 				}
 			}
 		}()
@@ -1853,7 +1950,6 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
 	missingSubscriptions := []string{}
-	client.SubscriptionsMu.Lock()
 	if subscribeHashes != nil {
 		// Handle both []string and []any for subscribeHashes
 		var subscribeHashesList []any
@@ -1868,18 +1964,17 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 
 		for _, subscribeHash := range subscribeHashesList {
 			if hashStr, ok := subscribeHash.(string); ok {
-				if _, exists := client.Subscriptions[hashStr]; !exists {
+				var subValue any = subscription
+				if subscription == nil {
+					subValue = make(chan any)
+				}
+				// atomically register the subscription; only track it as missing if it was newly added
+				if _, loaded := client.Subscriptions.LoadOrStore(hashStr, subValue); !loaded {
 					missingSubscriptions = append(missingSubscriptions, hashStr)
-					if subscription != nil {
-						client.Subscriptions[hashStr] = subscription
-					} else {
-						client.Subscriptions[hashStr] = make(chan any)
-					}
 				}
 			}
 		}
 	}
-	client.SubscriptionsMu.Unlock()
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
@@ -1890,9 +1985,7 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 	if err != nil {
 		future.Reject(err)
 		for _, h := range missingSubscriptions {
-			client.SubscriptionsMu.Lock()
-			delete(client.Subscriptions, h)
-			client.SubscriptionsMu.Unlock()
+			client.Subscriptions.Delete(h)
 		}
 		return future.Await()
 	}
@@ -1904,7 +1997,7 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 			result := <-connected.Await()
 			if err, ok := result.(error); ok {
 				for _, subscribeHash := range missingSubscriptions {
-					delete(client.Subscriptions, subscribeHash)
+					client.Subscriptions.Delete(subscribeHash)
 				}
 				future.Reject(err)
 				return
@@ -1924,11 +2017,9 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 				}
 				sendFutureChannel := <-client.Send(message)
 				if err, ok := sendFutureChannel.(error); ok {
-					client.SubscriptionsMu.Lock()
 					for _, subscribeHash := range missingSubscriptions {
-						delete(client.Subscriptions, subscribeHash)
+						client.Subscriptions.Delete(subscribeHash)
 					}
-					client.SubscriptionsMu.Unlock()
 					future.Reject(err)
 				}
 			}
@@ -2017,7 +2108,9 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 	return nil
 }
 
-func (this *Exchange) Close() []error {
+func (this *Exchange) Close(cleanInstanceData ...any) []error {
+	// ##### language-specific cleanup of WS & REST resources #####
+	// [WS]
 	this.WsClientsMu.Lock()
 	clients := make([]*WSClient, 0, len(this.Clients))
 	for _, c := range this.Clients {
@@ -2035,6 +2128,15 @@ func (this *Exchange) Close() []error {
 			userClosedError := ExchangeClosedByUser()
 			c.OnError(userClosedError)
 		}
+	}
+	firstArg := GetArg(cleanInstanceData, 0, nil)
+	shouldClean, _ := firstArg.(bool)
+	if shouldClean {
+		this.CleanWsData()
+	}
+	// [REST]
+	if shouldClean {
+		this.CleanRestData()
 	}
 	return errs
 }
@@ -2099,3 +2201,44 @@ func (this *Exchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
 }
+
+// ############ Requests data ############
+
+type ConcurrentListForRequests struct {
+	mu    sync.Mutex
+	items []any
+}
+
+func (cl *ConcurrentListForRequests) Lock()   { cl.mu.Lock() }
+func (cl *ConcurrentListForRequests) Unlock() { cl.mu.Unlock() }
+
+func (cl *ConcurrentListForRequests) Add(item any) {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cl.items = append(cl.items, item)
+}
+
+func (cl *ConcurrentListForRequests) GetAll() []any {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cp := make([]any, len(cl.items))
+	copy(cp, cl.items)
+	return cp
+}
+
+func (e *Exchange) AddFetchCache(item any) {
+
+	e.FetchHistoryCache.Lock()
+	defer e.FetchHistoryCache.Unlock()
+
+	e.FetchHistoryCache.items = append(e.FetchHistoryCache.items, item)
+
+	if e.FetchHistoryCacheSize > 0 && len(e.FetchHistoryCache.items) > e.FetchHistoryCacheSize {
+		e.FetchHistoryCache.items = e.FetchHistoryCache.items[1:]
+	}
+}
+func (e *Exchange) GetFetchCache() []any {
+	return e.FetchHistoryCache.GetAll()
+}
+
+// #########################################

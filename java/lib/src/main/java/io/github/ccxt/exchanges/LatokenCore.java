@@ -547,42 +547,41 @@ public class LatokenCore extends LatokenApi
             //         },
             //     ]
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
-            {
-                Object currency = Helpers.GetValue(response, i);
-                Object id = this.safeString(currency, "id");
-                Object tag = this.safeString(currency, "tag");
-                Object code = this.safeCurrencyCode(tag);
-                Object currencyType = this.safeString(currency, "type");
-                Object isCrypto = (Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_IEO")));
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "code", code );
-        put( "info", currency );
-        put( "name", LatokenCore.this.safeString(currency, "name") );
-        put( "type", ((Helpers.isTrue(isCrypto))) ? "crypto" : "other" );
-        put( "active", Helpers.isEqual(LatokenCore.this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", LatokenCore.this.safeNumber(currency, "fee") );
-        put( "precision", LatokenCore.this.parseNumber(LatokenCore.this.parsePrecision(LatokenCore.this.safeString(currency, "decimals"))) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", LatokenCore.this.safeNumber(currency, "minTransferAmount") );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", new java.util.HashMap<String, Object>() {{}} );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(response);
         });
 
+    }
+
+    public Object parseCurrency(Object currency)
+    {
+        Object id = this.safeString(currency, "id");
+        Object tag = this.safeString(currency, "tag");
+        Object code = this.safeCurrencyCode(tag);
+        Object currencyType = this.safeString(currency, "type");
+        Object isCrypto = (Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "code", code );
+            put( "info", currency );
+            put( "name", LatokenCore.this.safeString(currency, "name") );
+            put( "type", ((Helpers.isTrue(isCrypto))) ? "crypto" : "other" );
+            put( "active", Helpers.isEqual(LatokenCore.this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", LatokenCore.this.safeNumber(currency, "fee") );
+            put( "precision", LatokenCore.this.parseNumber(LatokenCore.this.parsePrecision(LatokenCore.this.safeString(currency, "decimals"))) );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", LatokenCore.this.safeNumber(currency, "minTransferAmount") );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", new java.util.HashMap<String, Object>() {{}} );
+        }});
     }
 
     /**
@@ -671,7 +670,7 @@ public class LatokenCore extends LatokenApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2024,7 +2023,7 @@ public class LatokenCore extends LatokenApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));

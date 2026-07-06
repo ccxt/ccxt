@@ -955,7 +955,7 @@ public partial class coinbaseinternational : Exchange
 
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -1258,13 +1258,14 @@ public partial class coinbaseinternational : Exchange
         object addressFrom = this.safeStringN(transaction, new List<object>() {"from_address", "from_cb_account", this.safeStringN(fromPorfolio, new List<object>() {"id", "uuid", "name"}), "from_counterparty_id"});
         object toPorfolio = this.safeDict(transaction, "from_portfolio", new Dictionary<string, object>() {});
         object addressTo = this.safeStringN(transaction, new List<object>() {"to_address", "to_cb_account", this.safeStringN(toPorfolio, new List<object>() {"id", "uuid", "name"}), "to_counterparty_id"});
+        object code = this.safeString(currency, "code");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "transfer_uuid") },
             { "txid", this.safeString(transaction, "transaction_uuid") },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network_name")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network_name"), code) },
             { "address", null },
             { "addressTo", addressTo },
             { "addressFrom", addressFrom },
@@ -1537,7 +1538,7 @@ public partial class coinbaseinternational : Exchange
         //    [
         //        {
         //           "asset_id":"1",
-        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
         //           "asset_name":"USDC",
         //           "status":"ACTIVE",
         //           "collateral_weight":1.0,

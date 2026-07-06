@@ -22,6 +22,7 @@
 * [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
 * [fetchBalance](#fetchbalance)
+* [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchTrades](#fetchtrades)
 * [fetchOrderTrades](#fetchordertrades)
@@ -110,7 +111,7 @@ returns unifiedAccount so the user can check if the unified account is enabled
 
 
 ```javascript
-gate.loadUnifiedStatus ([params])
+gate.loadUnifiedStatus (params?)
 ```
 
 
@@ -130,7 +131,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-gate.fetchTime ([params])
+gate.fetchTime (params?)
 ```
 
 
@@ -157,7 +158,7 @@ retrieves data on all markets for gate
 
 
 ```javascript
-gate.fetchMarkets ([params])
+gate.fetchMarkets (params?)
 ```
 
 
@@ -177,7 +178,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-gate.fetchCurrencies ([params])
+gate.fetchCurrencies (params?)
 ```
 
 
@@ -198,7 +199,7 @@ fetch the current funding rate
 
 
 ```javascript
-gate.fetchFundingRate (symbol[, params])
+gate.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -219,7 +220,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-gate.fetchFundingRates (symbols[, params])
+gate.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -240,7 +241,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-gate.fetchDepositAddressesByNetwork (code[, params])
+gate.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -262,7 +263,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-gate.fetchDepositAddress (code[, params])
+gate.fetchDepositAddress (code, params?)
 ```
 
 
@@ -283,7 +284,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-gate.fetchTradingFee (symbol[, params])
+gate.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -303,7 +304,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-gate.fetchTradingFees ([params])
+gate.fetchTradingFees (params?)
 ```
 
 
@@ -326,7 +327,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-gate.fetchTransactionFees (codes[, params])
+gate.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -347,7 +348,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-gate.fetchDepositWithdrawFees (codes[, params])
+gate.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -374,7 +375,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-gate.fetchFundingHistory (symbol[, since, limit, params])
+gate.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -384,7 +385,7 @@ gate.fetchFundingHistory (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -402,7 +403,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-gate.fetchOrderBook (symbol[, limit, params])
+gate.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -429,7 +430,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-gate.fetchTicker (symbol[, params])
+gate.fetchTicker (symbol, params?)
 ```
 
 
@@ -456,7 +457,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-gate.fetchTickers (symbols[, params])
+gate.fetchTickers (symbols, params?)
 ```
 
 
@@ -488,7 +489,40 @@ gate.fetchTickers (symbols[, params])
 
 
 ```javascript
-gate.fetchBalance ([params])
+gate.fetchBalance (params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
+
+**See**
+
+- https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
+- https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
+- https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
+- https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.price | <code>string</code> | No | "mark" or "index" for mark price and index price candles |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+gate.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -513,7 +547,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-gate.fetchFundingRateHistory (symbol[, since, limit, params])
+gate.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -544,7 +578,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-gate.fetchTrades (symbol[, since, limit, params])
+gate.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -574,7 +608,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-gate.fetchOrderTrades (id, symbol[, since, limit, params])
+gate.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -614,7 +648,7 @@ Fetch personal trading history
 
 
 ```javascript
-gate.fetchMyTrades (symbol[, since, limit, params])
+gate.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -639,7 +673,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-gate.fetchDeposits (code[, since, limit, params])
+gate.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -664,7 +698,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-gate.fetchWithdrawals (code[, since, limit, params])
+gate.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -688,7 +722,7 @@ make a withdrawal
 
 
 ```javascript
-gate.withdraw (code, amount, address, tag[, params])
+gate.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -739,7 +773,7 @@ Create an order on the exchange
 
 
 ```javascript
-gate.createOrder (symbol, type, side, amount[, price, params])
+gate.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -764,7 +798,7 @@ create a list of trade orders
 
 
 ```javascript
-gate.createOrders (orders[, params])
+gate.createOrders (orders, params?)
 ```
 
 
@@ -787,7 +821,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-gate.createMarketBuyOrderWithCost (symbol, cost[, params])
+gate.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -818,7 +852,7 @@ edit a trade order, gate currently only supports the modification of the price o
 
 
 ```javascript
-gate.editOrder (id, symbol, type, side, amount[, price, params])
+gate.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -854,7 +888,7 @@ Retrieves information on an order
 
 
 ```javascript
-gate.fetchOrder (id, symbol[, params])
+gate.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -881,7 +915,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-gate.fetchOpenOrders (symbol[, since, limit, params])
+gate.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -919,7 +953,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-gate.fetchClosedOrders (symbol[, since, limit, params])
+gate.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -952,7 +986,7 @@ Cancels an open order
 
 
 ```javascript
-gate.cancelOrder (id, symbol[, params])
+gate.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -979,7 +1013,7 @@ cancel multiple orders
 
 
 ```javascript
-gate.cancelOrders (ids, symbol[, params])
+gate.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -1002,7 +1036,7 @@ cancel multiple orders for multiple symbols
 
 
 ```javascript
-gate.cancelOrdersForSymbols (orders[, params])
+gate.cancelOrdersForSymbols (orders, params?)
 ```
 
 
@@ -1033,7 +1067,7 @@ cancel all open orders
 
 
 ```javascript
-gate.cancelAllOrders (symbol[, params])
+gate.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -1058,7 +1092,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-gate.transfer (code, amount, fromAccount, toAccount[, params])
+gate.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1084,7 +1118,7 @@ set the level of leverage for a market
 
 
 ```javascript
-gate.setLeverage (leverage, symbol[, params])
+gate.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1110,7 +1144,7 @@ fetch data on an open contract position
 
 
 ```javascript
-gate.fetchPosition (symbol[, params])
+gate.fetchPosition (symbol, params?)
 ```
 
 
@@ -1138,7 +1172,7 @@ fetch all open positions
 
 
 ```javascript
-gate.fetchPositions (symbols[, params])
+gate.fetchPositions (symbols, params?)
 ```
 
 
@@ -1163,7 +1197,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-gate.fetchLeverageTiers ([symbols, params])
+gate.fetchLeverageTiers (symbols?, params?)
 ```
 
 
@@ -1188,7 +1222,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-gate.fetchMarketLeverageTiers (symbol[, params])
+gate.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -1213,7 +1247,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-gate.repayIsolatedMargin (symbol, code, amount[, params])
+gate.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1238,7 +1272,7 @@ repay cross margin borrowed margin and interest
 
 
 ```javascript
-gate.repayCrossMargin (code, amount[, params])
+gate.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -1262,7 +1296,7 @@ create a loan to borrow margin
 
 
 ```javascript
-gate.borrowIsolatedMargin (symbol, code, amount[, params])
+gate.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1286,7 +1320,7 @@ create a loan to borrow margin
 
 
 ```javascript
-gate.borrowCrossMargin (code, amount[, params])
+gate.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -1315,7 +1349,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-gate.fetchBorrowInterest ([code, symbol, since, limit, params])
+gate.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
 ```
 
 
@@ -1341,7 +1375,7 @@ remove margin from a position
 
 
 ```javascript
-gate.reduceMargin (symbol, amount[, params])
+gate.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -1367,7 +1401,7 @@ add margin
 
 
 ```javascript
-gate.addMargin (symbol, amount[, params])
+gate.addMargin (symbol, amount, params?)
 ```
 
 
@@ -1392,7 +1426,7 @@ Retrieves the open interest of a currency
 
 
 ```javascript
-gate.fetchOpenInterest (symbol, timeframe[, since, limit, params])
+gate.fetchOpenInterest (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1415,7 +1449,7 @@ fetches historical settlement records
 
 
 ```javascript
-gate.fetchSettlementHistory (symbol[, since, limit, params])
+gate.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1442,7 +1476,7 @@ fetches historical settlement records of the user
 
 
 ```javascript
-gate.fetchMySettlementHistory (symbol[, since, limit, params])
+gate.fetchMySettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1474,7 +1508,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-gate.fetchLedger ([code, since, limit, params])
+gate.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1497,7 +1531,7 @@ set dual/hedged mode to true or false for a swap market, make sure all positions
 
 
 ```javascript
-gate.setPositionMode (hedged, symbol, params[])
+gate.setPositionMode (hedged, symbol, params)
 ```
 
 
@@ -1518,7 +1552,7 @@ fetches the market ids of underlying assets for a specific contract market type
 
 
 ```javascript
-gate.fetchUnderlyingAssets ([params])
+gate.fetchUnderlyingAssets (params?)
 ```
 
 
@@ -1542,7 +1576,7 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-gate.fetchLiquidations (symbol[, since, limit, params])
+gate.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -1570,7 +1604,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-gate.fetchMyLiquidations (symbol[, since, limit, params])
+gate.fetchMyLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -1591,7 +1625,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-gate.fetchGreeks (symbol[, params])
+gate.fetchGreeks (symbol, params?)
 ```
 
 
@@ -1618,7 +1652,7 @@ closes open positions for a market
 
 
 ```javascript
-gate.closePosition (symbol, side[, params])
+gate.closePosition (symbol, side, params?)
 ```
 
 
@@ -1644,7 +1678,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-gate.fetchLeverage (symbol[, params])
+gate.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1666,7 +1700,7 @@ fetch the set leverage for all leverage markets, only spot margin is supported o
 
 
 ```javascript
-gate.fetchLeverages (symbols[, params])
+gate.fetchLeverages (symbols, params?)
 ```
 
 
@@ -1687,7 +1721,7 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-gate.fetchOption (symbol[, params])
+gate.fetchOption (symbol, params?)
 ```
 
 
@@ -1710,7 +1744,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 
 
 ```javascript
-gate.fetchOptionChain (code[, params])
+gate.fetchOptionChain (code, params?)
 ```
 
 
@@ -1741,7 +1775,7 @@ fetches historical positions
 
 
 ```javascript
-gate.fetchPositionsHistory (symbols[, since, limit, params])
+gate.fetchPositionsHistory (symbols, since?, limit?, params)
 ```
 
 
@@ -1785,7 +1819,7 @@ Create an order on the exchange
 
 
 ```javascript
-gate.createOrderWs (symbol, type, side, amount[, price, params])
+gate.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -1806,7 +1840,7 @@ create a list of trade orders
 
 
 ```javascript
-gate.createOrdersWs (orders[, params])
+gate.createOrdersWs (orders, params?)
 ```
 
 
@@ -1832,7 +1866,7 @@ cancel all open orders
 
 
 ```javascript
-gate.cancelAllOrdersWs (symbol[, params])
+gate.cancelAllOrdersWs (symbol, params?)
 ```
 
 
@@ -1859,7 +1893,7 @@ Cancels an open order
 
 
 ```javascript
-gate.cancelOrderWs (id, symbol[, params])
+gate.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -1889,7 +1923,7 @@ edit a trade order, gate currently only supports the modification of the price o
 
 
 ```javascript
-gate.editOrderWs (id, symbol, type, side, amount[, price, params])
+gate.editOrderWs (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -1919,7 +1953,7 @@ Retrieves information on an order
 
 
 ```javascript
-gate.fetchOrderWs (id, symbol[, params])
+gate.fetchOrderWs (id, symbol, params?)
 ```
 
 
@@ -1942,7 +1976,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-gate.fetchOpenOrdersWs (symbol[, since, limit, params])
+gate.fetchOpenOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -1965,7 +1999,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-gate.fetchClosedOrdersWs (symbol[, since, limit, params])
+gate.fetchClosedOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -1991,7 +2025,7 @@ fetches information on multiple orders made by the user by status
 
 
 ```javascript
-gate.fetchOrdersWs (status, symbol[, since, limit, params])
+gate.fetchOrdersWs (status, symbol, since?, limit?, params?)
 ```
 
 
@@ -2001,7 +2035,7 @@ gate.fetchOrdersWs (status, symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2021,7 +2055,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-gate.watchOrderBook (symbol[, limit, params])
+gate.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -2031,7 +2065,7 @@ gate.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -2041,7 +2075,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-gate.unWatchOrderBook (symbol[, params])
+gate.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -2067,7 +2101,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-gate.watchTicker (symbol[, params])
+gate.watchTicker (symbol, params?)
 ```
 
 
@@ -2093,7 +2127,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-gate.watchTickers (symbols[, params])
+gate.watchTickers (symbols, params?)
 ```
 
 
@@ -2119,7 +2153,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-gate.watchBidsAsks (symbols[, params])
+gate.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -2148,7 +2182,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-gate.watchTrades (symbol[, since, limit, params])
+gate.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2177,7 +2211,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-gate.watchTradesForSymbols (symbols[, since, limit, params])
+gate.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2197,7 +2231,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-gate.unWatchTradesForSymbols (symbols[, params])
+gate.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -2217,7 +2251,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-gate.unWatchTrades (symbol[, params])
+gate.unWatchTrades (symbol, params?)
 ```
 
 
@@ -2246,7 +2280,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-gate.watchOHLCV (symbol, timeframe[, since, limit, params])
+gate.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -2275,7 +2309,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-gate.watchMyTrades (symbol[, since, limit, params])
+gate.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2301,7 +2335,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-gate.watchBalance ([params])
+gate.watchBalance (params?)
 ```
 
 
@@ -2329,7 +2363,7 @@ watch all open positions
 
 
 ```javascript
-gate.watchPositions ([symbols, since, limit, params])
+gate.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -2360,7 +2394,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-gate.watchOrders (symbol[, since, limit, params])
+gate.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -2388,7 +2422,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-gate.watchMyLiquidations (symbol[, since, limit, params])
+gate.watchMyLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -2416,6 +2450,6 @@ watch the private liquidations of a trading pair
 
 
 ```javascript
-gate.watchMyLiquidationsForSymbols (symbols[, since, limit, params])
+gate.watchMyLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 

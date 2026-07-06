@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ export default class derive extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'derive',
-            'name': 'derive',
+            'name': 'Derive',
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
@@ -136,9 +136,8 @@ export default class derive extends Exchange {
                 '1w': '1w',
                 '1M': '1M',
             },
-            'hostname': 'derive.xyz',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c',
+                'logo': 'https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed',
                 'api': {
                     'public': 'https://api.lyra.finance/public',
                     'private': 'https://api.lyra.finance/private',
@@ -456,7 +455,6 @@ export default class derive extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const result: Dict = {};
         const tokenResponse = await this.publicGetGetAllCurrencies (params);
         //
         //    {
@@ -507,34 +505,34 @@ export default class derive extends Exchange {
         // }
         //
         const currencies = this.safeList (tokenResponse, 'result', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const currencyId = this.safeString (currency, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
-                'active': undefined,
-                'fee': undefined,
-                'networks': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (currencies);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'info': currency,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -635,7 +633,7 @@ export default class derive extends Exchange {
 
     parseMarket (market: Dict): Market {
         const type = this.safeString (market, 'instrument_type');
-        let marketType: MarketType;
+        let marketType: MarketType | undefined = undefined;
         let spot = false;
         let margin = true;
         let swap = false;
@@ -750,7 +748,9 @@ export default class derive extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instrument_name': market['id'],
@@ -920,9 +920,11 @@ export default class derive extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -1040,8 +1042,10 @@ export default class derive extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'instrument_name': market['id'],
         };
@@ -1069,7 +1073,7 @@ export default class derive extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'funding_rate_history', []);
-        const rates = [];
+        const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'timestamp');
@@ -1160,7 +1164,7 @@ export default class derive extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -1202,45 +1206,47 @@ export default class derive extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
         }
-        let subaccountId = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('createOrder', params);
         const test = this.safeBool (params, 'test', false);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
-        const orderSide = side.toLowerCase ();
+        const orderSide = (side as string).toLowerCase ();
         const nonce = this.milliseconds ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = this.numberToString (price);
-        let maxFee = undefined;
+        const priceString = this.numberToString (price) as string;
+        let maxFee: Num = undefined;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
         if (maxFee === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
         }
-        const maxFeeString = this.numberToString (maxFee);
-        const amountString = this.numberToString (amount);
+        const maxFeeString = this.numberToString (maxFee) as string;
+        const amountString = this.numberToString (amount) as string;
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt ((this.parseUnits (priceString) as string)),
+            this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
+            this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let deriveWalletAddress = undefined;
+        let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('createOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -1296,7 +1302,7 @@ export default class derive extends Exchange {
         }
         request['signature'] = signature;
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ]);
-        let response = undefined;
+        let response: Dict;
         if (test) {
             response = await this.privatePostOrderDebug (this.extend (request, params));
         } else {
@@ -1372,7 +1378,7 @@ export default class derive extends Exchange {
         const result = this.safeDict (response, 'result');
         let rawOrder = this.safeDict (result, 'raw_data');
         if (rawOrder === undefined) {
-            rawOrder = this.safeDict (result, 'order');
+            rawOrder = this.safeDict (result, 'order', {});
         }
         const order = this.parseOrder (rawOrder, market);
         order['type'] = type;
@@ -1395,36 +1401,38 @@ export default class derive extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let subaccountId = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('editOrder', params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
-        const orderSide = side.toLowerCase ();
+        const orderSide = (side as string).toLowerCase ();
         const nonce = this.milliseconds ();
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = this.numberToString (price);
+        const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
-        const amountString = this.numberToString (amount);
+        const amountString = this.numberToString (amount) as string;
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt ((this.parseUnits (priceString) as string)),
+            this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
+            this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let deriveWalletAddress = undefined;
+        let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('editOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -1542,7 +1550,7 @@ export default class derive extends Exchange {
         //   }
         //
         const result = this.safeDict (response, 'result');
-        const rawOrder = this.safeDict (result, 'order');
+        const rawOrder = this.safeDict (result, 'order', {});
         const order = this.parseOrder (rawOrder, market);
         return order;
     }
@@ -1563,10 +1571,12 @@ export default class derive extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market: Market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        let subaccountId = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelOrder', params);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
@@ -1576,7 +1586,7 @@ export default class derive extends Exchange {
         const clientOrderIdUnified = this.safeString (params, 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'label', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response: Dict;
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             params = this.omit (params, [ 'clientOrderId', 'label' ]);
@@ -1633,7 +1643,7 @@ export default class derive extends Exchange {
         // }
         //
         const extendParams: Dict = { 'symbol': symbol };
-        const order = this.safeDict (response, 'result');
+        const order = this.safeDict (response, 'result', {});
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         }
@@ -1652,17 +1662,19 @@ export default class derive extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let subaccountId = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelAllOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
-        let response = undefined;
+        let response: Dict;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
             response = await this.privatePostCancelByInstrument (this.extend (request, params));
@@ -1674,7 +1686,7 @@ export default class derive extends Exchange {
         //     "result": {
         //         "cancelled_orders": 0
         //     },
-        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f4"
+        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
         // }
         //
         // {
@@ -1700,7 +1712,9 @@ export default class derive extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -1708,7 +1722,7 @@ export default class derive extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let subaccountId = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -1776,12 +1790,12 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (data, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
         }
-        const orders = this.safeList (data, 'orders');
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1798,7 +1812,9 @@ export default class derive extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'open' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -1816,7 +1832,9 @@ export default class derive extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'filled' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -1834,7 +1852,9 @@ export default class derive extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'cancelled' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -1846,7 +1866,7 @@ export default class derive extends Exchange {
             'gtc': 'GTC',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
     parseOrderStatus (status: Str) {
@@ -1925,7 +1945,7 @@ export default class derive extends Exchange {
         if (marketId !== undefined) {
             market = this.safeMarket (marketId, market);
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const price = this.safeString (order, 'limit_price');
         const average = this.safeString (order, 'average_price');
         const amount = this.safeString (order, 'desired_amount');
@@ -1942,9 +1962,9 @@ export default class derive extends Exchange {
             }
         }
         const triggerType = this.safeString (order, 'trigger_type');
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
-        let triggerPrice = undefined;
+        let stopLossPrice: Str = undefined;
+        let takeProfitPrice: Str = undefined;
+        let triggerPrice: Str = undefined;
         if (triggerType !== undefined) {
             triggerPrice = this.safeString (order, 'trigger_price');
             if (triggerType === 'stoploss') {
@@ -2002,8 +2022,10 @@ export default class derive extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let subaccountId = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrderTrades', params);
         const request: Dict = {
             'order_id': id,
@@ -2076,13 +2098,15 @@ export default class derive extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        let subaccountId = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchMyTrades', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2139,7 +2163,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (result, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2159,8 +2183,10 @@ export default class derive extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        let subaccountId = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchPositions', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2300,13 +2326,15 @@ export default class derive extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
-        let subaccountId = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchFundingHistory', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2358,7 +2386,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (result, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2402,8 +2430,10 @@ export default class derive extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        let deriveWalletAddress = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('fetchBalance', params);
         const request = {
             'wallet': deriveWalletAddress,
@@ -2498,8 +2528,10 @@ export default class derive extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let subaccountId = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchDeposits', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2528,7 +2560,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events');
+        const events = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, params);
     }
 
@@ -2545,8 +2577,10 @@ export default class derive extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let subaccountId = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchWithdrawals', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2575,7 +2609,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events');
+        const events = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, params);
     }
 
@@ -2626,7 +2660,7 @@ export default class derive extends Exchange {
             'settled': 'ok',
             'reverted': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     handleDeriveSubaccountId (methodName: string, params: Dict) {
@@ -2672,7 +2706,7 @@ export default class derive extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const url = this.urls['api'][api] + '/' + path;
         if (method === 'POST') {
             headers = {

@@ -220,6 +220,7 @@ public partial class kraken : Exchange
                 { "ZUSD", "USD" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "marketsByAltname", new Dictionary<string, object>() {} },
@@ -809,69 +810,69 @@ public partial class kraken : Exchange
         //         },
         //     }
         //
-        object currencies = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        object currencies = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object enhancedArray = this.addKeyInArrayItems(currencies, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        // todo: will need to rethink the fees
+        // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        object id = this.safeString(rawCurrency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (isTrue(isLessThan(getIndexOf(id, "."), 0)))
         {
-            object id = getValue(ids, i);
-            object currency = getValue(currencies, id);
-            // todo: will need to rethink the fees
-            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+            object altName = this.safeString(rawCurrency, "altname");
+            // handle cases like below:
             //
-            // Notes about abbreviations:
-            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            //
-            object code = this.safeCurrencyCode(id);
-            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if (isTrue(isLessThan(getIndexOf(id, "."), 0)))
+            //  id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if (isTrue(isTrue(!isEqual(id, altName)) && isTrue((isTrue(((string)id).StartsWith(((string)"X"))) || isTrue(((string)id).StartsWith(((string)"Z")))))))
             {
-                object altName = this.safeString(currency, "altname");
-                // handle cases like below:
-                //
-                //  id   | altname
-                // ---------------
-                // XXBT  |  XBT
-                // ZUSD  |  USD
-                if (isTrue(isTrue(!isEqual(id, altName)) && isTrue((isTrue(((string)id).StartsWith(((string)"X"))) || isTrue(((string)id).StartsWith(((string)"Z")))))))
-                {
-                    code = this.safeCurrencyCode(altName);
-                    // also, add map in commonCurrencies:
-                    ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
-                } else
-                {
-                    code = this.safeCurrencyCode(id);
-                }
+                code = this.safeCurrencyCode(altName);
+                // also, add map in commonCurrencies:
+                ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
+            } else
+            {
+                code = this.safeCurrencyCode(id);
             }
-            object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "name", this.safeString(currency, "altname") },
-                { "active", isEqual(this.safeString(currency, "status"), "enabled") },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", new Dictionary<string, object>() {} },
-            });
         }
-        return result;
+        object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
+        rawCurrency = this.omit(rawCurrency, "_coin_id");
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "name", this.safeString(rawCurrency, "altname") },
+            { "active", isEqual(this.safeString(rawCurrency, "status"), "enabled") },
+            { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "decimals"))) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        });
     }
 
     public override object safeCurrencyCode(object currencyId, object currency = null)
@@ -959,7 +960,7 @@ public partial class kraken : Exchange
         };
     }
 
-    public override object parseBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public override object parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -978,7 +979,7 @@ public partial class kraken : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1752,7 +1753,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1811,7 +1812,7 @@ public partial class kraken : Exchange
         object response = null;
         object request = new Dictionary<string, object>() {
             { "orders", ordersRequests },
-            { "pair", getValue(market, "id") },
+            { "pair", this.safeString(market, "id") },
         };
         request = this.extend(request, parameters);
         response = await this.privatePostAddOrderBatch(request);
@@ -2194,6 +2195,7 @@ public partial class kraken : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
+            { "lastUpdateTimestamp", this.safeTimestamp(order, "closetm") },
             { "status", status },
             { "symbol", symbol },
             { "type", typeParsed },
@@ -2335,6 +2337,7 @@ public partial class kraken : Exchange
         if (isTrue(!isEqual(close, null)))
         {
             close = this.extend(new Dictionary<string, object>() {}, close);
+            close = ((bool) isTrue((isEqual(close, null)))) ? new Dictionary<string, object>() {} : close;
             object closePrice = this.safeValue(close, "price");
             if (isTrue(!isEqual(closePrice, null)))
             {

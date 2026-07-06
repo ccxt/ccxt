@@ -10,8 +10,6 @@ namespace ccxt\pro;
 
 class Exchange extends \ccxt\async\Exchange {
 
-    use ClientTrait;
-
     public static $exchanges = array();
 }
 
@@ -22,8 +20,6 @@ Exchange::$exchanges = array(
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -50,7 +46,6 @@ Exchange::$exchanges = array(
     'bydfi',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
@@ -62,32 +57,33 @@ Exchange::$exchanges = array(
     'derive',
     'dydx',
     'exmo',
+    'extended',
     'gate',
-    'gateio',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',
     'luno',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
     'ndax',
     'okx',
     'okxus',
     'onetrading',
-    'oxfun',
     'p2b',
     'pacifica',
     'paradex',

@@ -236,7 +236,7 @@ class coinbase(ccxt.async_support.coinbase):
         return res
 
     def create_ws_auth(self, name: str, productIds: List[str]):
-        subscribe: dict = {}
+        subscribe = {}
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
         isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
@@ -593,7 +593,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         name = 'level2'
@@ -610,7 +610,7 @@ class coinbase(ccxt.async_support.coinbase):
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -626,7 +626,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         name = 'level2'
@@ -908,7 +908,7 @@ class coinbase(ccxt.async_support.coinbase):
 
     def handle_message(self, client, message):
         channel = self.safe_string(message, 'channel')
-        methods: dict = {
+        methods = {
             'subscriptions': self.handle_subscription_status,
             'ticker': self.handle_tickers,
             'ticker_batch': self.handle_tickers,

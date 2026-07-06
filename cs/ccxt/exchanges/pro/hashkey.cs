@@ -143,13 +143,13 @@ public partial class hashkey : ccxt.hashkey
         object parameters = this.safeDict(message, "params");
         object klineType = this.safeString(parameters, "klineType");
         object timeframe = this.findTimeframe(klineType);
-        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), ((string)timeframe)))))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
         object data = this.safeList(message, "data", new List<object>() {});
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object candle = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -179,7 +179,7 @@ public partial class hashkey : ccxt.hashkey
 
     /**
      * @method
-     * @name hahskey#watchTicker
+     * @name hashkey#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -232,8 +232,8 @@ public partial class hashkey : ccxt.hashkey
         object ticker = this.parseTicker(this.safeDict(data, 0));
         object symbol = getValue(ticker, "symbol");
         object messageHash = add("ticker:", symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+        ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
     }
 
     /**
@@ -322,7 +322,7 @@ public partial class hashkey : ccxt.hashkey
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -501,18 +501,18 @@ public partial class hashkey : ccxt.hashkey
             { "side", side },
             { "price", this.safeString(order, "p") },
             { "average", this.safeString(order, "V") },
-            { "amount", this.omitZero(this.safeString(order, "q")) },
+            { "amount", this.omitZero(((string)this.safeString(order, "q"))) },
             { "filled", this.safeString(order, "z") },
             { "remaining", this.safeString(order, "r") },
             { "stopPrice", null },
             { "triggerPrice", null },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
-            { "cost", this.omitZero(this.safeString(order, "Z")) },
+            { "cost", this.omitZero(((string)this.safeString(order, "Z"))) },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(this.safeString(order, "N")) },
-                { "amount", this.omitZero(this.safeString(order, "n")) },
+                { "amount", this.omitZero(((string)this.safeString(order, "n"))) },
             } },
             { "reduceOnly", reduceOnly },
             { "postOnly", postOnly },
@@ -616,18 +616,19 @@ public partial class hashkey : ccxt.hashkey
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(trade, "t");
         object isBuyerMaker = this.safeBool(trade, "m");
+        object isPublicTrade = isEqual(this.safeString(trade, "e"), null);
         object side = null;
         object takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
-            if (isTrue(isBuyerMaker))
+            if (isTrue(isPublicTrade))
             {
-                side = "sell";
-                takerOrMaker = "maker";
+                takerOrMaker = "taker";
+                side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
             } else
             {
-                side = "buy";
-                takerOrMaker = "taker";
+                takerOrMaker = ((bool) isTrue(isBuyerMaker)) ? "maker" : "taker";
+                side = this.safeStringLower(trade, "S");
             }
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -635,7 +636,7 @@ public partial class hashkey : ccxt.hashkey
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", getValue(market, "symbol") },
-            { "side", this.safeStringLower(trade, "S", side) },
+            { "side", side },
             { "price", this.safeString(trade, "p") },
             { "amount", this.safeString(trade, "q") },
             { "cost", null },

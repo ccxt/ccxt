@@ -200,10 +200,7 @@ The contents of the repository are structured as follows:
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
-/python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.md          # a copy of README.md for PyPI
-/python/setup.cfg          # wheels config file for the Python package
-/python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
 /examples/                 # self-explanatory
 /examples/js               # ...
@@ -211,7 +208,8 @@ The contents of the repository are structured as follows:
 /examples/py               # ...
 /java/examples/            # Java examples (Gradle module)
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
-/package.json              # npm package file, also used in setup.py for version single-sourcing
+/package.json              # npm package file, version single-sourced into pyproject.toml and other files via `npm run vss`
+/pyproject.toml            # metadata and build config (pip/setuptools) for the ccxt package in Python
 /run-tests.js              # a front-end to run individual tests of all exchanges in all languages (JS/PHP/Python)
 /wiki/                     # the source of all docs (edits go here)
 ```
@@ -1071,8 +1069,8 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 Follow this steps to add a test:
 
-- Create a file in [ts/tests/Exchange](ts/test/Exchange/) following syntax that can be transpiled.
-- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)
+- Create a file in [ts/tests/Exchange](https://github.com/ccxt/ccxt/tree/master/ts/test/Exchange) following syntax that can be transpiled.
+- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/pro/test/tests.ts#L121)
 - run `npm run transpile` to generate the test file in javascript, python and php.
 - Call tests `node run-tests`
 

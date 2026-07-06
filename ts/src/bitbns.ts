@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitbns.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -362,10 +362,12 @@ export default class bitbns extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -463,7 +465,9 @@ export default class bitbns extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.wwwGetOrderFetchTickers (params);
         //
         //     {
@@ -501,7 +505,7 @@ export default class bitbns extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const timestamp = undefined;
+        const timestamp: Int = undefined;
         const result: Dict = {
             'info': response,
             'timestamp': timestamp,
@@ -537,7 +541,9 @@ export default class bitbns extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
         //
         //     {
@@ -673,7 +679,9 @@ export default class bitbns extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 't_rate' ]);
         const targetRate = this.safeString (params, 'target_rate');
@@ -732,7 +740,9 @@ export default class bitbns extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
@@ -740,7 +750,7 @@ export default class bitbns extends Exchange {
             'entry_id': id,
             'symbol': market['uppercaseId'],
         };
-        let response = undefined;
+        let response: Dict = undefined;
         const tail = isTrigger ? 'StopLossOrder' : 'Order';
         let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         quoteSide += tail;
@@ -763,7 +773,9 @@ export default class bitbns extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -821,7 +833,9 @@ export default class bitbns extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
@@ -903,7 +917,7 @@ export default class bitbns extends Exchange {
             }
         }
         const factor = this.safeString (trade, 'factor');
-        let costString = undefined;
+        let costString: Str = undefined;
         if (factor !== undefined) {
             amountString = Precise.stringDiv (amountString, factor);
         } else {
@@ -911,7 +925,7 @@ export default class bitbns extends Exchange {
             costString = this.safeString (trade, 'quote_volume');
         }
         const symbol = market['symbol'];
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = market['quote'];
@@ -951,7 +965,9 @@ export default class bitbns extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1020,7 +1036,9 @@ export default class bitbns extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'coin': market['baseId'],
@@ -1051,7 +1069,9 @@ export default class bitbns extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -1099,7 +1119,9 @@ export default class bitbns extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -1113,7 +1135,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
+    parseTransactionStatusByType (status, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -1161,7 +1183,7 @@ export default class bitbns extends Exchange {
         const timestamp = this.parse8601 (this.safeString2 (transaction, 'date', 'timestamp'));
         let type = this.safeString (transaction, 'type');
         const expTime = this.safeString (transaction, 'expTime', '');
-        let status = undefined;
+        let status: Str = undefined;
         if (type !== undefined) {
             if (type.indexOf ('deposit') >= 0) {
                 type = 'deposit';
@@ -1173,7 +1195,7 @@ export default class bitbns extends Exchange {
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
@@ -1210,7 +1232,9 @@ export default class bitbns extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -1243,7 +1267,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'www', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -1274,6 +1298,7 @@ export default class bitbns extends Exchange {
             };
             const payload = this.stringToBase64 (this.json (auth));
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);
+            headers = (headers === undefined) ? {} : headers;
             headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';

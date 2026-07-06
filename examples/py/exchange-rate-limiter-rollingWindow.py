@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 async def example():
     myex = ccxt.okx({
         'rateLimiterAlgorithm': 'rollingWindow',

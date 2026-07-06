@@ -357,7 +357,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -455,7 +455,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        Object bidAsk = this.parseBidAsk(delta, 1, 2);
+        Object bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
         Object type = this.safeString(delta, 0);
         if (Helpers.isTrue(Helpers.isEqual(type, "BUY")))
         {

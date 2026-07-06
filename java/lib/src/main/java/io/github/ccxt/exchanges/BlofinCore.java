@@ -160,9 +160,8 @@ public class BlofinCore extends BlofinApi
                 put( "1w", "1W" );
                 put( "1M", "1M" );
             }} );
-            put( "hostname", "www.blofin.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b" );
+                put( "logo", "https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://openapi.blofin.com" );
                 }} );
@@ -623,7 +622,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1056,8 +1055,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "after", until);
                 parameters = this.omit(parameters, "until");
             }
-            Object response = null;
-            response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
+            Object response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });
@@ -1868,7 +1866,7 @@ public class BlofinCore extends BlofinApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+                Object orderRequest = this.createOrderRequest(((String)marketId), type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
@@ -2192,8 +2190,7 @@ public class BlofinCore extends BlofinApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
-            response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
+            Object response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
         });
@@ -2863,10 +2860,11 @@ public class BlofinCore extends BlofinApi
                 throw new BadRequest((String)Helpers.add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             symbols = this.marketSymbols(symbols);
+            Object symbolsList = symbols;
             Object instIds = "";
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsList)); i++)
             {
-                Object entry = Helpers.GetValue(symbols, i);
+                Object entry = Helpers.GetValue(symbolsList, i);
                 Object entryMarket = this.market(entry);
                 if (Helpers.isTrue(Helpers.isGreaterThan(i, 0)))
                 {
@@ -3215,7 +3213,7 @@ public class BlofinCore extends BlofinApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseMarginMode(data, market);
+            return this.parseMarginMode(data, market);  // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
         });
 
     }
@@ -3435,7 +3433,7 @@ public class BlofinCore extends BlofinApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest")), request);
+        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), request);
         // const type = this.getPathAuthenticationType (path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {

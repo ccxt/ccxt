@@ -1,6 +1,6 @@
 {
     "exchange": "bitget",
-    "options": {},
+    "options": {"uta": false},
     "methods": {
         "withdraw": [
             {
@@ -531,7 +531,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 3,
@@ -567,7 +567,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 1,
@@ -603,7 +603,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0.2,
@@ -639,7 +639,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 1,
@@ -675,7 +675,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0.15,
@@ -711,7 +711,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0,
@@ -747,7 +747,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0.2,
@@ -783,7 +783,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0.2,
@@ -819,7 +819,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0.11,
@@ -855,7 +855,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": false,
+                                "active": null,
                                 "withdraw": false,
                                 "deposit": true,
                                 "fee": 1,
@@ -891,7 +891,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0.03,
@@ -927,7 +927,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "withdraw": true,
                                 "deposit": true,
                                 "fee": 0.15,
@@ -3994,7 +3994,7 @@
                         "timestamp": 1750495670699,
                         "datetime": "2025-06-21T08:47:50.699Z",
                         "lastUpdateTimestamp": 1758035576809,
-                        "maintenanceMargin": 0.06905136,
+                        "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "collateral": null,
                         "initialMargin": 5.82333136,
@@ -5910,7 +5910,7 @@
                     "timestamp": 1750495670699,
                     "datetime": "2025-06-21T08:47:50.699Z",
                     "lastUpdateTimestamp": 1750929883465,
-                    "maintenanceMargin": 0.06444918,
+                    "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
                     "collateral": null,
                     "initialMargin": 5.435199,

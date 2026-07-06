@@ -223,12 +223,12 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object timeframe = this.findTimeframe(timeframeId);
             Object ohlcv = this.safeValue(message, "price", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
             client.resolve(stored, messageHash);
@@ -727,7 +727,7 @@ final Object finalTradeId = tradeId;
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -827,7 +827,7 @@ final Object finalTradeId = tradeId;
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bookArray = this.parseBidAsk(delta, "px", "qty", "num");
+        Object bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bookArray});
     }
 
@@ -852,7 +852,7 @@ final Object finalTradeId = tradeId;
             put( "balances", "handleBalance");
             put( "trading", "handleOrders");
         }};
-        Object handler = this.safeValue(handlers, channel);
+        Object handler = this.safeValue(handlers, ((String)channel));
         if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
         {
             Helpers.callDynamically(this, handler, new Object[] {client, message});

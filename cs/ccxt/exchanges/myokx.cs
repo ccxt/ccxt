@@ -47,6 +47,9 @@ public partial class myokx : okx
                     { "inverse", null },
                 } },
             } },
+            { "options", new Dictionary<string, object>() {
+                { "mica", true },
+            } },
         });
     }
 }

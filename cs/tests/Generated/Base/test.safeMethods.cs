@@ -94,7 +94,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeList(inputDict, "dict"), null));
             Assert(isEqual(exchange.safeList(inputList, 1), null));
             object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts");
-            Assert(equals(getValue(arrayOfDicts, 0), new Dictionary<string, object>() {
+            Assert(equals(getValue((IList<object>)(arrayOfDicts), 0), new Dictionary<string, object>() {
                 { "a", 1 },
             }));
             // safeList2

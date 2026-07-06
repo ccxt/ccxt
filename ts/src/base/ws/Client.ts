@@ -8,7 +8,7 @@ import {
     deepExtend,
     milliseconds,
 } from '../../base/functions.js';
-import { utf8 } from '../../static_dependencies/scure-base/index.js';
+import { utf8 } from '@scure/base';
 import { Dictionary, Str } from '../types.js';
 
 export default class Client {
@@ -68,7 +68,7 @@ export default class Client {
 
     throttle: any
 
-    cookies: Dictionary<any>
+    cookies!: Dictionary<any>
 
     decompressBinary = true
 

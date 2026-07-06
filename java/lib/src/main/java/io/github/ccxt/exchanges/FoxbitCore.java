@@ -369,88 +369,84 @@ public class FoxbitCore extends FoxbitApi
             //   ]
             // }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-            {
-                Object currency = Helpers.GetValue(data, i);
-                Object precision = this.safeInteger(currency, "precision");
-                Object currencyId = this.safeString(currency, "symbol");
-                Object name = this.safeString(currency, "name");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object depositInfo = this.safeDict(currency, "deposit_info");
-                Object withdrawInfo = this.safeDict(currency, "withdraw_info");
-                Object networks = this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object type = this.safeStringLower(currency, "type");
-                Object parsedNetworks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
-                {
-                    Object network = Helpers.GetValue(networks, j);
-                    Object networkId = this.safeString(network, "code");
-                    Object networkCode = this.networkIdToCode(networkId, code);
-                    Object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
-                    Object networkDepositInfo = this.safeDict(network, "deposit_info");
-                    Object isWithdrawEnabled = Helpers.isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
-                    Object isDepositEnabled = Helpers.isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
-                    Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "name", FoxbitCore.this.safeString(network, "name") );
-        put( "deposit", isDepositEnabled );
-        put( "withdraw", isWithdrawEnabled );
-        put( "active", true );
-        put( "precision", precision );
-        put( "fee", FoxbitCore.this.safeNumber(networkWithdrawInfo, "fee") );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", FoxbitCore.this.safeNumber(depositInfo, "min_amount") );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", FoxbitCore.this.safeNumber(withdrawInfo, "min_amount") );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                if (Helpers.isTrue(Helpers.isEqual(this.safeDict(result, code), null)))
-                {
-                    Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "code", code );
-        put( "info", currency );
-        put( "name", name );
-        put( "active", true );
-        put( "type", type );
-        put( "deposit", FoxbitCore.this.safeBool(depositInfo, "enabled", false) );
-        put( "withdraw", FoxbitCore.this.safeBool(withdrawInfo, "enabled", false) );
-        put( "fee", FoxbitCore.this.safeNumber(withdrawInfo, "fee") );
-        put( "precision", precision );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", FoxbitCore.this.safeNumber(depositInfo, "min_amount") );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", FoxbitCore.this.safeNumber(withdrawInfo, "min_amount") );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", parsedNetworks );
-    }}));
-                }
-            }
-            return result;
+            return this.parseCurrencies(data);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object precision = this.safeInteger(rawCurrency, "precision");
+        Object currencyId = this.safeString(rawCurrency, "symbol");
+        Object name = this.safeString(rawCurrency, "name");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object depositInfo = this.safeDict(rawCurrency, "deposit_info");
+        Object withdrawInfo = this.safeDict(rawCurrency, "withdraw_info");
+        Object networks = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object type = this.safeStringLower(rawCurrency, "type");
+        Object parsedNetworks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
+        {
+            Object network = Helpers.GetValue(networks, j);
+            Object networkId = this.safeString(network, "code");
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
+            Object networkDepositInfo = this.safeDict(network, "deposit_info");
+            Object isWithdrawEnabled = Helpers.isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
+            Object isDepositEnabled = Helpers.isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
+            Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", rawCurrency );
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "name", FoxbitCore.this.safeString(network, "name") );
+    put( "deposit", isDepositEnabled );
+    put( "withdraw", isWithdrawEnabled );
+    put( "active", true );
+    put( "precision", precision );
+    put( "fee", FoxbitCore.this.safeNumber(networkWithdrawInfo, "fee") );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", FoxbitCore.this.safeNumber(depositInfo, "min_amount") );
+            put( "max", null );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", FoxbitCore.this.safeNumber(withdrawInfo, "min_amount") );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "code", code );
+            put( "info", rawCurrency );
+            put( "name", name );
+            put( "active", true );
+            put( "type", type );
+            put( "deposit", FoxbitCore.this.safeBool(depositInfo, "enabled", false) );
+            put( "withdraw", FoxbitCore.this.safeBool(withdrawInfo, "enabled", false) );
+            put( "fee", FoxbitCore.this.safeNumber(withdrawInfo, "fee") );
+            put( "precision", precision );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", FoxbitCore.this.safeNumber(depositInfo, "min_amount") );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", FoxbitCore.this.safeNumber(withdrawInfo, "min_amount") );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", parsedNetworks );
+        }});
     }
 
     /**
@@ -719,7 +715,7 @@ public class FoxbitCore extends FoxbitApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1863,7 +1859,7 @@ public class FoxbitCore extends FoxbitApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "network_code", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "network_code", this.networkCodeToId(networkCode, code));
             }
             Object response = (this.v3PrivatePostWithdrawals(this.extend(request, parameters))).join();
             // {
@@ -1998,7 +1994,7 @@ public class FoxbitCore extends FoxbitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", entry );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", FoxbitCore.this.safeString(market, "symbol") );
             put( "maker", FoxbitCore.this.safeNumber(entry, "maker") );
             put( "taker", FoxbitCore.this.safeNumber(entry, "taker") );
             put( "percentage", true );
@@ -2066,7 +2062,7 @@ public class FoxbitCore extends FoxbitApi
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", FoxbitCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", FoxbitCore.this.safeString(market, "symbol") );
             put( "order", null );
             put( "type", null );
             put( "side", side );

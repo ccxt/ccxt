@@ -11,12 +11,11 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class zebpay extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zebpay',
@@ -86,7 +85,7 @@ class zebpay extends Exchange {
                 '1w' => 10080,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad',
+                'logo' => 'https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6',
                 'api' => array(
                     'spot' => 'https://sapi.zebpay.com',
                     'swap' => 'https://futuresbe.zebpay.com',
@@ -219,7 +218,7 @@ class zebpay extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -236,10 +235,10 @@ class zebpay extends Exchange {
             $response = null;
             $data = array();
             if ($isSpot) {
-                $response = Async\await($this->publicSpotGetV2SystemStatus ($params));
+                $response = Async\await($this->publicSpotGetV2SystemStatus($params));
                 $data = $response;
             } else {
-                $response = Async\await($this->publicSwapGetV1SystemStatus ($params));
+                $response = Async\await($this->publicSwapGetV1SystemStatus($params));
                 $data = $this->safe_dict($response, 'data', array());
             }
             //
@@ -261,10 +260,10 @@ class zebpay extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the poloniexfutures server
@@ -281,10 +280,10 @@ class zebpay extends Exchange {
             $response = null;
             $data = array();
             if ($isSpot) {
-                $response = Async\await($this->publicSpotGetV2SystemTime ($params));
+                $response = Async\await($this->publicSpotGetV2SystemTime($params));
                 $data = $response;
             } else {
-                $response = Async\await($this->publicSwapGetV1SystemTime ($params));
+                $response = Async\await($this->publicSwapGetV1SystemTime($params));
                 $data = $this->safe_dict($response, 'data', array());
             }
             //
@@ -300,10 +299,10 @@ class zebpay extends Exchange {
             //
             $time = $this->safe_integer($data, 'timestamp');
             return $time;
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for zebpay
@@ -332,10 +331,10 @@ class zebpay extends Exchange {
             $spotMarkets = $this->safe_list($promises, 0, array());
             $futureMarkets = $this->safe_list($promises, 1, array());
             return $this->array_concat($spotMarkets, $futureMarkets);
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -345,10 +344,10 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicSpotGetV2ExCurrencies ($params));
+            $response = Async\await($this->publicSpotGetV2ExCurrencies($params));
             //
             //     {
-            //             "data" => [
+            //             "data" => array(
             //                 {
             //                     "currency" => "BTC",
             //                     "name" => "BTC",
@@ -356,7 +355,7 @@ class zebpay extends Exchange {
             //                     "precision" => "0.2",
             //                     "type" => "fiat",
             //                     "isDebitEnabled" => false,
-            //                     "chains" => [
+            //                     "chains" => array(
             //                         {
             //                             "chainName" => "Bitcoin",
             //                             "withdrawalMinSize" => "0.000482",
@@ -372,99 +371,98 @@ class zebpay extends Exchange {
             //                             "chainId" => "bitcoin",
             //                             "AddressRegex" => "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]array(39,59)|m[a-zA-Z0-9]array(25,34)|n[a-zA-Z0-9]array(25,34)|^2[a-zA-Z0-9]array(25,34)$"
             //                          }
-            //                     ]
+            //                     )
             //                 }
-            //             ]
+            //             )
             //     }
             //
             $rows = $this->safe_list($response, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($rows); $i++) {
-                $currency = $rows[$i];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $name = $this->safe_string($currency, 'name');
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
-                $chains = $this->safe_list($currency, 'chains', array());
-                $networks = array();
-                $minWithdrawFeeString = null;
-                $minWithdrawString = null;
-                $minDepositString = null;
-                $deposit = false;
-                $withdraw = false;
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'chainId');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
-                    $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                    $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
-                    $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                    $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
-                    if ($withdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawalMinSize');
-                    if ($minNetworkWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
-                    }
-                    $minNetworkDepositString = $this->safe_string($chain, 'depositMinSize');
-                    if ($minNetworkDepositString !== null) {
-                        $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
-                    }
-                    $networks[$networkCode] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => $depositAllowed && $withdrawAllowed,
-                        'deposit' => $depositAllowed,
-                        'withdraw' => $withdrawAllowed,
-                        'fee' => $this->parse_number($withdrawFeeString),
-                        'precision' => $precision,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->parse_number($minNetworkWithdrawString),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => $this->parse_number($minNetworkDepositString),
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $currency,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'name' => $name,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => $precision,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->parse_number($minDepositString),
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
-        }) ();
+            return $this->parse_currencies($rows);
+        })();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
+        $chains = $this->safe_list($rawCurrency, 'chains', array());
+        $networks = array();
+        $minWithdrawFeeString = null;
+        $minWithdrawString = null;
+        $minDepositString = null;
+        $deposit = false;
+        $withdraw = false;
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chainId');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
+            $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
+            $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
+            $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
+            $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
+            if ($withdrawFeeString !== null) {
+                $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+            }
+            $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawalMinSize');
+            if ($minNetworkWithdrawString !== null) {
+                $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+            }
+            $minNetworkDepositString = $this->safe_string($chain, 'depositMinSize');
+            if ($minNetworkDepositString !== null) {
+                $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
+            }
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => $depositAllowed && $withdrawAllowed,
+                'deposit' => $depositAllowed,
+                'withdraw' => $withdrawAllowed,
+                'fee' => $this->parse_number($withdrawFeeString),
+                'precision' => $precision,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->parse_number($minNetworkWithdrawString),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->parse_number($minNetworkDepositString),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $name,
+            'active' => $deposit && $withdraw,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => $this->parse_number($minWithdrawFeeString),
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->parse_number($minWithdrawString),
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => $this->parse_number($minDepositString),
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -485,7 +483,7 @@ class zebpay extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($market['spot']) {
-                $response = Async\await($this->privateSpotGetV2ExTradefee ($this->extend($request, $params)));
+                $response = Async\await($this->privateSpotGetV2ExTradefee($this->extend($request, $params)));
                 //
                 // {
                 //     "statusDescription" => "Success",
@@ -500,7 +498,7 @@ class zebpay extends Exchange {
                 // }
                 $data = $this->safe_dict($response, 'data', array());
             } else {
-                $response = Async\await($this->publicSwapGetV1ExchangeTradefee ($this->extend($request, $params)));
+                $response = Async\await($this->publicSwapGetV1ExchangeTradefee($this->extend($request, $params)));
                 //
                 // {
                 //     "statusDescription" => "OK",
@@ -520,10 +518,10 @@ class zebpay extends Exchange {
                 $data = $this->safe_dict($responseData, 0);
             }
             return $this->parse_trading_fee($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
@@ -537,9 +535,9 @@ class zebpay extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
             $response = null;
             if ($type === 'spot') {
-                $response = Async\await($this->publicSpotGetV2ExTradefees ($params));
+                $response = Async\await($this->publicSpotGetV2ExTradefees($params));
             } else {
-                $response = Async\await($this->publicSwapGetV1ExchangeTradefees ($params));
+                $response = Async\await($this->publicSwapGetV1ExchangeTradefees($params));
             }
             //
             // {
@@ -563,10 +561,10 @@ class zebpay extends Exchange {
                 $result[$symbol] = $fee;
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -577,7 +575,7 @@ class zebpay extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -591,28 +589,28 @@ class zebpay extends Exchange {
                 }
                 //
                 //       {
-                //         "asks" => [
+                //         "asks" => array(
                 //                 [5000, 1000],           //Price, quantity
                 //                 [6000, 1983]            //Price, quantity
-                //         ],
-                //         "bids" => [
+                //         ),
+                //         "bids" => array(
                 //                 [3200, 800],            //Price, quantity
                 //                 [3100, 100]             //Price, quantity
-                //         ],
+                //         ),
                 //       }
                 // }
-                $response = Async\await($this->publicSpotGetV2MarketOrderbook ($this->extend($request, $params)));
+                $response = Async\await($this->publicSpotGetV2MarketOrderbook($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicSwapGetV1MarketOrderBook ($this->extend($request, $params)));
+                $response = Async\await($this->publicSwapGetV1MarketOrderBook($this->extend($request, $params)));
             }
             $bookData = $this->safe_dict($response, 'data', array());
             $orderbook = $this->parse_order_book($bookData, $market['symbol'], null, 'bids', 'asks', 0, 1);
             $orderbook['nonce'] = $this->safe_integer($bookData, 'nonce');
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -631,7 +629,7 @@ class zebpay extends Exchange {
             );
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->publicSpotGetV2MarketTicker ($this->extend($request, $params)));
+                $response = Async\await($this->publicSpotGetV2MarketTicker($this->extend($request, $params)));
                 //
                 //     array(
                 //        {
@@ -651,14 +649,14 @@ class zebpay extends Exchange {
                 //     )
                 //
             } else {
-                $response = Async\await($this->publicSwapGetV1MarketTicker24Hr ($this->extend($request, $params)));
+                $response = Async\await($this->publicSwapGetV1MarketTicker24Hr($this->extend($request, $params)));
             }
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -676,7 +674,7 @@ class zebpay extends Exchange {
             }
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicSpotGetV2MarketAllTickers ($params));
+            $response = Async\await($this->publicSpotGetV2MarketAllTickers($params));
             //
             //     array(
             //        {
@@ -697,10 +695,10 @@ class zebpay extends Exchange {
             //
             $tickerList = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($tickerList, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -749,9 +747,9 @@ class zebpay extends Exchange {
                 if ($until === null || $since === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
                 }
-                $response = Async\await($this->publicSpotGetV2MarketKlines ($this->extend($request, $params)));
+                $response = Async\await($this->publicSpotGetV2MarketKlines($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicSwapPostV1MarketKlines ($this->extend($request, $params)));
+                $response = Async\await($this->publicSwapPostV1MarketKlines($this->extend($request, $params)));
             }
             //
             //             array(
@@ -786,10 +784,10 @@ class zebpay extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -813,9 +811,9 @@ class zebpay extends Exchange {
             }
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->publicSpotGetV2MarketTrades ($this->extend($request, $params)));
+                $response = Async\await($this->publicSpotGetV2MarketTrades($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicSwapGetV1MarketAggTrade ($this->extend($request, $params)));
+                $response = Async\await($this->publicSwapGetV1MarketAggTrade($this->extend($request, $params)));
             }
             //
             //     array(
@@ -831,10 +829,10 @@ class zebpay extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -858,15 +856,15 @@ class zebpay extends Exchange {
             if ($type === 'spot') {
                 throw new NotSupported($this->id . ' fetchMyTrades() does not support spot markets');
             } else {
-                $response = Async\await($this->privateSwapGetV1TradeHistory ($params));
+                $response = Async\await($this->privateSwapGetV1TradeHistory($params));
             }
             $data = $this->safe_dict($response, 'data', array());
             $items = $this->safe_list($data, 'items', array());
             return $this->parse_trades($items, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -889,7 +887,7 @@ class zebpay extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateSpotGetV2ExOrderFills ($this->extend($request, $params)));
+            $response = Async\await($this->privateSpotGetV2ExOrderFills($this->extend($request, $params)));
             //
             //         {
             //             "orderId" => "456789",
@@ -910,7 +908,7 @@ class zebpay extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $trades = array( $data );
             return $this->parse_trades($trades);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -972,7 +970,7 @@ class zebpay extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -989,9 +987,9 @@ class zebpay extends Exchange {
             $isSpot = ($type === 'spot');
             $response = null;
             if ($isSpot) {
-                $response = Async\await($this->privateSpotGetV2AccountBalance ($params));
+                $response = Async\await($this->privateSpotGetV2AccountBalance($params));
             } else {
-                $response = Async\await($this->privateSwapGetV1WalletBalance ($params));
+                $response = Async\await($this->privateSwapGetV1WalletBalance($params));
             }
             //
             //     {
@@ -1012,10 +1010,10 @@ class zebpay extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -1049,7 +1047,7 @@ class zebpay extends Exchange {
             $response = null;
             if ($market['spot']) {
                 list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
-                $response = Async\await($this->privateSpotPostV2ExOrders ($this->extend($request, $params)));
+                $response = Async\await($this->privateSpotPostV2ExOrders($this->extend($request, $params)));
             } else {
                 $marginAsset = $this->safe_string($params, 'marginAsset', 'INR');
                 $formType = $this->safe_string_upper($params, 'formType', 'ORDER_FORM');
@@ -1065,7 +1063,7 @@ class zebpay extends Exchange {
                     if ($hasSL) {
                         $request['stopLossPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                     }
-                    $response = Async\await($this->privateSwapPostV1TradeOrderAddTPSL ($this->extend($request, $params)));
+                    $response = Async\await($this->privateSwapPostV1TradeOrderAddTPSL($this->extend($request, $params)));
                 } else {
                     $request['type'] = $upperCaseType;
                     if ($type === 'limit') {
@@ -1074,7 +1072,7 @@ class zebpay extends Exchange {
                         }
                         $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
                     }
-                    $response = Async\await($this->privateSwapPostV1TradeOrder ($this->extend($request, $params)));
+                    $response = Async\await($this->privateSwapPostV1TradeOrder($this->extend($request, $params)));
                 }
             }
             //
@@ -1086,10 +1084,10 @@ class zebpay extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function order_request($symbol, $type, $amount, $request, $price = null, $params = array ()) {
+    public function order_request($symbol, $type, $amount, $request, $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice', null);
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
@@ -1114,7 +1112,7 @@ class zebpay extends Exchange {
         return array( $request, $params );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1134,7 +1132,7 @@ class zebpay extends Exchange {
             $request = array();
             if ($market['spot']) {
                 $request['orderId'] = $id;
-                $response = Async\await($this->privateSpotDeleteV2ExOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateSpotDeleteV2ExOrder($this->extend($request, $params)));
             } else {
                 $clientOrderId = $this->safe_string($params, 'clientOrderId');
                 if ($clientOrderId === null) {
@@ -1142,7 +1140,7 @@ class zebpay extends Exchange {
                 }
                 $request['clientOrderId'] = $clientOrderId;
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->privateSwapDeleteV1TradeOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateSwapDeleteV1TradeOrder($this->extend($request, $params)));
             }
             //
             //    {
@@ -1153,10 +1151,10 @@ class zebpay extends Exchange {
             //    }
             //
             return $this->parse_order($this->safe_dict($response, 'data'));
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancels all open orders
@@ -1174,7 +1172,7 @@ class zebpay extends Exchange {
                 throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' markets');
             }
             Async\await($this->load_markets());
-            $response = Async\await($this->privateSpotDeleteV2ExOrdersCancelAll ($params));
+            $response = Async\await($this->privateSpotDeleteV2ExOrdersCancelAll($params));
             //
             //    {
             //        "data" => array(
@@ -1186,10 +1184,10 @@ class zebpay extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $parsedOrder = $this->parse_order($data);
             return array( $parsedOrder );
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple open $orders made by the user
@@ -1215,7 +1213,7 @@ class zebpay extends Exchange {
                 if ($limit !== null) {
                     $request['pageSize'] = $limit;
                 }
-                $response = Async\await($this->privateSpotGetV2ExOrders ($this->extend($request, $params)));
+                $response = Async\await($this->privateSpotGetV2ExOrders($this->extend($request, $params)));
                 $responseData = $this->safe_dict($response, 'data', array());
                 $orders = $this->safe_list($responseData, 'items', array());
             } else {
@@ -1225,7 +1223,7 @@ class zebpay extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->privateSwapGetV1TradeOrderOpenOrders ($this->extend($request, $params)));
+                $response = Async\await($this->privateSwapGetV1TradeOrderOpenOrders($this->extend($request, $params)));
                 $responseData = $this->safe_dict($response, 'data', array());
                 $orders = $this->safe_list($responseData, 'data', array());
             }
@@ -1255,10 +1253,10 @@ class zebpay extends Exchange {
             //     }
             //
             return $this->parse_orders($orders, $market, null, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1279,10 +1277,10 @@ class zebpay extends Exchange {
             $response = null;
             if ($market['spot']) {
                 $request['orderId'] = $id;
-                $response = Async\await($this->privateSpotGetV2ExOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateSpotGetV2ExOrder($this->extend($request, $params)));
             } else {
                 $request['id'] = $id;
-                $response = Async\await($this->privateSwapGetV1TradeOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateSwapGetV1TradeOrder($this->extend($request, $params)));
             }
             //
             //     {
@@ -1309,9 +1307,9 @@ class zebpay extends Exchange {
             //         }
             //     }
             //
-            $responseData = $this->safe_dict($response, 'data');
+            $responseData = $this->safe_dict($response, 'data', array());
             return $this->parse_order($responseData, $market);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1373,7 +1371,7 @@ class zebpay extends Exchange {
         return $parsedOrder;
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+    public function close_position(string $symbol, ?string $side = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes open positions for a $market
@@ -1391,13 +1389,13 @@ class zebpay extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateSwapPostV1TradePositionClose ($this->extend($request, $params)));
+            $response = Async\await($this->privateSwapPostV1TradePositionClose($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_leverages(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the set leverage for all contract and margin markets
@@ -1409,7 +1407,7 @@ class zebpay extends Exchange {
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateSwapGetV1TradeUserLeverages ($params));
+            $response = Async\await($this->privateSwapGetV1TradeUserLeverages($params));
             //
             //     {
             //         "leveragePreferences" => array(
@@ -1424,10 +1422,10 @@ class zebpay extends Exchange {
             //
             $leveragePreferences = $this->safe_list($response, 'data', array());
             return $this->parse_leverages($leveragePreferences, $symbols, 'symbol');
-        }) ();
+        })();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -1441,9 +1439,9 @@ class zebpay extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => strtoupper($market['id']),
+                'symbol' => $this->safe_string_upper($market, 'id'),
             );
-            $response = Async\await($this->privateSwapGetV1TradeUserLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privateSwapGetV1TradeUserLeverage($this->extend($request, $params)));
             //
             //     {
             //         "data" => array( $symbol => "ETHINR", longLeverage => 1, shortLeverage => 1, marginMode => "isolated" )
@@ -1451,10 +1449,10 @@ class zebpay extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_leverage($data, $market);
-        }) ();
+        })();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -1478,12 +1476,12 @@ class zebpay extends Exchange {
             //
             // array( data => { "symbol", "longLeverage" => 10, "shortLeverage" => 1, "marginMode" => "isolated" )
             //
-            $response = Async\await($this->privateSwapPostV1TradeUpdateUserLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privateSwapPostV1TradeUpdateUserLeverage($this->extend($request, $params)));
             return $response;
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -1499,7 +1497,7 @@ class zebpay extends Exchange {
             if ($symbols !== null) {
                 $request['symbols'] = $this->market_ids($symbols);
             }
-            $response = Async\await($this->privateSwapGetV1TradePositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateSwapGetV1TradePositions($this->extend($request, $params)));
             //
             //    {
             //        "data" => array(
@@ -1516,10 +1514,10 @@ class zebpay extends Exchange {
             $positions = $this->safe_list($response, 'data', array());
             $result = $this->parse_positions($positions);
             return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
-        }) ();
+        })();
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -1539,7 +1537,7 @@ class zebpay extends Exchange {
                 'symbol' => $market['id'],
                 'amount' => $amount,
             );
-            $response = Async\await($this->privateSwapPostV1TradeAddMargin ($this->extend($request, $params)));
+            $response = Async\await($this->privateSwapPostV1TradeAddMargin($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1563,10 +1561,10 @@ class zebpay extends Exchange {
                 'amount' => $amount,
                 'direction' => 'in',
             ));
-        }) ();
+        })();
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -1586,7 +1584,7 @@ class zebpay extends Exchange {
                 'symbol' => $market['id'],
                 'amount' => $amount,
             );
-            $response = Async\await($this->privateSwapPostV1TradeReduceMargin ($this->extend($request, $params)));
+            $response = Async\await($this->privateSwapPostV1TradeReduceMargin($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1604,12 +1602,12 @@ class zebpay extends Exchange {
                 'amount' => $amount,
                 'direction' => 'out',
             ));
-        }) ();
+        })();
     }
 
-    public function fetch_spot_markets($params = array ()): PromiseInterface {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->publicSpotGetV2ExExchangeInfo ($params));
+            $response = Async\await($this->publicSpotGetV2ExExchangeInfo($params));
             //
             //    {
             //        "data" => {
@@ -1680,12 +1678,12 @@ class zebpay extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_swap_markets($params = array ()): PromiseInterface {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->publicSwapGetV1MarketMarkets ($params));
+            $response = Async\await($this->publicSwapGetV1MarketMarkets($params));
             //
             //    {
             //        "data" => {
@@ -1755,7 +1753,7 @@ class zebpay extends Exchange {
                 ));
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1913,7 +1911,7 @@ class zebpay extends Exchange {
         $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'type' => null,
             'marginMode' => null,
             'amount' => $this->safe_number($info, 'amount'),
@@ -1925,7 +1923,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';
@@ -1943,7 +1941,7 @@ class zebpay extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
-                $body = json_encode ($params);
+                $body = json_encode($params);
                 $headers = array(
                     'Referrer' => 'ccxt',
                     'Content-Type' => 'application/json',

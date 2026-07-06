@@ -17,6 +17,6 @@ from ccxt.test.exchange.base import test_trading_fee  # noqa E402
 def test_fetch_trading_fee(exchange, skipped_properties, symbol):
     method = 'fetchTradingFee'
     fee = exchange.fetch_trading_fee(symbol)
-    assert isinstance(fee, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(fee)
+    assert exchange.is_dictionary(fee), exchange.id + ' ' + method + ' ' + symbol + ' must return a dict. ' + exchange.json(fee)
     test_trading_fee(exchange, skipped_properties, method, symbol, fee)
     return True

@@ -149,9 +149,8 @@ public class P2bCore extends P2bApi
                 put( "1d", "1d" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "extension", ".json" );
                 put( "referral", "https://p2pb2b.com?referral=ee784c53" );
-                put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755" );
+                put( "logo", "https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.p2pb2b.com/api/v2/public" );
                     put( "private", "https://api.p2pb2b.com/api/v2" );
@@ -365,8 +364,8 @@ public class P2bCore extends P2bApi
         Object marketId = this.safeString(market, "name");
         Object baseId = this.safeString(market, "stock");
         Object quoteId = this.safeString(market, "money");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        Object base = ((String)this.safeCurrencyCode(baseId));
+        Object quote = ((String)this.safeCurrencyCode(quoteId));
         Object limits = this.safeValue(market, "limits");
         Object maxAmount = this.safeString(limits, "max_amount");
         Object maxPrice = this.safeString(limits, "max_price");
@@ -406,11 +405,11 @@ public class P2bCore extends P2bApi
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", P2bCore.this.safeNumber(limits, "min_amount") );
-                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(maxAmount)) );
+                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(((String)maxAmount))) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", P2bCore.this.safeNumber(limits, "min_price") );
-                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(maxPrice)) );
+                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(((String)maxPrice))) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -598,7 +597,7 @@ public class P2bCore extends P2bApi
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -778,7 +777,7 @@ public class P2bCore extends P2bApi
             put( "amount", P2bCore.this.safeString(trade, "amount") );
             put( "cost", P2bCore.this.safeString(trade, "deal") );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(market, "quote") );
+                put( "currency", P2bCore.this.safeString(market, "quote") );
                 put( "cost", P2bCore.this.safeString2(trade, "fee", "deal_fee") );
             }} );
         }}, market);
@@ -931,7 +930,7 @@ public class P2bCore extends P2bApi
                 put( "free", available );
                 put( "used", used );
             }};
-            Helpers.addElementToObject(result, code, account);
+            Helpers.addElementToObject(result, ((String)code), account);
         }
         return this.safeBalance(result);
     }

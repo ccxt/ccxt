@@ -194,20 +194,24 @@ func  (this *DeribitCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1758 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1758)
+                retRes17612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes17612)
+            }
             var market any = this.Market(symbol)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var interval any = this.SafeString(params, "interval", "100ms")
             params = this.Omit(params, "interval")
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1808 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1808)
+                retRes18312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes18312)
+            }
             if ccxt.IsTrue(ccxt.IsEqual(interval, "raw")) {
         
-                retRes18212 := (<-this.Authenticate())
-                ccxt.PanicOnError(retRes18212)
+                retRes18612 := (<-this.Authenticate())
+                ccxt.PanicOnError(retRes18612)
             }
             var channel any = ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval)
             var message any = map[string]any {
@@ -220,9 +224,9 @@ func  (this *DeribitCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
             }
             var request any = this.DeepExtend(message, params)
         
-                retRes19415 :=  (<-this.Watch(url, channel, request, channel, request))
-                ccxt.PanicOnError(retRes19415)
-                ch <- retRes19415
+                retRes19815 :=  (<-this.Watch(url, channel, request, channel, request))
+                ccxt.PanicOnError(retRes19815)
+                ch <- retRes19815
                 return nil
         
             }()
@@ -247,20 +251,24 @@ func  (this *DeribitCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2088 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2088)
+                retRes21312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes21312)
+            }
             symbols = this.MarketSymbols(symbols, nil, false)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var interval any = this.SafeString(params, "interval", "100ms")
             params = this.Omit(params, "interval")
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2138 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2138)
+                retRes22012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes22012)
+            }
             if ccxt.IsTrue(ccxt.IsEqual(interval, "raw")) {
         
-                retRes21512 := (<-this.Authenticate())
-                ccxt.PanicOnError(retRes21512)
+                retRes22312 := (<-this.Authenticate())
+                ccxt.PanicOnError(retRes22312)
             }
             var channels any = []any{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -350,9 +358,11 @@ func  (this *DeribitCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2908 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2908)
+                retRes29912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes29912)
+            }
             symbols = this.MarketSymbols(symbols, nil, false)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var channels any = []any{}
@@ -455,9 +465,9 @@ func  (this *DeribitCore) WatchTrades(symbol any, optionalArgs ...any) <- chan a
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
         
-                retRes37415 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes37415)
-                ch <- retRes37415
+                retRes38415 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes38415)
+                ch <- retRes38415
                 return nil
         
             }()
@@ -491,8 +501,8 @@ func  (this *DeribitCore) WatchTradesForSymbols(symbols any, optionalArgs ...any
             params = ccxt.GetValue(intervalparamsVariable,1)
             if ccxt.IsTrue(ccxt.IsEqual(interval, "raw")) {
         
-                retRes39212 := (<-this.Authenticate())
-                ccxt.PanicOnError(retRes39212)
+                retRes40212 := (<-this.Authenticate())
+                ccxt.PanicOnError(retRes40212)
             }
         
             trades:= (<-this.WatchMultipleWrapper("trades", interval, symbols, params))
@@ -579,12 +589,12 @@ func  (this *DeribitCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes4618 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes4618)
+            retRes4718 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes4718)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
         
-                retRes46312 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes46312)
+                retRes47312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes47312)
                 symbol = this.Symbol(symbol)
             }
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -670,7 +680,7 @@ func  (this *DeribitCore) HandleMyTrades(client any, message any)  {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *DeribitCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -683,9 +693,9 @@ func  (this *DeribitCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
         
-                retRes54815 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-                ccxt.PanicOnError(retRes54815)
-                ch <- retRes54815
+                retRes55815 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+                ccxt.PanicOnError(retRes55815)
+                ch <- retRes55815
                 return nil
         
             }()
@@ -699,7 +709,7 @@ func  (this *DeribitCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *DeribitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -716,8 +726,8 @@ func  (this *DeribitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...
             params = ccxt.GetValue(intervalparamsVariable,1)
             if ccxt.IsTrue(ccxt.IsEqual(interval, "raw")) {
         
-                retRes56512 := (<-this.Authenticate())
-                ccxt.PanicOnError(retRes56512)
+                retRes57512 := (<-this.Authenticate())
+                ccxt.PanicOnError(retRes57512)
             }
             var descriptor any = ""
             var useDepthEndpoint any = nil // for more info, see comment in .options
@@ -881,12 +891,14 @@ func  (this *DeribitCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes7098 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7098)
+                retRes72012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes72012)
+            }
         
-            retRes7108 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes7108)
+            retRes7228 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes7228)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
             }
@@ -998,9 +1010,11 @@ func  (this *DeribitCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan an
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes8058 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8058)
+                retRes81812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes81812)
+            }
             symbol = this.Symbol(symbol)
         
             ohlcvs:= (<-this.WatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, since, limit, params))
@@ -1122,9 +1136,11 @@ func  (this *DeribitCore) WatchMultipleWrapper(channelName any, channelDescripto
             _ = symbolsArray
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes9038 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9038)
+                retRes91812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes91812)
+            }
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var rawSubscriptions any = []any{}
             var messageHashes any = []any{}
@@ -1161,9 +1177,9 @@ func  (this *DeribitCore) WatchMultipleWrapper(channelName any, channelDescripto
                 panic(ccxt.ExchangeError(ccxt.Add(this.Id, " requested subscription length over limit, try to reduce symbols amount")))
             }
         
-                retRes93915 :=  (<-this.WatchMultiple(url, messageHashes, extendedRequest, rawSubscriptions))
-                ccxt.PanicOnError(retRes93915)
-                ch <- retRes93915
+                retRes95515 :=  (<-this.WatchMultiple(url, messageHashes, extendedRequest, rawSubscriptions))
+                ccxt.PanicOnError(retRes95515)
+                ch <- retRes95515
                 return nil
         
             }()

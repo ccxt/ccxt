@@ -1,5 +1,5 @@
 import bydfiRest from '../bydfi.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bydfi extends bydfiRest {
     describe(): any;
@@ -52,7 +52,7 @@ export default class bydfi extends bydfiRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
-    getMessageHashesForTickersUnsubscription(): any[];
+    getMessageHashesForTickersUnsubscription(): List;
     handleTicker(client: Client, message: any): void;
     /**
      * @method
@@ -109,7 +109,7 @@ export default class bydfi extends bydfiRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default and maxi is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -119,7 +119,7 @@ export default class bydfi extends bydfiRest {
      * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
@@ -130,7 +130,7 @@ export default class bydfi extends bydfiRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -141,7 +141,7 @@ export default class bydfi extends bydfiRest {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
@@ -184,7 +184,7 @@ export default class bydfi extends bydfiRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     parseWsPositionSide(rawPositionSide: Str): Str;
     /**
      * @method

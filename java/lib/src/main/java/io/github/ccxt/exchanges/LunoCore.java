@@ -21,7 +21,7 @@ public class LunoCore extends LunoApi
     {
         return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
             put( "id", "luno" );
-            put( "name", "luno" );
+            put( "name", "Luno" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("GB", "SG", "ZA")) );
             put( "rateLimit", 200 );
             put( "version", "1" );
@@ -329,76 +329,67 @@ public class LunoCore extends LunoApi
             //     }
             //
             Object currenciesData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesData)); i++)
-            {
-                Object networkEntry = Helpers.GetValue(currenciesData, i);
-                Object id = this.safeString(networkEntry, "native_currency");
-                Object code = this.safeCurrencyCode(id);
-                if (!Helpers.isTrue((Helpers.inOp(result, code))))
-                {
-                    final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "code", finalCode );
-        put( "precision", null );
-        put( "type", null );
-        put( "name", null );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", new java.util.HashMap<String, Object>() {{}} );
-        put( "info", new java.util.HashMap<String, Object>() {{}} );
-    }});
-                }
-                Object networkId = this.safeString(networkEntry, "name");
-                Object networkCode = this.networkIdToCode(networkId);
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", null );
-        put( "info", networkEntry );
-    }});
-                // add entry in info
-                Object info = this.safeList(Helpers.GetValue(result, code), "info", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                ((java.util.List<Object>)info).add(networkEntry);
-                Helpers.addElementToObject(Helpers.GetValue(result, code), "info", info);
-            }
-            // only after all entries are formed in currencies, restructure each entry
-            Object allKeys = Helpers.objectKeys(result);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allKeys)); i++)
-            {
-                Object code = Helpers.GetValue(allKeys, i);
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(Helpers.GetValue(result, code))); // this is needed after adding network entry
-            }
-            return result;
+            Object grouped = this.groupBy(currenciesData, "native_currency");
+            Object values = Helpers.objectValues(grouped);
+            return this.parseCurrencies(values);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(Helpers.GetValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
+        Object code = this.safeCurrencyCode(id);
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)
+        {
+            Object networkEntry = Helpers.GetValue(rawCurrency, i);
+            Object networkId = this.safeString(networkEntry, "name");
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+    put( "active", null );
+    put( "deposit", null );
+    put( "withdraw", null );
+    put( "fee", null );
+    put( "precision", null );
+    put( "info", networkEntry );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "code", code );
+            put( "precision", null );
+            put( "type", null );
+            put( "name", null );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", networks );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**
@@ -611,7 +602,7 @@ public class LunoCore extends LunoApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1046,14 +1037,14 @@ public class LunoCore extends LunoApi
         {
             if (!Helpers.isTrue(Precise.stringEquals(feeBaseString, "0.0")))
             {
-                feeCurrency = Helpers.GetValue(market, "base");
+                feeCurrency = this.safeString(market, "base");
                 feeCost = feeBaseString;
             }
         } else if (Helpers.isTrue(!Helpers.isEqual(feeCounterString, null)))
         {
             if (!Helpers.isTrue(Precise.stringEquals(feeCounterString, "0.0")))
             {
-                feeCurrency = Helpers.GetValue(market, "quote");
+                feeCurrency = this.safeString(market, "quote");
                 feeCost = feeCounterString;
             }
         }
@@ -1068,7 +1059,7 @@ public class LunoCore extends LunoApi
             put( "id", id );
             put( "timestamp", timestamp );
             put( "datetime", LunoCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", LunoCore.this.safeString(market, "symbol") );
             put( "order", finalOrderId );
             put( "type", null );
             put( "side", finalSide );

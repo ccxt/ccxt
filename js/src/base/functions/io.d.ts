@@ -1,5 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
 /**
  * Initialize synchronous file system module (Node.js only)
  * Uses dynamic import to prevent bundling in browser builds
@@ -30,3 +28,10 @@ export declare function writeFile(path: string, data: string, encoding?: BufferE
  * @returns true if file exists, false otherwise
  */
 export declare function existsFile(path: string): boolean;
+/**
+ * Convert file-path to file-url format on Windows, to avoid ESM loader error when using absolute paths, like:
+ * Error [ERR_UNSUPPORTED_ESM_URL_SCHEME]: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:' at throwIfUnsupportedURLScheme (node:internal/modules/esm/load:195:11)
+ * @param filePath File path to check
+ * @returns filepath original or converted to file URL format on Windows
+ */
+export declare function filePathToFileUrlForWindows(filePath: string): string;

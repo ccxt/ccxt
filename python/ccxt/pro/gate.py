@@ -21,7 +21,11 @@ from ccxt.base.precise import Precise
 class gate(ccxt.async_support.gate):
 
     def describe(self) -> Any:
-        return self.deep_extend(super(gate, self).describe(), {
+        superDescribe = super(gate, self).describe()
+        return self.deep_extend(superDescribe, self.describe_data())
+
+    def describe_data(self) -> Any:
+        return {
             'has': {
                 'ws': True,
                 'cancelAllOrdersWs': True,
@@ -141,7 +145,7 @@ class gate(ccxt.async_support.gate):
                     'broad': {},
                 },
             },
-        })
+        }
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -391,24 +395,28 @@ class gate(ccxt.async_support.gate):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
-        intervalDefault = '50' if (market['spot']) else '100ms'
+        url = self.get_url_by_market(market)
+        isEuUrl = url.find('gateeu') >= 0
+        intervalDefault = '50' if (market['spot'] and not isEuUrl) else '100ms'
         interval, query = self.handle_option_and_params(params, 'watchOrderBook', 'interval', intervalDefault)
         messageType = self.get_type_by_market(market)
         messageHash = 'orderbook' + ':' + symbol
-        url = self.get_url_by_market(market)
         if limit is None:
             limit = 50 if (market['spot']) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
         payload = []
         channel = ''
-        if market['spot']:
+        if isEuUrl:
+            channel = 'spot.order_book_update'
+            payload = [marketId, interval]
+        elif market['spot']:
             channel = 'spot.obu'
             finalInterval = interval
             if limit == 400:
@@ -419,7 +427,7 @@ class gate(ccxt.async_support.gate):
             payload = [marketId, interval]
             stringLimit = str(limit)
             payload.append(stringLimit)
-        subscription: dict = {
+        subscription = {
             'symbol': symbol,
             'limit': limit,
         }
@@ -431,24 +439,41 @@ class gate(ccxt.async_support.gate):
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        url = self.get_url_by_market(market)
         symbol = market['symbol']
         marketId = market['id']
-        interval = '100ms'
+        isEuUrl = url.find('gateeu') >= 0
+        intervalDefault = '50' if (market['spot'] and not isEuUrl) else '100ms'
+        interval = intervalDefault
         interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', interval)
         messageType = self.get_type_by_market(market)
-        channel = messageType + '.order_book_update'
-        subMessageHash = 'orderbook' + ':' + symbol
-        messageHash = 'unsubscribe:orderbook' + ':' + symbol
-        url = self.get_url_by_market(market)
-        payload = [marketId, interval]
-        limit = self.safe_integer(params, 'limit', 100)
-        if market['contract']:
+        limit = self.safe_integer(params, 'limit')
+        if limit is None:
+            limit = 50 if (market['spot']) else 100  # max 100 atm
+            if messageType == 'options':
+                limit = 50  # max 50 for options
+        payload = []
+        channel = ''
+        if isEuUrl:
+            channel = 'spot.order_book_update'
+            payload = [marketId, interval]
+        elif market['spot']:
+            channel = 'spot.obu'
+            finalInterval = interval
+            if limit == 400:
+                finalInterval = '400'
+            payload = ['ob.' + market['id'] + '.' + finalInterval]
+        else:
+            channel = messageType + '.order_book_update'
+            payload = [marketId, interval]
             stringLimit = str(limit)
             payload.append(stringLimit)
+        subMessageHash = 'orderbook' + ':' + symbol
+        messageHash = 'unsubscribe:orderbook' + ':' + symbol
         return await self.un_subscribe_public_multiple(url, 'orderbook', [symbol], [messageHash], [subMessageHash], payload, channel, params)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
@@ -618,7 +643,7 @@ class gate(ccxt.async_support.gate):
         for i in range(0, len(bidAsks)):
             bidAsk = bidAsks[i]
             if isinstance(bidAsk, list):
-                bookSide.storeArray(self.parse_bid_ask(bidAsk))
+                bookSide.storeArray(self.parse_order_book_bid_ask(bidAsk))
             else:
                 price = self.safe_float(bidAsk, 'p')
                 amount = self.safe_float(bidAsk, 's')
@@ -743,7 +768,7 @@ class gate(ccxt.async_support.gate):
             messageHashes.append(prefix + ':' + symbol)
         tickerOrBidAsk = await self.subscribe_public_multiple(url, messageHashes, marketIds, channel, params)
         if self.newUpdates:
-            items: dict = {}
+            items = {}
             items[tickerOrBidAsk['symbol']] = tickerOrBidAsk
             return items
         result = self.tickers if isWatchTickers else self.bidsasks
@@ -944,7 +969,7 @@ class gate(ccxt.async_support.gate):
         result = self.safe_value(message, 'result')
         if not isinstance(result, list):
             result = [result]
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(result)):
             ohlcv = result[i]
             subscription = self.safe_string(ohlcv, 'n', '')
@@ -1049,7 +1074,7 @@ class gate(ccxt.async_support.gate):
             cachedTrades = ArrayCacheBySymbolById(limit)
             self.myTrades = cachedTrades
         parsed = self.parse_trades(result)
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
@@ -1432,7 +1457,7 @@ class gate(ccxt.async_support.gate):
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        marketIds: dict = {}
+        marketIds = {}
         parsedOrders = self.parse_orders(orders)
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]
@@ -1579,7 +1604,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(symbolLiquidations, 'myLiquidations::' + symbol)
         client.resolve(newLiquidations, 'myLiquidations')
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation, market: Market = None):
         #
         # future / delivery
         #    {
@@ -1716,7 +1741,7 @@ class gate(ccxt.async_support.gate):
 
     def handle_subscription_status(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
-        methods: dict = {
+        methods = {
             'balance': self.handle_balance_subscription,
             'spot.order_book_update': self.handle_order_book_subscription,
             'futures.order_book_update': self.handle_order_book_subscription,
@@ -1876,7 +1901,7 @@ class gate(ccxt.async_support.gate):
             return
         channelParts = channel.split('.')
         channelType = self.safe_value(channelParts, 1)
-        v4Methods: dict = {
+        v4Methods = {
             'usertrades': self.handle_my_trades,
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
@@ -1927,7 +1952,7 @@ class gate(ccxt.async_support.gate):
             return url
 
     def get_market_type_by_url(self, url: str):
-        findBy: dict = {
+        findBy = {
             'op-': 'option',
             'delivery': 'future',
             'fx': 'swap',
@@ -1951,7 +1976,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):
         requestId = self.request_id()
         time = self.seconds()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1969,7 +1994,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public_multiple(self, url, messageHashes, payload, channel, params={}):
         requestId = self.request_id()
         time = self.seconds()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1982,7 +2007,7 @@ class gate(ccxt.async_support.gate):
     async def un_subscribe_public_multiple(self, url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params={}):
         requestId = self.request_id()
         time = self.seconds()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -2027,7 +2052,7 @@ class gate(ccxt.async_support.gate):
         # unfortunately, PHP demands double quotes for the escaped newline symbol
         signatureString = "\n".join([event, channel, self.json(reqParams), str(time)])  # eslint-disable-line quotes
         signature = self.hmac(self.encode(signatureString), self.encode(self.secret), hashlib.sha512, 'hex')
-        payload: dict = {
+        payload = {
             'req_id': requestId,
             'timestamp': str(time),
             'api_key': self.apiKey,
@@ -2038,7 +2063,7 @@ class gate(ccxt.async_support.gate):
             payload['req_header'] = {
                 'X-Gate-Channel-Id': 'ccxt',
             }
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -2062,13 +2087,13 @@ class gate(ccxt.async_support.gate):
         event = 'subscribe'
         signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
-        auth: dict = {
+        auth = {
             'method': 'api_key',
             'KEY': self.apiKey,
             'SIGN': signature,
         }
         requestId = self.request_id()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,

@@ -1896,7 +1896,7 @@
                         "precision": 0.000001,
                         "type": "crypto",
                         "name": "USDT",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -1905,7 +1905,7 @@
                             "ARBONE": {
                                 "id": "USDT-Arbitrum One",
                                 "network": "ARBONE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0033,
@@ -1956,7 +1956,7 @@
                             "SOL": {
                                 "id": "USDT-Solana",
                                 "network": "SOL",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.23,
@@ -2004,10 +2004,10 @@
                                     "wdTickSz": "6"
                                 }
                             },
-                            "Plasma": {
+                            "PLASMA": {
                                 "id": "USDT-Plasma",
-                                "network": "Plasma",
-                                "active": true,
+                                "network": "PLASMA",
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.000062,
@@ -2058,7 +2058,7 @@
                             "TON": {
                                 "id": "USDT-TON",
                                 "network": "TON",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.03,
@@ -2109,7 +2109,7 @@
                             "X Layer (USDT0)": {
                                 "id": "USDT-X Layer (USDT0)",
                                 "network": "X Layer (USDT0)",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0022,
@@ -2160,7 +2160,7 @@
                             "X Layer": {
                                 "id": "USDT-X Layer",
                                 "network": "X Layer",
-                                "active": false,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": false,
                                 "fee": 0,
@@ -2211,7 +2211,7 @@
                             "APT": {
                                 "id": "USDT-Aptos",
                                 "network": "APT",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0015,
@@ -2262,7 +2262,7 @@
                             "Optimism (USDT0)": {
                                 "id": "USDT-Optimism (USDT0)",
                                 "network": "Optimism (USDT0)",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.082,
@@ -2313,7 +2313,7 @@
                             "Monad (USDT0)": {
                                 "id": "USDT-Monad (USDT0)",
                                 "network": "Monad (USDT0)",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.06,
@@ -2364,7 +2364,7 @@
                             "Unichain (USDT0)": {
                                 "id": "USDT-Unichain (USDT0)",
                                 "network": "Unichain (USDT0)",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.11,
@@ -2412,10 +2412,10 @@
                                     "wdTickSz": "6"
                                 }
                             },
-                            "OPTIMISM": {
+                            "OP": {
                                 "id": "USDT-Optimism",
-                                "network": "OPTIMISM",
-                                "active": true,
+                                "network": "OP",
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.082,
@@ -2466,7 +2466,7 @@
                             "MATIC": {
                                 "id": "USDT-Polygon",
                                 "network": "MATIC",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0061,
@@ -2517,7 +2517,7 @@
                             "AVAXC": {
                                 "id": "USDT-Avalanche C-Chain",
                                 "network": "AVAXC",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0014,
@@ -2568,7 +2568,7 @@
                             "ERC20": {
                                 "id": "USDT-ERC20",
                                 "network": "ERC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.36,
@@ -2619,7 +2619,7 @@
                             "TRC20": {
                                 "id": "USDT-TRC20",
                                 "network": "TRC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1.5,
@@ -2670,7 +2670,7 @@
                             "OKTC": {
                                 "id": "USDT-OKTC",
                                 "network": "OKTC",
-                                "active": false,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": false,
                                 "fee": 0,
@@ -2721,7 +2721,7 @@
                             "BERACHAIN (USDT0)": {
                                 "id": "USDT-BERACHAIN (USDT0)",
                                 "network": "BERACHAIN (USDT0)",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.00013,
@@ -3046,7 +3046,7 @@
                         "precision": 1e-8,
                         "type": "crypto",
                         "name": "Bitcoin",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -3055,7 +3055,7 @@
                             "BTC": {
                                 "id": "BTC-Bitcoin",
                                 "network": "BTC",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.000015,
@@ -3106,7 +3106,7 @@
                             "OKTC": {
                                 "id": "BTCK-OKTC",
                                 "network": "OKTC",
-                                "active": false,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": false,
                                 "fee": 0,
@@ -3157,7 +3157,7 @@
                             "SOL": {
                                 "id": "BTC-Solana",
                                 "network": "SOL",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0000035,
@@ -3208,7 +3208,7 @@
                             "X Layer": {
                                 "id": "BTC-X Layer",
                                 "network": "X Layer",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 6e-8,
@@ -3259,7 +3259,7 @@
                             "APT": {
                                 "id": "BTC-Aptos",
                                 "network": "APT",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1e-8,
@@ -3310,7 +3310,7 @@
                             "BTCLIGHTNING": {
                                 "id": "BTC-Lightning",
                                 "network": "BTCLIGHTNING",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.00001,
@@ -3361,7 +3361,7 @@
                             "SUI": {
                                 "id": "BTC-SUI",
                                 "network": "SUI",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 6e-8,
@@ -3830,7 +3830,7 @@
                         "precision": 1e-8,
                         "type": "crypto",
                         "name": "Ethereum",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -3839,7 +3839,7 @@
                             "ZKSYNCERA": {
                                 "id": "ETH-zkSync Era",
                                 "network": "ZKSYNCERA",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.000032,
@@ -3890,7 +3890,7 @@
                             "ETH": {
                                 "id": "ETH-ERC20",
                                 "network": "ETH",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.00012,
@@ -3941,7 +3941,7 @@
                             "X Layer (WETH)": {
                                 "id": "ETH-X Layer (WETH)",
                                 "network": "X Layer (WETH)",
-                                "active": false,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": false,
                                 "fee": 0.0000035,
@@ -3989,10 +3989,10 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "OPTIMISM": {
+                            "OP": {
                                 "id": "ETH-Optimism",
-                                "network": "OPTIMISM",
-                                "active": true,
+                                "network": "OP",
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.00012,
@@ -4043,7 +4043,7 @@
                             "X Layer": {
                                 "id": "ETH-X Layer",
                                 "network": "X Layer",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0000016,
@@ -4094,7 +4094,7 @@
                             "Starknet": {
                                 "id": "ETH-Starknet",
                                 "network": "Starknet",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0000017,
@@ -4145,7 +4145,7 @@
                             "LINEA": {
                                 "id": "ETH-Linea",
                                 "network": "LINEA",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.00031,
@@ -4196,7 +4196,7 @@
                             "OKTC": {
                                 "id": "ETHK-OKTC",
                                 "network": "OKTC",
-                                "active": false,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": false,
                                 "fee": 0,
@@ -4247,7 +4247,7 @@
                             "ARBONE": {
                                 "id": "ETH-Arbitrum One",
                                 "network": "ARBONE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0000018,
@@ -4298,7 +4298,7 @@
                             "Unichain": {
                                 "id": "ETH-Unichain",
                                 "network": "Unichain",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.000015,
@@ -4349,7 +4349,7 @@
                             "BASE": {
                                 "id": "ETH-Base",
                                 "network": "BASE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0000064,
@@ -8726,11 +8726,11 @@
                             "selected": true
                         }
                     },
-                    "OPTIMISM": {
+                    "OP": {
                         "currency": "USDT",
                         "address": "add1",
                         "tag": null,
-                        "network": "OPTIMISM",
+                        "network": "OP",
                         "info": {
                             "chain": "USDT-Optimism",
                             "ctAddr": "e58e58",

@@ -5,12 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, RateLimitExceeded, InvalidProxySettings } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -24,7 +24,7 @@ export default class hyperliquid extends Exchange {
             'name': 'Hyperliquid',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': true,
             'pro': true,
             'dex': true,
@@ -33,7 +33,7 @@ export default class hyperliquid extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'borrowCrossMargin': false,
@@ -142,7 +142,7 @@ export default class hyperliquid extends Exchange {
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b',
+                'logo': 'https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
@@ -244,7 +244,7 @@ export default class hyperliquid extends Exchange {
                     'UXPL': 'XPL',
                 },
                 'fetchMarkets': {
-                    'types': ['spot', 'swap', 'hip3'],
+                    'types': ['spot', 'swap', 'hip3'], // 'spot', 'swap', 'hip3'
                     'hip3': {
                         'limit': 10,
                         'dexes': [], // list of dexes eg flx, xyz, etc
@@ -463,50 +463,49 @@ export default class hyperliquid extends Exchange {
         const tokens = this.safeList(response, 'tokens', []);
         // const meta = this.safeList (response, 'universe', []);
         this.options['cachedCurrenciesById'] = {}; // used to map hip3 markets
-        const result = {};
-        for (let i = 0; i < tokens.length; i++) {
-            const data = this.safeDict(tokens, i, {});
-            // const id = i;
-            const id = this.safeString(data, 'index');
-            const name = this.safeString(data, 'name');
-            const code = this.safeCurrencyCode(name);
-            this.options['cachedCurrenciesById'][id] = name;
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': this.parsePrecision(this.safeString(data, 'weiDecimals')),
-                'info': data,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': undefined,
-                'fee': undefined,
-                'type': 'crypto',
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(tokens);
+    }
+    parseCurrency(rawCurrency) {
+        // const id = i;
+        const id = this.safeString(rawCurrency, 'index');
+        const name = this.safeString(rawCurrency, 'name');
+        const code = this.safeCurrencyCode(name);
+        this.options['cachedCurrenciesById'][id] = name;
+        const result = this.safeCurrencyStructure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': this.parsePrecision(this.safeString(rawCurrency, 'weiDecimals')),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': undefined,
+            'fee': undefined,
+            'type': 'crypto',
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-            });
-            // add in wrapped map
-            const fullName = this.safeString(data, 'fullName');
-            if (fullName !== undefined && name !== undefined) {
-                const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
-                if (isWrapped) {
-                    const parts = name.split('U');
-                    let nameWithoutU = '';
-                    for (let j = 0; j < parts.length; j++) {
-                        nameWithoutU = nameWithoutU + parts[j];
-                    }
-                    const baseCode = this.safeCurrencyCode(nameWithoutU);
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
+        // add in wrapped map
+        const fullName = this.safeString(rawCurrency, 'fullName');
+        if (fullName !== undefined && name !== undefined) {
+            const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
+            if (isWrapped) {
+                const parts = name.split('U');
+                let nameWithoutU = '';
+                for (let j = 0; j < parts.length; j++) {
+                    nameWithoutU = nameWithoutU + parts[j];
                 }
+                const baseCode = this.safeCurrencyCode(nameWithoutU);
+                this.options['spotCurrencyMapping'][code] = baseCode;
             }
         }
         return result;
@@ -522,7 +521,7 @@ export default class hyperliquid extends Exchange {
      */
     async fetchMarkets(params = {}) {
         const options = this.safeDict(this.options, 'fetchMarkets', {});
-        const types = this.safeList(options, 'types');
+        const types = this.safeList(options, 'types', []);
         const rawPromises = [];
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
@@ -1191,10 +1190,12 @@ export default class hyperliquid extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
@@ -1244,7 +1245,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
         let response = [];
@@ -1437,7 +1440,9 @@ export default class hyperliquid extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until', this.milliseconds());
         let useTail = since === undefined;
@@ -1528,7 +1533,9 @@ export default class hyperliquid extends Exchange {
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchTrades', params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1818,16 +1825,18 @@ export default class hyperliquid extends Exchange {
     }
     async handleBuilderFeeApproval() {
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (!buildFee) {
-            return false; // skip if builder fee is not enabled
-        }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
         if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
             const builder = this.safeString(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
-            const maxFeeRate = this.safeString(this.options, 'feeRate', '0.01%');
+            // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
+            // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
+            let maxFeeRate = this.safeString(this.options, 'feeRate', '0.01%');
+            if (!buildFee) {
+                maxFeeRate = '0%';
+            }
             await this.approveBuilderFee(builder, maxFeeRate);
             this.options['approvedBuilderFee'] = true;
         }
@@ -2025,7 +2034,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders([order], globalParams);
         return orders[0];
@@ -2046,7 +2057,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createTwapOrder(symbol, side, amount, duration, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const market = this.market(symbol);
         const nonce = this.milliseconds();
@@ -2116,7 +2129,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const request = this.createOrdersRequest(orders, params);
         const response = await this.privatePostExchange(request);
@@ -2331,7 +2346,12 @@ export default class hyperliquid extends Exchange {
         };
         if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
             const wallet = this.safeStringLower(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
-            orderAction['builder'] = { 'b': wallet, 'f': this.safeInteger(this.options, 'feeInt', 10) };
+            // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
+            let feeInt = this.safeInteger(this.options, 'feeInt', 10);
+            if (!this.safeBool(this.options, 'builderFee', true)) {
+                feeInt = 0;
+            }
+            orderAction['builder'] = { 'b': wallet, 'f': feeInt };
         }
         const signature = this.signL1Action(orderAction, nonce, vaultAddress);
         const request = {
@@ -2388,7 +2408,9 @@ export default class hyperliquid extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const request = this.cancelOrdersRequest(ids, symbol, params);
         const response = await this.privatePostExchange(request);
@@ -2407,7 +2429,7 @@ export default class hyperliquid extends Exchange {
         //
         const innerResponse = this.safeDict(response, 'response');
         const data = this.safeDict(innerResponse, 'data');
-        const statuses = this.safeList(data, 'statuses');
+        const statuses = this.safeList(data, 'statuses', []);
         const orders = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
@@ -2431,7 +2453,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelTwapOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelTwapOrder() requires a symbol argument');
         }
@@ -2553,7 +2577,9 @@ export default class hyperliquid extends Exchange {
      */
     async cancelOrdersForSymbols(orders, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const nonce = this.milliseconds();
         const request = {
@@ -2628,7 +2654,9 @@ export default class hyperliquid extends Exchange {
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         params = this.omit(params, ['clientOrderId', 'client_id']);
         const nonce = this.milliseconds();
@@ -2805,7 +2833,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (id === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an id argument');
         }
@@ -2823,7 +2853,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const request = this.editOrdersRequest(orders, params);
         const response = await this.privatePostExchange(request);
@@ -2879,7 +2911,9 @@ export default class hyperliquid extends Exchange {
      */
     async createVault(name, description, initialUsd, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const nonce = this.milliseconds();
         const request = {
             'nonce': nonce,
@@ -2920,7 +2954,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -2996,7 +3032,9 @@ export default class hyperliquid extends Exchange {
         [userAddress, params] = this.handlePublicAddress('fetchOpenOrders', params);
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': method,
             'user': userAddress,
@@ -3047,7 +3085,9 @@ export default class hyperliquid extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchOrders(symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
         const closedOrders = this.filterByArray(orders, 'status', ['closed'], false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -3064,7 +3104,9 @@ export default class hyperliquid extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchOrders(symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
         const closedOrders = this.filterByArray(orders, 'status', ['canceled'], false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -3081,7 +3123,9 @@ export default class hyperliquid extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchOrders(symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
         const closedOrders = this.filterByArray(orders, 'status', ['canceled', 'closed', 'rejected'], false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -3102,7 +3146,9 @@ export default class hyperliquid extends Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOrders', params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
             'type': 'historicalOrders',
@@ -3177,7 +3223,9 @@ export default class hyperliquid extends Exchange {
     async fetchOrder(id, symbol = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOrder', params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3433,7 +3481,9 @@ export default class hyperliquid extends Exchange {
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchMyTrades', params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3589,7 +3639,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
         symbols = this.marketSymbols(symbols);
@@ -3749,7 +3801,9 @@ export default class hyperliquid extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const leverage = this.safeInteger(params, 'leverage');
         if (leverage === undefined) {
@@ -3807,7 +3861,9 @@ export default class hyperliquid extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marginMode = this.safeString(params, 'marginMode', 'cross');
         const isCross = (marginMode === 'cross');
@@ -3876,7 +3932,9 @@ export default class hyperliquid extends Exchange {
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const asset = this.parseToInt(market['baseId']);
         let sz = this.parseToInt(Precise.stringMul(this.amountToPrecision(symbol, amount), '1000000'));
@@ -3950,7 +4008,9 @@ export default class hyperliquid extends Exchange {
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode');
         const nonce = this.milliseconds();
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
@@ -4075,7 +4135,9 @@ export default class hyperliquid extends Exchange {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         if (code !== undefined) {
             code = code.toUpperCase();
@@ -4089,7 +4151,7 @@ export default class hyperliquid extends Exchange {
         params = this.omit(params, 'vaultAddress');
         const nonce = this.milliseconds();
         let action = {};
-        let sig = undefined;
+        let sig;
         if (vaultAddress !== undefined) {
             action = {
                 'type': 'vaultTransfer',
@@ -4110,7 +4172,7 @@ export default class hyperliquid extends Exchange {
             sig = this.buildWithdrawSig(payload);
             action = {
                 'hyperliquidChain': payload['hyperliquidChain'],
-                'signatureChainId': '0x66eee',
+                'signatureChainId': '0x66eee', // check this out
                 'destination': address,
                 'amount': amount.toString(),
                 'time': nonce,
@@ -4189,7 +4251,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchTradingFee', params);
         const market = this.market(symbol);
@@ -4298,7 +4362,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchLedger', params);
         const request = {
@@ -4392,7 +4458,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchDepositsWithdrawals', params);
         const request = {
@@ -4433,7 +4501,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
                 if (record['type'] === 'vaultDeposit') {
-                    const delta = this.safeDict(record, 'delta');
+                    const delta = this.safeDict(record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         deposits.push(record);
                     }
@@ -4459,7 +4527,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchDepositsWithdrawals', params);
         const request = {
@@ -4497,7 +4567,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
                 if (record['type'] === 'vaultWithdraw') {
-                    const delta = this.safeDict(record, 'delta');
+                    const delta = this.safeDict(record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         withdrawals.push(record);
                     }
@@ -4518,7 +4588,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterests(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const swapMarkets = await this.fetchSwapMarkets();
         return this.parseOpenInterests(swapMarkets, symbols);
@@ -4533,7 +4605,9 @@ export default class hyperliquid extends Exchange {
      */
     async fetchOpenInterest(symbol, params = {}) {
         symbol = this.symbol(symbol);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ois = await this.fetchOpenInterests([symbol], params);
         return ois[symbol];
     }
@@ -4583,7 +4657,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);

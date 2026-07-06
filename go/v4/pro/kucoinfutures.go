@@ -93,9 +93,11 @@ func  (this *KucoinfuturesCore) Transfer(code any, amount any, fromAccount any, 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes658)
+                retRes6612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes6612)
+            }
             var currency any = this.Currency(code)
             var amountToPrecision any = this.CurrencyToPrecision(code, amount)
             var request any = map[string]any {

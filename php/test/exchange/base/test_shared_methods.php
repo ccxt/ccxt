@@ -47,7 +47,7 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
     $same_numeric = ((is_int($entry_key_val) || is_float($entry_key_val))) && ((is_int($format_key_val) || is_float($format_key_val)));
     $same_boolean = (($entry_key_val === true) || ($entry_key_val === false)) && (($format_key_val === true) || ($format_key_val === false));
     $same_array = gettype($entry_key_val) === 'array' && array_is_list($entry_key_val) && gettype($format_key_val) === 'array' && array_is_list($format_key_val);
-    $same_object = (is_array($entry_key_val)) && (is_array($format_key_val));
+    $same_object = $exchange->is_dictionary($entry_key_val) && $exchange->is_dictionary($format_key_val);
     $result = ($entry_key_val === null) || $same_string || $same_numeric || $same_boolean || $same_array || $same_object;
     return $result;
 }
@@ -84,7 +84,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
-        assert(is_array($entry), 'entry is not an object' . $log_text);
+        assert($exchange->is_dictionary($entry), 'entry is not a dict' . $log_text);
         $keys = is_array($format) ? array_keys($format) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -110,7 +110,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
                 assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
                 if ($deep) {
-                    if (is_array($value)) {
+                    if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
                         assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
                     }
                 }
@@ -342,7 +342,7 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
         assert(gettype($entry) === 'array' && array_is_list($entry), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
-        assert(is_array($entry), 'fee container is expected to be an object' . $log_text);
+        assert($exchange->is_dictionary($entry), 'fee container is expected to be a dict' . $log_text);
         assert(is_array($entry) && array_key_exists($key, $entry), 'fee key "' . $key . '" was expected to be present in entry' . $log_text);
     }
     $fee_object = $exchange->safe_value($entry, $key);

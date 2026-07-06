@@ -315,7 +315,7 @@ public partial class bitbns : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1296,6 +1296,7 @@ public partial class bitbns : Exchange
             };
             object payload = this.stringToBase64(this.json(auth));
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
             ((IDictionary<string,object>)headers)["X-BITBNS-PAYLOAD"] = payload;
             ((IDictionary<string,object>)headers)["X-BITBNS-SIGNATURE"] = signature;
             ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";

@@ -19,7 +19,7 @@ public partial class bitstamp : Exchange
                 { "CORS", true },
                 { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
@@ -453,6 +453,7 @@ public partial class bitstamp : Exchange
                 { "UST", "USTC" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "networksById", new Dictionary<string, object>() {
                     { "bitcoin-cash", "BCH" },
                     { "bitcoin", "BTC" },
@@ -858,7 +859,7 @@ public partial class bitstamp : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1142,14 +1143,14 @@ public partial class bitstamp : Exchange
             market = this.getMarketFromTrade(trade);
         }
         object feeCostString = this.safeString(trade, "fee");
-        object feeCurrency = getValue(market, "quote");
-        object priceId = ((bool) isTrue((!isEqual(rawMarketId, null)))) ? rawMarketId : getValue(market, "id");
+        object feeCurrency = this.safeString(market, "quote");
+        object priceId = ((bool) isTrue((!isEqual(rawMarketId, null)))) ? rawMarketId : this.safeString(market, "id");
         priceString = this.safeString(trade, priceId, priceString);
-        amountString = this.safeString(trade, getValue(market, "baseId"), amountString);
-        costString = this.safeString(trade, getValue(market, "quoteId"), costString);
+        amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
+        costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
         // this endpoint is not aligned with "markets" endpoint
-        object baseIdLower = ((string)getValue(market, "baseId")).ToLower();
-        object quoteIdLower = ((string)getValue(market, "quoteId")).ToLower();
+        object baseIdLower = this.safeStringLower(market, "baseId");
+        object quoteIdLower = this.safeStringLower(market, "quoteId");
         object dashedIdLower = add(add(baseIdLower, "_"), quoteIdLower);
         if (isTrue(isEqual(priceString, null)))
         {
@@ -1163,7 +1164,7 @@ public partial class bitstamp : Exchange
         {
             costString = this.safeString(trade, quoteIdLower);
         }
-        symbol = getValue(market, "symbol");
+        symbol = this.safeString(market, "symbol");
         object datetimeString = this.safeString2(trade, "date", "datetime");
         object timestamp = null;
         if (isTrue(!isEqual(datetimeString, null)))
@@ -1588,11 +1589,12 @@ public partial class bitstamp : Exchange
     public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
         object result = this.depositWithdrawFee(fee);
+        object code = this.safeString(currency, "code");
         for (object j = 0; isLessThan(j, getArrayLength(fee)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(fee, j);
             object networkId = this.safeString(networkEntry, "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = this.safeNumber(networkEntry, "fee");
             ((IDictionary<string,object>)result)["withdraw"] = new Dictionary<string, object>() {
                 { "fee", withdrawFee },
@@ -2410,7 +2412,7 @@ public partial class bitstamp : Exchange
                 { "referenceId", getValue(parsedTrade, "order") },
                 { "referenceAccount", null },
                 { "type", type },
-                { "currency", getValue(market, "base") },
+                { "currency", this.safeString(market, "base") },
                 { "amount", getValue(parsedTrade, "amount") },
                 { "before", null },
                 { "after", null },

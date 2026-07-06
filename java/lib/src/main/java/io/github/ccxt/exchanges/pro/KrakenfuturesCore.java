@@ -114,7 +114,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
@@ -351,7 +351,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by krakenfutures watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -945,13 +945,13 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
     put( "rate", null );
     put( "cost", "0" );
-    put( "currency", KrakenfuturesCore.this.numberToString(Helpers.GetValue(Helpers.GetValue(trade, "fee"), "currency")) );
+    put( "currency", KrakenfuturesCore.this.numberToString(KrakenfuturesCore.this.safeString(Helpers.GetValue(trade, "fee"), "currency")) );
 }});
                 }
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(trade, "fee"), "cost"), null)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"), null)))))
                 {
                     Object stringOrderCost = this.numberToString(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"));
-                    Object stringTradeCost = this.numberToString(Helpers.GetValue(Helpers.GetValue(trade, "fee"), "cost"));
+                    Object stringTradeCost = this.numberToString(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"));
                     Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                 }
                 // update the newUpdates count

@@ -22,7 +22,7 @@ async function testWatchLiquidations(exchange, skippedProperties, symbol) {
         console.log(m2);
         return false;
     }
-    let response = undefined;
+    let response = [];
     let now = Date.now();
     const ends = now + 10000;
     while (now < ends) {

@@ -232,6 +232,7 @@ public class KrakenCore extends KrakenApi
                 put( "ZUSD", "USD" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
                 put( "marketsByAltname", new java.util.HashMap<String, Object>() {{}} );
@@ -841,73 +842,74 @@ public class KrakenCore extends KrakenApi
             //         },
             //     }
             //
-            Object currencies = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(currencies);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
-            {
-                Object id = Helpers.GetValue(ids, i);
-                Object currency = Helpers.GetValue(currencies, id);
-                // todo: will need to rethink the fees
-                // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-                // to add support for multiple withdrawal/deposit methods and
-                // differentiated fees for each particular method
-                //
-                // Notes about abbreviations:
-                // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-                // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-                //
-                Object code = this.safeCurrencyCode(id);
-                // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-                if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(id, "."), 0)))
-                {
-                    Object altName = this.safeString(currency, "altname");
-                    // handle cases like below:
-                    //
-                    //  id   | altname
-                    // ---------------
-                    // XXBT  |  XBT
-                    // ZUSD  |  USD
-                    if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, altName)) && Helpers.isTrue((Helpers.isTrue(((String)id).startsWith(((String)"X"))) || Helpers.isTrue(((String)id).startsWith(((String)"Z")))))))
-                    {
-                        code = this.safeCurrencyCode(altName);
-                        // also, add map in commonCurrencies:
-                        Helpers.addElementToObject(this.commonCurrencies, id, code);
-                    } else
-                    {
-                        code = this.safeCurrencyCode(id);
-                    }
-                }
-                Object isFiat = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(code, ".HOLD"), 0);
-                final Object finalId = id;
-                final Object finalCode = code;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", finalId );
-        put( "code", finalCode );
-        put( "info", currency );
-        put( "name", KrakenCore.this.safeString(currency, "altname") );
-        put( "active", Helpers.isEqual(KrakenCore.this.safeString(currency, "status"), "enabled") );
-        put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", KrakenCore.this.parseNumber(KrakenCore.this.parsePrecision(KrakenCore.this.safeString(currency, "decimals"))) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", new java.util.HashMap<String, Object>() {{}} );
-    }}));
-            }
-            return result;
+            Object currencies = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object enhancedArray = this.addKeyInArrayItems(currencies, "_coin_id");
+            return this.parseCurrencies(enhancedArray);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        // todo: will need to rethink the fees
+        // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        Object id = this.safeString(rawCurrency, "_coin_id");
+        Object code = this.safeCurrencyCode(id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(id, "."), 0)))
+        {
+            Object altName = this.safeString(rawCurrency, "altname");
+            // handle cases like below:
+            //
+            //  id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, altName)) && Helpers.isTrue((Helpers.isTrue(((String)id).startsWith(((String)"X"))) || Helpers.isTrue(((String)id).startsWith(((String)"Z")))))))
+            {
+                code = this.safeCurrencyCode(altName);
+                // also, add map in commonCurrencies:
+                Helpers.addElementToObject(this.commonCurrencies, id, code);
+            } else
+            {
+                code = this.safeCurrencyCode(id);
+            }
+        }
+        Object isFiat = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(code, ".HOLD"), 0);
+        rawCurrency = this.omit(rawCurrency, "_coin_id");
+        final Object finalId = id;
+        final Object finalCode = code;
+        final Object finalRawCurrency = rawCurrency;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", finalId );
+            put( "code", finalCode );
+            put( "info", finalRawCurrency );
+            put( "name", KrakenCore.this.safeString(finalRawCurrency, "altname") );
+            put( "active", Helpers.isEqual(KrakenCore.this.safeString(finalRawCurrency, "status"), "enabled") );
+            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "precision", KrakenCore.this.parseNumber(KrakenCore.this.parsePrecision(KrakenCore.this.safeString(finalRawCurrency, "decimals"))) );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", new java.util.HashMap<String, Object>() {{}} );
+        }});
     }
 
     public Object safeCurrencyCode(Object currencyId, Object... optionalArgs)
@@ -1001,7 +1003,7 @@ public class KrakenCore extends KrakenApi
         }};
     }
 
-    public Object parseBidAsk(Object bidask, Object... optionalArgs)
+    public Object parseOrderBookBidAsk(Object bidask, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
@@ -1020,7 +1022,7 @@ public class KrakenCore extends KrakenApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1883,7 +1885,7 @@ public class KrakenCore extends KrakenApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(result, "usingCost", isUsingCost);
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1948,7 +1950,7 @@ public class KrakenCore extends KrakenApi
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
-                put( "pair", Helpers.GetValue(finalMarket, "id") );
+                put( "pair", KrakenCore.this.safeString(finalMarket, "id") );
             }};
             request = this.extend(request, parameters);
             response = (this.privatePostAddOrderBatch(request)).join();
@@ -2350,6 +2352,7 @@ final Object finalId = id;
             put( "timestamp", timestamp );
             put( "datetime", KrakenCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
+            put( "lastUpdateTimestamp", KrakenCore.this.safeTimestamp(finalOrder, "closetm") );
             put( "status", status );
             put( "symbol", finalSymbol_2 );
             put( "type", finalTypeParsed );
@@ -2492,6 +2495,7 @@ final Object finalId = id;
         if (Helpers.isTrue(!Helpers.isEqual(close, null)))
         {
             close = this.extend(new java.util.HashMap<String, Object>() {{}}, close);
+            close = ((Helpers.isTrue((Helpers.isEqual(close, null))))) ? new java.util.HashMap<String, Object>() {{}} : close;
             Object closePrice = this.safeValue(close, "price");
             if (Helpers.isTrue(!Helpers.isEqual(closePrice, null)))
             {

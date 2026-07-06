@@ -30,6 +30,8 @@ func  (this *KucoinCore) Describe() any  {
             "cancelOrdersWs": false,
             "cancelAllOrdersWs": false,
             "watchBidsAsks": true,
+            "watchFundingRate": true,
+            "watchMarkPrice": true,
             "watchOrderBook": true,
             "watchOrders": true,
             "watchPosition": true,
@@ -42,6 +44,8 @@ func  (this *KucoinCore) Describe() any  {
             "watchOrderBookForSymbols": true,
             "watchBalance": true,
             "watchOHLCV": true,
+            "unWatchFundingRate": true,
+            "unWatchMarkPrice": true,
             "unWatchTicker": true,
             "unWatchOHLCV": true,
             "unWatchOrderBook": true,
@@ -110,9 +114,9 @@ func  (this *KucoinCore) Negotiate(privateChannel any, optionalArgs ...any) <- c
             var future any = this.SafeValue(urls, connectId)
             if ccxt.IsTrue(!ccxt.IsEqual(future, nil)) {
         
-                    retRes10119 := <- future.(*ccxt.Future).Await()
-                    ccxt.PanicOnError(retRes10119)
-                    ch <- retRes10119
+                    retRes10519 := <- future.(*ccxt.Future).Await()
+                    ccxt.PanicOnError(retRes10519)
+                    ch <- retRes10519
                     return nil
             }
             // we store an awaitable to the url
@@ -122,9 +126,9 @@ func  (this *KucoinCore) Negotiate(privateChannel any, optionalArgs ...any) <- c
             ccxt.AddElementToObject(this.Options, "urls", urls)
             future = ccxt.GetValue(urls, connectId)
         
-                retRes10915 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes10915)
-                ch <- retRes10915
+                retRes11315 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes11315)
+                ch <- retRes11315
                 return nil
         
             }()
@@ -228,9 +232,9 @@ func  (this *KucoinCore) Subscribe(url any, messageHash any, subscriptionHash an
                 ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
             }
         
-                retRes18415 :=  (<-this.Watch(url, messageHash, message, subscriptionHash, subscription))
-                ccxt.PanicOnError(retRes18415)
-                ch <- retRes18415
+                retRes18815 :=  (<-this.Watch(url, messageHash, message, subscriptionHash, subscription))
+                ccxt.PanicOnError(retRes18815)
+                ch <- retRes18815
                 return nil
         
             }()
@@ -268,9 +272,9 @@ func  (this *KucoinCore) SubscribePublicUta(messageHash any, channel any, symbol
                 ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, messageHash)
             }
         
-                retRes21015 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
-                ccxt.PanicOnError(retRes21015)
-                ch <- retRes21015
+                retRes21415 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
+                ccxt.PanicOnError(retRes21415)
+                ch <- retRes21415
                 return nil
         
             }()
@@ -312,9 +316,9 @@ func  (this *KucoinCore) SubscribePrivateUta(messageHashes any, subscribeHash an
                 ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscribeHash)
             }
         
-                retRes23615 :=  (<-this.WatchMultiple(url, messageHashes, message, []any{subscribeHash}, subscription))
-                ccxt.PanicOnError(retRes23615)
-                ch <- retRes23615
+                retRes24015 :=  (<-this.WatchMultiple(url, messageHashes, message, []any{subscribeHash}, subscription))
+                ccxt.PanicOnError(retRes24015)
+                ch <- retRes24015
                 return nil
         
             }()
@@ -354,8 +358,8 @@ func  (this *KucoinCore) AuthenticateUta() <- chan any {
             if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
                 // wait the existing future if it's already being fetched by another call
         
-                retRes25816 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-                ccxt.PanicOnError(retRes25816)
+                retRes26216 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+                ccxt.PanicOnError(retRes26216)
             } else {
                 // fetch new token and store the future to the .futures to prevent concurrent fetches
                 client.(ccxt.ClientInterface).Future(messageHash)
@@ -409,9 +413,9 @@ func  (this *KucoinCore) UnSubscribe(url any, messageHash any, topic any, subscr
             subscription := ccxt.GetArg(optionalArgs, 1, nil)
             _ = subscription
         
-                retRes27915 :=  (<-this.UnSubscribeMultiple(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription))
-                ccxt.PanicOnError(retRes27915)
-                ch <- retRes27915
+                retRes28315 :=  (<-this.UnSubscribeMultiple(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription))
+                ccxt.PanicOnError(retRes28315)
+                ch <- retRes28315
                 return nil
         
             }()
@@ -442,9 +446,9 @@ func  (this *KucoinCore) SubscribeMultiple(url any, messageHashes any, topic any
                 }
             }
         
-                retRes29815 :=  (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
-                ccxt.PanicOnError(retRes29815)
-                ch <- retRes29815
+                retRes30215 :=  (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
+                ccxt.PanicOnError(retRes30215)
+                ch <- retRes30215
                 return nil
         
             }()
@@ -478,9 +482,9 @@ func  (this *KucoinCore) UnSubscribeMultiple(url any, messageHashes any, topic a
                 }
             }
         
-                retRes32015 :=  (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
-                ccxt.PanicOnError(retRes32015)
-                ch <- retRes32015
+                retRes32415 :=  (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
+                ccxt.PanicOnError(retRes32415)
+                ch <- retRes32415
                 return nil
         
             }()
@@ -505,9 +509,11 @@ func  (this *KucoinCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3368 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3368)
+                retRes34112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes34112)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add("ticker:", symbol)
@@ -519,9 +525,9 @@ func  (this *KucoinCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
                 messageHash = ccxt.Add("uta:", messageHash)
                 var channel any = "ticker"
         
-                    retRes34519 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params))
-                    ccxt.PanicOnError(retRes34519)
-                    ch <- retRes34519
+                    retRes35119 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params))
+                    ccxt.PanicOnError(retRes35119)
+                    ch <- retRes35119
                     return nil
             }
             var isFuturesMethod any = ccxt.GetValue(market, "contract")
@@ -538,9 +544,9 @@ func  (this *KucoinCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
             }
             var topic any = ccxt.Add(ccxt.Add(method, ":"), ccxt.GetValue(market, "id"))
         
-                retRes35615 :=  (<-this.Subscribe(url, messageHash, topic, params))
-                ccxt.PanicOnError(retRes35615)
-                ch <- retRes35615
+                retRes36215 :=  (<-this.Subscribe(url, messageHash, topic, params))
+                ccxt.PanicOnError(retRes36215)
+                ch <- retRes36215
                 return nil
         
             }()
@@ -565,9 +571,11 @@ func  (this *KucoinCore) UnWatchTicker(symbol any, optionalArgs ...any) <- chan 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3728)
+                retRes37912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes37912)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var isFuturesMethod any = ccxt.GetValue(market, "contract")
@@ -587,9 +595,9 @@ func  (this *KucoinCore) UnWatchTicker(symbol any, optionalArgs ...any) <- chan 
                 var utaMessageHash any = ccxt.Add("unsubscribe:", subMessageHash)
                 ccxt.AddElementToObject(subscription, "messageHashes", []any{utaMessageHash})
         
-                    retRes38919 :=  (<-this.SubscribePublicUta(utaMessageHash, "ticker", symbol, params, subscription))
-                    ccxt.PanicOnError(retRes38919)
-                    ch <- retRes38919
+                    retRes39719 :=  (<-this.SubscribePublicUta(utaMessageHash, "ticker", symbol, params, subscription))
+                    ccxt.PanicOnError(retRes39719)
+                    ch <- retRes39719
                     return nil
             } else {
         
@@ -611,9 +619,9 @@ func  (this *KucoinCore) UnWatchTicker(symbol any, optionalArgs ...any) <- chan 
                 ccxt.AddElementToObject(subscription, "messageHashes", []any{messageHash, topic})
                 ccxt.AddElementToObject(subscription, "subMessageHashes", []any{subMessageHash, topic})
         
-                    retRes40519 :=  (<-this.UnSubscribe(url, messageHash, topic, subMessageHash, params, subscription))
-                    ccxt.PanicOnError(retRes40519)
-                    ch <- retRes40519
+                    retRes41319 :=  (<-this.UnSubscribe(url, messageHash, topic, subMessageHash, params, subscription))
+                    ccxt.PanicOnError(retRes41319)
+                    ch <- retRes41319
                     return nil
             }
         
@@ -643,9 +651,11 @@ func  (this *KucoinCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4248 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4248)
+                retRes43312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes43312)
+            }
             symbols = this.MarketSymbols(symbols, nil, true, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var marketType any = nil
@@ -747,9 +757,9 @@ func  (this *KucoinCore) SubscribePublicMultipleUta(messageHashes any, channel a
                 ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, messageHashWithSymbols)
             }
         
-                retRes49715 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))
-                ccxt.PanicOnError(retRes49715)
-                ch <- retRes49715
+                retRes50715 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))
+                ccxt.PanicOnError(retRes50715)
+                ch <- retRes50715
                 return nil
         
             }()
@@ -764,9 +774,11 @@ func  (this *KucoinCore) WatchUtaTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5018 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5018)
+                retRes51212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes51212)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var messageHash any = "uta:ticker"
             var messageHashes any = []any{}
@@ -926,6 +938,7 @@ func  (this *KucoinCore) HandleContractTicker(client any, message any)  {
 }
 func  (this *KucoinCore) HandleUtaTicker(client any, message any)  {
     //
+    // watchTicker
     //     {
     //         "T": "ticker.SPOT",
     //         "P": "1774100940787520626",
@@ -943,6 +956,19 @@ func  (this *KucoinCore) HandleUtaTicker(client any, message any)  {
     //         }
     //     }
     //
+    // watchMarkPrice
+    //     {
+    //         "T": "mark-price",
+    //         "P": "1782834987171570181",
+    //         "d": {
+    //             "s": "ETHUSDTM",
+    //             "mp": "1569.15",
+    //             "ip": "1569.87",
+    //             "oi": "50541824",
+    //             "ts": 1782834987000
+    //         }
+    //     }
+    //
     var data any = this.SafeDict(message, "d", map[string]any {})
     var marketId any = this.SafeString(data, "s")
     var market any = this.SafeMarket(marketId)
@@ -956,7 +982,10 @@ func  (this *KucoinCore) ParseWsUtaTicker(ticker any, optionalArgs ...any) any  
     _ = market
     var symbol any = this.SafeString(market, "symbol")
     market = this.SafeMarket(symbol, market)
-    var timestamp any = this.SafeIntegerProduct(ticker, "M", 0.000001)
+    var timestamp any = this.SafeInteger(ticker, "ts")
+    if ccxt.IsTrue(ccxt.IsEqual(timestamp, nil)) {
+        timestamp = this.SafeIntegerProduct(ticker, "M", 0.000001)
+    }
     return this.SafeTicker(map[string]any {
         "symbol": symbol,
         "timestamp": timestamp,
@@ -977,7 +1006,8 @@ func  (this *KucoinCore) ParseWsUtaTicker(ticker any, optionalArgs ...any) any  
         "average": nil,
         "baseVolume": nil,
         "quoteVolume": nil,
-        "markPrice": nil,
+        "markPrice": this.SafeString(ticker, "mp"),
+        "indexPrice": this.SafeString(ticker, "ip"),
         "info": ticker,
     }, market)
 }
@@ -1000,9 +1030,11 @@ func  (this *KucoinCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes7218 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7218)
+                retRes75212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes75212)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true, false)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isFuturesMethod any = ccxt.GetValue(firstMarket, "contract")
@@ -1036,9 +1068,11 @@ func  (this *KucoinCore) WatchMultiHelper(methodName any, channelName any, isFut
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes7398 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7398)
+                retRes77212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes77212)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true, false)
             var length any =     ccxt.GetArrayLength(symbols)
             if ccxt.IsTrue(ccxt.IsGreaterThan(length, 100)) {
@@ -1064,9 +1098,9 @@ func  (this *KucoinCore) WatchMultiHelper(methodName any, channelName any, isFut
             }
             var message any = this.Extend(request, params)
         
-                retRes76215 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes76215)
-                ch <- retRes76215
+                retRes79615 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes79615)
+                ch <- retRes79615
                 return nil
         
             }()
@@ -1177,9 +1211,11 @@ func  (this *KucoinCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes8588 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8588)
+                retRes89312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes89312)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var period any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1245,9 +1281,11 @@ func  (this *KucoinCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan a
             _ = timeframe
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes9048 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9048)
+                retRes94112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes94112)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var uta any = false
@@ -1272,9 +1310,9 @@ func  (this *KucoinCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan a
                     "interval": period,
                 }
         
-                    retRes92619 :=  (<-this.SubscribePublicUta(utaMessageHash, "kline", symbol, this.Extend(extendedParams, params), subscription))
-                    ccxt.PanicOnError(retRes92619)
-                    ch <- retRes92619
+                    retRes96419 :=  (<-this.SubscribePublicUta(utaMessageHash, "kline", symbol, this.Extend(extendedParams, params), subscription))
+                    ccxt.PanicOnError(retRes96419)
+                    ch <- retRes96419
                     return nil
             } else {
                 var isFuturesMethod any = ccxt.GetValue(market, "contract")
@@ -1293,9 +1331,9 @@ func  (this *KucoinCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan a
                 ccxt.AddElementToObject(subscription, "messageHashes", []any{messageHash, topic})
                 ccxt.AddElementToObject(subscription, "subMessageHashes", []any{subMessageHash, topic})
         
-                    retRes94119 :=  (<-this.UnSubscribe(url, messageHash, topic, messageHash, params, subscription))
-                    ccxt.PanicOnError(retRes94119)
-                    ch <- retRes94119
+                    retRes97919 :=  (<-this.UnSubscribe(url, messageHash, topic, messageHash, params, subscription))
+                    ccxt.PanicOnError(retRes97919)
+                    ch <- retRes97919
                     return nil
             }
         
@@ -1436,8 +1474,8 @@ func  (this *KucoinCore) WatchTrades(symbol any, optionalArgs ...any) <- chan an
             params = ccxt.GetValue(utaparamsVariable,1)
             if ccxt.IsTrue(uta) {
         
-                retRes108212 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes108212)
+                retRes112012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes112012)
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 var messageHash any = ccxt.Add("uta:trades:", symbol)
@@ -1455,9 +1493,9 @@ func  (this *KucoinCore) WatchTrades(symbol any, optionalArgs ...any) <- chan an
                 return nil
             }
         
-                retRes109515 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes109515)
-                ch <- retRes109515
+                retRes113315 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes113315)
+                ch <- retRes113315
                 return nil
         
             }()
@@ -1490,9 +1528,11 @@ func  (this *KucoinCore) WatchTradesForSymbols(symbols any, optionalArgs ...any)
             if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes11158 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11158)
+                retRes115412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes115412)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isFuturesMethod any = ccxt.GetValue(firstMarket, "contract")
@@ -1545,9 +1585,11 @@ func  (this *KucoinCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...an
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes11548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11548)
+                retRes119512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes119512)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var marketIds any = this.MarketIds(symbols)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -1580,9 +1622,9 @@ func  (this *KucoinCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...an
                 "symbols": symbols,
             }
         
-                retRes118415 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
-                ccxt.PanicOnError(retRes118415)
-                ch <- retRes118415
+                retRes122615 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
+                ccxt.PanicOnError(retRes122615)
+                ch <- retRes122615
                 return nil
         
             }()
@@ -1613,8 +1655,8 @@ func  (this *KucoinCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan 
             params = ccxt.GetValue(utaparamsVariable,1)
             if ccxt.IsTrue(uta) {
         
-                retRes120312 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes120312)
+                retRes124512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes124512)
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 var subMessageHash any = ccxt.Add("uta:trades:", symbol)
@@ -1628,15 +1670,15 @@ func  (this *KucoinCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan 
                     "symbols": []any{symbol},
                 }
         
-                    retRes121619 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params, subscription))
-                    ccxt.PanicOnError(retRes121619)
-                    ch <- retRes121619
+                    retRes125819 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params, subscription))
+                    ccxt.PanicOnError(retRes125819)
+                    ch <- retRes125819
                     return nil
             }
         
-                retRes121815 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
-                ccxt.PanicOnError(retRes121815)
-                ch <- retRes121815
+                retRes126015 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+                ccxt.PanicOnError(retRes126015)
+                ch <- retRes126015
                 return nil
         
             }()
@@ -1780,7 +1822,7 @@ func  (this *KucoinCore) ParseWsUtaTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *KucoinCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1812,8 +1854,8 @@ func  (this *KucoinCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             params = ccxt.GetValue(utaparamsVariable,1)
             if ccxt.IsTrue(uta) {
         
-                retRes138112 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes138112)
+                retRes142312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes142312)
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 var depth any = "increment" // '1', '5', '50' or 'increment'
@@ -1841,9 +1883,9 @@ func  (this *KucoinCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
                 return nil
             }
         
-                retRes140215 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-                ccxt.PanicOnError(retRes140215)
-                ch <- retRes140215
+                retRes144415 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+                ccxt.PanicOnError(retRes144415)
+                ch <- retRes144415
                 return nil
         
             }()
@@ -1861,7 +1903,7 @@ func  (this *KucoinCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *KucoinCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1876,8 +1918,8 @@ func  (this *KucoinCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- ch
             params = ccxt.GetValue(utaparamsVariable,1)
             if ccxt.IsTrue(uta) {
         
-                retRes142312 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes142312)
+                retRes146512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes146512)
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 var depth any = "increment" // '1', '5', '50' or 'increment'
@@ -1898,15 +1940,15 @@ func  (this *KucoinCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- ch
                     "symbols": []any{symbol},
                 }
         
-                    retRes144119 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params, subscription))
-                    ccxt.PanicOnError(retRes144119)
-                    ch <- retRes144119
+                    retRes148319 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params, subscription))
+                    ccxt.PanicOnError(retRes148319)
+                    ch <- retRes148319
                     return nil
             }
         
-                retRes144315 :=  (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
-                ccxt.PanicOnError(retRes144315)
-                ch <- retRes144315
+                retRes148515 :=  (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
+                ccxt.PanicOnError(retRes148515)
+                ch <- retRes148515
                 return nil
         
             }()
@@ -1926,7 +1968,7 @@ func  (this *KucoinCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- ch
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *KucoinCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1946,9 +1988,11 @@ func  (this *KucoinCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...a
                     panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook \\'limit\\' argument must be undefined, 5, 20, 50 or 100")))
                 }
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes14728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14728)
+                retRes151512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes151512)
+            }
             symbols = this.MarketSymbols(symbols)
             var marketIds any = this.MarketIds(symbols)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -2009,7 +2053,7 @@ func  (this *KucoinCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...a
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *KucoinCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -2020,9 +2064,11 @@ func  (this *KucoinCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ..
             _ = params
             var limit any = this.SafeInteger(params, "limit")
             params = this.Omit(params, "limit")
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes15288 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15288)
+                retRes157312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes157312)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var marketIds any = this.MarketIds(symbols)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -2064,9 +2110,9 @@ func  (this *KucoinCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ..
                 "subMessageHashes": subscriptionHashes,
             }
         
-                retRes156515 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
-                ccxt.PanicOnError(retRes156515)
-                ch <- retRes156515
+                retRes161115 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
+                ccxt.PanicOnError(retRes161115)
+                ch <- retRes161115
                 return nil
         
             }()
@@ -2276,7 +2322,7 @@ func  (this *KucoinCore) HandleDelta(orderbook any, delta any)  {
 }
 func  (this *KucoinCore) HandleBidAsks(bookSide any, bidAsks any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bidAsks)); i++ {
-        var bidAsk any = this.ParseBidAsk(ccxt.GetValue(bidAsks, i))
+        var bidAsk any = this.ParseOrderBookBidAsk(ccxt.GetValue(bidAsks, i))
         bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
     }
 }
@@ -2327,7 +2373,19 @@ func  (this *KucoinCore) HandleSubscriptionStatus(client any, message any)  {
             var subHash any = ccxt.GetValue(subMessageHashes, i)
             this.CleanUnsubscription(client.(*ccxt.Client), subHash, messageHash)
         }
-        this.CleanCache(subscription)
+        var topic any = this.SafeString(subscription, "topic")
+        if ccxt.IsTrue(ccxt.IsEqual(topic, "fundingRate")) {
+            // todo: add fundingRate topic to cleanCache
+            var symbols any = this.SafeList(subscription, "symbols", []any{})
+            for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+                var symbol any = ccxt.GetValue(symbols, i)
+                if ccxt.IsTrue(ccxt.InOp(this.FundingRates, symbol)) {
+                    ccxt.Remove(this.FundingRates, symbol)
+                }
+            }
+        } else {
+            this.CleanCache(subscription)
+        }
     }
 }
 func  (this *KucoinCore) HandleSystemStatus(client any, message any) any  {
@@ -2385,9 +2443,11 @@ func  (this *KucoinCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes18818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes18818)
+                retRes194012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes194012)
+            }
         
             uta:= (<-this.IsUTAEnabled())
             ccxt.PanicOnError(uta)
@@ -2807,9 +2867,11 @@ func  (this *KucoinCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes22758 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes22758)
+                retRes233612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes233612)
+            }
             var messageHash any = "myTrades"
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -3054,9 +3116,11 @@ func  (this *KucoinCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes24988 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes24988)
+                retRes256112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes256112)
+            }
         
             uta:= (<-this.IsUTAEnabled())
             ccxt.PanicOnError(uta)
@@ -3092,8 +3156,8 @@ func  (this *KucoinCore) WatchBalance(optionalArgs ...any) <- chan any {
             var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes252512 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(uniformType, ":fetchBalanceSnapshot")))
-                ccxt.PanicOnError(retRes252512)
+                retRes258912 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(uniformType, ":fetchBalanceSnapshot")))
+                ccxt.PanicOnError(retRes258912)
             }
             var messageHash any = ccxt.Add(uniformType, ":balance")
             if ccxt.IsTrue(uta) {
@@ -3102,9 +3166,9 @@ func  (this *KucoinCore) WatchBalance(optionalArgs ...any) <- chan any {
                 }
                 var channel any = "balance"
         
-                    retRes253319 :=  (<-this.SubscribePrivateUta([]any{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, params)))
-                    ccxt.PanicOnError(retRes253319)
-                    ch <- retRes253319
+                    retRes259719 :=  (<-this.SubscribePrivateUta([]any{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, params)))
+                    ccxt.PanicOnError(retRes259719)
+                    ch <- retRes259719
                     return nil
             } else {
                 var requestId any = ccxt.ToString(this.RequestId())
@@ -3120,9 +3184,9 @@ func  (this *KucoinCore) WatchBalance(optionalArgs ...any) <- chan any {
                     ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
                 }
         
-                    retRes254719 :=  (<-this.Watch(url, messageHash, message, uniformType))
-                    ccxt.PanicOnError(retRes254719)
-                    ch <- retRes254719
+                    retRes261119 :=  (<-this.Watch(url, messageHash, message, uniformType))
+                    ccxt.PanicOnError(retRes261119)
+                    ch <- retRes261119
                     return nil
             }
         
@@ -3330,9 +3394,11 @@ func  (this *KucoinCore) WatchPosition(optionalArgs ...any) <- chan any {
             if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPosition() requires a symbol argument")))
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes27398 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes27398)
+                retRes280412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes280412)
+            }
         
             url:= (<-this.Negotiate(true))
             ccxt.PanicOnError(url)
@@ -3356,9 +3422,9 @@ func  (this *KucoinCore) WatchPosition(optionalArgs ...any) <- chan any {
                 return nil
             }
         
-                retRes275615 :=  (<-this.Subscribe(url, messageHash, topic, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes275615)
-                ch <- retRes275615
+                retRes282215 :=  (<-this.Subscribe(url, messageHash, topic, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes282215)
+                ch <- retRes282215
                 return nil
         
             }()
@@ -3389,9 +3455,11 @@ func  (this *KucoinCore) WatchPositions(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes27728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes27728)
+                retRes283912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes283912)
+            }
         
             uta:= (<-this.IsUTAEnabled())
             ccxt.PanicOnError(uta)
@@ -3752,6 +3820,216 @@ func  (this *KucoinCore) ParseWsUtaPosition(position any, optionalArgs ...any) a
         "takeProfitPrice": nil,
     })
 }
+/**
+ * @method
+ * @name kucoin#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://www.kucoin.com/docs-new/3470270w0
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func  (this *KucoinCore) WatchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+        
+                retRes318012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes318012)
+            }
+            symbol = this.SafeSymbol(symbol)
+            var channel any = "funding-fee"
+            var messageHash any = ccxt.Add("fundingRate:", symbol)
+        
+                retRes318515 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params))
+                ccxt.PanicOnError(retRes318515)
+                ch <- retRes318515
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name kucoin#unWatchFundingRate
+ * @description unWatches the current funding rate for a symbol
+ * @see https://www.kucoin.com/docs-new/3470270w0
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func  (this *KucoinCore) UnWatchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+        
+                retRes319912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes319912)
+            }
+            symbol = this.SafeSymbol(symbol)
+            var channel any = "funding-fee"
+            var subMessageHash any = ccxt.Add("fundingRate:", symbol)
+            var unSubMessageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+            var subscription any = map[string]any {
+                "symbols": []any{symbol},
+                "topic": "fundingRate",
+                "unsubscribe": true,
+                "subMessageHashes": []any{subMessageHash},
+                "messageHashes": []any{unSubMessageHash},
+            }
+        
+                retRes321215 :=  (<-this.SubscribePublicUta(unSubMessageHash, channel, symbol, params, subscription))
+                ccxt.PanicOnError(retRes321215)
+                ch <- retRes321215
+                return nil
+        
+            }()
+            return ch
+        }
+func  (this *KucoinCore) HandleUtaFundingRate(client any, message any)  {
+    //
+    //     {
+    //         "T": "funding-fee",
+    //         "P": "1782831961172694254",
+    //         "d": {
+    //             "s": "ETHUSDTM",
+    //             "fr": "0.000035",
+    //             "ft": 1782806400000,
+    //             "nt": 1782835200000,
+    //             "gl": 28800000,
+    //             "fc": "0.00375",
+    //             "ff": "-0.00375"
+    //         }
+    //     }
+    //
+    var data any = this.SafeDict(message, "d", map[string]any {})
+    var fundingRate any = this.ParseWsFundingRate(data)
+    var symbol any = ccxt.GetValue(fundingRate, "symbol")
+    ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+    var messageHash any = ccxt.Add("fundingRate:", symbol)
+    client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
+}
+func  (this *KucoinCore) ParseWsFundingRate(data any, optionalArgs ...any) any  {
+    //
+    //     {
+    //         "s": "ETHUSDTM",
+    //         "fr": "0.000035",
+    //         "ft": 1782806400000,
+    //         "nt": 1782835200000,
+    //         "gl": 28800000,
+    //         "fc": "0.00375",
+    //         "ff": "-0.00375"
+    //     }
+    //
+    market := ccxt.GetArg(optionalArgs, 0, nil)
+    _ = market
+    var fundingTimestamp any = this.SafeInteger(data, "ft")
+    var nextFundingTimestamp any = this.SafeInteger(data, "nt")
+    var marketId any = this.SafeString(data, "s")
+    var granularity any = this.SafeString(data, "gl")
+    return map[string]any {
+        "info": data,
+        "symbol": this.SafeSymbol(marketId, market, nil, "contract"),
+        "markPrice": nil,
+        "indexPrice": nil,
+        "interestRate": nil,
+        "estimatedSettlePrice": nil,
+        "timestamp": nil,
+        "datetime": nil,
+        "fundingRate": this.SafeNumber(data, "fr"),
+        "fundingTimestamp": fundingTimestamp,
+        "fundingDatetime": this.Iso8601(fundingTimestamp),
+        "nextFundingRate": nil,
+        "nextFundingTimestamp": nextFundingTimestamp,
+        "nextFundingDatetime": this.Iso8601(nextFundingTimestamp),
+        "previousFundingRate": nil,
+        "previousFundingTimestamp": nil,
+        "previousFundingDatetime": nil,
+        "interval": this.ParseFundingInterval(granularity),
+    }
+}
+/**
+ * @method
+ * @name kucoin#watchMarkPrice
+ * @description watches a mark price for a specific market
+ * @see https://www.kucoin.com/docs-new/3470272w0
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func  (this *KucoinCore) WatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+        
+                retRes328812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes328812)
+            }
+            symbol = this.SafeSymbol(symbol)
+            var channel any = "mark-price"
+            var messageHash any = ccxt.Add("uta:ticker:", symbol)
+        
+                retRes329315 :=  (<-this.SubscribePublicUta(messageHash, channel, symbol, params))
+                ccxt.PanicOnError(retRes329315)
+                ch <- retRes329315
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name kucoin#unWatchMarkPrice
+ * @description unWatches a mark price for a specific market
+ * @see https://www.kucoin.com/docs-new/3470272w0
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func  (this *KucoinCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+        
+                retRes330712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes330712)
+            }
+            symbol = this.SafeSymbol(symbol)
+            var channel any = "mark-price"
+            var subMessageHash any = ccxt.Add("uta:ticker:", symbol)
+            var unSubMessageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+            var subscription any = map[string]any {
+                "symbols": []any{symbol},
+                "topic": "ticker",
+                "unsubscribe": true,
+                "subMessageHashes": []any{subMessageHash},
+                "messageHashes": []any{unSubMessageHash},
+            }
+        
+                retRes332015 :=  (<-this.SubscribePublicUta(unSubMessageHash, channel, symbol, params, subscription))
+                ccxt.PanicOnError(retRes332015)
+                ch <- retRes332015
+                return nil
+        
+            }()
+            return ch
+        }
 func  (this *KucoinCore) HandleSubject(client any, message any)  {
     //
     //     {
@@ -3831,6 +4109,8 @@ func  (this *KucoinCore) HandleSubject(client any, message any)  {
         "positionAll.UNIFIED": this.HandleUtaPosition,
         "positionAll.FUTURES": this.HandleUtaPosition,
         "balance.UNIFIED": this.HandleUtaBalance,
+        "funding-fee": this.HandleUtaFundingRate,
+        "mark-price": this.HandleUtaTicker,
     }
     var method any = this.SafeValue(methods, subject)
     if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {

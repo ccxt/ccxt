@@ -43,8 +43,10 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             $code = $exchange->safe_string($currency, 'code');
             $withdraw = $exchange->safe_bool($currency, 'withdraw');
             $deposit = $exchange->safe_bool($currency, 'deposit');
-            if ($exchange->in_array($code, $required_active_currencies)) {
-                assert($skip_major_currency_check || ($withdraw && $deposit), 'Major currency ' . $code . ' should have withdraw and deposit flags enabled ::: ' . $exchange->json($currency));
+            $is_mica_compliant = $exchange->safe_bool($exchange->options, 'mica', false);
+            $skip_usdt_for_mica = $is_mica_compliant && $code === 'USDT';
+            if ($exchange->in_array($code, $required_active_currencies) && !$skip_major_currency_check && !$skip_usdt_for_mica) {
+                assert($withdraw && $deposit, 'Major currency ' . $code . ' should have withdraw and deposit flags enabled ::: ' . $exchange->json($currency));
             }
         }
         // check at least X% of currencies are active

@@ -125,6 +125,7 @@ public class BybitCore extends BybitApi
                 put( "fetchPositionsHistory", true );
                 put( "fetchPremiumIndexOHLCV", true );
                 put( "fetchSettlementHistory", true );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
@@ -217,6 +218,7 @@ public class BybitCore extends BybitApi
                         put( "derivatives/v3/public/open-interest", 1 );
                         put( "derivatives/v3/public/insurance", 1 );
                         put( "v5/announcements/index", 5 );
+                        put( "v5/system/status", 5 );
                         put( "v5/market/time", 5 );
                         put( "v5/market/kline", 5 );
                         put( "v5/market/mark-price-kline", 5 );
@@ -224,6 +226,8 @@ public class BybitCore extends BybitApi
                         put( "v5/market/premium-index-price-kline", 5 );
                         put( "v5/market/instruments-info", 5 );
                         put( "v5/market/orderbook", 5 );
+                        put( "v5/market/rpi_orderbook", 5 );
+                        put( "v5/market/full_orderbook", 5 );
                         put( "v5/market/tickers", 5 );
                         put( "v5/market/funding/history", 5 );
                         put( "v5/market/recent-trade", 5 );
@@ -232,7 +236,12 @@ public class BybitCore extends BybitApi
                         put( "v5/market/insurance", 5 );
                         put( "v5/market/risk-limit", 5 );
                         put( "v5/market/delivery-price", 5 );
+                        put( "v5/market/new-delivery-price", 5 );
                         put( "v5/market/account-ratio", 5 );
+                        put( "v5/market/index-price-components", 5 );
+                        put( "v5/market/price-limit", 5 );
+                        put( "v5/market/adlAlert", 5 );
+                        put( "v5/market/fee-group-info", 5 );
                         put( "v5/spot-lever-token/info", 5 );
                         put( "v5/spot-lever-token/reference", 5 );
                         put( "v5/spot-margin-trade/data", 5 );
@@ -315,7 +324,9 @@ public class BybitCore extends BybitApi
                         put( "v5/position/list", 5 );
                         put( "v5/execution/list", 5 );
                         put( "v5/position/closed-pnl", 5 );
+                        put( "v5/position/get-closed-positions", 5 );
                         put( "v5/position/move-history", 5 );
+                        put( "v5/position/symbol-info", 5 );
                         put( "v5/pre-upgrade/order/history", 5 );
                         put( "v5/pre-upgrade/execution/list", 5 );
                         put( "v5/pre-upgrade/position/closed-pnl", 5 );
@@ -326,18 +337,27 @@ public class BybitCore extends BybitApi
                         put( "v5/account/borrow-history", 1 );
                         put( "v5/account/instruments-info", 1 );
                         put( "v5/account/collateral-info", 1 );
+                        put( "v5/account/option-asset-info", 1 );
                         put( "v5/asset/coin-greeks", 1 );
                         put( "v5/account/fee-rate", 10 );
                         put( "v5/account/info", 5 );
                         put( "v5/account/transaction-log", 1.66 );
                         put( "v5/account/contract-transaction-log", 1 );
+                        put( "v5/account/query-dcp-info", 5 );
+                        put( "v5/account/user-setting-config", 5 );
+                        put( "v5/account/pay-info", 5 );
+                        put( "v5/account/trade-info-for-analysis", 5 );
                         put( "v5/account/smp-group", 1 );
                         put( "v5/account/mmp-state", 5 );
                         put( "v5/account/withdrawal", 5 );
+                        put( "v5/asset/asset-overview", 5 );
                         put( "v5/asset/exchange/query-coin-list", 0.5 );
                         put( "v5/asset/exchange/convert-result-query", 0.5 );
                         put( "v5/asset/exchange/query-convert-history", 0.5 );
                         put( "v5/asset/exchange/order-record", 5 );
+                        put( "v5/asset/fundinghistory", 5 );
+                        put( "v5/asset/portfolio-margin", 5 );
+                        put( "v5/asset/total-members-assets", 5 );
                         put( "v5/asset/delivery-record", 5 );
                         put( "v5/asset/settlement-record", 5 );
                         put( "v5/asset/transfer/query-asset-info", 50 );
@@ -358,6 +378,8 @@ public class BybitCore extends BybitApi
                         put( "v5/asset/withdraw/query-record", 10 );
                         put( "v5/asset/withdraw/withdrawable-amount", 5 );
                         put( "v5/asset/withdraw/vasp/list", 5 );
+                        put( "v5/asset/covert/small-balance-list", 5 );
+                        put( "v5/asset/covert/small-balance-history", 5 );
                         put( "v5/asset/convert/small-balance-list", 5 );
                         put( "v5/asset/convert/small-balance-history", 5 );
                         put( "v5/fiat/query-coin-list", 5 );
@@ -372,13 +394,21 @@ public class BybitCore extends BybitApi
                         put( "v5/user/aff-customer-info", 5 );
                         put( "v5/user/del-submember", 5 );
                         put( "v5/user/submembers", 5 );
+                        put( "v5/user/escrow_sub_members", 5 );
+                        put( "v5/user/invitation/referrals", 5 );
                         put( "v5/affiliate/aff-user-list", 5 );
+                        put( "v5/affiliate/affiliate-sub-list", 5 );
                         put( "v5/spot-lever-token/order-record", 1 );
                         put( "v5/spot-margin-trade/interest-rate-history", 5 );
                         put( "v5/spot-margin-trade/state", 5 );
                         put( "v5/spot-margin-trade/max-borrowable", 5 );
                         put( "v5/spot-margin-trade/position-tiers", 5 );
                         put( "v5/spot-margin-trade/coinstate", 5 );
+                        put( "v5/spot-margin-trade/currency-data", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-contract-info", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-order-info", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-order-quote", 5 );
+                        put( "v5/spot-margin-trade/liability", 5 );
                         put( "v5/spot-margin-trade/repayment-available-amount", 5 );
                         put( "v5/spot-margin-trade/get-auto-repay-mode", 5 );
                         put( "v5/spot-cross-margin-trade/loan-info", 1 );
@@ -404,10 +434,13 @@ public class BybitCore extends BybitApi
                         put( "v5/crypto-loan-fixed/supply-order-info", 10 );
                         put( "v5/crypto-loan-fixed/repayment-history", 10 );
                         put( "v5/ins-loan/product-infos", 5 );
+                        put( "v5/ins-loan/ensure-tokens", 5 );
                         put( "v5/ins-loan/ensure-tokens-convert", 5 );
                         put( "v5/ins-loan/loan-order", 5 );
                         put( "v5/ins-loan/repaid-history", 5 );
+                        put( "v5/ins-loan/ltv", 5 );
                         put( "v5/ins-loan/ltv-convert", 5 );
+                        put( "v5/ins-loan/coin-delta-amount", 5 );
                         put( "v5/lending/info", 5 );
                         put( "v5/lending/history-order", 5 );
                         put( "v5/lending/account", 5 );
@@ -486,6 +519,7 @@ public class BybitCore extends BybitApi
                         put( "v5/order/amend-batch", 5 );
                         put( "v5/order/cancel-batch", 5 );
                         put( "v5/order/disconnected-cancel-all", 5 );
+                        put( "v5/order/pre-check", 5 );
                         put( "v5/position/set-leverage", 5 );
                         put( "v5/position/switch-isolated", 5 );
                         put( "v5/position/set-tpsl-mode", 5 );
@@ -506,12 +540,14 @@ public class BybitCore extends BybitApi
                         put( "v5/account/repay", 5 );
                         put( "v5/account/no-convert-repay", 5 );
                         put( "v5/account/set-limit-px-action", 5 );
+                        put( "v5/account/set-delta-mode", 5 );
                         put( "v5/asset/exchange/quote-apply", 1 );
                         put( "v5/asset/exchange/convert-execute", 1 );
                         put( "v5/asset/transfer/inter-transfer", 50 );
                         put( "v5/asset/transfer/save-transfer-sub-member", 150 );
                         put( "v5/asset/transfer/universal-transfer", 10 );
                         put( "v5/asset/deposit/deposit-to-account", 5 );
+                        put( "v5/asset/travel-rule/deposit/submit", 5 );
                         put( "v5/asset/withdraw/create", 50 );
                         put( "v5/asset/withdraw/cancel", 50 );
                         put( "v5/asset/covert/get-quote", 10 );
@@ -525,11 +561,15 @@ public class BybitCore extends BybitApi
                         put( "v5/user/update-sub-api", 10 );
                         put( "v5/user/delete-api", 10 );
                         put( "v5/user/delete-sub-api", 10 );
+                        put( "v5/user/agreement", 10 );
+                        put( "v5/user/create-demo-member", 10 );
                         put( "v5/spot-lever-token/purchase", 2.5 );
                         put( "v5/spot-lever-token/redeem", 2.5 );
                         put( "v5/spot-margin-trade/switch-mode", 5 );
                         put( "v5/spot-margin-trade/set-leverage", 5 );
                         put( "v5/spot-margin-trade/set-auto-repay-mode", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-renew", 5 );
                         put( "v5/spot-cross-margin-trade/loan", 2.5 );
                         put( "v5/spot-cross-margin-trade/repay", 2.5 );
                         put( "v5/spot-cross-margin-trade/switch", 2.5 );
@@ -1071,6 +1111,7 @@ public class BybitCore extends BybitApi
                 }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
+                    put( "BRC20", "BTC" );
                     put( "ETH", "ETH" );
                     put( "ERC20", "ETH" );
                     put( "TRX", "TRX" );
@@ -1082,73 +1123,65 @@ public class BybitCore extends BybitApi
                     put( "ADA", "ADA" );
                     put( "ALGO", "ALGO" );
                     put( "APT", "APTOS" );
-                    put( "AR", "AR" );
                     put( "ARBONE", "ARBI" );
+                    put( "ARBNOVA", "ARBINOVA" );
                     put( "AVAXC", "CAVAX" );
                     put( "AVAXX", "XAVAX" );
+                    put( "COSMOS", "ATOM" );
                     put( "ATOM", "ATOM" );
                     put( "BCH", "BCH" );
                     put( "BEP2", "BNB" );
-                    put( "CHZ", "CHZ" );
-                    put( "DCR", "DCR" );
-                    put( "DGB", "DGB" );
                     put( "DOGE", "DOGE" );
                     put( "DOT", "DOT" );
                     put( "EGLD", "EGLD" );
                     put( "EOS", "EOS" );
                     put( "ETC", "ETC" );
-                    put( "ETHF", "ETHF" );
                     put( "ETHW", "ETHW" );
                     put( "FIL", "FIL" );
                     put( "STEP", "FITFI" );
-                    put( "FLOW", "FLOW" );
-                    put( "FTM", "FTM" );
+                    put( "SONIC", "SONIC" );
                     put( "GLMR", "GLMR" );
                     put( "HBAR", "HBAR" );
-                    put( "HNT", "HNT" );
                     put( "ICP", "ICP" );
-                    put( "ICX", "ICX" );
-                    put( "KDA", "KDA" );
                     put( "KLAY", "KLAY" );
-                    put( "KMA", "KMA" );
-                    put( "KSM", "KSM" );
                     put( "LTC", "LTC" );
+                    put( "POLYGON", "MATIC" );
                     put( "MATIC", "MATIC" );
-                    put( "MINA", "MINA" );
-                    put( "MOVR", "MOVR" );
                     put( "NEAR", "NEAR" );
-                    put( "NEM", "NEM" );
                     put( "OASYS", "OAS" );
                     put( "OASIS", "ROSE" );
-                    put( "OMNI", "OMNI" );
                     put( "ONE", "ONE" );
                     put( "OP", "OP" );
-                    put( "OPTIMISM", "OP" );
-                    put( "POKT", "POKT" );
-                    put( "QTUM", "QTUM" );
-                    put( "RVN", "RVN" );
-                    put( "SC", "SC" );
                     put( "SCRT", "SCRT" );
                     put( "STX", "STX" );
-                    put( "THETA", "THETA" );
                     put( "TON", "TON" );
-                    put( "WAVES", "WAVES" );
                     put( "WAX", "WAXP" );
-                    put( "XDC", "XDC" );
                     put( "XEC", "XEC" );
                     put( "XLM", "XLM" );
                     put( "XRP", "XRP" );
                     put( "XTZ", "XTZ" );
-                    put( "XYM", "XYM" );
-                    put( "ZEN", "ZEN" );
                     put( "ZIL", "ZIL" );
-                    put( "ZKSYNC", "ZKSYNC" );
+                    put( "ZKSYNCLITE", "ZKSYNC" );
+                    put( "ZKSYNCERA", "ZKV2" );
+                    put( "0G", "ZEROGRAVITY" );
+                    put( "MANTLE", "MANTLE" );
+                    put( "CHZ", "CHILIZ" );
+                    put( "BASE", "BASE" );
+                    put( "CELO", "CELO" );
+                    put( "SCROLL", "SCROLL" );
+                    put( "SUI", "SUI" );
+                    put( "DYDX", "DYDX" );
+                    put( "HUMANITY", "HUMANITY" );
+                    put( "HYPER", "HYPEREVM" );
+                    put( "MONAD", "MONAD" );
+                    put( "MOVE", "MOVE" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "ETH", "ERC20" );
                     put( "TRX", "TRC20" );
                     put( "BSC", "BEP20" );
                     put( "OP", "OP" );
+                    put( "MATIC", "MATIC" );
                 }} );
                 put( "defaultNetwork", "ERC20" );
                 put( "defaultNetworks", new java.util.HashMap<String, Object>() {{
@@ -1636,6 +1669,81 @@ public class BybitCore extends BybitApi
             return this.costToPrecision(symbol, cost);
         }
         return cost;
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://bybit-exchange.github.io/docs/v5/system-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchStatus(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object response = (this.publicGetV5SystemStatus(parameters)).join();
+            //
+            //     {
+            //         "retCode": 0,
+            //         "retMsg": "OK",
+            //         "result": {
+            //             "list": [
+            //                 {
+            //                     "id": "f9d6842d-5331-11f0-8fd3-c241b123dd9e",
+            //                     "title": "t01",
+            //                     "state": "completed",
+            //                     "begin": "1751012688000",
+            //                     "end": "1751012760000",
+            //                     "href": "",
+            //                     "serviceTypes": [ 1, 2, 3, 4, 5 ],
+            //                     "product": [ 1, 2, 3, 4 ],
+            //                     "uidSuffix": [],
+            //                     "maintainType": 3,
+            //                     "env": 2
+            //                 }
+            //             ]
+            //         },
+            //         "retExtInfo": {},
+            //         "time": 1751858399649
+            //     }
+            //
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object list = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object status = "ok";
+            Object eta = null;
+            Object url = null;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(list)); i++)
+            {
+                Object eventVar = Helpers.GetValue(list, i);
+                Object state = this.safeString(eventVar, "state");
+                if (Helpers.isTrue(Helpers.isEqual(state, "ongoing")))
+                {
+                    status = "maintenance";
+                    eta = this.safeInteger(eventVar, "end");
+                    url = this.safeString(eventVar, "href");
+                    break;
+                } else if (Helpers.isTrue(Helpers.isEqual(state, "scheduled")))
+                {
+                    eta = this.safeInteger(eventVar, "begin");
+                    url = this.safeString(eventVar, "href");
+                }
+            }
+            final Object finalStatus = status;
+            final Object finalEta = eta;
+            final Object finalUrl = url;
+            return new java.util.HashMap<String, Object>() {{
+                put( "status", finalStatus );
+                put( "updated", null );
+                put( "eta", finalEta );
+                put( "url", finalUrl );
+                put( "info", response );
+            }};
+        });
+
     }
 
     /**
@@ -2756,7 +2864,8 @@ public class BybitCore extends BybitApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object volumeIndex = ((Helpers.isTrue((Helpers.GetValue(market, "inverse"))))) ? 6 : 5;
+        Object isInverse = this.safeBool(market, "inverse");
+        Object volumeIndex = ((Helpers.isTrue((isInverse)))) ? 6 : 5;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
 
@@ -3161,7 +3270,7 @@ public class BybitCore extends BybitApi
             //
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object result = this.safeDict(response, "result");
-            Object resultList = this.safeList(result, "list");
+            Object resultList = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
@@ -3524,7 +3633,7 @@ public class BybitCore extends BybitApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -3726,7 +3835,7 @@ public class BybitCore extends BybitApi
                 Object accountType = this.safeString(entry, "accountType");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(accountType, "UNIFIED")) || Helpers.isTrue(Helpers.isEqual(accountType, "CONTRACT"))) || Helpers.isTrue(Helpers.isEqual(accountType, "SPOT"))))
                 {
-                    Object coins = this.safeList(entry, "coin");
+                    Object coins = this.safeList(entry, "coin", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(coins)); j++)
                     {
                         Object account = this.account();
@@ -7968,11 +8077,11 @@ public class BybitCore extends BybitApi
                 Helpers.addElementToObject(request, "coin", "USDT");
             } else
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "category", ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? "linear" : "inverse");
+                Helpers.addElementToObject(request, "category", ((Helpers.isTrue(this.safeBool(market, "linear")))) ? "linear" : "inverse");
             } else
             {
                 Object type = null;
@@ -8203,10 +8312,10 @@ public class BybitCore extends BybitApi
         Object timestamp = this.safeInteger(interest, "timestamp");
         Object openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
         // the openInterest is in the base asset for linear and quote asset for inverse
-        Object amount = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? openInterest : null;
-        Object value = ((Helpers.isTrue(Helpers.GetValue(market, "inverse")))) ? openInterest : null;
+        Object amount = ((Helpers.isTrue(this.safeBool(market, "linear")))) ? openInterest : null;
+        Object value = ((Helpers.isTrue(this.safeBool(market, "inverse")))) ? openInterest : null;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BybitCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", amount );
             put( "openInterestValue", value );
             put( "timestamp", timestamp );
@@ -9140,7 +9249,7 @@ public class BybitCore extends BybitApi
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             Object sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
     }
@@ -9217,7 +9326,7 @@ public class BybitCore extends BybitApi
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             Object sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
     }
@@ -9762,7 +9871,7 @@ public class BybitCore extends BybitApi
             Object first = this.safeDict(result, 0);
             Object total = Helpers.getArrayLength(result);
             Object lastIndex = Helpers.subtract(total, 1);
-            Object last = this.safeDict(result, lastIndex);
+            Object last = this.safeDict(result, lastIndex, new java.util.HashMap<String, Object>() {{}});
             Object cursorValue = this.safeString(first, "nextPageCursor");
             Helpers.addElementToObject(last, "info", new java.util.HashMap<String, Object>() {{
         put( "nextPageCursor", cursorValue );
@@ -9940,7 +10049,7 @@ final Object finalMarket = market;
             Helpers.addElementToObject(request, "category", type);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -10263,7 +10372,7 @@ final Object finalMarket = market;
             }};
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue((Helpers.isEqual(symbolsLength, 1)))))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -11176,6 +11285,7 @@ final Object finalMarket = market;
             Object brokerId = this.safeString(this.options, "brokerId");
             if (Helpers.isTrue(!Helpers.isEqual(brokerId, null)))
             {
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "Referer", brokerId);
             }
         }

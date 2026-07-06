@@ -1,5 +1,5 @@
 import Exchange from './abstract/hibachi.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
 /**
  * @class hibachi
  * @augments Exchange
@@ -45,7 +45,8 @@ export default class hibachi extends Exchange {
     /**
      * @method
      * @name hibachi#fetchTicker
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+     * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
      * @description fetches a price ticker and the related information for the past 24h
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the hibachi api endpoint
@@ -69,11 +70,12 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchTradingFees
      * @description fetch the trading fee
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    orderMessage(market: any, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price?: Num): Uint8Array;
+    orderMessage(market: any, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price?: Num): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
     createOrderRequest(nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
@@ -161,7 +163,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    encodeWithdrawMessage(amount: number, maxFees: number, address: string): Uint8Array;
+    encodeWithdrawMessage(amount: number, maxFees: number, address: string): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
     /**
      * @method
      * @name hibachi#withdraw
@@ -181,7 +183,7 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchOrderBook
      * @description fetches the state of the open orders on the orderbook
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
      * @param {string} symbol unified symbol of the market
      * @param {int} [limit] currently unused
      * @param {object} [params] extra parameters to be passed -- see documentation link above
@@ -214,8 +216,9 @@ export default class hibachi extends Exchange {
      */
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
+     * @method
      * @name hibachi#fetchOHLCV
-     * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+     * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
      * @description fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -237,11 +240,11 @@ export default class hibachi extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     parseTransactionType(type: any): string;
@@ -263,6 +266,7 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchDepositAddress
      * @description fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+     * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters for API
      * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
@@ -298,7 +302,7 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+     * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -327,7 +331,7 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch

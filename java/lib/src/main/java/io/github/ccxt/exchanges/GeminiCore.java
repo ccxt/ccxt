@@ -440,72 +440,71 @@ public class GeminiCore extends GeminiApi
             //        ]
             //    }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(this.options, "tradingPairs", this.safeList(data, "tradingPairs"));
             Object currenciesArray = this.safeValue(data, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesArray)); i++)
-            {
-                Object currency = Helpers.GetValue(currenciesArray, i);
-                Object id = this.safeString(currency, 0);
-                Object code = this.safeCurrencyCode(id);
-                Object type = ((Helpers.isTrue(this.safeString(currency, 7)))) ? "fiat" : "crypto";
-                Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object networkId = this.safeString(currency, 9);
-                Object networkCode = null;
-                if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
-                {
-                    networkCode = this.networkIdToCode(networkId);
-                    final Object finalNetworkId = networkId;
-                    final Object finalNetworkCode = networkCode;
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "id", finalNetworkId );
-        put( "network", finalNetworkCode );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", precision );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "id", id );
-        put( "code", code );
-        put( "name", GeminiCore.this.safeString(currency, 1) );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "type", type );
-        put( "precision", precision );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(currenciesArray);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, 0);
+        Object code = this.safeCurrencyCode(id);
+        Object type = ((Helpers.isTrue(this.safeString(rawCurrency, 7)))) ? "fiat" : "crypto";
+        Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object networkId = this.safeString(rawCurrency, 9);
+        Object networkCode = null;
+        if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
+        {
+            networkCode = this.networkIdToCode(networkId, code);
+            final Object finalNetworkId = networkId;
+            final Object finalNetworkCode = networkCode;
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", rawCurrency );
+    put( "id", finalNetworkId );
+    put( "network", finalNetworkCode );
+    put( "active", null );
+    put( "deposit", null );
+    put( "withdraw", null );
+    put( "fee", null );
+    put( "precision", precision );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", rawCurrency );
+            put( "id", id );
+            put( "code", code );
+            put( "name", GeminiCore.this.safeString(rawCurrency, 1) );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "type", type );
+            put( "precision", precision );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", networks );
+        }});
     }
 
     /**
@@ -836,7 +835,7 @@ public class GeminiCore extends GeminiApi
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            Object marketIdUpper = ((String)marketId).toUpperCase();
+            Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Object isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
             Object marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
@@ -957,7 +956,7 @@ public class GeminiCore extends GeminiApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1170,8 +1169,8 @@ public class GeminiCore extends GeminiApi
         Object last = this.safeString2(ticker, "last", "close", price);
         Object percentage = this.safeString(ticker, "percentChange24h");
         Object open = this.safeString(ticker, "open");
-        Object baseVolume = this.safeString(volume, baseId);
-        Object quoteVolume = this.safeString(volume, quoteId);
+        Object baseVolume = this.safeString(volume, ((String)baseId));
+        Object quoteVolume = this.safeString(volume, ((String)quoteId));
         final Object finalSymbol = symbol;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
@@ -2135,7 +2134,7 @@ public class GeminiCore extends GeminiApi
             put( "Advanced", "ok" );
             put( "Complete", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
@@ -2181,7 +2180,7 @@ public class GeminiCore extends GeminiApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
+            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, ((String)networkCode)), "currency");
             return this.safeValue(networkGroup, code);
         });
 
@@ -2214,7 +2213,7 @@ public class GeminiCore extends GeminiApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
             }
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "network", networkId );
             }};

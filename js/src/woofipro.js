@@ -5,14 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { ed25519 } from '@noble/curves/ed25519.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/woofipro.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woofipro
@@ -23,13 +23,12 @@ export default class woofipro extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'woofipro',
             'name': 'WOOFI PRO',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
             'pro': true,
             'dex': true,
-            'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -332,8 +331,8 @@ export default class woofipro extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -343,7 +342,7 @@ export default class woofipro extends Exchange {
                         },
                         'hedged': false,
                         'trailing': true,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
@@ -416,29 +415,29 @@ export default class woofipro extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': ExchangeError,
-                    '-1001': AuthenticationError,
-                    '-1002': AuthenticationError,
-                    '-1003': RateLimitExceeded,
-                    '-1004': BadRequest,
-                    '-1005': BadRequest,
-                    '-1006': InvalidOrder,
-                    '-1007': BadRequest,
-                    '-1008': InvalidOrder,
-                    '-1009': InsufficientFunds,
-                    '-1011': NetworkError,
-                    '-1012': BadRequest,
-                    '-1101': InsufficientFunds,
-                    '-1102': InvalidOrder,
-                    '-1103': InvalidOrder,
-                    '-1104': InvalidOrder,
-                    '-1105': InvalidOrder,
-                    '-1201': BadRequest,
-                    '-1202': BadRequest,
-                    '29': BadRequest,
-                    '9': AuthenticationError,
-                    '3': AuthenticationError,
-                    '2': BadRequest,
+                    '-1000': ExchangeError, // UNKNOWN The data does not exist
+                    '-1001': AuthenticationError, // INVALID_SIGNATURE The api key or secret is in wrong format.
+                    '-1002': AuthenticationError, // UNAUTHORIZED API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked.
+                    '-1003': RateLimitExceeded, // TOO_MANY_REQUEST Rate limit exceed.
+                    '-1004': BadRequest, // UNKNOWN_PARAM An unknown parameter was sent.
+                    '-1005': BadRequest, // INVALID_PARAM Some parameters are in wrong format for api.
+                    '-1006': InvalidOrder, // RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
+                    '-1007': BadRequest, // DUPLICATE_REQUEST The data is already exists or your request is duplicated.
+                    '-1008': InvalidOrder, // QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
+                    '-1009': InsufficientFunds, // CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
+                    '-1011': NetworkError, // RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
+                    '-1012': BadRequest, // RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
+                    '-1101': InsufficientFunds, // RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
+                    '-1102': InvalidOrder, // MIN_NOTIONAL The order value (price * size) is too small.
+                    '-1103': InvalidOrder, // PRICE_FILTER The order price is not following the tick size rule for the symbol.
+                    '-1104': InvalidOrder, // SIZE_FILTER The order quantity is not following the step size rule for the symbol.
+                    '-1105': InvalidOrder, // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
+                    '-1201': BadRequest, // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
+                    '-1202': BadRequest, // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
+                    '29': BadRequest, // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9': AuthenticationError, // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3': AuthenticationError, // {"success":false,"code":3,"message":"Signature error"}
+                    '2': BadRequest, // {"success":false,"code":2,"message":"Timestamp expired"}
                     '15': BadRequest, // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 },
                 'broad': {},
@@ -691,61 +690,67 @@ export default class woofipro extends Exchange {
         const indexedChains = this.indexBy(chainRows, 'chain_id');
         for (let i = 0; i < tokenRows.length; i++) {
             const token = tokenRows[i];
-            const currencyId = this.safeString(token, 'token');
-            const networks = this.safeList(token, 'chain_details');
-            const code = this.safeCurrencyCode(currencyId);
-            const resultingNetworks = {};
-            for (let j = 0; j < networks.length; j++) {
-                const networkEntry = networks[j];
-                const networkId = this.safeString(networkEntry, 'chain_id');
-                const networkRow = this.safeDict(indexedChains, networkId);
-                const networkName = this.safeString(networkRow, 'name');
-                const networkCode = this.networkIdToCode(networkName, code);
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'decimals'))),
-                    'info': [networkEntry, networkRow],
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
-                'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
+            const parsed = this.parseCurrency({ '_token': token, '_indexedChains': indexedChains });
+            result[parsed['code']] = parsed;
+        }
+        return result;
+    }
+    parseCurrency(rawCurrency) {
+        const token = this.safeDict(rawCurrency, '_token', {});
+        const currencyId = this.safeString(token, 'token');
+        const networks = this.safeList(token, 'chain_details', []);
+        const code = this.safeCurrencyCode(currencyId);
+        const indexedChains = this.safeDict(rawCurrency, '_indexedChains', {});
+        const resultingNetworks = {};
+        for (let j = 0; j < networks.length; j++) {
+            const networkEntry = networks[j];
+            const networkId = this.safeString(networkEntry, 'chain_id');
+            const networkRow = this.safeDict(indexedChains, networkId);
+            const networkName = this.safeString(networkRow, 'name');
+            const networkCode = this.networkIdToCode(networkName, code);
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(token, 'minimum_withdraw_amount'),
-                        'max': undefined,
-                    },
                 },
-                'info': token,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'decimals'))),
+                'info': { 'network': networkEntry, 'networkRow': networkRow },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(token, 'minimum_withdraw_amount'),
+                    'max': undefined,
+                },
+            },
+            'info': token,
+        });
     }
     parseTokenAndFeeTemp(item, feeTokenKey, feeAmountKey) {
         const feeCost = this.safeString(item, feeAmountKey);
@@ -837,7 +842,9 @@ export default class woofipro extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -938,7 +945,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -972,7 +981,9 @@ export default class woofipro extends Exchange {
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.v1PublicGetPublicFundingRates(params);
         //
@@ -1010,7 +1021,9 @@ export default class woofipro extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1109,7 +1122,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -1169,7 +1184,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientInfo(params);
         //
         // {
@@ -1223,10 +1240,12 @@ export default class woofipro extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1280,7 +1299,9 @@ export default class woofipro extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1409,7 +1430,7 @@ export default class woofipro extends Exchange {
             'symbol': symbol,
             'type': this.parseOrderType(orderType),
             'timeInForce': this.parseTimeInForce(orderType),
-            'postOnly': undefined,
+            'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
@@ -1419,7 +1440,7 @@ export default class woofipro extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': remaining, // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1589,7 +1610,9 @@ export default class woofipro extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -1630,7 +1653,7 @@ export default class woofipro extends Exchange {
             // }
             //
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         data['timestamp'] = this.safeInteger(response, 'timestamp');
         const order = this.parseOrder(data, market);
         order['type'] = type;
@@ -1646,7 +1669,9 @@ export default class woofipro extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1710,7 +1735,9 @@ export default class woofipro extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -1795,13 +1822,15 @@ export default class woofipro extends Exchange {
         if (!trigger && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
@@ -1870,7 +1899,9 @@ export default class woofipro extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
@@ -1908,7 +1939,9 @@ export default class woofipro extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
@@ -1960,7 +1993,9 @@ export default class woofipro extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2038,7 +2073,9 @@ export default class woofipro extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger) ? 100 : 500;
@@ -2129,7 +2166,9 @@ export default class woofipro extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2151,7 +2190,9 @@ export default class woofipro extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'COMPLETED' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2168,7 +2209,9 @@ export default class woofipro extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2216,7 +2259,9 @@ export default class woofipro extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2293,7 +2338,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientHolding(params);
         //
         // {
@@ -2314,7 +2361,9 @@ export default class woofipro extends Exchange {
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2390,7 +2439,7 @@ export default class woofipro extends Exchange {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'BALANCE': 'transaction',
+            'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
         return this.safeString(types, type, type);
@@ -2559,7 +2608,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         if (code !== undefined) {
             code = code.toUpperCase();
@@ -2630,7 +2681,7 @@ export default class woofipro extends Exchange {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2646,7 +2697,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.v1PrivateGetClientInfo(params);
         //
@@ -2690,7 +2743,9 @@ export default class woofipro extends Exchange {
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if ((leverage < 1) || (leverage > 50)) {
             throw new BadRequest(this.id + ' leverage should be between 1 and 50');
         }
@@ -2780,7 +2835,9 @@ export default class woofipro extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2825,7 +2882,9 @@ export default class woofipro extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetPositions(params);
         //
         // {
@@ -2876,8 +2935,7 @@ export default class woofipro extends Exchange {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][access]);
-        url += '/' + version + '/';
+        let url = this.urls['api'][access] + '/' + version + '/';
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         if (access === 'public') {

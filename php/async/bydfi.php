@@ -12,11 +12,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class bydfi extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bydfi',
@@ -188,7 +187,7 @@ class bydfi extends Exchange {
                 'ws' => true,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769',
+                'logo' => 'https://github.com/user-attachments/assets/0e9319dc-b5f5-458b-bcfd-b21b50e162ea',
                 'api' => array(
                     'public' => 'https://api.bydfi.com/api',
                     'private' => 'https://api.bydfi.com/api',
@@ -398,7 +397,7 @@ class bydfi extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bydfi
@@ -408,7 +407,7 @@ class bydfi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->publicGetV1FapiMarketExchangeInfo ($params));
+            $response = Async\await($this->publicGetV1FapiMarketExchangeInfo($params));
             //
             //     {
             //         "code" => "200",
@@ -449,7 +448,7 @@ class bydfi extends Exchange {
             //     }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_markets($data);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -562,7 +561,7 @@ class bydfi extends Exchange {
         ));
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -583,7 +582,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $this->get_closest_limit($limit);
             }
-            $response = Async\await($this->publicGetV1FapiMarketDepth ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketDepth($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -615,7 +614,7 @@ class bydfi extends Exchange {
             $orderBook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
             $orderBook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
             return $orderBook;
-        }) ();
+        })();
     }
 
     public function get_closest_limit(?int $limit): ?int {
@@ -630,7 +629,7 @@ class bydfi extends Exchange {
         return $result;
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -650,9 +649,9 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000);
+                $request['limit'] = min($limit, 1000);
             }
-            $response = Async\await($this->publicGetV1FapiMarketTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketTrades($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -672,10 +671,10 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -715,7 +714,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1FapiTradeHistoryTrade ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradeHistoryTrade($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -744,7 +743,7 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -822,7 +821,7 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -873,7 +872,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetV1FapiMarketKlines ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketKlines($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -895,7 +894,7 @@ class bydfi extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -920,7 +919,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -932,7 +931,7 @@ class bydfi extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetV1FapiMarketTicker24hr ($params));
+            $response = Async\await($this->publicGetV1FapiMarketTicker24hr($params));
             //
             //     {
             //         "code" => 200,
@@ -953,10 +952,10 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($data, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -972,11 +971,11 @@ class bydfi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV1FapiMarketTicker24hr ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketTicker24hr($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             $ticker = $this->safe_dict($data, 0, array());
             return $this->parse_ticker($ticker, $market);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1022,7 +1021,7 @@ class bydfi extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -1038,7 +1037,7 @@ class bydfi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV1FapiMarketFundingRate ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketFundingRate($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1054,7 +1053,7 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_funding_rate($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -1092,7 +1091,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -1125,7 +1124,7 @@ class bydfi extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->publicGetV1FapiMarketFundingRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketFundingRateHistory($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1143,7 +1142,7 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_funding_rate_histories($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate_history($contract, ?array $market = null) {
@@ -1166,7 +1165,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1199,7 +1198,7 @@ class bydfi extends Exchange {
             $wallet = 'W001';
             list($wallet, $params) = $this->handle_option_and_params($params, 'createOrder', 'wallet', $wallet);
             $orderRequest = $this->extend($orderRequest, array( 'wallet' => $wallet ));
-            $response = Async\await($this->privatePostV1FapiTradePlaceOrder ($orderRequest));
+            $response = Async\await($this->privatePostV1FapiTradePlaceOrder($orderRequest));
             //
             //     {
             //         "code" => 200,
@@ -1232,10 +1231,10 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1345,7 +1344,7 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $workingType, $workingType);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders
@@ -1380,13 +1379,13 @@ class bydfi extends Exchange {
                 'wallet' => $wallet,
                 'orders' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV1FapiTradeBatchPlaceOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeBatchPlaceOrder($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1409,13 +1408,13 @@ class bydfi extends Exchange {
             $wallet = 'W001';
             list($wallet, $params) = $this->handle_option_and_params($params, 'editOrder', 'wallet', $wallet);
             $request['wallet'] = $wallet;
-            $response = Async\await($this->privatePostV1FapiTradeEditOrder ($request));
+            $response = Async\await($this->privatePostV1FapiTradeEditOrder($request));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
-        }) ();
+        })();
     }
 
-    public function edit_orders(array $orders, $params = array ()): PromiseInterface {
+    public function edit_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(function () use ($orders, $params) {
             /**
              * edit a list of trade $orders
@@ -1450,13 +1449,13 @@ class bydfi extends Exchange {
                 'wallet' => $wallet,
                 'editOrders' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV1FapiTradeBatchEditOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeBatchEditOrder($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data);
-        }) ();
+        })();
     }
 
-    public function create_edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function create_edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
@@ -1478,7 +1477,7 @@ class bydfi extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -1501,7 +1500,7 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privatePostV1FapiTradeCancelAllOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeCancelAllOrder($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1536,10 +1535,10 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1566,7 +1565,6 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = null;
             $trigger = false;
             list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'trigger', $trigger);
             if (!$trigger) {
@@ -1602,16 +1600,16 @@ class bydfi extends Exchange {
                 //         "success" => true
                 //     }
                 //
-                $response = Async\await($this->privateGetV1FapiTradeOpenOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetV1FapiTradePlanOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradePlanOrder($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open $order by the $id
@@ -1644,21 +1642,20 @@ class bydfi extends Exchange {
             $wallet = 'W001';
             list($wallet, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'wallet', $wallet);
             $request['wallet'] = $wallet;
-            $response = null;
             $trigger = false;
             list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'trigger', $trigger);
             if (!$trigger) {
-                $response = Async\await($this->privateGetV1FapiTradeOpenOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetV1FapiTradePlanOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradePlanOrder($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             $order = $this->safe_dict($data, 0, array());
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled and closed orders made by the user
@@ -1698,7 +1695,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1FapiTradeHistoryOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradeHistoryOrder($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1746,10 +1743,10 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function handle_since_and_until(string $methodName, ?int $since = null, $params = array ()): array {
+    public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
         $until = null;
         list($until, $params) = $this->handle_option_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
@@ -1932,7 +1929,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -1957,13 +1954,13 @@ class bydfi extends Exchange {
                 'leverage' => $leverage,
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privatePostV1FapiTradeLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeLeverage($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             return $data;
-        }) ();
+        })();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -1986,7 +1983,7 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privateGetV1FapiTradeLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradeLeverage($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2001,7 +1998,7 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_leverage($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -2015,7 +2012,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2034,7 +2031,7 @@ class bydfi extends Exchange {
             $request = array(
                 'contractType' => $contractType,
             );
-            $response = Async\await($this->privateGetV1FapiTradePositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositions($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2059,10 +2056,10 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_positions($data, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_positions_for_symbol(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch open positions for a single $market
@@ -2083,10 +2080,10 @@ class bydfi extends Exchange {
                 'contractType' => $contractType,
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetV1FapiTradePositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositions($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
-            return $this->parse_positions($data, [ $market['symbol'] ]);
-        }) ();
+            return $this->parse_positions($data, array( $market['symbol'] ));
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2202,7 +2199,7 @@ class bydfi extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical $positions
@@ -2230,16 +2227,16 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1FapiTradePositionHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositionHistory($this->extend($request, $params)));
             //
             //
             $data = $this->safe_list($response, 'data', array());
             $positions = $this->parse_positions($data);
             return $this->filter_by_since_limit($positions, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * fetches historical $positions
@@ -2265,7 +2262,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1FapiTradePositionHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositionHistory($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2311,10 +2308,10 @@ class bydfi extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $positions = $this->parse_positions($data, $symbols);
             return $this->filter_by_since_limit($positions, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_margin_mode(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches the margin mode of a trading pair
@@ -2338,7 +2335,7 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privateGetV1FapiUserDataAssetsMargin ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiUserDataAssetsMargin($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2353,7 +2350,7 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_margin_mode($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
@@ -2365,7 +2362,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -2398,11 +2395,11 @@ class bydfi extends Exchange {
                 'marginType' => strtoupper($marginMode),
                 'wallet' => $wallet,
             );
-            return Async\await($this->privatePostV1FapiUserDataMarginType ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->privatePostV1FapiUserDataMarginType($this->extend($request, $params)));
+        })();
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a market, $hedged for bydfi is set identically for all markets with same settle currency
@@ -2441,11 +2438,11 @@ class bydfi extends Exchange {
             //         "success" => true
             //     }
             //
-            return Async\await($this->privatePostV1FapiUserDataPositionSideDual ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->privatePostV1FapiUserDataPositionSideDual($this->extend($request, $params)));
+        })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, $hedged or one way, $hedged for bydfi is set identically for all markets with same settle currency
@@ -2476,7 +2473,7 @@ class bydfi extends Exchange {
                 'settleCoin' => $settleCoin,
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privateGetV1FapiUserDataPositionSideDual ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiUserDataPositionSideDual($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2500,10 +2497,10 @@ class bydfi extends Exchange {
                 'info' => $response,
                 'hedged' => $hedged,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2523,7 +2520,6 @@ class bydfi extends Exchange {
             $wallet = null;
             list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet');
             $request = array();
-            $response = null;
             if ($wallet === null) {
                 $options = $this->safe_dict($this->options, 'accountsByType', array());
                 $parsedAccountType = $this->safe_string_upper($options, $type, $type);
@@ -2544,7 +2540,7 @@ class bydfi extends Exchange {
                 //         "success" => true
                 //     }
                 //
-                $response = Async\await($this->privateGetV1AccountAssets ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1AccountAssets($this->extend($request, $params)));
             } else {
                 $request['wallet'] = $wallet;
                 //
@@ -2575,11 +2571,11 @@ class bydfi extends Exchange {
                 //         ),
                 //         "success" => true
                 //     }
-                $response = Async\await($this->privateGetV1FapiAccountBalance ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiAccountBalance($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_balance($data);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -2601,7 +2597,7 @@ class bydfi extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -2626,7 +2622,7 @@ class bydfi extends Exchange {
                 'fromType' => $fromId,
                 'toType' => $toId,
             );
-            $response = Async\await($this->privatePostV1AccountTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1AccountTransfer($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2647,10 +2643,10 @@ class bydfi extends Exchange {
                 $transfer['amount'] = $amount;
             }
             return $transfer;
-        }) ();
+        })();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -2693,7 +2689,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['rows'] = $limit;
             }
-            $response = Async\await($this->privateGetV1AccountTransferRecords ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1AccountTransferRecords($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2715,7 +2711,7 @@ class bydfi extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_transfers($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2769,7 +2765,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2783,10 +2779,10 @@ class bydfi extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_helper('deposit', $code, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2800,7 +2796,7 @@ class bydfi extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params));
-        }) ();
+        })();
     }
 
     public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
@@ -2850,7 +2846,6 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = null;
             if ($type === 'deposit') {
                 //
                 //     {
@@ -2873,12 +2868,12 @@ class bydfi extends Exchange {
                 //         "success" => true
                 //     }
                 //
-                $response = Async\await($this->privateGetV1SpotDepositRecords ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1SpotDepositRecords($this->extend($request, $params)));
             } else {
                 //
                 // todo check after withdrawal
                 //
-                $response = Async\await($this->privateGetV1SpotWithdrawRecords ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1SpotWithdrawRecords($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             $transactionParams = array(
@@ -2886,7 +2881,7 @@ class bydfi extends Exchange {
             );
             $params = $this->extend($params, $transactionParams);
             return $this->parse_transactions($data, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2923,7 +2918,7 @@ class bydfi extends Exchange {
             'txid' => $this->safe_string($transaction, 'txId'),
             'type' => null,
             'currency' => $code,
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status($rawStatus),
             'timestamp' => $timestamp,
@@ -2950,7 +2945,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api];
         $endpoint = '/' . $path;
         $query = '';

@@ -44,7 +44,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bigone.fetchCurrencies ([params])
+bigone.fetchCurrencies (params?)
 ```
 
 
@@ -64,7 +64,7 @@ retrieves data on all markets for bigone
 
 
 ```javascript
-bigone.fetchMarkets ([params])
+bigone.fetchMarkets (params?)
 ```
 
 
@@ -85,7 +85,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bigone.fetchTicker (symbol[, params])
+bigone.fetchTicker (symbol, params?)
 ```
 
 
@@ -106,7 +106,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bigone.fetchTickers ([symbols, params])
+bigone.fetchTickers (symbols?, params?)
 ```
 
 
@@ -126,7 +126,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bigone.fetchTime ([params])
+bigone.fetchTime (params?)
 ```
 
 
@@ -136,7 +136,7 @@ bigone.fetchTime ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bigone</code>](#bigone)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot  
 
@@ -148,7 +148,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bigone.fetchOrderBook (symbol[, limit, params])
+bigone.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -171,7 +171,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bigone.fetchTrades (symbol[, since, limit, params])
+bigone.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -196,7 +196,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bigone.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bigone.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -220,7 +220,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bigone.fetchBalance ([params])
+bigone.fetchBalance (params?)
 ```
 
 
@@ -242,7 +242,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bigone.createMarketBuyOrderWithCost (symbol, cost[, params])
+bigone.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -273,7 +273,7 @@ create a trade order
 
 
 ```javascript
-bigone.createOrder (symbol, type, side, amount[, price, params])
+bigone.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -295,7 +295,7 @@ cancels an open order
 
 
 ```javascript
-bigone.cancelOrder (id, symbol[, params])
+bigone.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -316,7 +316,7 @@ cancel all open orders
 
 
 ```javascript
-bigone.cancelAllOrders (symbol[, params])
+bigone.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -338,7 +338,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bigone.fetchOrder (id, symbol[, params])
+bigone.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -361,7 +361,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bigone.fetchOrders (symbol[, since, limit, params])
+bigone.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -384,7 +384,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bigone.fetchMyTrades (symbol[, since, limit, params])
+bigone.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -407,7 +407,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bigone.fetchOpenOrders (symbol[, since, limit, params])
+bigone.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -430,7 +430,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bigone.fetchClosedOrders (symbol[, since, limit, params])
+bigone.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -451,7 +451,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bigone.fetchDepositAddress (code[, params])
+bigone.fetchDepositAddress (code, params?)
 ```
 
 
@@ -474,7 +474,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bigone.fetchDeposits (code[, since, limit, params])
+bigone.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -497,7 +497,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bigone.fetchWithdrawals (code[, since, limit, params])
+bigone.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -521,7 +521,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bigone.transfer (code, amount, fromAccount, toAccount[, params])
+bigone.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -545,6 +545,6 @@ make a withdrawal
 
 
 ```javascript
-bigone.withdraw (code, amount, address, tag[, params])
+bigone.withdraw (code, amount, address, tag, params?)
 ```
 

@@ -92,7 +92,7 @@ public class DeltaCore extends DeltaApi
                 put( "reduceMargin", true );
                 put( "setLeverage", true );
                 put( "setMargin", false );
-                put( "setMarginMode", false );
+                put( "setMarginMode", true );
                 put( "setPositionMode", false );
                 put( "transfer", false );
                 put( "withdraw", false );
@@ -133,9 +133,9 @@ public class DeltaCore extends DeltaApi
                     put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings")) );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "heartbeat", "deposits/address")) );
+                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "rate_limits/quota", "heartbeat", "deposits/address")) );
                     put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage")) );
-                    put( "put", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp")) );
+                    put( "put", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp", "users/margin_mode")) );
                     put( "delete", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/all", "orders/batch")) );
                 }} );
             }} );
@@ -527,69 +527,68 @@ public class DeltaCore extends DeltaApi
             //     }
             //
             Object currencies = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
-            {
-                Object currency = Helpers.GetValue(currencies, i);
-                Object id = this.safeString(currency, "symbol");
-                Object numericId = this.safeInteger(currency, "id");
-                Object code = this.safeCurrencyCode(id);
-                Object chains = this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "network");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "name", DeltaCore.this.safeString(chain, "name") );
-        put( "info", chain );
-        put( "active", Helpers.isEqual(DeltaCore.this.safeString(chain, "status"), "enabled") );
-        put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(chain, "deposit_status"), "enabled") );
-        put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(chain, "withdrawal_status"), "enabled") );
-        put( "fee", DeltaCore.this.safeNumber(chain, "base_withdrawal_fee") );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", DeltaCore.this.safeNumber(chain, "min_deposit_amount") );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", DeltaCore.this.safeNumber(chain, "min_withdrawal_amount") );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "numericId", numericId );
-        put( "code", code );
-        put( "name", DeltaCore.this.safeString(currency, "name") );
-        put( "info", currency );
-        put( "active", null );
-        put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(currency, "deposit_status"), "enabled") );
-        put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(currency, "withdrawal_status"), "enabled") );
-        put( "fee", DeltaCore.this.safeNumber(currency, "base_withdrawal_fee") );
-        put( "precision", DeltaCore.this.parseNumber(DeltaCore.this.parsePrecision(DeltaCore.this.safeString(currency, "precision"))) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", DeltaCore.this.safeNumber(currency, "min_withdrawal_amount") );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", networks );
-        put( "type", "crypto" );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(currencies);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "symbol");
+        Object numericId = this.safeInteger(rawCurrency, "id");
+        Object code = this.safeCurrencyCode(id);
+        Object chains = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "network");
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "name", DeltaCore.this.safeString(chain, "name") );
+    put( "info", chain );
+    put( "active", Helpers.isEqual(DeltaCore.this.safeString(chain, "status"), "enabled") );
+    put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(chain, "deposit_status"), "enabled") );
+    put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(chain, "withdrawal_status"), "enabled") );
+    put( "fee", DeltaCore.this.safeNumber(chain, "base_withdrawal_fee") );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", DeltaCore.this.safeNumber(chain, "min_deposit_amount") );
+            put( "max", null );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", DeltaCore.this.safeNumber(chain, "min_withdrawal_amount") );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "numericId", numericId );
+            put( "code", code );
+            put( "name", DeltaCore.this.safeString(rawCurrency, "name") );
+            put( "info", rawCurrency );
+            put( "active", null );
+            put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(rawCurrency, "deposit_status"), "enabled") );
+            put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(rawCurrency, "withdrawal_status"), "enabled") );
+            put( "fee", DeltaCore.this.safeNumber(rawCurrency, "base_withdrawal_fee") );
+            put( "precision", DeltaCore.this.parseNumber(DeltaCore.this.parsePrecision(DeltaCore.this.safeString(rawCurrency, "precision"))) );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", DeltaCore.this.safeNumber(rawCurrency, "min_withdrawal_amount") );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", networks );
+            put( "type", "crypto" );
+        }});
     }
 
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... optionalArgs)
@@ -928,7 +927,7 @@ public class DeltaCore extends DeltaApi
                     put( "settleId", settleId );
                     put( "type", finalType );
                     put( "spot", spot );
-                    put( "margin", ((Helpers.isTrue(spot))) ? null : false );
+                    put( "margin", false );
                     put( "swap", finalSwap );
                     put( "future", finalFuture );
                     put( "option", option );
@@ -1444,7 +1443,7 @@ public class DeltaCore extends DeltaApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2835,11 +2834,12 @@ public class DeltaCore extends DeltaApi
         Object address = this.safeString(depositAddress, "address");
         Object marketId = this.safeString(depositAddress, "asset_symbol");
         Object networkId = this.safeString(depositAddress, "network");
+        Object code = this.safeCurrencyCode(marketId, currency);
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", DeltaCore.this.safeCurrencyCode(marketId, currency) );
-            put( "network", DeltaCore.this.networkIdToCode(networkId) );
+            put( "currency", code );
+            put( "network", DeltaCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "tag", DeltaCore.this.safeString(depositAddress, "memo") );
         }};
@@ -3540,7 +3540,7 @@ public class DeltaCore extends DeltaApi
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(result, market);
             Object sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
     }
@@ -3774,7 +3774,7 @@ public class DeltaCore extends DeltaApi
             put( "bidPrice", DeltaCore.this.safeNumber(quotes, "best_bid") );
             put( "askPrice", DeltaCore.this.safeNumber(quotes, "best_ask") );
             put( "markPrice", DeltaCore.this.safeNumber(greeks, "mark_price") );
-            put( "lastPrice", null );
+            put( "lastPrice", DeltaCore.this.safeNumber(greeks, "last_price") );
             put( "underlyingPrice", DeltaCore.this.safeNumber(greeks, "spot_price") );
             put( "info", greeks );
         }};
@@ -3919,6 +3919,35 @@ public class DeltaCore extends DeltaApi
 
     /**
      * @method
+     * @name delta#setMarginMode
+     * @description set margin mode to 'isolated' or 'portfolio'
+     * @see https://docs.delta.exchange/#change-margin-mode
+     * @param {string} marginMode 'isolated' or 'portfolio'
+     * @param {string} [symbol] not used by delta.setMarginMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.subaccount_user_id the user id of the subaccount
+     * @returns {object} response from the exchange
+     */
+    public java.util.concurrent.CompletableFuture<Object> setMarginMode(Object marginMode, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("isolated", "portfolio")));
+            Object subaccountUserId = this.safeString(parameters, "subaccount_user_id");
+            this.checkRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]");
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "margin_mode", marginMode );
+            }};
+            return (this.privatePutUsersMarginMode(this.extend(request, parameters))).join();
+        });
+
+    }
+
+    /**
+     * @method
      * @name delta#fetchOption
      * @description fetches option data that is commonly found in an option chain
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
@@ -4056,7 +4085,7 @@ public class DeltaCore extends DeltaApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", chain );
-            put( "currency", null );
+            put( "currency", DeltaCore.this.safeString(chain, "currency") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", DeltaCore.this.iso8601(timestamp) );
@@ -4066,12 +4095,12 @@ public class DeltaCore extends DeltaApi
             put( "askPrice", DeltaCore.this.safeNumber(quotes, "best_ask") );
             put( "midPrice", DeltaCore.this.safeNumber(quotes, "impact_mid_price") );
             put( "markPrice", DeltaCore.this.safeNumber(chain, "mark_price") );
-            put( "lastPrice", null );
+            put( "lastPrice", DeltaCore.this.safeNumber(chain, "last_price") );
             put( "underlyingPrice", DeltaCore.this.safeNumber(chain, "spot_price") );
-            put( "change", null );
-            put( "percentage", null );
+            put( "change", DeltaCore.this.safeNumber(chain, "change") );
+            put( "percentage", DeltaCore.this.safeNumber(chain, "percentage") );
             put( "baseVolume", DeltaCore.this.safeNumber(chain, "volume") );
-            put( "quoteVolume", null );
+            put( "quoteVolume", DeltaCore.this.safeNumber(chain, "quote_volume") );
         }};
     }
 
@@ -4457,7 +4486,7 @@ public class DeltaCore extends DeltaApi
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object headers = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object requestPath = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), requestPath);

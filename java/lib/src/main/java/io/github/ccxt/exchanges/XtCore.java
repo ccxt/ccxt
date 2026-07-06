@@ -128,7 +128,7 @@ public class XtCore extends XtApi
             }} );
             put( "precisionMode", TICK_SIZE );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg" );
+                put( "logo", "https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://sapi.xt.com" );
                     put( "linear", "https://fapi.xt.com" );
@@ -513,11 +513,10 @@ public class XtCore extends XtApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "ERC20", "Ethereum" );
                     put( "TRC20", "Tron" );
+                    put( "TRX", "Tron" );
                     put( "BEP20", "BNB Smart Chain" );
                     put( "BEP2", "BNB-BEP2" );
                     put( "ETH", "Ethereum" );
-                    put( "TRON", "Tron" );
-                    put( "BNB", "BNB Smart Chain" );
                     put( "AVAX", "AVAX C-Chain" );
                     put( "GAL", "GAL(FT)" );
                     put( "ALEO", "ALEO(IOU)" );
@@ -1562,7 +1561,8 @@ public class XtCore extends XtApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object volumeIndex = ((Helpers.isTrue((Helpers.GetValue(market, "inverse"))))) ? "v" : "a";
+        Object isInverse = this.safeBool(market, "inverse");
+        Object volumeIndex = ((Helpers.isTrue((isInverse)))) ? "v" : "a";
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)));
     }
 

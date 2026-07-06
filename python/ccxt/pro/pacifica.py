@@ -392,7 +392,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int|None [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.setup_api_key_headers()
         await self.load_markets()
@@ -403,7 +403,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'source': 'book',
@@ -424,7 +424,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int|None [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -435,7 +435,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'source': 'book',
@@ -485,7 +485,7 @@ class pacifica(ccxt.async_support.pacifica):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         levels = self.safe_list(entry, 'l', [])
-        result: dict = {
+        result = {
             'bids': self.safe_list(levels, 0, []),
             'asks': self.safe_list(levels, 1, []),
         }
@@ -532,7 +532,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'source': 'prices',
@@ -560,7 +560,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'source': 'prices',
@@ -591,7 +591,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'source': 'account_trades',
@@ -624,7 +624,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'source': 'account_trades',
@@ -701,7 +701,7 @@ class pacifica(ccxt.async_support.pacifica):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
-        symbols: dict = {}
+        symbols = {}
         data = self.safe_list(message, 'data', [])
         dataLength = len(data)
         if dataLength == 0:
@@ -739,7 +739,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'source': 'trades',
@@ -770,7 +770,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'source': 'trades',
@@ -911,7 +911,7 @@ class pacifica(ccxt.async_support.pacifica):
         parsedTf = self.safe_string(self.timeframes, timeframe, timeframe)
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'source': 'candle',
@@ -943,7 +943,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'source': 'candle',
@@ -1016,7 +1016,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'source': 'account_order_updates',
@@ -1049,7 +1049,7 @@ class pacifica(ccxt.async_support.pacifica):
         url = self.urls[urlKey]['ws']['public']
         userAddress = None
         userAddress, params = self.handleOriginAndSingleAddress('unWatchOrders', params)
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'source': 'account_order_updates',
@@ -1096,7 +1096,7 @@ class pacifica(ccxt.async_support.pacifica):
             return
         stored = self.orders
         messageHash = 'order'
-        marketSymbols: dict = {}
+        marketSymbols = {}
         for i in range(0, len(data)):
             rawOrder = data[i]
             order = self.parse_order(rawOrder)
@@ -1243,7 +1243,7 @@ class pacifica(ccxt.async_support.pacifica):
             return
         postType = self.safe_string(message, 'type', None)
         topic = self.safe_string(message, 'channel', '')
-        methods: dict = {
+        methods = {
             'pong': self.handle_pong,
             'trades': self.handle_trades,
             'book': self.handle_order_book,

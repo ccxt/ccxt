@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hollaex$1 = require('./abstract/hollaex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -176,8 +176,8 @@ class hollaex extends hollaex$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -198,7 +198,7 @@ class hollaex extends hollaex$1["default"] {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -217,8 +217,8 @@ class hollaex extends hollaex$1["default"] {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -226,9 +226,9 @@ class hollaex extends hollaex$1["default"] {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -491,66 +491,63 @@ class hollaex extends hollaex$1["default"] {
         //     }
         //
         const coins = this.safeDict(response, 'coins', {});
-        const keys = Object.keys(coins);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = coins[key];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const withdrawalLimits = this.safeList(currency, 'withdrawal_limits', []);
-            const rawType = this.safeString(currency, 'type');
-            const type = (rawType === 'blockchain') ? 'crypto' : 'other';
-            const rawNetworks = this.safeDict(currency, 'withdrawal_fees', {});
-            const networks = {};
-            const networkIds = Object.keys(rawNetworks);
-            for (let j = 0; j < networkIds.length; j++) {
-                const networkId = networkIds[j];
-                const networkEntry = this.safeDict(rawNetworks, networkId);
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': this.safeBool(networkEntry, 'active'),
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber(networkEntry, 'value'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'info': networkEntry,
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'numericId': this.safeInteger(currency, 'id'),
-                'code': code,
-                'info': currency,
-                'name': this.safeString(currency, 'fullname'),
-                'active': this.safeBool(currency, 'active'),
-                'deposit': this.safeBool(currency, 'allow_deposit'),
-                'withdraw': this.safeBool(currency, 'allow_withdrawal'),
-                'fee': this.safeNumber(currency, 'withdrawal_fee'),
-                'precision': this.safeNumber(currency, 'increment_unit'),
+        const values = Object.values(coins);
+        return this.parseCurrencies(values);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const withdrawalLimits = this.safeList(rawCurrency, 'withdrawal_limits', []);
+        const rawType = this.safeString(rawCurrency, 'type');
+        const type = (rawType === 'blockchain') ? 'crypto' : 'other';
+        const rawNetworks = this.safeDict(rawCurrency, 'withdrawal_fees', {});
+        const networks = {};
+        const networkIds = Object.keys(rawNetworks);
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
+            const networkEntry = this.safeDict(rawNetworks, networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': this.safeBool(networkEntry, 'active'),
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(networkEntry, 'value'),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'min'),
-                        'max': this.safeNumber(currency, 'max'),
-                    },
                     'withdraw': {
                         'min': undefined,
-                        'max': this.safeValue(withdrawalLimits, 0),
+                        'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': type,
-            });
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'numericId': this.safeInteger(rawCurrency, 'id'),
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString(rawCurrency, 'fullname'),
+            'active': this.safeBool(rawCurrency, 'active'),
+            'deposit': this.safeBool(rawCurrency, 'allow_deposit'),
+            'withdraw': this.safeBool(rawCurrency, 'allow_withdrawal'),
+            'fee': this.safeNumber(rawCurrency, 'withdrawal_fee'),
+            'precision': this.safeNumber(rawCurrency, 'increment_unit'),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(rawCurrency, 'min'),
+                    'max': this.safeNumber(rawCurrency, 'max'),
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': this.safeValue(withdrawalLimits, 0),
+                },
+            },
+            'networks': networks,
+            'type': type,
+        });
     }
     /**
      * @method
@@ -563,7 +560,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetOrderbooks(params);
         const result = {};
         const marketIds = Object.keys(response);
@@ -584,10 +583,12 @@ class hollaex extends hollaex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -626,7 +627,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -655,7 +658,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetTickers(params);
         //
@@ -755,7 +760,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -843,7 +850,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTiers(params);
         //
         //     {
@@ -908,7 +917,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -997,7 +1008,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetUserBalance(params);
         //
         //     {
@@ -1024,7 +1037,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1100,7 +1115,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1145,7 +1162,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
         // 'symbol': market['id'],
@@ -1292,7 +1311,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1354,7 +1375,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1387,7 +1410,9 @@ class hollaex extends hollaex$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         market = this.market(symbol);
@@ -1422,7 +1447,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'symbol': market['id'],
         // 'limit': 50, // default 50, max 100
@@ -1502,7 +1529,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddresses(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const network = this.safeString(params, 'network');
         params = this.omit(params, 'network');
         const response = await this.privateGetUser(params);
@@ -1567,7 +1596,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'currency': currency['id'],
         // 'limit': 50, // default 50, max 100
@@ -1626,7 +1657,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawal(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'transaction_id': id,
         };
@@ -1675,7 +1708,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'currency': currency['id'],
         // 'limit': 50, // default 50, max 100
@@ -1839,7 +1874,9 @@ class hollaex extends hollaex$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if (tag !== undefined) {
             address += ':' + tag;
@@ -2010,7 +2047,7 @@ class hollaex extends hollaex$1["default"] {
                     auth += body;
                 }
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             headers['api-signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

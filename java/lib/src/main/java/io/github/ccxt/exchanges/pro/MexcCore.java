@@ -829,7 +829,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -1523,6 +1523,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
         {
             parsed = this.parseWsOrder(data, market);
+            Object sendTime = this.safeInteger(message, "sendTime");
+            if (Helpers.isTrue(!Helpers.isEqual(sendTime, null)))
+            {
+                Helpers.addElementToObject(parsed, "lastTradeTimestamp", sendTime);
+            }
         } else
         {
             parsed = this.parseOrder(data, market);
@@ -2069,7 +2074,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {

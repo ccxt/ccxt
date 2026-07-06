@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, TradingFeeInterface } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -16,11 +16,11 @@ export default class mexc extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: any;
-        updated: any;
+        status: string;
+        updated: number;
         url: any;
         eta: any;
-        info: any;
+        info: Dict;
     }>;
     /**
      * @method
@@ -41,6 +41,7 @@ export default class mexc extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name mexc#fetchMarkets
@@ -80,10 +81,10 @@ export default class mexc extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
+    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
     /**
      * @method
      * @name mexc#fetchTrades
@@ -201,7 +202,7 @@ export default class mexc extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;
+    createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): any;
     /**
      * @ignore
      * @method
@@ -218,7 +219,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
+    createSpotOrder(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @ignore
      * @method
@@ -247,7 +248,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSwapOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
+    createSwapOrder(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name mexc#createOrders
@@ -587,7 +588,7 @@ export default class mexc extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatusByType(status: any, type?: any): string;
+    parseTransactionStatusByType(status: any, type?: Str): string;
     /**
      * @method
      * @name mexc#fetchPosition
@@ -707,7 +708,7 @@ export default class mexc extends Exchange {
         deposit: {};
         info: any;
     }>;
-    parseTransactionFees(response: any, codes?: any): {
+    parseTransactionFees(response: any, codes?: Strings): {
         withdraw: Dict;
         deposit: {};
         info: any;
@@ -735,7 +736,7 @@ export default class mexc extends Exchange {
      */
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
+    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): [any, Dict];
     /**
      * @method
      * @name mexc#fetchPositionsHistory
@@ -766,11 +767,11 @@ export default class mexc extends Exchange {
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

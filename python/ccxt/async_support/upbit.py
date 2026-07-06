@@ -299,7 +299,7 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_currency_by_id(self, id: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
-        request: dict = {
+        request = {
             'currency': id,
         }
         response = await self.privateGetWithdrawsChance(self.extend(request, params))
@@ -393,7 +393,7 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_market_by_id(self, id: str, params={}):
         # self method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
-        request: dict = {
+        request = {
             'market': id,
         }
         response = await self.privateGetOrdersChance(self.extend(request, params))
@@ -573,7 +573,7 @@ class upbit(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -629,11 +629,13 @@ class upbit(Exchange, ImplicitAPI):
         await self.load_markets()
         ids = None
         if symbols is None:
-            ids = ','.join(self.ids)
+            allIds = self.ids
+            if allIds is not None:
+                ids = ','.join(allIds)
         else:
-            ids = self.market_ids(symbols)
-            ids = ','.join(ids)
-        request: dict = {
+            marketIds = self.market_ids(symbols)
+            ids = ','.join(marketIds)
+        request = {
             'markets': ids,
             # 'count': limit,
         }
@@ -668,7 +670,7 @@ class upbit(Exchange, ImplicitAPI):
         #                               "ask_size": 2.752,
         #                               "bid_size": 0.4650305}    ]}   ]
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(response)):
             orderbook = response[i]
             marketId = self.safe_string(orderbook, 'market')
@@ -676,8 +678,8 @@ class upbit(Exchange, ImplicitAPI):
             timestamp = self.safe_integer(orderbook, 'timestamp')
             result[symbol] = {
                 'symbol': symbol,
-                'bids': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
-                'asks': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
+                'bids': self.sort_by(self.parse_order_book_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
+                'asks': self.sort_by(self.parse_order_book_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'nonce': None,
@@ -694,7 +696,7 @@ class upbit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbooks = await self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
@@ -920,7 +922,7 @@ class upbit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 200
-        request: dict = {
+        request = {
             'market': market['id'],
             'count': limit,
         }
@@ -962,7 +964,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.privateGetOrdersChance(self.extend(request, params))
@@ -1023,9 +1025,9 @@ class upbit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         fetchMarketResponse = await self.fetch_markets(params)
-        response: dict = {}
+        response = {}
         for i in range(0, len(fetchMarketResponse)):
-            element: dict = {}
+            element = {}
             element['maker'] = self.safe_number(fetchMarketResponse[i], 'maker')
             element['taker'] = self.safe_number(fetchMarketResponse[i], 'taker')
             element['symbol'] = self.safe_string(fetchMarketResponse[i], 'symbol')
@@ -1080,12 +1082,12 @@ class upbit(Exchange, ImplicitAPI):
         timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         if limit is None:
             limit = 200
-        request: dict = {
+        request = {
             'market': market['id'],
             'timeframe': timeframeValue,
             'count': limit,
         }
-        response = None
+        response: List
         if since is not None:
             # convert `since` to `to` value
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
@@ -1185,7 +1187,7 @@ class upbit(Exchange, ImplicitAPI):
             orderSide = 'ask'
         else:
             raise InvalidOrder(self.id + ' createOrder() supports only buy or sell in the side argument.')
-        request: dict = {
+        request = {
             'market': market['id'],
             'side': orderSide,
             # 'smp_type': selfTradePrevention,
@@ -1229,7 +1231,7 @@ class upbit(Exchange, ImplicitAPI):
                 request['time_in_force'] = timeInForce
         if request['ord_type'] == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
-        response = None
+        response: dict
         params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
         if test:
             response = await self.privatePostOrdersTest(self.extend(request, params))
@@ -1270,7 +1272,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'uuid': id,
         }
         response = await self.privateDeleteOrder(self.extend(request, params))
@@ -1318,7 +1320,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         prevClientOrderId = self.safe_string(params, 'clientOrderId')
         customType = self.safe_string_2(params, 'newOrdType', 'new_ord_type')
         clientOrderId = self.safe_string(params, 'newClientOrderId')
@@ -1398,7 +1400,7 @@ class upbit(Exchange, ImplicitAPI):
         #     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  # new order data
         #     new_order_identifier: '22'                               # new order data
         #   }
-        result: dict = {}
+        result = {}
         result['uuid'] = self.safe_string(response, 'new_order_uuid')
         result['identifier'] = self.safe_string(response, 'new_order_identifier')
         result['side'] = self.safe_string(response, 'side')
@@ -1419,7 +1421,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             # 'page': 1,
             # 'order_by': 'asc',  # 'desc'
         }
@@ -1462,7 +1464,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'uuid': id,
         }
         currency = None
@@ -1501,7 +1503,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             # 'state': 'submitting',  # 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         }
         currency = None
@@ -1544,7 +1546,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'uuid': id,
         }
         currency = None
@@ -1570,7 +1572,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
             'almost_accepted': 'pending',  # 출금대기중
@@ -1649,7 +1651,7 @@ class upbit(Exchange, ImplicitAPI):
         }
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -1822,7 +1824,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1869,7 +1871,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'state': 'done',
         }
         market = None
@@ -1922,7 +1924,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'state': 'cancel',
         }
         market = None
@@ -1973,7 +1975,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'uuid': id,
         }
         response = await self.privateGetOrder(self.extend(request, params))
@@ -2074,7 +2076,7 @@ class upbit(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': code,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': tag,
         }
@@ -2124,7 +2126,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         # https://github.com/ccxt/ccxt/issues/6452
@@ -2166,10 +2168,10 @@ class upbit(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'amount': amount,
         }
-        response = None
+        response: dict
         if code != 'KRW':
             self.check_address(address)
             # 2023-05-23 Change to required parameters for digital assets
@@ -2205,7 +2207,7 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
@@ -2218,7 +2220,7 @@ class upbit(Exchange, ImplicitAPI):
             self.check_required_credentials()
             headers = {}
             nonce = self.uuid()
-            request: dict = {
+            request = {
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }

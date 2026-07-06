@@ -82,7 +82,7 @@ public class CryptomusCore extends CryptomusApi
                 put( "fetchConvertTradeHistory", false );
                 put( "fetchCrossBorrowRate", false );
                 put( "fetchCrossBorrowRates", false );
-                put( "fetchCurrencies", false );
+                put( "fetchCurrencies", true );
                 put( "fetchDepositAddress", false );
                 put( "fetchDeposits", false );
                 put( "fetchDepositsWithdrawals", false );
@@ -160,7 +160,7 @@ public class CryptomusCore extends CryptomusApi
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{}} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7" );
+                put( "logo", "https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.cryptomus.com" );
                     put( "private", "https://api.cryptomus.com" );
@@ -423,50 +423,58 @@ public class CryptomusCore extends CryptomusApi
             //
             Object coins = this.safeList(response, "result");
             Object groupedById = this.groupBy(coins, "currency_code");
-            Object keys = Helpers.objectKeys(groupedById);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-            {
-                Object id = Helpers.GetValue(keys, i);
-                Object code = this.safeCurrencyCode(id);
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object networkEntries = Helpers.GetValue(groupedById, id);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkEntries)); j++)
-                {
-                    Object networkEntry = Helpers.GetValue(networkEntries, j);
-                    Object networkId = this.safeString(networkEntry, "network_code");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", CryptomusCore.this.safeNumber(networkEntry, "min_withdraw") );
-                put( "max", CryptomusCore.this.safeNumber(networkEntry, "max_withdraw") );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", CryptomusCore.this.safeNumber(networkEntry, "min_deposit") );
-                put( "max", CryptomusCore.this.safeNumber(networkEntry, "max_deposit") );
-            }} );
-        }} );
-        put( "active", null );
-        put( "deposit", CryptomusCore.this.safeBool(networkEntry, "can_withdraw") );
-        put( "withdraw", CryptomusCore.this.safeBool(networkEntry, "can_deposit") );
-        put( "fee", null );
-        put( "precision", null );
-        put( "info", networkEntry );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "code", code );
-        put( "networks", networks );
-        put( "info", networkEntries );
-    }}));
-            }
-            return result;
+            Object groupedArray = Helpers.objectValues(groupedById);
+            return this.parseCurrencies(groupedArray);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        // currency here is array of networks
+        Object id = null; // all entried have same id, as they were grouped by
+        Object code = null;
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)
+        {
+            Object networkEntry = Helpers.GetValue(rawCurrency, i);
+            // set ID on first loop
+            if (Helpers.isTrue(Helpers.isEqual(id, null)))
+            {
+                id = this.safeString(networkEntry, "currency_code");
+                code = this.safeCurrencyCode(id);
+            }
+            Object networkId = this.safeString(networkEntry, "network_code");
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", CryptomusCore.this.safeNumber(networkEntry, "min_withdraw") );
+            put( "max", CryptomusCore.this.safeNumber(networkEntry, "max_withdraw") );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", CryptomusCore.this.safeNumber(networkEntry, "min_deposit") );
+            put( "max", CryptomusCore.this.safeNumber(networkEntry, "max_deposit") );
+        }} );
+    }} );
+    put( "active", null );
+    put( "deposit", CryptomusCore.this.safeBool(networkEntry, "can_deposit") );
+    put( "withdraw", CryptomusCore.this.safeBool(networkEntry, "can_withdraw") );
+    put( "fee", null );
+    put( "precision", null );
+    put( "info", networkEntry );
+}});
+        }
+        final Object finalId = id;
+        final Object finalCode = code;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", finalId );
+            put( "code", finalCode );
+            put( "networks", networks );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**
@@ -554,7 +562,7 @@ public class CryptomusCore extends CryptomusApi
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -663,7 +671,7 @@ public class CryptomusCore extends CryptomusApi
             put( "id", CryptomusCore.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
             put( "datetime", CryptomusCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", CryptomusCore.this.safeString(market, "symbol") );
             put( "side", CryptomusCore.this.safeString(trade, "type") );
             put( "price", CryptomusCore.this.safeString(trade, "price") );
             put( "amount", CryptomusCore.this.safeString(trade, "quote_volume") );
@@ -1148,7 +1156,7 @@ public class CryptomusCore extends CryptomusApi
             put( "expired", "expired" );
             put( "failed", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -1223,9 +1231,14 @@ public class CryptomusCore extends CryptomusApi
             Object feeTiers = this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object tiers = this.parseFeeTiers(feeTiers);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                return result;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            {
+                Object symbol = Helpers.GetValue(symbols, i);
                 final Object finalMakerFee = makerFee;
                 final Object finalTakerFee = takerFee;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{

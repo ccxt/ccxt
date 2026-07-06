@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.64'
 
 # ----------------------------------------------------------------------------
 
@@ -60,8 +60,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.pro.aftermath import aftermath                                  # noqa: F401
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
-from ccxt.pro.arkham import arkham                                        # noqa: F401
-from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
@@ -88,7 +86,6 @@ from ccxt.pro.bybiteu import bybiteu                                      # noqa
 from ccxt.pro.bydfi import bydfi                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
-from ccxt.pro.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
 from ccxt.pro.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.pro.coinbaseinternational import coinbaseinternational          # noqa: F401
 from ccxt.pro.coincheck import coincheck                                  # noqa: F401
@@ -100,32 +97,33 @@ from ccxt.pro.deribit import deribit                                      # noqa
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
+from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
-from ccxt.pro.gateio import gateio                                        # noqa: F401
+from ccxt.pro.gateeu import gateeu                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.grvt import grvt                                            # noqa: F401
 from ccxt.pro.hashkey import hashkey                                      # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.htx import htx                                              # noqa: F401
-from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.kucoineu import kucoineu                                    # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.lighter import lighter                                      # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
+from ccxt.pro.mudrex import mudrex                                        # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.okxus import okxus                                          # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
-from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
 from ccxt.pro.pacifica import pacifica                                    # noqa: F401
 from ccxt.pro.paradex import paradex                                      # noqa: F401
@@ -143,8 +141,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -171,7 +167,6 @@ exchanges = [
     'bydfi',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
@@ -183,32 +178,33 @@ exchanges = [
     'derive',
     'dydx',
     'exmo',
+    'extended',
     'gate',
-    'gateio',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',
     'luno',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
     'ndax',
     'okx',
     'okxus',
     'onetrading',
-    'oxfun',
     'p2b',
     'pacifica',
     'paradex',

@@ -137,7 +137,7 @@ public partial class apex : ccxt.apex
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object topic = this.safeString(message, "topic");
         object trades = data;
-        object parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 2);
         object market = this.safeMarket(marketId, null, null);
         object symbol = getValue(market, "symbol");
@@ -207,7 +207,7 @@ public partial class apex : ccxt.apex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -223,7 +223,7 @@ public partial class apex : ccxt.apex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -381,7 +381,7 @@ public partial class apex : ccxt.apex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, 0, 1);
+        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -432,9 +432,9 @@ public partial class apex : ccxt.apex
         object messageHashes = new List<object>() {};
         object url = this.getWsPublicUrl();
         object topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            object symbol = getValue((IList<string>)(symbols), i);
             object market = this.market(symbol);
             object topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
@@ -478,7 +478,7 @@ public partial class apex : ccxt.apex
         object updateType = this.safeString(message, "type", "");
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object symbol = null;
-        object parsed = null;
+        object parsed = this.parseTicker(data);
         if (isTrue((isEqual(updateType, "snapshot"))))
         {
             parsed = this.parseTicker(data);
@@ -498,9 +498,9 @@ public partial class apex : ccxt.apex
         object timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         ((IDictionary<string,object>)parsed)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsed)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = parsed;
         object messageHash = add("ticker:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
     }
 
     /**
@@ -546,7 +546,7 @@ public partial class apex : ccxt.apex
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
-            object market = this.market(symbolString);
+            object market = this.market(((string)symbolString));
             symbolString = getValue(market, "id2");
             object unfiedTimeframe = this.safeString(data, 1, "1");
             object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -591,7 +591,7 @@ public partial class apex : ccxt.apex
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object topic = this.safeString(message, "topic");
-        object topicParts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        object topicParts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object topicLength = getArrayLength(topicParts);
         object timeframeId = this.safeString(topicParts, 1);
         object timeframe = this.findTimeframe(timeframeId);
@@ -604,12 +604,12 @@ public partial class apex : ccxt.apex
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), ((string)timeframe)))))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object parsed = this.parseWsOHLCV(getValue(data, i));
@@ -688,10 +688,10 @@ public partial class apex : ccxt.apex
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object messageHash = "";
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!isTrue(this.isEmpty((IList<object>)(symbols))))
         {
             symbols = this.marketSymbols(symbols);
-            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = add("::", String.Join(",", ((IList<object>)(IList<string>)(symbols)).ToArray()));
         }
         object url = this.getWsPrivateUrl();
         messageHash = add("positions", messageHash);
@@ -774,10 +774,9 @@ public partial class apex : ccxt.apex
         for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(lists, i);
-            object parsed = null;
-            parsed = this.parseWsTrade(rawTrade);
+            object parsed = this.parseWsTrade(rawTrade);
             object symbol = getValue(parsed, "symbol");
-            ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }
         object keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -831,10 +830,9 @@ public partial class apex : ccxt.apex
         object symbols = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
-            object parsed = null;
-            parsed = this.parseOrder(getValue(lists, i));
+            object parsed = this.parseOrder(getValue(lists, i));
             object symbol = getValue(parsed, "symbol");
-            ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(orders, "append", new object[] {parsed});
         }
         object symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);

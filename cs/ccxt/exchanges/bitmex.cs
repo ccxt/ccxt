@@ -101,7 +101,7 @@ public partial class bitmex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchVolatilityHistory", false },
-                { "index", true },
+                { "index", false },
                 { "reduceMargin", null },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -124,7 +124,7 @@ public partial class bitmex : Exchange
                     { "public", "https://testnet.bitmex.com" },
                     { "private", "https://testnet.bitmex.com" },
                 } },
-                { "logo", "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04" },
+                { "logo", "https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://www.bitmex.com" },
                     { "private", "https://www.bitmex.com" },
@@ -464,7 +464,7 @@ public partial class bitmex : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "asset");
-            object network = this.networkIdToCode(networkId);
+            object network = this.networkIdToCode(networkId, code);
             object withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
@@ -718,7 +718,75 @@ public partial class bitmex : Exchange
         //        "settledPriceAdjustmentRate": null,
         //        "settledPrice": null,
         //        "timestamp": "2022-01-14T17:49:55.000Z"
-        //    }
+        //    },
+        //
+        //    other kind of markets have extra fields
+        //
+        //    {
+        //     "symbol": "XBTUSD-XBTU26",
+        //     "rootSymbol": "XBT",
+        //     "instrumentID": "3059",
+        //     "state": "Open",
+        //     "typ": "FFMCSX",
+        //     "listing": "2026-06-10T08:00:00.000Z",
+        //     "front": "2026-06-10T08:00:00.000Z",
+        //     "expiry": "2026-09-25T12:00:00.000Z",
+        //     "settle": "2026-09-25T12:00:00.000Z",
+        //     "positionCurrency": "USD",
+        //     "underlying": "XBT",
+        //     "quoteCurrency": "USD",
+        //     "underlyingSymbol": "XBT=",
+        //     "referenceSymbol": "XBTUSD",
+        //     "maxOrderQty": "10000000",
+        //     "minPrice": "-1000000",
+        //     "maxPrice": "1000000",
+        //     "lotSize": "100",
+        //     "tickSize": "0.5",
+        //     "multiplier": "1",
+        //     "settlCurrency": "XBt",
+        //     "underlyingToSettleMultiplier": "-100000000",
+        //     "isQuanto": false,
+        //     "isInverse": false,
+        //     "taxed": true,
+        //     "deleverage": true,
+        //     "makerFee": "0.0005",
+        //     "takerFee": "0.0005",
+        //     "limitDownPrice": null,
+        //     "limitUpPrice": null,
+        //     "prevTotalVolume": "300",
+        //     "totalVolume": "300",
+        //     "volume": "0",
+        //     "volume24h": "200",
+        //     "prevTotalTurnover": "460833",
+        //     "totalTurnover": "460833",
+        //     "turnover": "0",
+        //     "turnover24h": "298516",
+        //     "homeNotional24h": "0",
+        //     "foreignNotional24h": "0",
+        //     "prevPrice24h": "0",
+        //     "vwap": "577.5",
+        //     "highPrice": "577.5",
+        //     "lowPrice": "0",
+        //     "lastPrice": "577.5",
+        //     "lastPriceProtected": "577.5",
+        //     "lastTickDirection": "ZeroPlusTick",
+        //     "lastChangePcnt": "0",
+        //     "bidPrice": "566.5",
+        //     "midPrice": "567.25",
+        //     "askPrice": "568",
+        //     "hasLiquidity": false,
+        //     "openInterest": "0",
+        //     "openValue": "0",
+        //     "instantPnl": false,
+        //     "timestamp": "2026-06-17T05:22:50.000Z",
+        //     "capped": false,
+        //     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        //     "farLegSymbol": "XBTU26",
+        //     "nearLegSymbol": "XBTUSD",
+        //     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        //     "pool": "Primary",
+        //     "referencePrice": "65728"
+        //     }
         //  ]
         //
         return this.parseMarkets(response);
@@ -746,7 +814,7 @@ public partial class bitmex : Exchange
         {
             type = "spot";
             spot = true;
-        } else if (isTrue(isEqual(typ, "FFCCSX")))
+        } else if (isTrue(isTrue(isEqual(typ, "FFCCSX")) || isTrue(isEqual(typ, "FFMCSX"))))
         {
             type = "future";
             future = true;
@@ -783,15 +851,14 @@ public partial class bitmex : Exchange
             if (isTrue(linear))
             {
                 object multiplierString = this.safeString2(market, "underlyingToPositionMultiplier", "underlyingToSettleMultiplier");
-                contractSize = this.parseNumber(Precise.stringDiv("1", multiplierString));
+                contractSize = Precise.stringAbs(Precise.stringDiv("1", multiplierString));
             } else
             {
-                object multiplierString = Precise.stringAbs(this.safeString(market, "multiplier"));
-                contractSize = this.parseNumber(multiplierString);
+                contractSize = Precise.stringAbs(this.safeString(market, "multiplier"));
             }
-            expiryDatetime = this.safeString(market, "expiry");
+            expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
-            if (isTrue(!isEqual(expiry, null)))
+            if (isTrue(isTrue(!isEqual(expiry, null)) && isTrue(future)))
             {
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
@@ -835,7 +902,7 @@ public partial class bitmex : Exchange
             { "quanto", isQuanto },
             { "taker", this.safeNumber(market, "takerFee") },
             { "maker", this.safeNumber(market, "makerFee") },
-            { "contractSize", contractSize },
+            { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", expiryDatetime },
             { "strike", this.safeNumber(market, "optionStrikePrice") },
@@ -1008,7 +1075,7 @@ public partial class bitmex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1785,7 +1852,7 @@ public partial class bitmex : Exchange
             // so the previous close becomes the current open, and we drop the first candle
             for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
-                ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(getValue(getValue(result, i), 0), duration);
+                ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(getValue(result, i), 0)), duration);
             }
         }
         return result;

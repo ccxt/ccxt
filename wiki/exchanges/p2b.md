@@ -35,7 +35,7 @@ retrieves data on all markets for bigone
 
 
 ```javascript
-p2b.fetchMarkets ([params])
+p2b.fetchMarkets (params?)
 ```
 
 
@@ -56,7 +56,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-p2b.fetchTickers (symbols[, params])
+p2b.fetchTickers (symbols, params?)
 ```
 
 
@@ -77,7 +77,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-p2b.fetchTicker (symbol[, params])
+p2b.fetchTicker (symbol, params?)
 ```
 
 
@@ -87,7 +87,7 @@ p2b.fetchTicker (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result  
 
@@ -100,7 +100,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-p2b.fetchOrderBook (symbol[, limit, params])
+p2b.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -124,7 +124,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-p2b.fetchTrades (symbol[, since, limit, params])
+p2b.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -149,7 +149,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-p2b.fetchOHLCV (symbol, timeframe[, since, limit, params])
+p2b.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -169,7 +169,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-p2b.fetchBalance ([params])
+p2b.fetchBalance (params?)
 ```
 
 
@@ -194,7 +194,7 @@ create a trade order
 
 
 ```javascript
-p2b.createOrder (symbol, type, side, amount, price[, params])
+p2b.createOrder (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -216,7 +216,7 @@ cancels an open order
 
 
 ```javascript
-p2b.cancelOrder (id, symbol[, params])
+p2b.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -240,7 +240,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-p2b.fetchOpenOrders (symbol[, since, limit, params])
+p2b.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -265,7 +265,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-p2b.fetchOrderTrades (id, symbol[, since, limit, params])
+p2b.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -290,7 +290,7 @@ fetch all trades made by the user, only the transaction records in the past 3 mo
 
 
 ```javascript
-p2b.fetchMyTrades (symbol[, since, limit, params])
+p2b.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -315,6 +315,6 @@ fetches information on multiple closed orders made by the user, the time between
 
 
 ```javascript
-p2b.fetchClosedOrders (symbol[, since, limit, params])
+p2b.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 

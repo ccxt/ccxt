@@ -89,7 +89,7 @@ public class BittradeCore extends BittradeApi
                 put( "1y", "1year" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg" );
+                put( "logo", "https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "market", "https://{hostname}" );
                     put( "public", "https://{hostname}" );
@@ -372,7 +372,6 @@ public class BittradeCore extends BittradeApi
                     put( "HECO", "hrc20" );
                     put( "HT", "hrc20" );
                     put( "ALGO", "algo" );
-                    put( "OMNI", "" );
                 }} );
                 put( "fetchOrdersByStatesMethod", "private_get_order_orders" );
                 put( "fetchOpenOrdersMethod", "fetch_open_orders_v1" );
@@ -741,7 +740,7 @@ public class BittradeCore extends BittradeApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

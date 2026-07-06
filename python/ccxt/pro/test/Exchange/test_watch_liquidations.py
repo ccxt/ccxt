@@ -29,7 +29,7 @@ async def test_watch_liquidations(exchange, skipped_properties, symbol):
         m2 = (exchange.id + ' does not support ' + method + '() method')
         print(m2)
         return False
-    response = None
+    response = []
     now = int(time.time() * 1000)
     ends = now + 10000
     while now < ends:

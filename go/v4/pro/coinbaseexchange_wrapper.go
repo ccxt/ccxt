@@ -117,6 +117,16 @@ func (this *Coinbaseexchange) WatchTrades(symbol string, options ...ccxt.WatchTr
     }
     return ccxt.NewTradeArray(res), nil
 }
+/**
+ * @method
+ * @name coinbaseexchange#watchTradesForSymbols
+ * @description get the list of most recent trades for a particular symbol
+ * @param {string[]} symbols unified symbol of the market to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ */
 func (this *Coinbaseexchange) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
 
     opts := ccxt.WatchTradesForSymbolsOptionsStruct{}
@@ -314,7 +324,7 @@ func (this *Coinbaseexchange) WatchOrders(options ...ccxt.WatchOrdersOptions) ([
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coinbaseexchange) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
 
@@ -346,7 +356,7 @@ func (this *Coinbaseexchange) WatchOrderBookForSymbols(symbols []string, options
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coinbaseexchange) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 

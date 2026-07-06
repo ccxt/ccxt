@@ -31,7 +31,7 @@ public class TestFetchTickers extends BaseTest {
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object method = "fetchTickers";
         Object response = (exchange.fetchTickers(argSymbols, argParams)).join();
-        Assert(((true)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+        Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dict. "), exchange.json(response)));
         Object values = Helpers.objectValues(response);
         Object checkedSymbol = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))

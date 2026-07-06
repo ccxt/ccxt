@@ -1,8 +1,6 @@
-- [Watch Many Orderbooks](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- 
 'use strict';
 
 import ccxt from '../../js/ccxt.js';
@@ -31,5 +29,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

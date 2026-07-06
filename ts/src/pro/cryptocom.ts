@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -82,7 +82,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -97,7 +97,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
@@ -113,13 +113,15 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         if (!limit) {
             limit = 50;
         }
@@ -127,13 +129,13 @@ export default class cryptocom extends cryptocomRest {
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        let bookSubscriptionType = undefined;
-        let bookSubscriptionType2 = undefined;
+        let bookSubscriptionType: Str = undefined;
+        let bookSubscriptionType2: Str = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         params['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        let bookUpdateFrequency = undefined;
-        let bookUpdateFrequency2 = undefined;
+        let bookUpdateFrequency: Str = undefined;
+        let bookUpdateFrequency2: Str = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
@@ -161,26 +163,28 @@ export default class cryptocom extends cryptocomRest {
      * @param {int} [params.limit] orderbook limit, default is 50
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const subMessageHashes = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
         const limit = this.safeInteger (params, 'limit', 50);
         const topicParams = this.safeValue (params, 'params');
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        let bookSubscriptionType = undefined;
-        let bookSubscriptionType2 = undefined;
+        let bookSubscriptionType: Str = undefined;
+        let bookSubscriptionType2: Str = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         params['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        let bookUpdateFrequency = undefined;
-        let bookUpdateFrequency2 = undefined;
+        let bookUpdateFrequency: Str = undefined;
+        let bookUpdateFrequency2: Str = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
@@ -346,9 +350,11 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        const topics = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -374,10 +380,12 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -448,8 +456,10 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -473,7 +483,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'ticker' + '.' + market['id'];
         return await this.watchPublic (messageHash, params);
@@ -489,7 +501,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const subMessageHash = 'ticker' + '.' + market['id'];
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
@@ -506,9 +520,11 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         const marketIds = this.marketIds (symbols);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -542,10 +558,12 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const subMessageHashes = [];
+        const messageHashes: string[] = [];
+        const subMessageHashes: string[] = [];
         const marketIds = this.marketIds (symbols);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -652,10 +670,12 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         const marketIds = this.marketIds (symbols);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -720,7 +740,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -743,7 +765,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -800,8 +824,10 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -879,7 +905,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const id = this.nonce ();
@@ -976,7 +1004,7 @@ export default class cryptocom extends cryptocomRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1072,7 +1100,9 @@ export default class cryptocom extends cryptocomRest {
         }
         client.resolve (this.balance, messageHash);
         const messageHashRequest = this.safeString (message, 'id');
-        client.resolve (this.balance, messageHashRequest);
+        if (messageHashRequest !== undefined) {
+            client.resolve (this.balance, messageHashRequest);
+        }
     }
 
     /**
@@ -1089,7 +1119,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         params = this.createOrderRequest (symbol, type, side, amount, price, params);
         const request: Dict = {
             'method': 'private/create-order',
@@ -1115,7 +1147,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         params = this.editOrderRequest (id, symbol, amount, price, params);
         const request: Dict = {
             'method': 'private/amend-order',
@@ -1154,7 +1188,9 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         params = this.extend ({
             'order_id': id,
         }, params);
@@ -1176,8 +1212,10 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         const request: Dict = {
             'method': 'private/cancel-all-orders',
             'params': this.extend ({}, params),

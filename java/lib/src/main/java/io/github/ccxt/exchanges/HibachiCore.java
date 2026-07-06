@@ -127,39 +127,43 @@ public class HibachiCore extends HibachiApi
                 put( "1w", "1w" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973" );
+                put( "logo", "https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://data-api.hibachi.xyz" );
                     put( "private", "https://api.hibachi.xyz" );
                 }} );
                 put( "www", "https://www.hibachi.xyz/" );
                 put( "referral", new java.util.HashMap<String, Object>() {{
-                    put( "url", "hibachi.xyz/r/ZBL2YFWIHU" );
+                    put( "url", "https://hibachi.xyz/r/ZBL2YFWIHU" );
                 }} );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "market/exchange-info", 1 );
-                        put( "market/data/trades", 1 );
+                        put( "market/inventory", 1 );
                         put( "market/data/prices", 1 );
                         put( "market/data/stats", 1 );
+                        put( "market/data/trades", 1 );
                         put( "market/data/klines", 1 );
-                        put( "market/data/orderbook", 1 );
                         put( "market/data/open-interest", 1 );
+                        put( "market/data/orderbook", 1 );
                         put( "market/data/funding-rates", 1 );
                         put( "exchange/utc-timestamp", 1 );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "capital/deposit-info", 1 );
+                        put( "capital/balance", 1 );
                         put( "capital/history", 1 );
-                        put( "trade/account/trading_history", 1 );
+                        put( "capital/deposit-info", 1 );
                         put( "trade/account/info", 1 );
-                        put( "trade/order", 1 );
                         put( "trade/account/trades", 1 );
+                        put( "trade/account/trading_history", 1 );
+                        put( "trade/account/settlements_history", 1 );
                         put( "trade/orders", 1 );
+                        put( "trade/order", 1 );
+                        put( "trade/orders/history", 1 );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
                         put( "trade/order", 1 );
@@ -172,6 +176,8 @@ public class HibachiCore extends HibachiApi
                         put( "trade/order", 1 );
                         put( "trade/orders", 1 );
                         put( "capital/withdraw", 1 );
+                        put( "capital/transfer", 1 );
+                        put( "trade/account/leverage", 1 );
                     }} );
                 }} );
             }} );
@@ -317,7 +323,7 @@ public class HibachiCore extends HibachiApi
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", HibachiCore.this.parseNumber(HibachiCore.this.parsePrecision(HibachiCore.this.safeString(market, "underlyingDecimals"))) );
-                put( "price", Helpers.divide(HibachiCore.this.parseNumber(Helpers.GetValue(HibachiCore.this.safeList(market, "orderbookGranularities"), 0)), 10000) );
+                put( "price", Helpers.divide(HibachiCore.this.parseNumber(HibachiCore.this.safeValue(HibachiCore.this.safeList(market, "orderbookGranularities", new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0)), 10000) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -659,7 +665,8 @@ public class HibachiCore extends HibachiApi
     /**
      * @method
      * @name hibachi#fetchTicker
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+     * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
      * @description fetches a price ticker and the related information for the past 24h
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the hibachi api endpoint
@@ -833,6 +840,7 @@ public class HibachiCore extends HibachiApi
      * @method
      * @name hibachi#fetchTradingFees
      * @description fetch the trading fee
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -918,6 +926,7 @@ public class HibachiCore extends HibachiApi
             Object priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             Object price16 = this.intToBase16(this.parseToInt(priceInternal));
             Object pricePadded = Helpers.padStart((String)price16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
         Object message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
@@ -1057,7 +1066,7 @@ public class HibachiCore extends HibachiApi
             // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
             //
             Object ret = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders");
+            Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseOrders)); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1172,7 +1181,7 @@ public class HibachiCore extends HibachiApi
             // { "orders": [ { "orderId": "589636801329628160" } ] }
             //
             Object ret = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders");
+            Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseOrders)); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1266,7 +1275,7 @@ public class HibachiCore extends HibachiApi
             // { "orders": [ { "orderId": "589636801329628160" } ] }
             //
             Object ret = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders");
+            Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseOrders)); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1460,7 +1469,7 @@ public class HibachiCore extends HibachiApi
      * @method
      * @name hibachi#fetchOrderBook
      * @description fetches the state of the open orders on the orderbook
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
      * @param {string} symbol unified symbol of the market
      * @param {int} [limit] currently unused
      * @param {object} [params] extra parameters to be passed -- see documentation link above
@@ -1665,8 +1674,9 @@ public class HibachiCore extends HibachiApi
     }
 
     /**
+     * @method
      * @name hibachi#fetchOHLCV
-     * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+     * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
      * @description fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -2131,6 +2141,7 @@ public class HibachiCore extends HibachiApi
      * @method
      * @name hibachi#fetchDepositAddress
      * @description fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+     * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters for API
      * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
@@ -2252,7 +2263,7 @@ public class HibachiCore extends HibachiApi
             //         },
             //     ]
             // }
-            Object transactions = this.safeList(response, "transactions");
+            Object transactions = this.safeList(response, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object deposits = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
             {
@@ -2323,7 +2334,7 @@ public class HibachiCore extends HibachiApi
             //         },
             //     ]
             // }
-            Object transactions = this.safeList(response, "transactions");
+            Object transactions = this.safeList(response, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object withdrawals = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
             {
@@ -2342,7 +2353,7 @@ public class HibachiCore extends HibachiApi
      * @method
      * @name hibachi#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+     * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -2464,7 +2475,7 @@ public class HibachiCore extends HibachiApi
      * @method
      * @name hibachi#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -2498,7 +2509,7 @@ public class HibachiCore extends HibachiApi
             //     ]
             // }
             //
-            Object data = this.safeList(response, "data");
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {

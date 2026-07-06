@@ -8,7 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -151,7 +151,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # public
         #    {
@@ -198,7 +198,7 @@ class apex(ccxt.async_support.apex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -211,7 +211,7 @@ class apex(ccxt.async_support.apex):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbolsLength = len(symbols)
@@ -248,7 +248,7 @@ class apex(ccxt.async_support.apex):
                 newTopicsCount = newTopicsCount + 1
         message = None
         if newTopicsCount > 0:
-            request: dict = {
+            request = {
                 'op': 'subscribe',
                 'args': newTopics,
             }
@@ -334,7 +334,7 @@ class apex(ccxt.async_support.apex):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -375,8 +375,8 @@ class apex(ccxt.async_support.apex):
         messageHashes = []
         url = self.get_ws_public_url()
         topics = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len((symbols))):
+            symbol = (symbols)[i]
             market = self.market(symbol)
             topic = 'instrumentInfo' + '.H.' + market['id2']
             topics.append(topic)
@@ -384,7 +384,7 @@ class apex(ccxt.async_support.apex):
             messageHashes.append(messageHash)
         ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -415,7 +415,7 @@ class apex(ccxt.async_support.apex):
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_dict(message, 'data', {})
         symbol = None
-        parsed = None
+        parsed = self.parse_ticker(data)
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
             symbol = parsed['symbol']
@@ -597,7 +597,7 @@ class apex(ccxt.async_support.apex):
         messageHash = ''
         if not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
-            messageHash = '::' + ','.join(symbols)
+            messageHash = '::' + ','.join((symbols))
         url = self.get_ws_private_url()
         messageHash = 'positions' + messageHash
         client = self.client(url)
@@ -660,10 +660,9 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(lists)):
             rawTrade = lists[i]
-            parsed = None
             parsed = self.parse_ws_trade(rawTrade)
             symbol = parsed['symbol']
             symbols[symbol] = True
@@ -710,9 +709,8 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(lists)):
-            parsed = None
             parsed = self.parse_order(lists[i])
             symbol = parsed['symbol']
             symbols[symbol] = True
@@ -922,7 +920,7 @@ class apex(ccxt.async_support.apex):
         if self.handle_error_message(client, message):
             return
         topic = self.safe_string_2(message, 'topic', 'op', '')
-        methods: dict = {
+        methods = {
             'ws_zk_accounts_v3': self.handle_account,
             'orderBook': self.handle_order_book,
             'depth': self.handle_order_book,

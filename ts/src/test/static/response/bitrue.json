@@ -392,7 +392,7 @@
                         "precision": null,
                         "type": "crypto",
                         "name": "Tether USDt",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0.11,
@@ -413,7 +413,7 @@
                                 "network": "OMNI",
                                 "deposit": false,
                                 "withdraw": false,
-                                "active": false,
+                                "active": null,
                                 "fee": 1.28,
                                 "precision": null,
                                 "limits": {
@@ -438,7 +438,7 @@
                                 "network": "AVAXC",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -463,7 +463,7 @@
                                 "network": "ERC20",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1.2,
                                 "precision": null,
                                 "limits": {
@@ -488,7 +488,7 @@
                                 "network": "TRC20",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -513,7 +513,7 @@
                                 "network": "Polygon",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -538,7 +538,7 @@
                                 "network": "BSC",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 0.11,
                                 "precision": null,
                                 "limits": {
@@ -563,7 +563,7 @@
                                 "network": "SOL",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -588,7 +588,7 @@
                                 "network": "Arbitrum",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -613,7 +613,7 @@
                                 "network": "OPTIMISM",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -638,7 +638,7 @@
                                 "network": "NEAR",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -663,7 +663,7 @@
                                 "network": "TON",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -688,7 +688,7 @@
                                 "network": "SCROLL",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -713,7 +713,7 @@
                                 "network": "KAIA",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -738,7 +738,7 @@
                                 "network": "XPL",
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -763,7 +763,7 @@
                                 "network": "MON",
                                 "deposit": false,
                                 "withdraw": false,
-                                "active": false,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -788,7 +788,7 @@
                                 "network": "Stable",
                                 "deposit": true,
                                 "withdraw": false,
-                                "active": false,
+                                "active": null,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {

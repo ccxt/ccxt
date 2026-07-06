@@ -189,7 +189,7 @@ public class BydfiCore extends BydfiApi
                 put( "ws", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769" );
+                put( "logo", "https://github.com/user-attachments/assets/0e9319dc-b5f5-458b-bcfd-b21b50e162ea" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.bydfi.com/api" );
                     put( "private", "https://api.bydfi.com/api" );
@@ -3395,7 +3395,7 @@ public class BydfiCore extends BydfiApi
             put( "txid", BydfiCore.this.safeString(transaction, "txId") );
             put( "type", null );
             put( "currency", code );
-            put( "network", BydfiCore.this.networkIdToCode(BydfiCore.this.safeString(transaction, "network")) );
+            put( "network", BydfiCore.this.networkIdToCode(BydfiCore.this.safeString(transaction, "network"), code) );
             put( "amount", BydfiCore.this.safeNumber(transaction, "amount") );
             put( "status", BydfiCore.this.parseTransactionStatus(rawStatus) );
             put( "timestamp", timestamp );

@@ -445,7 +445,7 @@ public class BitbankCore extends BitbankApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -787,7 +787,7 @@ public class BitbankCore extends BitbankApi
             put( "CANCELED_UNFILLED", "canceled" );
             put( "CANCELED_PARTIALLY_FILLED", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -889,7 +889,7 @@ public class BitbankCore extends BitbankApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -942,7 +942,7 @@ public class BitbankCore extends BitbankApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -997,7 +997,7 @@ public class BitbankCore extends BitbankApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1334,7 +1334,7 @@ public class BitbankCore extends BitbankApi
                 put( "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." );
             }};
             Object code = this.safeString(data, "code");
-            Object message = this.safeString(errorMessages, code, "Error");
+            Object message = this.safeString(errorMessages, ((String)code), "Error");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, message);
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }

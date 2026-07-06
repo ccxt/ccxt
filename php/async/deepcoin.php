@@ -13,12 +13,11 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\NullResponse;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class deepcoin extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'deepcoin',
@@ -370,7 +369,7 @@ class deepcoin extends Exchange {
         ));
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), $defaultValue = null): mixed {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), $defaultValue = null): mixed {
         $instType = $this->safe_string($params, 'instType');
         $params = $this->omit($params, 'instType');
         $type = $this->safe_string($params, 'type');
@@ -385,7 +384,7 @@ class deepcoin extends Exchange {
         return $this->safe_string($exchangeTypes, $type, $type);
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -412,15 +411,15 @@ class deepcoin extends Exchange {
                 $result = $this->array_concat($result, $promises[$i]);
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_markets_by_type($type, $params = array ()) {
+    public function fetch_markets_by_type($type, $params = array()) {
         return Async\async(function () use ($type, $params) {
             $request = array(
                 'instType' => $this->convert_to_instrument_type($type),
             );
-            $response = Async\await($this->publicGetDeepcoinMarketInstruments ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetDeepcoinMarketInstruments($this->extend($request, $params)));
             //
             // spot
             //
@@ -452,7 +451,7 @@ class deepcoin extends Exchange {
             //
             $dataResponse = $this->safe_list($response, 'data', array());
             return $this->parse_markets($dataResponse);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -593,7 +592,7 @@ class deepcoin extends Exchange {
         return $this->markets;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -603,7 +602,7 @@ class deepcoin extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -614,29 +613,29 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
                 'sz' => $limit,
             );
-            $response = Async\await($this->publicGetDeepcoinMarketBooks ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetDeepcoinMarketBooks($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
             //         "msg" => "",
             //         "data" => {
-            //             "bids" => [
+            //             "bids" => array(
             //                 ["3732.21", "99.6"],
             //                 ["3732.2", "54.7"]
-            //             ],
-            //             "asks" => [
+            //             ),
+            //             "asks" => array(
             //                 ["3732.22", "85.1"],
             //                 ["3732.23", "49.4"]
-            //             ]
+            //             )
             //         }
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order_book($data, $symbol, null, 'bids', 'asks', 0, 1);
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
@@ -689,19 +688,19 @@ class deepcoin extends Exchange {
                     $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
                     $endTime = $since . ($duration * $numberOfCandles) * 1000;
                     if ($until !== null) {
-                        $endTime = min ($endTime, $until);
+                        $endTime = min($endTime, $until);
                     }
                     $now = $this->milliseconds();
-                    $request['after'] = min ($endTime, $now);
+                    $request['after'] = min($endTime, $now);
                 }
             }
             $response = null;
             if ($price === 'mark') {
-                $response = Async\await($this->publicGetDeepcoinMarketMarkPriceCandles ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetDeepcoinMarketMarkPriceCandles($this->extend($request, $params)));
             } elseif ($price === 'index') {
-                $response = Async\await($this->publicGetDeepcoinMarketIndexCandles ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetDeepcoinMarketIndexCandles($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetDeepcoinMarketCandles ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetDeepcoinMarketCandles($this->extend($request, $params)));
             }
             //
             //     {
@@ -731,10 +730,10 @@ class deepcoin extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -753,10 +752,10 @@ class deepcoin extends Exchange {
             $request = array(
                 'instType' => $this->convert_to_instrument_type($marketType),
             );
-            $response = Async\await($this->publicGetDeepcoinMarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetDeepcoinMarketTickers($this->extend($request, $params)));
             $tickers = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($tickers, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -821,7 +820,7 @@ class deepcoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -840,20 +839,20 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 2000);
+                $request['limit'] = min($limit, 500);
             }
             $productGroup = $this->get_product_group_from_market($market);
             $request['productGroup'] = $productGroup;
-            $response = Async\await($this->publicGetDeepcoinMarketTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetDeepcoinMarketTrades($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function get_product_group_from_market(array $market): string {
         $productGroup = 'Spot';
-        if ($market['swap']) {
-            if ($market['linear']) {
+        if ($this->safe_bool($market, 'swap')) {
+            if ($this->safe_bool($market, 'linear')) {
                 $productGroup = 'SwapU';
             } else {
                 $productGroup = 'Swap';
@@ -934,7 +933,7 @@ class deepcoin extends Exchange {
         return $this->safe_string($types, $execType, $execType);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -951,9 +950,9 @@ class deepcoin extends Exchange {
             $request = array(
                 'instType' => $this->convert_to_instrument_type($marketType),
             );
-            $response = Async\await($this->privateGetDeepcoinAccountBalances ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinAccountBalances($this->extend($request, $params)));
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -990,7 +989,7 @@ class deepcoin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1028,17 +1027,17 @@ class deepcoin extends Exchange {
                 $request['endTime'] = $until;
                 $params = $this->omit($params, 'until');
             }
-            $response = Async\await($this->privateGetDeepcoinAssetDepositList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinAssetDepositList($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             $items = $this->safe_list($data, 'data', array());
             $transactionParams = array(
                 'type' => 'deposit',
             );
             return $this->parse_transactions($items, $currency, $since, $limit, $transactionParams);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1076,14 +1075,14 @@ class deepcoin extends Exchange {
                 $request['endTime'] = $until;
                 $params = $this->omit($params, 'until');
             }
-            $response = Async\await($this->privateGetDeepcoinAssetWithdrawList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinAssetWithdrawList($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             $items = $this->safe_list($data, 'data', array());
             $transactionParams = array(
                 'type' => 'withdrawal',
             );
             return $this->parse_transactions($items, $currency, $since, $limit, $transactionParams);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1104,7 +1103,7 @@ class deepcoin extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $timestamp = $this->safe_timestamp($transaction, 'createTime');
         $networkId = $this->safe_string($transaction, 'chainName');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         return array(
             'info' => $transaction,
@@ -1141,7 +1140,7 @@ class deepcoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit addresses for multiple currencies and chain types
@@ -1166,7 +1165,7 @@ class deepcoin extends Exchange {
                 'currency_id' => $currency['id'],
                 'lang' => 'en',
             );
-            $response = Async\await($this->privateGetDeepcoinAssetRechargeChainList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinAssetRechargeChainList($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -1199,10 +1198,10 @@ class deepcoin extends Exchange {
                 'currency' => $code,
             );
             return $this->parse_deposit_addresses($list, $codes, false, $additionalParams);
-        }) ();
+        })();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a currency associated with this account
@@ -1234,7 +1233,7 @@ class deepcoin extends Exchange {
                 }
             }
             return $address;
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($response, ?array $currency = null): array {
@@ -1259,16 +1258,17 @@ class deepcoin extends Exchange {
         $chain = $this->safe_string($response, 'chain');
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
+        $code = $this->safe_string($currency, 'code');
         return array(
             'info' => $response,
             'currency' => null,
-            'network' => $this->network_id_to_code($chain),
+            'network' => $this->network_id_to_code($chain, $code),
             'address' => $address,
             'tag' => $this->safe_string($response, 'memo'),
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1305,7 +1305,7 @@ class deepcoin extends Exchange {
                 $request['before'] = $until;
                 $params = $this->omit($params, 'until');
             }
-            $response = Async\await($this->privateGetDeepcoinAccountBills ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinAccountBills($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -1334,7 +1334,7 @@ class deepcoin extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ledger($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -1386,7 +1386,7 @@ class deepcoin extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -1419,7 +1419,7 @@ class deepcoin extends Exchange {
                 'to_id' => $toId,
                 'uid' => $userId,
             );
-            $response = Async\await($this->privatePostDeepcoinAssetTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostDeepcoinAssetTransfer($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -1441,7 +1441,7 @@ class deepcoin extends Exchange {
                 $transfer['amount'] = $amount;
             }
             return $transfer;
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1474,7 +1474,7 @@ class deepcoin extends Exchange {
         return 'failed';
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1507,7 +1507,7 @@ class deepcoin extends Exchange {
             $response = null;
             if ($triggerPrice !== null) {
                 // trigger orders
-                $response = Async\await($this->privatePostDeepcoinTradeTriggerOrder ($request));
+                $response = Async\await($this->privatePostDeepcoinTradeTriggerOrder($request));
             } else {
                 // regular orders
                 //
@@ -1523,14 +1523,14 @@ class deepcoin extends Exchange {
                 //         }
                 //     }
                 //
-                $response = Async\await($this->privatePostDeepcoinTradeOrder ($request));
+                $response = Async\await($this->privatePostDeepcoinTradeOrder($request));
             }
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build request
@@ -1552,7 +1552,7 @@ class deepcoin extends Exchange {
         }
     }
 
-    public function create_regular_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_regular_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1661,7 +1661,7 @@ class deepcoin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_trigger_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_trigger_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1751,7 +1751,7 @@ class deepcoin extends Exchange {
         return array( $type, $params );
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
         return Async\async(function () use ($symbol, $side, $cost, $params) {
             /**
              * create a market order by providing the $symbol, $side and $cost
@@ -1763,10 +1763,10 @@ class deepcoin extends Exchange {
              */
             $params = $this->extend($params, array( 'cost' => $cost ));
             return Async\await($this->create_order($symbol, 'market', $side, 0, null, $params));
-        }) ();
+        })();
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a market buy order by providing the $symbol and $cost
@@ -1777,10 +1777,10 @@ class deepcoin extends Exchange {
              */
             $params = $this->extend($params, array( 'cost' => $cost ));
             return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $params));
-        }) ();
+        })();
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a market sell order by providing the $symbol and $cost
@@ -1791,10 +1791,10 @@ class deepcoin extends Exchange {
              */
             $params = $this->extend($params, array( 'cost' => $cost ));
             return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on a closed order made by the user
@@ -1815,7 +1815,7 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
                 'ordId' => $id,
             );
-            $response = Async\await($this->privateGetDeepcoinTradeFinishOrderByID ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinTradeFinishOrderByID($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -1865,10 +1865,10 @@ class deepcoin extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $entry = $this->safe_dict($data, 0, array());
             return $this->parse_order($entry, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id
@@ -1889,7 +1889,7 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
                 'ordId' => $id,
             );
-            $response = Async\await($this->privateGetDeepcoinTradeOrderByID ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinTradeOrderByID($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             $length = count($data);
             if ($length === 0) {
@@ -1897,10 +1897,10 @@ class deepcoin extends Exchange {
             }
             $entry = $this->safe_dict($data, 0, array());
             return $this->parse_order($entry, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -1976,7 +1976,7 @@ class deepcoin extends Exchange {
                 //         )
                 //     }
                 //
-                $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersHistory ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersHistory($this->extend($request, $params)));
             } else {
                 //
                 //     {
@@ -2024,15 +2024,15 @@ class deepcoin extends Exchange {
                 //         )
                 //     }
                 //
-                $response = Async\await($this->privateGetDeepcoinTradeOrdersHistory ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetDeepcoinTradeOrdersHistory($this->extend($request, $params)));
             }
             // todo handle with $since, until and pagination
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -2050,10 +2050,10 @@ class deepcoin extends Exchange {
             $params = $this->extend($params, array( 'methodName' => $methodName ));
             $params = $this->extend($params, array( 'state' => 'canceled' ));
             return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2071,10 +2071,10 @@ class deepcoin extends Exchange {
             $params = $this->extend($params, array( 'methodName' => $methodName ));
             $params = $this->extend($params, array( 'state' => 'filled' ));
             return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2139,7 +2139,7 @@ class deepcoin extends Exchange {
                 //         )
                 //     }
                 //
-                $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersPending ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersPending($this->extend($request, $params)));
             } else {
                 $request['index'] = $index;
                 //
@@ -2188,14 +2188,14 @@ class deepcoin extends Exchange {
                 //         )
                 //     }
                 //
-                $response = Async\await($this->privateGetDeepcoinTradeV2OrdersPending ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetDeepcoinTradeV2OrdersPending($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit, array( 'status' => 'open' ));
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -2221,16 +2221,16 @@ class deepcoin extends Exchange {
             $trigger = $this->safe_bool($params, 'trigger', false);
             if ($trigger) {
                 $params = $this->omit($params, 'trigger');
-                $response = Async\await($this->privatePostDeepcoinTradeCancelTriggerOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDeepcoinTradeCancelTriggerOrder($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostDeepcoinTradeCancelOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDeepcoinTradeCancelOrder($this->extend($request, $params)));
             }
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -2269,13 +2269,13 @@ class deepcoin extends Exchange {
                 'IsCrossMargin' => $encodedMarginMode,
                 'IsMergeMode' => $isMergedMode,
             );
-            $response = Async\await($this->privatePostDeepcoinTradeSwapCancelAll ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostDeepcoinTradeSwapCancelAll($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -2321,7 +2321,7 @@ class deepcoin extends Exchange {
                     $request['tpTriggerPx'] = $symbol ? $this->price_to_precision($symbol, $takeProfitPrice) : $this->number_to_string($takeProfitPrice);
                 }
                 $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
-                $response = Async\await($this->privatePostDeepcoinTradeReplaceOrderSltp ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDeepcoinTradeReplaceOrderSltp($this->extend($request, $params)));
             } else {
                 if ($price !== null) {
                     if ($symbol !== null) {
@@ -2337,14 +2337,14 @@ class deepcoin extends Exchange {
                         $request['volume'] = $this->number_to_string($amount);
                     }
                 }
-                $response = Async\await($this->privatePostDeepcoinTradeReplaceOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDeepcoinTradeReplaceOrder($this->extend($request, $params)));
             }
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -2364,10 +2364,10 @@ class deepcoin extends Exchange {
             $request = array(
                 'OrderSysIDs' => $ids,
             );
-            $response = Async\await($this->privatePostDeepcoinTradeBatchCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostDeepcoinTradeBatchCancelOrder($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2519,7 +2519,7 @@ class deepcoin extends Exchange {
         return $this->safe_string($timeInForces, $type, $type);
     }
 
-    public function fetch_positions_for_symbol(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch open positions for a single $market
@@ -2538,13 +2538,13 @@ class deepcoin extends Exchange {
                 'instType' => $instrumentType,
                 'instId' => $market['id'],
             );
-            $response = Async\await($this->privateGetDeepcoinAccountPositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinAccountPositions($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
-            return $this->parse_positions($data, [ $market['symbol'] ]);
-        }) ();
+            return $this->parse_positions($data, array( $market['symbol'] ));
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2568,7 +2568,7 @@ class deepcoin extends Exchange {
             $request = array(
                 'instType' => $instrumentType,
             );
-            $response = Async\await($this->privateGetDeepcoinAccountPositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinAccountPositions($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -2595,7 +2595,7 @@ class deepcoin extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_positions($data, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2652,7 +2652,7 @@ class deepcoin extends Exchange {
         ));
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -2692,7 +2692,7 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
                 'mrgPosition' => $mrgPosition,
             );
-            $response = Async\await($this->privatePostDeepcoinAccountSetLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostDeepcoinAccountSetLeverage($this->extend($request, $params)));
             //
             //     {
             //         code => '0',
@@ -2708,10 +2708,10 @@ class deepcoin extends Exchange {
             //     }
             //
             return $response;
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -2741,7 +2741,7 @@ class deepcoin extends Exchange {
             $request = array(
                 'instType' => $instType,
             );
-            $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -2763,10 +2763,10 @@ class deepcoin extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rates = $this->safe_list($data, 'current_fund_rates', array());
             return $this->parse_funding_rates($rates, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -2786,7 +2786,7 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
                 'instType' => $this->get_product_group_from_market($market),
             );
-            $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -2805,7 +2805,7 @@ class deepcoin extends Exchange {
             $rates = $this->safe_list($data, 'current_fund_rates', array());
             $entry = $this->safe_dict($rates, 0, array());
             return $this->parse_funding_rate($entry, $market);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -2839,7 +2839,7 @@ class deepcoin extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -2864,7 +2864,7 @@ class deepcoin extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit; // default 20, max 100
             }
-            $response = Async\await($this->publicGetDeepcoinTradeFundRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetDeepcoinTradeFundRateHistory($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -2890,10 +2890,10 @@ class deepcoin extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_funding_rate_histories($rows, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history($info, ?array $market = null): array {
         //
         //     {
         //         "instrumentID" => "ETHUSD",
@@ -2914,7 +2914,7 @@ class deepcoin extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -2959,7 +2959,7 @@ class deepcoin extends Exchange {
                 $params = $this->omit($params, 'until');
                 $request['end'] = $until;
             }
-            $response = Async\await($this->privateGetDeepcoinTradeFills ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDeepcoinTradeFills($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -2987,10 +2987,10 @@ class deepcoin extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -3012,10 +3012,10 @@ class deepcoin extends Exchange {
             }
             $params = $this->extend(array( 'ordId' => $id ), $params);
             return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+    public function close_position(string $symbol, ?string $side = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes open positions for a $market
@@ -3041,20 +3041,20 @@ class deepcoin extends Exchange {
             );
             $response = null;
             if ($positionId === null && $positionIds === null) {
-                $response = Async\await($this->privatePostDeepcoinTradeBatchClosePosition ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDeepcoinTradeBatchClosePosition($this->extend($request, $params)));
             } else {
                 if ($positionId !== null) {
                     $params = $this->omit($params, 'positionId');
                     $request['positionIds'] = array( $positionId );
                 }
-                $response = Async\await($this->privatePostDeepcoinTradeClosePositionByIds ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDeepcoinTradeClosePositionByIds($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $requestPath = $path;
         if ($method === 'GET') {
             $query = $this->urlencode($params);

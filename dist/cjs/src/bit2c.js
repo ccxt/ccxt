@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bit2c$1 = require('./abstract/bit2c.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bit2c extends bit2c$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': ['IL'],
+            'countries': ['IL'], // Israel
             'rateLimit': 3000,
             'pro': false,
             'has': {
@@ -256,7 +256,7 @@ class bit2c extends bit2c$1["default"] {
                         'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -271,7 +271,7 @@ class bit2c extends bit2c$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Please provide valid APIkey': errors.AuthenticationError,
+                    'Please provide valid APIkey': errors.AuthenticationError, // { "error" : "Please provide valid APIkey" }
                     'No order found.': errors.OrderNotFound, // { "Error" : "No order found." }
                 },
                 'broad': {
@@ -312,7 +312,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountBalanceV2(params);
         //
         //     {
@@ -366,10 +368,12 @@ class bit2c extends bit2c$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -415,7 +419,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -436,7 +442,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const method = this.options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         const request = {
@@ -476,7 +484,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountBalance(params);
         //
         //     {
@@ -530,7 +540,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let method = 'privatePostOrderAddOrder';
         const market = this.market(symbol);
         const request = {
@@ -582,7 +594,9 @@ class bit2c extends bit2c$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -604,7 +618,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': id,
@@ -674,7 +690,7 @@ class bit2c extends bit2c$1["default"] {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status;
+        let status = undefined;
         if (isNewOrder) {
             const tempStatus = this.safeInteger(orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
@@ -758,7 +774,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (limit !== undefined) {
@@ -937,7 +955,9 @@ class bit2c extends bit2c$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if (this.isFiat(code)) {
             throw new errors.NotSupported(this.id + ' fetchDepositAddress() does not support fiat currencies');
@@ -995,7 +1015,7 @@ class bit2c extends bit2c$1["default"] {
             else {
                 body = auth;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512, 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,

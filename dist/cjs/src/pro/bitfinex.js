@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitfinex$1 = require('../bitfinex.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -48,7 +48,9 @@ class bitfinex extends bitfinex$1["default"] {
         });
     }
     async subscribe(channel, symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
@@ -74,7 +76,9 @@ class bitfinex extends bitfinex$1["default"] {
         return result;
     }
     async unSubscribe(channel, topic, symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
@@ -99,7 +103,9 @@ class bitfinex extends bitfinex$1["default"] {
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, subscription);
     }
     async subscribePrivate(messageHash) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
         return await this.watch(url, messageHash, undefined, 1);
@@ -116,7 +122,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -146,7 +154,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -219,7 +229,7 @@ class bitfinex extends bitfinex$1["default"] {
         //   ]
         //
         const data = this.safeValue(message, 1, []);
-        let ohlcvs = undefined;
+        let ohlcvs = [];
         const first = this.safeValue(data, 0);
         if (Array.isArray(first)) {
             // snapshot
@@ -230,7 +240,7 @@ class bitfinex extends bitfinex$1["default"] {
             ohlcvs = [data];
         }
         const channel = this.safeValue(subscription, 'channel');
-        const key = this.safeString(subscription, 'key');
+        const key = this.safeString(subscription, 'key', '');
         const keyParts = key.split(':');
         const interval = this.safeString(keyParts, 1);
         let marketId = key;
@@ -294,7 +304,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrade';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -615,7 +627,7 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -627,7 +639,7 @@ class bitfinex extends bitfinex$1["default"] {
         const prec = this.safeString(options, 'prec', 'P0');
         const freq = this.safeString(options, 'freq', 'F0');
         const request = {
-            'prec': prec,
+            'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         };
         if (limit !== undefined) {
@@ -699,6 +711,9 @@ class bitfinex extends bitfinex$1["default"] {
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const amount = this.safeNumber(delta, 2);
+                    if (amount === undefined) {
+                        continue;
+                    }
                     const counter = this.safeNumber(delta, 1);
                     const price = this.safeNumber(delta, 0);
                     const size = (amount < 0) ? -amount : amount;
@@ -792,7 +807,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const balanceType = this.safeString(params, 'wallet', 'exchange'); // exchange, margin
         params = this.omit(params, 'wallet');
         const messageHash = 'balance:' + balanceType;
@@ -862,7 +879,7 @@ class bitfinex extends bitfinex$1["default"] {
         //   ]
         //
         const updateType = this.safeValue(message, 1);
-        let data = undefined;
+        let data = [];
         if (updateType === 'ws') {
             data = this.safeValue(message, 2);
         }
@@ -999,7 +1016,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (authenticated === undefined) {
             const nonce = this.milliseconds();
             const payload = 'AUTH' + nonce.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384, 'hex');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384, 'hex');
             const event = 'auth';
             const request = {
                 'apiKey': this.apiKey,
@@ -1041,7 +1058,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -1189,14 +1208,14 @@ class bitfinex extends bitfinex$1["default"] {
             side = 'sell';
         }
         const remaining = Precise["default"].stringAbs(this.safeString(order, 6));
-        let type = this.safeString(order, 8);
+        let type = this.safeString(order, 8, '');
         if (type.indexOf('LIMIT') > -1) {
             type = 'limit';
         }
         else if (type.indexOf('MARKET') > -1) {
             type = 'market';
         }
-        const rawState = this.safeString(order, 13);
+        const rawState = this.safeString(order, 13, '');
         const stateParts = rawState.split(' ');
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);

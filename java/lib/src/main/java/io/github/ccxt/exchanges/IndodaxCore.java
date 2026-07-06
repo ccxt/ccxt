@@ -519,7 +519,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -556,8 +556,8 @@ public class IndodaxCore extends IndodaxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
-        Object baseVolume = Helpers.add("vol_", ((String)Helpers.GetValue(market, "baseId")).toLowerCase());
-        Object quoteVolume = Helpers.add("vol_", ((String)Helpers.GetValue(market, "quoteId")).toLowerCase());
+        Object baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
+        Object quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
         Object last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -811,7 +811,7 @@ public class IndodaxCore extends IndodaxApi
             put( "filled", "closed" );
             put( "cancelled", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1109,7 +1109,7 @@ public class IndodaxCore extends IndodaxApi
                         Object costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
-                    Helpers.addElementToObject(request, Helpers.GetValue(market, "quoteId"), quoteAmount);
+                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), quoteAmount);
                 } else
                 {
                     quantityIsRequired = true;
@@ -1120,7 +1120,7 @@ public class IndodaxCore extends IndodaxApi
                 quantityIsRequired = true;
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Helpers.addElementToObject(request, Helpers.GetValue(market, "quoteId"), this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
+                    Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
                 }
             }
             if (Helpers.isTrue(priceIsRequired))
@@ -1133,7 +1133,7 @@ public class IndodaxCore extends IndodaxApi
             }
             if (Helpers.isTrue(quantityIsRequired))
             {
-                Helpers.addElementToObject(request, Helpers.GetValue(market, "baseId"), this.amountToPrecision(symbol, amount));
+                Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "baseId")), this.amountToPrecision(symbol, amount));
             }
             Object result = (this.privatePostTrade(this.extend(request, parameters))).join();
             Object data = this.safeValue(result, "return", new java.util.HashMap<String, Object>() {{}});
@@ -1272,9 +1272,9 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object startTime = Helpers.slice(this.iso8601(since), 0, 10);
+                Object startTime = this.yyyymmdd(since);
                 Helpers.addElementToObject(request, "start", startTime);
-                Helpers.addElementToObject(request, "end", Helpers.slice(this.iso8601(this.milliseconds()), 0, 10));
+                Helpers.addElementToObject(request, "end", this.yyyymmdd(this.milliseconds()));
             }
             Object response = (this.privatePostTransHistory(this.extend(request, parameters))).join();
             //
@@ -1517,7 +1517,7 @@ public class IndodaxCore extends IndodaxApi
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -1598,11 +1598,11 @@ public class IndodaxCore extends IndodaxApi
                             Object networkIds = Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                             {
-                                ((java.util.List<Object>)network).add(((String)this.networkIdToCode(Helpers.GetValue(networkIds, j))).toUpperCase());
+                                ((java.util.List<Object>)network).add(((String)this.networkIdToCode(Helpers.GetValue(networkIds, j), code)).toUpperCase());
                             }
                         } else
                         {
-                            network = ((String)this.networkIdToCode(networkId)).toUpperCase();
+                            network = ((String)this.networkIdToCode(networkId, code)).toUpperCase();
                         }
                     }
                     Object finalNetwork = network; // java req

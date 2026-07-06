@@ -715,7 +715,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -781,7 +781,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
@@ -872,7 +872,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
@@ -942,7 +942,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -964,7 +964,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBookWs(Object symbol, Object... optionalArgs)
     {
@@ -1198,23 +1198,23 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (Helpers.isTrue(Helpers.isGreaterThan(u, Helpers.GetValue(orderbook, "nonce"))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(u, nonce)))
                     {
                         Object timestamp = this.safeInteger(orderbook, "timestamp");
                         Object conditional = null;
                         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = Helpers.isTrue((Helpers.isLessThanOrEqual((Helpers.subtract(U, 1)), Helpers.GetValue(orderbook, "nonce")))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual((Helpers.subtract(u, 1)), Helpers.GetValue(orderbook, "nonce"))));
+                            conditional = Helpers.isTrue((Helpers.isLessThanOrEqual((Helpers.subtract(U, 1)), nonce))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual((Helpers.subtract(u, 1)), nonce)));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = (Helpers.isEqual((Helpers.subtract(U, 1)), Helpers.GetValue(orderbook, "nonce")));
+                            conditional = (Helpers.isEqual((Helpers.subtract(U, 1)), nonce));
                         }
                         if (Helpers.isTrue(conditional))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (Helpers.isTrue(Helpers.isLessThan(nonce, Helpers.GetValue(orderbook, "nonce"))))
+                            if (Helpers.isTrue(Helpers.isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1231,14 +1231,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(u, Helpers.GetValue(orderbook, "nonce"))))
+                    if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(u, nonce)))
                     {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThanOrEqual(U, Helpers.GetValue(orderbook, "nonce")))) || Helpers.isTrue((Helpers.isEqual(pu, Helpers.GetValue(orderbook, "nonce"))))))
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThanOrEqual(U, nonce))) || Helpers.isTrue((Helpers.isEqual(pu, nonce)))))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (Helpers.isTrue(Helpers.isLessThanOrEqual(nonce, Helpers.GetValue(orderbook, "nonce"))))
+                            if (Helpers.isTrue(Helpers.isLessThanOrEqual(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1542,7 +1542,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //
         //     {
         //         "e": "trade",       // event type
-        //         "E": 1579481530911, // event time
+        //         "E": 1579481530912, // event time
         //         "s": "ETHBTC",      // symbol
         //         "t": 158410082,     // trade id
         //         "p": "0.01914100",  // price
@@ -2747,7 +2747,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
@@ -4540,9 +4540,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object type = this.getMarketType("fetchOpenOrdersWs", market, parameters);
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "spot")) && Helpers.isTrue(!Helpers.isEqual(type, "future"))))
+            if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenOrdersWs only supports spot or swap markets")) ;
+                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenOrdersWs only supports spot markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);

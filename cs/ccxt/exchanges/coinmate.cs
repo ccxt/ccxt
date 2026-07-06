@@ -370,7 +370,7 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "reserved");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         }
         return this.safeBalance(result);
     }
@@ -399,7 +399,7 @@ public partial class coinmate : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -519,7 +519,7 @@ public partial class coinmate : Exchange
         object timestamp = this.safeTimestamp(ticker, "timestamp");
         object last = this.safeNumber(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeNumber(ticker, "high") },
@@ -589,7 +589,7 @@ public partial class coinmate : Exchange
             { "NEW", "pending" },
             { "CANCELED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -976,7 +976,7 @@ public partial class coinmate : Exchange
             { "PARTIALLY_FILLED", "open" },
             { "OPEN", "open" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseOrderType(object type)
@@ -985,7 +985,7 @@ public partial class coinmate : Exchange
             { "LIMIT", "limit" },
             { "MARKET", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1096,7 +1096,7 @@ public partial class coinmate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object method = add("privatePost", this.capitalize(side));
+        object method = add("privatePost", this.capitalize(((string)side)));
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "currencyPair", getValue(market, "id") },

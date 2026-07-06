@@ -81,7 +81,7 @@ retrieves data on all markets for whitebit
 
 
 ```javascript
-whitebit.fetchMarkets ([params])
+whitebit.fetchMarkets (params?)
 ```
 
 
@@ -101,7 +101,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-whitebit.fetchCurrencies ([params])
+whitebit.fetchCurrencies (params?)
 ```
 
 
@@ -124,7 +124,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-whitebit.fetchTransactionFees (codes[, params])
+whitebit.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -145,7 +145,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-whitebit.fetchDepositWithdrawFees (codes[, params])
+whitebit.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -165,7 +165,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-whitebit.fetchTradingFees ([params])
+whitebit.fetchTradingFees (params?)
 ```
 
 
@@ -186,7 +186,7 @@ fetch the trading limits for a market
 
 
 ```javascript
-whitebit.fetchTradingLimits (symbols[, params])
+whitebit.fetchTradingLimits (symbols, params?)
 ```
 
 
@@ -211,7 +211,7 @@ fetch the deposit and withdrawal limits for a currency
 
 
 ```javascript
-whitebit.fetchFundingLimits (codes[, params])
+whitebit.fetchFundingLimits (codes, params?)
 ```
 
 
@@ -232,7 +232,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-whitebit.fetchTicker (symbol[, params])
+whitebit.fetchTicker (symbol, params?)
 ```
 
 
@@ -260,7 +260,7 @@ fetches information on an order by the id
 
 
 ```javascript
-whitebit.fetchOrder (id, symbol[, params])
+whitebit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -283,7 +283,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-whitebit.fetchTickers ([symbols, params])
+whitebit.fetchTickers (symbols?, params?)
 ```
 
 
@@ -293,7 +293,7 @@ whitebit.fetchTickers ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#orderbook  
 
@@ -305,7 +305,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-whitebit.fetchOrderBook (symbol[, limit, params])
+whitebit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -328,7 +328,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-whitebit.fetchTrades (symbol[, since, limit, params])
+whitebit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -351,7 +351,7 @@ fetch all trades made by the user
 
 
 ```javascript
-whitebit.fetchMyTrades (symbol[, since, limit, params])
+whitebit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -375,7 +375,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-whitebit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+whitebit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -395,7 +395,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-whitebit.fetchStatus ([params])
+whitebit.fetchStatus (params?)
 ```
 
 
@@ -415,7 +415,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-whitebit.fetchTime ([params])
+whitebit.fetchTime (params?)
 ```
 
 
@@ -437,7 +437,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-whitebit.createMarketOrderWithCost (symbol, side, cost[, params])
+whitebit.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -458,7 +458,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-whitebit.createMarketBuyOrderWithCost (symbol, cost[, params])
+whitebit.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -495,7 +495,7 @@ create a trade order
 
 
 ```javascript
-whitebit.createOrder (symbol, type, side, amount[, price, params])
+whitebit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -521,7 +521,7 @@ edit a trade order
 
 
 ```javascript
-whitebit.editOrder (id, symbol, type, side, amount, price[, params])
+whitebit.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -543,7 +543,7 @@ cancels an open order
 
 
 ```javascript
-whitebit.cancelOrder (id, symbol[, params])
+whitebit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -566,7 +566,7 @@ cancel all open orders
 
 
 ```javascript
-whitebit.cancelAllOrders (symbol[, params])
+whitebit.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -593,7 +593,7 @@ fetches information on multiple orders made by the user (combines open and close
 
 
 ```javascript
-whitebit.fetchOrders (symbol[, since, limit, params])
+whitebit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -616,7 +616,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-whitebit.cancelAllOrdersAfter (timeout[, params])
+whitebit.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -640,7 +640,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-whitebit.fetchBalance ([params])
+whitebit.fetchBalance (params?)
 ```
 
 
@@ -663,7 +663,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-whitebit.fetchOpenOrders ([symbol, since, limit, params])
+whitebit.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -686,7 +686,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-whitebit.fetchClosedOrders (symbol[, since, limit, params])
+whitebit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -710,7 +710,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-whitebit.fetchOrderTrades (id, symbol[, since, limit, params])
+whitebit.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -734,7 +734,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-whitebit.fetchWithdrawals (code[, since, limit, params])
+whitebit.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -758,7 +758,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-whitebit.fetchTransactions ([code, since, limit, params])
+whitebit.fetchTransactions (code?, since?, limit?, params?)
 ```
 
 
@@ -783,7 +783,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-whitebit.fetchDepositAddress (code[, params])
+whitebit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -806,7 +806,7 @@ create a currency deposit address
 
 
 ```javascript
-whitebit.createDepositAddress (code[, params])
+whitebit.createDepositAddress (code, params?)
 ```
 
 
@@ -826,7 +826,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-whitebit.fetchAccounts ([params])
+whitebit.fetchAccounts (params?)
 ```
 
 
@@ -848,7 +848,7 @@ set the level of leverage for a market
 
 
 ```javascript
-whitebit.setLeverage (leverage, symbol[, params])
+whitebit.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -872,7 +872,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-whitebit.transfer (code, amount, fromAccount, toAccount[, params])
+whitebit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -896,7 +896,7 @@ make a withdrawal
 
 
 ```javascript
-whitebit.withdraw (code, amount, address, tag[, params])
+whitebit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -918,7 +918,7 @@ fetch information on a deposit
 
 
 ```javascript
-whitebit.fetchDeposit (id, code[, params])
+whitebit.fetchDeposit (id, code, params?)
 ```
 
 
@@ -941,7 +941,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-whitebit.fetchDeposits (code[, since, limit, params])
+whitebit.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -965,7 +965,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-whitebit.fetchBorrowInterest (code, symbol[, since, limit, params])
+whitebit.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -986,7 +986,7 @@ fetch the current funding rate
 
 
 ```javascript
-whitebit.fetchFundingRate (symbol[, params])
+whitebit.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1007,7 +1007,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-whitebit.fetchFundingRates (symbols[, params])
+whitebit.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1031,7 +1031,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-whitebit.fetchFundingHistory ([symbol, since, limit, params])
+whitebit.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1060,7 +1060,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-whitebit.fetchDepositsWithdrawals ([code, since, limit, params])
+whitebit.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -1083,7 +1083,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-whitebit.fetchConvertQuote (fromCode, toCode, amount[, params])
+whitebit.fetchConvertQuote (fromCode, toCode, amount, params?)
 ```
 
 
@@ -1107,7 +1107,7 @@ convert from one currency to another
 
 
 ```javascript
-whitebit.createConvertTrade (id, fromCode, toCode[, amount, params])
+whitebit.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1134,7 +1134,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-whitebit.fetchConvertTradeHistory ([code, since, limit, params])
+whitebit.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -1158,7 +1158,7 @@ fetches historical positions
 
 
 ```javascript
-whitebit.fetchPositionHistory (symbol[, since, limit, params])
+whitebit.fetchPositionHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1179,7 +1179,7 @@ fetch all open positions
 
 
 ```javascript
-whitebit.fetchPositions ([symbols, params])
+whitebit.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1200,7 +1200,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-whitebit.fetchPosition (symbol[, params])
+whitebit.fetchPosition (symbol, params?)
 ```
 
 
@@ -1221,7 +1221,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-whitebit.fetchCrossBorrowRate (code[, params])
+whitebit.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -1245,7 +1245,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-whitebit.fetchFundingRateHistory (symbol[, since, limit, params])
+whitebit.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1269,7 +1269,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-whitebit.watchOHLCV (symbol, timeframe[, since, limit, params])
+whitebit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1279,7 +1279,7 @@ whitebit.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/websocket/#market-depth  
 
@@ -1291,7 +1291,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-whitebit.watchOrderBook (symbol[, limit, params])
+whitebit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1312,7 +1312,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-whitebit.watchTicker (symbol[, params])
+whitebit.watchTicker (symbol, params?)
 ```
 
 
@@ -1333,7 +1333,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-whitebit.watchTickers ([symbols, params])
+whitebit.watchTickers (symbols?, params?)
 ```
 
 
@@ -1356,7 +1356,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-whitebit.watchTrades (symbol[, since, limit, params])
+whitebit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1379,7 +1379,7 @@ watches trades made by the user
 
 
 ```javascript
-whitebit.watchMyTrades (symbol[, since, limit, params])
+whitebit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1402,7 +1402,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-whitebit.watchOrders (symbol[, since, limit, params])
+whitebit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1427,6 +1427,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-whitebit.watchBalance ([params])
+whitebit.watchBalance (params?)
 ```
 

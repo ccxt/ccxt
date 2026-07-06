@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import math
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -87,7 +87,7 @@ class lbank(ccxt.async_support.lbank):
         timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId
-        message: dict = {
+        message = {
             'action': 'request',
             'request': 'kbar',
             'kbar': timeframeId,
@@ -121,7 +121,7 @@ class lbank(ccxt.async_support.lbank):
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'action': 'subscribe',
             'subscribe': 'kbar',
             'kbar': timeframeId,
@@ -248,7 +248,7 @@ class lbank(ccxt.async_support.lbank):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchTicker:' + market['symbol']
-        message: dict = {
+        message = {
             'action': 'request',
             'request': 'tick',
             'pair': market['id'],
@@ -271,7 +271,7 @@ class lbank(ccxt.async_support.lbank):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'ticker:' + market['symbol']
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'subscribe': 'tick',
             'pair': market['id'],
@@ -311,7 +311,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "tick":{
@@ -378,7 +378,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + market['symbol']
         if limit is None:
             limit = 10
-        message: dict = {
+        message = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
@@ -404,7 +404,7 @@ class lbank(ccxt.async_support.lbank):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'trades:' + market['symbol']
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'subscribe': 'trade',
             'pair': market['id'],
@@ -461,7 +461,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # request
         #    ['timestamp', 'price', 'volume', 'direction']
@@ -526,7 +526,7 @@ class lbank(ccxt.async_support.lbank):
             symbol = self.symbol(symbol)
             messageHash = 'orders:' + market['symbol']
             pair = market['id']
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'subscribe': 'orderUpdate',
             'subscribeKey': key,
@@ -557,12 +557,10 @@ class lbank(ccxt.async_support.lbank):
         #
         marketId = self.safe_string(message, 'pair')
         symbol = self.safe_symbol(marketId, None, '_')
-        myOrders = None
+        myOrders = self.orders
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             myOrders = ArrayCacheBySymbolById(limit)
-        else:
-            myOrders = self.orders
         order = self.parse_ws_order(message)
         myOrders.append(order)
         self.orders = myOrders
@@ -652,7 +650,7 @@ class lbank(ccxt.async_support.lbank):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             '-1': 'canceled',  # Withdrawn
             '0': 'open',   # Unsettled
             '1': 'open',   # Partial sale
@@ -674,7 +672,7 @@ class lbank(ccxt.async_support.lbank):
         key = await self.authenticate(params)
         url = self.urls['api']['ws']
         messageHash = 'balance'
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'subscribe': 'assetUpdate',
             'subscribeKey': key,
@@ -731,7 +729,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchOrderbook:' + market['symbol']
         if limit is None:
             limit = 100
-        subscribe: dict = {
+        subscribe = {
             'action': 'request',
             'request': 'depth',
             'depth': limit,
@@ -759,7 +757,7 @@ class lbank(ccxt.async_support.lbank):
         params = self.omit(params, 'aggregation')
         if limit is None:
             limit = 100
-        subscribe: dict = {
+        subscribe = {
             'action': 'subscribe',
             'subscribe': 'depth',
             'depth': limit,
@@ -877,7 +875,7 @@ class lbank(ccxt.async_support.lbank):
         if type == 'ping':
             self.spawn(self.handle_ping, client, message)
             return
-        handlers: dict = {
+        handlers = {
             'kbar': self.handle_ohlcv,
             'depth': self.handle_order_book,
             'trade': self.handle_trades,
@@ -913,7 +911,7 @@ class lbank(ccxt.async_support.lbank):
         else:
             expires = self.safe_integer(authenticated, 'expires', 0)
             if expires < now:
-                request: dict = {
+                request = {
                     'subscribeKey': authenticated['key'],
                 }
                 response = await self.spotPrivatePostSubscribeRefreshKey(self.extend(request, params))

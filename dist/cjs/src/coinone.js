@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinone$1 = require('./abstract/coinone.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class coinone extends coinone$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
-            'countries': ['KR'],
+            'countries': ['KR'], // Korea
             'rateLimit': 50,
             'version': 'v2',
             'pro': false,
@@ -53,7 +53,7 @@ class coinone extends coinone$1["default"] {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -254,9 +254,9 @@ class coinone extends coinone$1["default"] {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 100, // todo implement
+                        'daysBack': 100000, // todo implement
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -273,7 +273,7 @@ class coinone extends coinone$1["default"] {
                         'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined, // todo implement
                 },
                 'swap': {
@@ -496,7 +496,9 @@ class coinone extends coinone$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v2PrivatePostAccountBalance(params);
         return this.parseBalance(response);
     }
@@ -508,10 +510,12 @@ class coinone extends coinone$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'quote_currency': market['quote'],
@@ -558,7 +562,9 @@ class coinone extends coinone$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {
             'quote_currency': 'KRW',
@@ -621,7 +627,9 @@ class coinone extends coinone$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'quote_currency': market['quote'],
@@ -798,7 +806,9 @@ class coinone extends coinone$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'quote_currency': market['quote'],
@@ -847,7 +857,9 @@ class coinone extends coinone$1["default"] {
         if (type !== 'limit') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'price': price,
@@ -878,7 +890,9 @@ class coinone extends coinone$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -1049,7 +1063,9 @@ class coinone extends coinone$1["default"] {
         if (symbol === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['id'],
@@ -1089,7 +1105,9 @@ class coinone extends coinone$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['id'],
@@ -1129,17 +1147,17 @@ class coinone extends coinone$1["default"] {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            // eslint-disable-next-line quotes
             throw new errors.ArgumentsRequired(this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
         const price = this.safeNumber(params, 'price');
         const qty = this.safeNumber(params, 'qty');
         const isAsk = this.safeInteger(params, 'is_ask');
         if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
-            // eslint-disable-next-line quotes
             throw new errors.ArgumentsRequired(this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
             'price': price,
@@ -1165,7 +1183,9 @@ class coinone extends coinone$1["default"] {
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddresses(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v2PrivatePostAccountDepositAddress(params);
         //
         //     {
@@ -1247,7 +1267,7 @@ class coinone extends coinone$1["default"] {
             const payload = this.stringToBase64(json);
             body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(this.encode(payload), this.encode(secret), sha512.sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(secret), sha2_js.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

@@ -1,6 +1,6 @@
 import { sleep } from '../../../base/functions.js';
 import { ExchangeClosedByUser } from '../../../base/errors.js';
-import ccxt, { Exchange } from '../../../../ccxt.js';
+import ccxt from '../../../../ccxt.js';
 
 async function watchTickerLoop (exchange) {
     const method = 'watchTicker';
@@ -12,7 +12,7 @@ async function watchTickerLoop (exchange) {
     }
 }
 
-async function watchOrderBookForSymbolsLoop (exchange: Exchange) {
+async function watchOrderBookForSymbolsLoop (exchange) {
     const method = 'watchTicker';
     /* eslint-disable */
     while (true) {

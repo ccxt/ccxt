@@ -48,7 +48,7 @@ const extractParams = (string: string): string[] => {
      * @returns {[string]} all substrings surrounded by {} from parameter string
      */
     const re = /{([\w-]+)}/g;
-    const matches = [];
+    const matches: string[] = [];
     let match = re.exec (string);
     while (match) {
         matches.push (match[1]);

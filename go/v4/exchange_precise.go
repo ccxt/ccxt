@@ -76,12 +76,13 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 		numerator = p.integer
 	} else if distance < 0 {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(-distance)), nil)
-		numerator = new(big.Int).Div(p.integer, exponent)
+		// Quo truncates toward zero, matching JS BigInt division (big.Int.Div is Euclidean and rounds toward -inf for negatives)
+		numerator = new(big.Int).Quo(p.integer, exponent)
 	} else {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(distance)), nil)
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
-	result := new(big.Int).Div(numerator, other.integer)
+	result := new(big.Int).Quo(numerator, other.integer)
 	return NewPrecise(result.String(), precision)
 }
 
@@ -244,28 +245,28 @@ func (p *PreciseStruct) String() string {
 	return sign + strings.Join(integerArray, "")
 }
 
-func StringMul(string1, string2 any) string {
+func StringMul(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Mul(NewPrecise(string2.(string))).String()
 }
 
-func StringDiv(string1, string2 any, precision ...any) string {
+func StringDiv(string1, string2 any, precision ...any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	string2Precise := NewPrecise(string2.(string))
 	if string2Precise.integer.Cmp(big.NewInt(0)) == 0 {
-		return ""
+		return nil
 	}
 	stringDiv := NewPrecise(string1.(string)).Div(string2Precise, precision...)
 	return stringDiv.String()
 }
 
-func StringSub(string1, string2 any) string {
+func StringSub(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Sub(NewPrecise(string2.(string))).String()
 }
@@ -274,22 +275,16 @@ func StringSub(string1, string2 any) string {
 // 	return StringSub(string1, string2)
 // }
 
-func StringAdd(string1, string2 any) string {
-	if string1 == nil && string2 == nil {
-		return ""
-	}
-	if string1 == nil {
-		return string2.(string)
-	}
-	if string2 == nil {
-		return string1.(string)
+func StringAdd(string1, string2 any) any {
+	if string1 == nil || string2 == nil {
+		return nil
 	}
 	return NewPrecise(string1.(string)).Add(NewPrecise(string2.(string))).String()
 }
 
-func StringOr(string1, string2 any) string {
+func StringOr(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Or(NewPrecise(string2.(string))).String()
 }
@@ -308,9 +303,9 @@ func StringEq(a, b any) bool {
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
 
-func StringMax(a, b any) string {
+func StringMax(a, b any) any {
 	if a == nil || b == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(a.(string)).Max(NewPrecise(b.(string))).String()
 }
@@ -322,9 +317,9 @@ func StringEquals(a, b any) bool {
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
 
-func StringMin(string1, string2 any) string {
+func StringMin(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
 }
@@ -336,16 +331,16 @@ func StringLt(a, b any) bool {
 	return NewPrecise(a.(string)).Lt(NewPrecise(b.(string)))
 }
 
-func StringAbs(a any) string {
+func StringAbs(a any) any {
 	if a == nil {
-		return "" // this might be a problem because in other langs this returns undefined/null and not "" todo: fix this behavior
+		return nil
 	}
 	return NewPrecise(a.(string)).Abs().String()
 }
 
-func StringNeg(a any) string {
+func StringNeg(a any) any {
 	if a == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(a.(string)).Neg().String()
 }
@@ -364,9 +359,9 @@ func StringGe(a, b any) bool {
 	return NewPrecise(a.(string)).Ge(NewPrecise(b.(string)))
 }
 
-func StringMod(a, b any) string {
+func StringMod(a, b any) any {
 	if a == nil || b == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(a.(string)).Mod(NewPrecise(b.(string))).String()
 }
@@ -425,23 +420,23 @@ func (p *PreciseStruct) ToString() string {
 
 // wrappers
 
-func (e *PreciseStruct) StringMul(string1, string2 any) string {
+func (e *PreciseStruct) StringMul(string1, string2 any) any {
 	return StringMul(string1, string2)
 }
 
-func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) string {
+func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) any {
 	return StringDiv(string1, string2, precision...)
 }
 
-func (e *PreciseStruct) StringSub(string1, string2 any) string {
+func (e *PreciseStruct) StringSub(string1, string2 any) any {
 	return StringSub(string1, string2)
 }
 
-func (e *PreciseStruct) StringAdd(string1, string2 any) string {
+func (e *PreciseStruct) StringAdd(string1, string2 any) any {
 	return StringAdd(string1, string2)
 }
 
-func (e *PreciseStruct) StringOr(string1, string2 any) string {
+func (e *PreciseStruct) StringOr(string1, string2 any) any {
 	return StringOr(string1, string2)
 }
 
@@ -453,7 +448,7 @@ func (e *PreciseStruct) StringEq(a, b any) bool {
 	return StringEq(a, b)
 }
 
-func (e *PreciseStruct) StringMax(a, b any) string {
+func (e *PreciseStruct) StringMax(a, b any) any {
 	return StringMax(a, b)
 }
 
@@ -461,7 +456,7 @@ func (e *PreciseStruct) StringEquals(a, b any) bool {
 	return StringEquals(a, b)
 }
 
-func (e *PreciseStruct) StringMin(string1, string2 any) string {
+func (e *PreciseStruct) StringMin(string1, string2 any) any {
 	return StringMin(string1, string2)
 }
 
@@ -469,11 +464,11 @@ func (e *PreciseStruct) StringLt(a, b any) bool {
 	return StringLt(a, b)
 }
 
-func (e *PreciseStruct) StringAbs(a any) string {
+func (e *PreciseStruct) StringAbs(a any) any {
 	return StringAbs(a)
 }
 
-func (e *PreciseStruct) StringNeg(a any) string {
+func (e *PreciseStruct) StringNeg(a any) any {
 	return StringNeg(a)
 }
 
@@ -485,6 +480,6 @@ func (e *PreciseStruct) StringGe(a, b any) bool {
 	return StringGe(a, b)
 }
 
-func (e *PreciseStruct) StringMod(a, b any) string {
+func (e *PreciseStruct) StringMod(a, b any) any {
 	return StringMod(a, b)
 }

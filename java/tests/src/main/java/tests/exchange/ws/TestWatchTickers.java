@@ -34,7 +34,7 @@ public class TestWatchTickers extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         while (Helpers.isLessThan(now, ends))
         {
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             Object success = true;
             Object shouldReturn = false;
             try
@@ -66,7 +66,7 @@ public class TestWatchTickers extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert(((true)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
                 Object values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))

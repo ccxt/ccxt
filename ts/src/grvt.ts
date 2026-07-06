@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import type{ Balances, Currencies, Currency, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -84,7 +84,7 @@ export default class grvt extends Exchange {
                 '4w': 'CI_4_W',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo': 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api': {
                     'privateEdge': 'https://edge.grvt.io/',
                     'privateTrading': 'https://trades.grvt.io/',
@@ -661,7 +661,7 @@ export default class grvt extends Exchange {
         }
         const results = await Promise.all (promises);
         const response = results[0];
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseMarkets (result);
     }
 
@@ -837,7 +837,9 @@ export default class grvt extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request = {
             'instrument': this.marketId (symbol),
@@ -946,7 +948,9 @@ export default class grvt extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request = {
             'instrument': this.marketId (symbol),
         };
@@ -992,7 +996,9 @@ export default class grvt extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request = {
             'instrument': market['id'],
@@ -1025,7 +1031,7 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -1077,7 +1083,7 @@ export default class grvt extends Exchange {
         const marketId = this.safeString (trade, 'instrument');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
         let side: Str = undefined;
         if (isTakerBuyer !== undefined) {
@@ -1087,7 +1093,7 @@ export default class grvt extends Exchange {
             takerOrMaker = this.safeBool (trade, 'is_taker') ? 'taker' : 'maker';
             side = this.safeBool (trade, 'is_buyer') ? 'buy' : 'sell';
         }
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeString = this.safeString (trade, 'fee');
         if (feeString !== undefined) {
             fee = {
@@ -1128,7 +1134,9 @@ export default class grvt extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const maxLimit = 1000;
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1220,7 +1228,9 @@ export default class grvt extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1254,7 +1264,7 @@ export default class grvt extends Exchange {
         //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseFundingRateHistories (result, market);
     }
 
@@ -1281,7 +1291,7 @@ export default class grvt extends Exchange {
     }
 
     getSubAccountId (params) {
-        let subAccountId = undefined;
+        let subAccountId: Str = undefined;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
@@ -1397,7 +1407,7 @@ export default class grvt extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = [ currency['code'] ];
@@ -1432,16 +1442,16 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
 
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1452,7 +1462,7 @@ export default class grvt extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code === undefined) {
             request['currency'] = null;
         } else {
@@ -1498,7 +1508,7 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
@@ -1613,13 +1623,15 @@ export default class grvt extends Exchange {
         let networkCode: Str = undefined;
         let addressFrom = this.safeString (transaction, 'from_account_id');
         let addressTo = this.safeString (transaction, 'to_account_id');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
         if ('transfer_metadata' in transaction) {
             const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata'));
             if (metaData !== undefined) {
                 const parsedMeta = this.parseJson (metaData);
                 direction = this.safeStringLower (parsedMeta, 'direction');
                 txId = this.safeString (parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode (this.safeString (parsedMeta, 'chainid'));
+                networkCode = this.networkIdToCode (this.safeString (parsedMeta, 'chainid'), code);
                 if (direction === 'withdrawal') {
                     addressTo = this.safeString (parsedMeta, 'endpoint');
                 } else if (direction === 'deposit') {
@@ -1628,8 +1640,6 @@ export default class grvt extends Exchange {
             }
         }
         const timestamp = this.safeIntegerProduct2 (transaction, 'event_time', 'initiated_time', 0.000001);
-        const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -1722,8 +1732,8 @@ export default class grvt extends Exchange {
     }
 
     filterTransfersByType (transfers: any, transferType: string, onlyMainAccount = true): any {
-        const matchedResults = [];
-        const nonMatchedResults = [];
+        const matchedResults: List = [];
+        const nonMatchedResults: List = [];
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
             if ((onlyMainAccount && transfer['fromAccount'] === '0' && transfer['toAccount'] === '0') || (!onlyMainAccount && (transfer['fromAccount'] !== '0' || transfer['toAccount'] !== '0'))) {
@@ -1779,7 +1789,7 @@ export default class grvt extends Exchange {
             'transfer_metadata': null,
         };
         request = this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         try {
             response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
         } catch (error) {
@@ -1855,7 +1865,7 @@ export default class grvt extends Exchange {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return false;
         }
-        const promises = [];
+        const promises: List = [];
         promises.push (this.privateTradingPostFullV1AggregatedAccountSummary ());
         //
         //     {
@@ -1935,7 +1945,7 @@ export default class grvt extends Exchange {
             'signature': this.defaultSignature (),
         };
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
@@ -2169,7 +2179,7 @@ export default class grvt extends Exchange {
     eipMessageForOrder (order, structureType) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
-        const legs = [];
+        const legs: List = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
             const market = this.market (leg['instrument']);
@@ -2243,7 +2253,7 @@ export default class grvt extends Exchange {
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['base'] = [];
@@ -2290,7 +2300,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2348,7 +2358,7 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parsePositions (result, symbols);
     }
 
@@ -2573,7 +2583,7 @@ export default class grvt extends Exchange {
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['base'] = [];
@@ -2605,7 +2615,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseIncomes (result, market, since, limit);
     }
 
@@ -2652,7 +2662,7 @@ export default class grvt extends Exchange {
         let request = {
             'sub_account_id': subAccountId,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['base'] = [];
@@ -2730,7 +2740,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2811,7 +2821,7 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, undefined, since, limit);
     }
 
@@ -2981,12 +2991,12 @@ export default class grvt extends Exchange {
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');
         const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
-        let size = undefined;
-        let side = undefined;
-        let price = undefined;
-        let filled = undefined;
-        let avgPrice = undefined;
-        const legs = this.safeList (order, 'legs');
+        let size: Str = undefined;
+        let side: Str = undefined;
+        let price: Str = undefined;
+        let filled: Str = undefined;
+        let avgPrice: Str = undefined;
+        const legs = this.safeList (order, 'legs', []);
         const metadata = this.safeDict (order, 'metadata', {});
         const stateObj = this.safeDict (order, 'state', {});
         const filledAmounts = this.safeList (stateObj, 'traded_size', []);
@@ -3014,7 +3024,7 @@ export default class grvt extends Exchange {
             'lastTradeTimeStamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct (stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus (this.safeString (stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,
@@ -3153,7 +3163,7 @@ export default class grvt extends Exchange {
     }
 
     createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
-        let messageData = undefined;
+        let messageData: NullableDict = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
@@ -3248,7 +3258,7 @@ export default class grvt extends Exchange {
         return requestId;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + path;
         let queryString = '';

@@ -450,7 +450,7 @@ public partial class bitteam : Exchange
     {
         object id = this.safeString(market, "name");
         object numericId = this.safeInteger(market, "id");
-        object parts = ((string)id).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = this.safeString(parts, 0);
         object quoteId = this.safeString(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
@@ -1042,7 +1042,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
     }
 
@@ -1128,7 +1128,7 @@ public partial class bitteam : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pairId", ((object)getValue(market, "numericId")).ToString() },
+            { "pairId", this.safeString(market, "numericId") },
             { "type", type },
             { "side", side },
             { "amount", this.amountToPrecision(symbol, amount) },
@@ -1219,7 +1219,7 @@ public partial class bitteam : Exchange
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pairId"] = ((object)getValue(market, "numericId")).ToString();
+            ((IDictionary<string,object>)request)["pairId"] = this.safeString(market, "numericId");
         } else
         {
             ((IDictionary<string,object>)request)["pairId"] = "0"; // '0' for all markets
@@ -1396,7 +1396,7 @@ public partial class bitteam : Exchange
             { "executing", "open" },
             { "created", "open" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseOrderType(object status)
@@ -2418,7 +2418,7 @@ public partial class bitteam : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "addressFrom", addressFrom },
             { "address", null },
             { "addressTo", addressTo },
@@ -2451,7 +2451,7 @@ public partial class bitteam : Exchange
             { "approving", "pending" },
             { "success", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

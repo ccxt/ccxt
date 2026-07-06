@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var exmo$1 = require('./abstract/exmo.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,8 +19,8 @@ class exmo extends exmo$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': ['LT'],
-            'rateLimit': 100,
+            'countries': ['LT'], // Lithuania
+            'rateLimit': 100, // 10 requests per 1 second
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,
@@ -40,7 +40,7 @@ class exmo extends exmo$1["default"] {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
-                'editOrder': true,
+                'editOrder': true, // margin only
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -214,8 +214,8 @@ class exmo extends exmo$1["default"] {
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': true,
-                        'triggerPrice': true,
+                        'marginMode': true, // todo revise
+                        'triggerPrice': true, // todo: endpoint lacks other features
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -277,23 +277,23 @@ class exmo extends exmo$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '140333': errors.InvalidOrder,
+                    '140333': errors.InvalidOrder, // {"error":{"code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"}}
                     '140434': errors.BadRequest,
-                    '40005': errors.AuthenticationError,
-                    '40009': errors.InvalidNonce,
-                    '40015': errors.ExchangeError,
-                    '40016': errors.OnMaintenance,
-                    '40017': errors.AuthenticationError,
-                    '40032': errors.PermissionDenied,
-                    '40033': errors.PermissionDenied,
-                    '40034': errors.RateLimitExceeded,
+                    '40005': errors.AuthenticationError, // Authorization error, incorrect signature
+                    '40009': errors.InvalidNonce, //
+                    '40015': errors.ExchangeError, // API function do not exist
+                    '40016': errors.OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
+                    '40017': errors.AuthenticationError, // Wrong API Key
+                    '40032': errors.PermissionDenied, // {"result":false,"error":"Error 40032: Access is denied for this API key"}
+                    '40033': errors.PermissionDenied, // {"result":false,"error":"Error 40033: Access is denied, this resources are temporarily blocked to user"}
+                    '40034': errors.RateLimitExceeded, // {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': errors.InsufficientFunds,
                     '50054': errors.InsufficientFunds,
-                    '50304': errors.OrderNotFound,
-                    '50173': errors.OrderNotFound,
+                    '50304': errors.OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
+                    '50173': errors.OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                     '50277': errors.InvalidOrder,
-                    '50319': errors.InvalidOrder,
-                    '50321': errors.InvalidOrder,
+                    '50319': errors.InvalidOrder, // Price by order is less than permissible minimum for this pair
+                    '50321': errors.InvalidOrder, // Price by order is more than permissible maximum for this pair
                     '50381': errors.InvalidOrder, // {"result":false,"error":"Error 50381: More than 2 decimal places are not permitted for pair BTC_USD"}
                 },
                 'broad': {
@@ -305,13 +305,15 @@ class exmo extends exmo$1["default"] {
         });
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let response = undefined;
+        let response = {};
         if (type === 'add') {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, params));
         }
@@ -393,7 +395,9 @@ class exmo extends exmo$1["default"] {
         return await this.fetchPublicTradingFees(params);
     }
     async fetchPrivateTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostMarginPairList(params);
         //
         //     {
@@ -446,7 +450,9 @@ class exmo extends exmo$1["default"] {
         return result;
     }
     async fetchPublicTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetPairSettings(params);
         //
         //     {
@@ -510,7 +516,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/?id=fees-structure}
      */
     async fetchTransactionFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const cryptoList = await this.publicGetPaymentsProvidersCryptoList(params);
         //
         //     {
@@ -583,7 +591,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/?id=fees-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetPaymentsProvidersCryptoList(params);
         //
         //    {
@@ -631,7 +641,10 @@ class exmo extends exmo$1["default"] {
             const provider = fee[i];
             const type = this.safeString(provider, 'type');
             const networkId = this.safeString(provider, 'name');
-            const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+            const currencyId = this.safeString(provider, 'currency_name');
+            currency = this.safeCurrency(currencyId, currency);
+            const code = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, code);
             const commissionDesc = this.safeString(provider, 'commission_desc');
             let splitCommissionDesc = [];
             let percentage = undefined;
@@ -709,97 +722,103 @@ class exmo extends exmo$1["default"] {
         const responses = await Promise.all(promises);
         const currencyList = responses[0];
         const cryptoList = responses[1];
-        const result = {};
+        const newArray = [];
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString(currency, 'name');
-            const code = this.safeCurrencyCode(currencyId);
-            let type = 'crypto';
-            const networks = {};
             const providers = this.safeList(cryptoList, currencyId);
-            if (providers === undefined) {
-                type = 'fiat';
-            }
-            else {
-                for (let j = 0; j < providers.length; j++) {
-                    const provider = providers[j];
-                    const name = this.safeString(provider, 'name');
-                    // get network-id by removing extra things
-                    let networkId = name.replace(currencyId + ' ', '');
-                    networkId = networkId.replace('(', '');
-                    const replaceChar = ')'; // transpiler trick
-                    networkId = networkId.replace(replaceChar, '');
-                    const networkCode = this.networkIdToCode(networkId);
-                    if (!(networkCode in networks)) {
-                        networks[networkCode] = {
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': undefined,
-                            'deposit': undefined,
-                            'withdraw': undefined,
-                            'fee': undefined,
-                            'limits': {
-                                'withdraw': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                                'deposit': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                            },
-                            'info': [], // set as array, because of multiple network sub-entries
-                        };
-                    }
-                    const typeInner = this.safeString(provider, 'type');
-                    const minValue = this.safeString(provider, 'min');
-                    const maxValue = this.safeString(provider, 'max');
-                    const activeProvider = this.safeBool(provider, 'enabled');
-                    const networkEntry = networks[networkCode];
-                    if (typeInner === 'deposit') {
-                        networkEntry['deposit'] = activeProvider;
-                        networkEntry['limits']['deposit']['min'] = minValue;
-                        networkEntry['limits']['deposit']['max'] = maxValue;
-                    }
-                    else if (typeInner === 'withdraw') {
-                        networkEntry['withdraw'] = activeProvider;
-                        networkEntry['limits']['withdraw']['min'] = minValue;
-                        networkEntry['limits']['withdraw']['max'] = maxValue;
-                    }
-                    const info = this.safeList(networkEntry, 'info');
-                    info.push(provider);
-                    networkEntry['info'] = info;
-                    networks[networkCode] = networkEntry;
-                }
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(currency, 'description'),
-                'type': type,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber('1e-8'),
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': {
-                    'currency': currency,
-                    'providers': providers,
-                },
-                'networks': networks,
-            });
+            newArray.push({ 'currency': currency, 'providers': providers });
         }
-        return result;
+        return this.parseCurrencies(newArray);
+    }
+    parseCurrency(rawCurrency) {
+        const currency = this.safeDict(rawCurrency, 'currency', {});
+        const providers = this.safeList(rawCurrency, 'providers', []);
+        const currencyId = this.safeString(currency, 'name');
+        const code = this.safeCurrencyCode(currencyId);
+        let type = 'crypto';
+        const networks = {};
+        if (providers === undefined) {
+            type = 'fiat';
+        }
+        else {
+            for (let j = 0; j < providers.length; j++) {
+                const provider = providers[j];
+                const name = this.safeString(provider, 'name');
+                // get network-id by removing extra things
+                let networkId = name.replace(currencyId + ' ', '');
+                networkId = networkId.replace('(', '');
+                const replaceChar = ')'; // transpiler trick
+                networkId = networkId.replace(replaceChar, '');
+                const networkCode = this.networkIdToCode(networkId, code);
+                if (!(networkCode in networks)) {
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': undefined,
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'fee': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'info': [], // set as array, because of multiple network sub-entries
+                    };
+                }
+                const typeInner = this.safeString(provider, 'type');
+                const minValue = this.safeString(provider, 'min');
+                const maxValue = this.safeString(provider, 'max');
+                const activeProvider = this.safeBool(provider, 'enabled');
+                const networkEntry = networks[networkCode];
+                if (typeInner === 'deposit') {
+                    networkEntry['deposit'] = activeProvider;
+                    networkEntry['limits']['deposit']['min'] = minValue;
+                    networkEntry['limits']['deposit']['max'] = maxValue;
+                }
+                else if (typeInner === 'withdraw') {
+                    networkEntry['withdraw'] = activeProvider;
+                    networkEntry['limits']['withdraw']['min'] = minValue;
+                    networkEntry['limits']['withdraw']['max'] = maxValue;
+                }
+                const info = this.safeList(networkEntry, 'info', []);
+                info.push(provider);
+                networkEntry['info'] = info;
+                networks[networkCode] = networkEntry;
+            }
+        }
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'name': this.safeString(currency, 'description'),
+            'type': type,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber('1e-8'),
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': {
+                'currency': currency,
+                'providers': providers,
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -950,7 +969,9 @@ class exmo extends exmo$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const until = this.safeIntegerProduct(params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
@@ -1068,13 +1089,15 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' does not support cross margin');
         }
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserWalletList(params);
             //
@@ -1114,10 +1137,12 @@ class exmo extends exmo$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1140,20 +1165,24 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let ids = undefined;
         if (symbols === undefined) {
             const allIds = this.ids;
-            ids = allIds.join(',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                const numIds = this.ids.length;
-                throw new errors.ExchangeError(this.id + ' fetchOrderBooks() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            if (allIds !== undefined) {
+                ids = allIds.join(',');
+                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                if (ids.length > 2048) {
+                    const numIds = allIds.length;
+                    throw new errors.ExchangeError(this.id + ' fetchOrderBooks() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                }
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join(',');
+            const requestedIds = this.marketIds(symbols);
+            ids = requestedIds.join(',');
         }
         const request = {
             'pair': ids,
@@ -1221,7 +1250,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetTicker(params);
         //
@@ -1260,7 +1291,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTicker(params);
         const market = this.market(symbol);
         return this.parseTicker(response[market['id']], market);
@@ -1367,7 +1400,9 @@ class exmo extends exmo$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1422,7 +1457,9 @@ class exmo extends exmo$1["default"] {
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' only isolated margin is supported');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const pair = market['id'];
         const isSpot = marginMode !== 'isolated';
@@ -1441,7 +1478,7 @@ class exmo extends exmo$1["default"] {
         }
         const offset = this.safeInteger(params, 'offset', 0);
         request['offset'] = offset;
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserTrades(this.extend(request, params));
             //
@@ -1513,7 +1550,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params = this.extend(params, { 'cost': cost });
         return await this.createOrder(symbol, 'market', side, cost, undefined, params);
     }
@@ -1528,7 +1567,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params = this.extend(params, { 'cost': cost });
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
@@ -1543,7 +1584,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params = this.extend(params, { 'cost': cost });
         return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
     }
@@ -1567,7 +1610,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const isMarket = (type === 'market') && (price === undefined);
         let marginMode = undefined;
@@ -1614,7 +1659,7 @@ class exmo extends exmo$1["default"] {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(market['symbol'], price);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             if (triggerPrice !== undefined) {
                 if (type === 'limit') {
@@ -1688,7 +1733,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const trigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
@@ -1697,7 +1744,7 @@ class exmo extends exmo$1["default"] {
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' only supports isolated margin');
         }
-        let response = undefined;
+        let response;
         if ((marginMode === 'isolated')) {
             request['order_id'] = id;
             response = await this.privatePostMarginUserOrderCancel(this.extend(request, params));
@@ -1737,7 +1784,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id.toString(),
         };
@@ -1794,7 +1843,7 @@ class exmo extends exmo$1["default"] {
         const request = {
             'order_id': id.toString(),
         };
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserOrderTrades(this.extend(request, params));
             //
@@ -1859,7 +1908,9 @@ class exmo extends exmo$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1868,7 +1919,7 @@ class exmo extends exmo$1["default"] {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
         const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
-        let response = undefined;
+        let response;
         let orders = [];
         if (isMargin) {
             response = await this.privatePostMarginUserOrderList(params);
@@ -2122,7 +2173,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOrders', params);
         if (marginMode === 'cross') {
@@ -2145,7 +2198,7 @@ class exmo extends exmo$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserCancelledOrders(this.extend(request, params));
             //
@@ -2201,7 +2254,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('editOrder', params);
@@ -2235,7 +2290,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostDepositAddress(params);
         //
         //     {
@@ -2286,7 +2343,9 @@ class exmo extends exmo$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'amount': amount,
@@ -2464,7 +2523,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (since !== undefined) {
             request['date'] = this.parseToInt(since / 1000);
@@ -2518,7 +2579,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'type': 'withdraw',
@@ -2571,7 +2634,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawal(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'order_id': id,
@@ -2623,7 +2688,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposit(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'order_id': id,
@@ -2676,7 +2743,9 @@ class exmo extends exmo$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
             'type': 'deposit',
@@ -2736,7 +2805,7 @@ class exmo extends exmo$1["default"] {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
+                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
