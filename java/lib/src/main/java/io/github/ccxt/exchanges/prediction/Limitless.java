@@ -1859,4 +1859,24 @@ public class Limitless extends LimitlessCore {
         return super.fetchTransfers(code, since, limit, params).thenApply(res -> toTypedList(res, TransferEntry::new));
     }
 
+    @SuppressWarnings("unchecked")
+    public List<PredictionSettlement> fetchSettlements(String outcome, Long since, Long limit, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchSettlements(outcome, since, limit, params));
+        return toTypedList(res, PredictionSettlement::new);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<List<PredictionSettlement>> fetchSettlementsAsync(String outcome, Long since, Long limit, Map<String, Object> params) {
+        return super.fetchSettlements(outcome, since, limit, params).thenApply(res -> toTypedList(res, PredictionSettlement::new));
+    }
+
+    @SuppressWarnings("unchecked")
+    public Object redeem(String outcome, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.redeem(outcome, params));
+        return res;
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Object> redeemAsync(String outcome, Map<String, Object> params) {
+        return super.redeem(outcome, params).thenApply(res -> res);
+    }
+
 }

@@ -190,11 +190,11 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchPositions',
 ]);
 
-function parseMethodsFromTS(): MethodInfo[] {
+function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
-    const strippedBaseFile = writeOverloadStrippedFile (TS_BASE_FILE);
+    const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
-    removeOverloadStrippedFile (strippedBaseFile, TS_BASE_FILE);
+    removeOverloadStrippedFile (strippedBaseFile, sourceFile);
     const methodsTypes = baseFile.methodsTypes || [];
 
     const methods: MethodInfo[] = [];
@@ -260,6 +260,7 @@ function capitalize(s: string): string {
 
 function genReturnExpr(m: MethodInfo): string {
     if (m.isArray && m.elementType) return `toTypedList(res, ${m.elementType}::new)`;
+    if (m.javaReturnType === 'Object') return 'res';
     if (m.javaReturnType === 'Long') return '(res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return '(res instanceof Number n) ? n.doubleValue() : null';
     if (m.javaReturnType === 'String') return '(String) res';
@@ -270,6 +271,7 @@ function genReturnExpr(m: MethodInfo): string {
 
 function genAsyncReturnExpr(m: MethodInfo): string {
     if (m.isArray && m.elementType) return `res -> toTypedList(res, ${m.elementType}::new)`;
+    if (m.javaReturnType === 'Object') return 'res -> res';
     if (m.javaReturnType === 'Long') return 'res -> (res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return 'res -> (res instanceof Number n) ? n.doubleValue() : null';
     if (m.javaReturnType === 'String') return 'res -> (String) res';
@@ -605,7 +607,35 @@ function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
         return m;
     });
 }
-const predictionRestMethods = toPredictionMethods(restMethods);
+// Prediction-only base methods (fetchSettlements, ...) live on PredictionExchange.ts, not
+// Exchange.ts, so the shared restMethods list (parsed from Exchange.ts) misses them. Parse the
+// prediction base and add the methods NOT already present. Every prediction Core extends
+// PredictionExchange, so super.<method>() resolves on all — safe to share across the exchanges.
+const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
+const baseMethodNames = new Set(methods.map(m => m.name));
+let predictionBaseOnlyMethods: MethodInfo[] = [];
+if (fs.existsSync(PREDICTION_BASE_TS)) {
+    predictionBaseOnlyMethods = parseMethodsFromTS(PREDICTION_BASE_TS).filter(m => !m.isWatch && !isWsApi(m) && !baseMethodNames.has(m.name));
+    if (predictionBaseOnlyMethods.length) {
+        console.log(`Found ${predictionBaseOnlyMethods.length} prediction-base-only methods: ${predictionBaseOnlyMethods.map(m => m.name).join(', ')}`);
+    }
+}
+// Exchange-specific prediction methods that are NOT on any base (e.g. limitless.redeem returns a
+// plain dict / Object and only exists on limitless). Only their own exchange's wrapper gets them,
+// so super.<method>() resolves. Declared explicitly to avoid wrapping internal exchange helpers.
+const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
+    'limitless': [{
+        name: 'redeem',
+        javaReturnType: 'Object', isArray: false, elementType: null,
+        requiredParams: [],
+        optionalParams: [
+            { name: 'outcome', javaType: 'String', isOptional: true, defaultValue: null },
+            { name: 'params', javaType: 'Map<String, Object>', isOptional: true, defaultValue: 'null' },
+        ],
+        isWatch: false,
+    }],
+};
+const predictionRestMethods = toPredictionMethods(restMethods).concat(predictionBaseOnlyMethods);
 for (const coreFile of coreFiles) {
     const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
     const className = capitalize(exchangeId);
@@ -647,7 +677,8 @@ if (fs.existsSync(PREDICTION_EXCHANGES_FOLDER)) {
         const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
         const className = capitalize(exchangeId);
         const outputPath = `${PREDICTION_EXCHANGES_FOLDER}${className}.java`;
-        const content = generateTypedExchangeClass(exchangeId, predictionRestMethods, 'io.github.ccxt.exchanges.prediction');
+        const exchangeMethods = predictionRestMethods.concat(PREDICTION_EXCHANGE_METHODS[exchangeId] || []);
+        const content = generateTypedExchangeClass(exchangeId, exchangeMethods, 'io.github.ccxt.exchanges.prediction');
         fs.writeFileSync(outputPath, content, 'utf-8');
         predGenerated++;
     }

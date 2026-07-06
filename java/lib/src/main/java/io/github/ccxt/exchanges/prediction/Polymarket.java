@@ -1859,4 +1859,14 @@ public class Polymarket extends PolymarketCore {
         return super.fetchTransfers(code, since, limit, params).thenApply(res -> toTypedList(res, TransferEntry::new));
     }
 
+    @SuppressWarnings("unchecked")
+    public List<PredictionSettlement> fetchSettlements(String outcome, Long since, Long limit, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchSettlements(outcome, since, limit, params));
+        return toTypedList(res, PredictionSettlement::new);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<List<PredictionSettlement>> fetchSettlementsAsync(String outcome, Long since, Long limit, Map<String, Object> params) {
+        return super.fetchSettlements(outcome, since, limit, params).thenApply(res -> toTypedList(res, PredictionSettlement::new));
+    }
+
 }
